@@ -15,7 +15,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D0DB5CC31492DDD5005955FB"
                BuildableName = "Proton.framework"
-               BlueprintName = "Proton"
+               BlueprintName = "Proton Mac"
                ReferencedContainer = "container:Proton.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,8 +28,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D0DB5CDB1492DDD5005955FB"
-               BuildableName = "ProtonTests.octest"
-               BlueprintName = "ProtonTests"
+               BuildableName = "Proton Mac Tests.octest"
+               BlueprintName = "Proton Mac Tests"
                ReferencedContainer = "container:Proton.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D0DB5CDB1492DDD5005955FB"
-               BuildableName = "ProtonTests.octest"
-               BlueprintName = "ProtonTests"
+               BuildableName = "Proton Mac Tests.octest"
+               BlueprintName = "Proton Mac Tests"
                ReferencedContainer = "container:Proton.xcodeproj">
             </BuildableReference>
          </TestableReference>
