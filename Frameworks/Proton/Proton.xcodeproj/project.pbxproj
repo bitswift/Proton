@@ -497,6 +497,70 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		D091862F1492EB9C001DEBC8 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5CF91492DDE9005955FB /* Profile.xcconfig */;
+			buildSettings = {
+				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRODUCT_NAME = Proton;
+				TEST_AFTER_BUILD = YES;
+			};
+			name = Profile;
+		};
+		D09186301492EB9C001DEBC8 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "Proton/Proton-Info.plist";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Profile;
+		};
+		D09186311492EB9C001DEBC8 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Profile;
+		};
+		D09186321492EB9C001DEBC8 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				SDKROOT = iphoneos;
+			};
+			name = Profile;
+		};
+		D09186331492EB9C001DEBC8 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Profile;
+		};
 		D0B07AED1492E72800A1E816 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */;
@@ -633,6 +697,7 @@
 			buildConfigurations = (
 				D0B07AED1492E72800A1E816 /* Debug */,
 				D0B07AEE1492E72800A1E816 /* Release */,
+				D09186321492EB9C001DEBC8 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -642,6 +707,7 @@
 			buildConfigurations = (
 				D0B07AEF1492E72800A1E816 /* Debug */,
 				D0B07AF01492E72800A1E816 /* Release */,
+				D09186331492EB9C001DEBC8 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -651,6 +717,7 @@
 			buildConfigurations = (
 				D0DB5CEC1492DDD5005955FB /* Debug */,
 				D0DB5CED1492DDD5005955FB /* Release */,
+				D091862F1492EB9C001DEBC8 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -660,6 +727,7 @@
 			buildConfigurations = (
 				D0DB5CEF1492DDD5005955FB /* Debug */,
 				D0DB5CF01492DDD5005955FB /* Release */,
+				D09186301492EB9C001DEBC8 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -669,6 +737,7 @@
 			buildConfigurations = (
 				D0DB5CF21492DDD5005955FB /* Debug */,
 				D0DB5CF31492DDD5005955FB /* Release */,
+				D09186311492EB9C001DEBC8 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
