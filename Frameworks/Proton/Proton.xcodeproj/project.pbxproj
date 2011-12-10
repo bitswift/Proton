@@ -196,7 +196,7 @@
 				D0DB5D081492DDE9005955FB /* README.md */,
 			);
 			name = Configuration;
-			path = ../../Configuration;
+			path = ../libextobjc/Configuration;
 			sourceTree = "<group>";
 		};
 		D0DB5CF51492DDE9005955FB /* Base */ = {
