@@ -1,0 +1,496 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D0DB5CC81492DDD5005955FB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CC71492DDD5005955FB /* Cocoa.framework */; };
+		D0DB5CD21492DDD5005955FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0DB5CD01492DDD5005955FB /* InfoPlist.strings */; };
+		D0DB5CD61492DDD5005955FB /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DB5CD51492DDD5005955FB /* Proton.m */; };
+		D0DB5CDE1492DDD5005955FB /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
+		D0DB5CDF1492DDD5005955FB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CC71492DDD5005955FB /* Cocoa.framework */; };
+		D0DB5CE21492DDD5005955FB /* Proton.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CC41492DDD5005955FB /* Proton.framework */; };
+		D0DB5CE81492DDD5005955FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0DB5CE61492DDD5005955FB /* InfoPlist.strings */; };
+		D0DB5CEB1492DDD5005955FB /* ProtonTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DB5CEA1492DDD5005955FB /* ProtonTests.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D0DB5CE01492DDD5005955FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0DB5CBA1492DDD5005955FB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0DB5CC31492DDD5005955FB;
+			remoteInfo = Proton;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		D0DB5CC41492DDD5005955FB /* Proton.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Proton.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0DB5CC71492DDD5005955FB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		D0DB5CCA1492DDD5005955FB /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		D0DB5CCB1492DDD5005955FB /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		D0DB5CCC1492DDD5005955FB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		D0DB5CCF1492DDD5005955FB /* Proton-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Proton-Info.plist"; sourceTree = "<group>"; };
+		D0DB5CD11492DDD5005955FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D0DB5CD31492DDD5005955FB /* Proton-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Proton-Prefix.pch"; sourceTree = "<group>"; };
+		D0DB5CD41492DDD5005955FB /* Proton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Proton.h; sourceTree = "<group>"; };
+		D0DB5CD51492DDD5005955FB /* Proton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Proton.m; sourceTree = "<group>"; };
+		D0DB5CDC1492DDD5005955FB /* ProtonTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProtonTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		D0DB5CE51492DDD5005955FB /* ProtonTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ProtonTests-Info.plist"; sourceTree = "<group>"; };
+		D0DB5CE71492DDD5005955FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D0DB5CE91492DDD5005955FB /* ProtonTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProtonTests.h; sourceTree = "<group>"; };
+		D0DB5CEA1492DDD5005955FB /* ProtonTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ProtonTests.m; sourceTree = "<group>"; };
+		D0DB5CF61492DDE9005955FB /* Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Common.xcconfig; sourceTree = "<group>"; };
+		D0DB5CF81492DDE9005955FB /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		D0DB5CF91492DDE9005955FB /* Profile.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Profile.xcconfig; sourceTree = "<group>"; };
+		D0DB5CFA1492DDE9005955FB /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		D0DB5CFC1492DDE9005955FB /* Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Application.xcconfig; sourceTree = "<group>"; };
+		D0DB5CFD1492DDE9005955FB /* StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = StaticLibrary.xcconfig; sourceTree = "<group>"; };
+		D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Application.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D001492DDE9005955FB /* iOS-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Base.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Application.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D041492DDE9005955FB /* Mac-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Base.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D051492DDE9005955FB /* Mac-DynamicLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-DynamicLibrary.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Framework.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D071492DDE9005955FB /* Mac-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
+		D0DB5D081492DDE9005955FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D0DB5CC01492DDD5005955FB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0DB5CC81492DDD5005955FB /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DB5CD81492DDD5005955FB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0DB5CDE1492DDD5005955FB /* SenTestingKit.framework in Frameworks */,
+				D0DB5CDF1492DDD5005955FB /* Cocoa.framework in Frameworks */,
+				D0DB5CE21492DDD5005955FB /* Proton.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D0DB5CB81492DDD5005955FB = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CCD1492DDD5005955FB /* Proton */,
+				D0DB5CE31492DDD5005955FB /* ProtonTests */,
+				D0DB5CC61492DDD5005955FB /* Frameworks */,
+				D0DB5CF41492DDE9005955FB /* Configuration */,
+				D0DB5CC51492DDD5005955FB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D0DB5CC51492DDD5005955FB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CC41492DDD5005955FB /* Proton.framework */,
+				D0DB5CDC1492DDD5005955FB /* ProtonTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D0DB5CC61492DDD5005955FB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CC71492DDD5005955FB /* Cocoa.framework */,
+				D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */,
+				D0DB5CC91492DDD5005955FB /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D0DB5CC91492DDD5005955FB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CCA1492DDD5005955FB /* AppKit.framework */,
+				D0DB5CCB1492DDD5005955FB /* CoreData.framework */,
+				D0DB5CCC1492DDD5005955FB /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		D0DB5CCD1492DDD5005955FB /* Proton */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CD41492DDD5005955FB /* Proton.h */,
+				D0DB5CD51492DDD5005955FB /* Proton.m */,
+				D0DB5CCE1492DDD5005955FB /* Supporting Files */,
+			);
+			path = Proton;
+			sourceTree = "<group>";
+		};
+		D0DB5CCE1492DDD5005955FB /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CCF1492DDD5005955FB /* Proton-Info.plist */,
+				D0DB5CD01492DDD5005955FB /* InfoPlist.strings */,
+				D0DB5CD31492DDD5005955FB /* Proton-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D0DB5CE31492DDD5005955FB /* ProtonTests */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CE91492DDD5005955FB /* ProtonTests.h */,
+				D0DB5CEA1492DDD5005955FB /* ProtonTests.m */,
+				D0DB5CE41492DDD5005955FB /* Supporting Files */,
+			);
+			path = ProtonTests;
+			sourceTree = "<group>";
+		};
+		D0DB5CE41492DDD5005955FB /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CE51492DDD5005955FB /* ProtonTests-Info.plist */,
+				D0DB5CE61492DDD5005955FB /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D0DB5CF41492DDE9005955FB /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CF51492DDE9005955FB /* Base */,
+				D0DB5CFE1492DDE9005955FB /* iOS */,
+				D0DB5D021492DDE9005955FB /* Mac OS X */,
+				D0DB5D081492DDE9005955FB /* README.md */,
+			);
+			name = Configuration;
+			path = ../../Configuration;
+			sourceTree = "<group>";
+		};
+		D0DB5CF51492DDE9005955FB /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CF61492DDE9005955FB /* Common.xcconfig */,
+				D0DB5CF71492DDE9005955FB /* Configurations */,
+				D0DB5CFB1492DDE9005955FB /* Targets */,
+			);
+			path = Base;
+			sourceTree = "<group>";
+		};
+		D0DB5CF71492DDE9005955FB /* Configurations */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CF81492DDE9005955FB /* Debug.xcconfig */,
+				D0DB5CF91492DDE9005955FB /* Profile.xcconfig */,
+				D0DB5CFA1492DDE9005955FB /* Release.xcconfig */,
+			);
+			path = Configurations;
+			sourceTree = "<group>";
+		};
+		D0DB5CFB1492DDE9005955FB /* Targets */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CFC1492DDE9005955FB /* Application.xcconfig */,
+				D0DB5CFD1492DDE9005955FB /* StaticLibrary.xcconfig */,
+			);
+			path = Targets;
+			sourceTree = "<group>";
+		};
+		D0DB5CFE1492DDE9005955FB /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */,
+				D0DB5D001492DDE9005955FB /* iOS-Base.xcconfig */,
+				D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		D0DB5D021492DDE9005955FB /* Mac OS X */ = {
+			isa = PBXGroup;
+			children = (
+				D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */,
+				D0DB5D041492DDE9005955FB /* Mac-Base.xcconfig */,
+				D0DB5D051492DDE9005955FB /* Mac-DynamicLibrary.xcconfig */,
+				D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */,
+				D0DB5D071492DDE9005955FB /* Mac-StaticLibrary.xcconfig */,
+			);
+			path = "Mac OS X";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D0DB5CC11492DDD5005955FB /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		D0DB5CC31492DDD5005955FB /* Proton */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0DB5CEE1492DDD5005955FB /* Build configuration list for PBXNativeTarget "Proton" */;
+			buildPhases = (
+				D0DB5CBF1492DDD5005955FB /* Sources */,
+				D0DB5CC01492DDD5005955FB /* Frameworks */,
+				D0DB5CC11492DDD5005955FB /* Headers */,
+				D0DB5CC21492DDD5005955FB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Proton;
+			productName = Proton;
+			productReference = D0DB5CC41492DDD5005955FB /* Proton.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		D0DB5CDB1492DDD5005955FB /* ProtonTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0DB5CF11492DDD5005955FB /* Build configuration list for PBXNativeTarget "ProtonTests" */;
+			buildPhases = (
+				D0DB5CD71492DDD5005955FB /* Sources */,
+				D0DB5CD81492DDD5005955FB /* Frameworks */,
+				D0DB5CD91492DDD5005955FB /* Resources */,
+				D0DB5CDA1492DDD5005955FB /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D0DB5CE11492DDD5005955FB /* PBXTargetDependency */,
+			);
+			name = ProtonTests;
+			productName = ProtonTests;
+			productReference = D0DB5CDC1492DDD5005955FB /* ProtonTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D0DB5CBA1492DDD5005955FB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+				ORGANIZATIONNAME = "Emerald Lark";
+			};
+			buildConfigurationList = D0DB5CBD1492DDD5005955FB /* Build configuration list for PBXProject "Proton" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = D0DB5CB81492DDD5005955FB;
+			productRefGroup = D0DB5CC51492DDD5005955FB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D0DB5CC31492DDD5005955FB /* Proton */,
+				D0DB5CDB1492DDD5005955FB /* ProtonTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D0DB5CC21492DDD5005955FB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0DB5CD21492DDD5005955FB /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DB5CD91492DDD5005955FB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0DB5CE81492DDD5005955FB /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D0DB5CDA1492DDD5005955FB /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D0DB5CBF1492DDD5005955FB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0DB5CD61492DDD5005955FB /* Proton.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DB5CD71492DDD5005955FB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0DB5CEB1492DDD5005955FB /* ProtonTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D0DB5CE11492DDD5005955FB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0DB5CC31492DDD5005955FB /* Proton */;
+			targetProxy = D0DB5CE01492DDD5005955FB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		D0DB5CD01492DDD5005955FB /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D0DB5CD11492DDD5005955FB /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		D0DB5CE61492DDD5005955FB /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D0DB5CE71492DDD5005955FB /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		D0DB5CEC1492DDD5005955FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5CF81492DDE9005955FB /* Debug.xcconfig */;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				TEST_AFTER_BUILD = YES;
+			};
+			name = Debug;
+		};
+		D0DB5CED1492DDD5005955FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5CFA1492DDE9005955FB /* Release.xcconfig */;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				TEST_AFTER_BUILD = YES;
+			};
+			name = Release;
+		};
+		D0DB5CEF1492DDD5005955FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				INFOPLIST_FILE = "Proton/Proton-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		D0DB5CF01492DDD5005955FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				INFOPLIST_FILE = "Proton/Proton-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
+		D0DB5CF21492DDD5005955FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		D0DB5CF31492DDD5005955FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D0DB5CBD1492DDD5005955FB /* Build configuration list for PBXProject "Proton" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0DB5CEC1492DDD5005955FB /* Debug */,
+				D0DB5CED1492DDD5005955FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D0DB5CEE1492DDD5005955FB /* Build configuration list for PBXNativeTarget "Proton" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0DB5CEF1492DDD5005955FB /* Debug */,
+				D0DB5CF01492DDD5005955FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		D0DB5CF11492DDD5005955FB /* Build configuration list for PBXNativeTarget "ProtonTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0DB5CF21492DDD5005955FB /* Debug */,
+				D0DB5CF31492DDD5005955FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D0DB5CBA1492DDD5005955FB /* Project object */;
+}
