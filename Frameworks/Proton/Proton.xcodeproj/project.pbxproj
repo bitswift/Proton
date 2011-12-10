@@ -17,6 +17,26 @@
 		D0B07AF61492E75700A1E816 /* Proton.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DB5CD41492DDD5005955FB /* Proton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0B07AF81492E76200A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07AF71492E76200A1E816 /* Foundation.framework */; };
 		D0B07AF91492E94800A1E816 /* ProtonTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DB5CEA1492DDD5005955FB /* ProtonTests.m */; };
+		D0D7A1AD1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1AE1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1AF1492EE1B0057F90D /* EXTRuntimeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */; };
+		D0D7A1B01492EE1B0057F90D /* EXTRuntimeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */; };
+		D0D7A1B11492EE1B0057F90D /* EXTSafeCategory.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1B21492EE1B0057F90D /* EXTSafeCategory.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1B31492EE1B0057F90D /* EXTSafeCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1AA1492EE1B0057F90D /* EXTSafeCategory.m */; };
+		D0D7A1B41492EE1B0057F90D /* EXTSafeCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1AA1492EE1B0057F90D /* EXTSafeCategory.m */; };
+		D0D7A1B51492EE1B0057F90D /* EXTScope.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1AB1492EE1B0057F90D /* EXTScope.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1B61492EE1B0057F90D /* EXTScope.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1AB1492EE1B0057F90D /* EXTScope.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1B71492EE1B0057F90D /* EXTScope.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1AC1492EE1B0057F90D /* EXTScope.m */; };
+		D0D7A1B81492EE1B0057F90D /* EXTScope.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1AC1492EE1B0057F90D /* EXTScope.m */; };
+		D0D7A1BA1492EE210057F90D /* metamacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1B91492EE210057F90D /* metamacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1BB1492EE210057F90D /* metamacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1B91492EE210057F90D /* metamacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1C31492EE520057F90D /* EXTRuntimeExtensionsTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */; };
+		D0D7A1C41492EE520057F90D /* EXTRuntimeExtensionsTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */; };
+		D0D7A1C51492EE520057F90D /* EXTSafeCategoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1C01492EE520057F90D /* EXTSafeCategoryTest.m */; };
+		D0D7A1C61492EE520057F90D /* EXTSafeCategoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1C01492EE520057F90D /* EXTSafeCategoryTest.m */; };
+		D0D7A1C71492EE520057F90D /* EXTScopeTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1C21492EE520057F90D /* EXTScopeTest.m */; };
+		D0D7A1C81492EE520057F90D /* EXTScopeTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1C21492EE520057F90D /* EXTScopeTest.m */; };
 		D0DB5CD21492DDD5005955FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0DB5CD01492DDD5005955FB /* InfoPlist.strings */; };
 		D0DB5CD61492DDD5005955FB /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DB5CD51492DDD5005955FB /* Proton.m */; };
 		D0DB5CDE1492DDD5005955FB /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
@@ -47,6 +67,19 @@
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07AF71492E76200A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = SDKs/MacOSX10.7.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTRuntimeExtensions.h; path = ../libextobjc/extobjc/Modules/EXTRuntimeExtensions.h; sourceTree = "<group>"; };
+		D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTRuntimeExtensions.m; path = ../libextobjc/extobjc/Modules/EXTRuntimeExtensions.m; sourceTree = "<group>"; };
+		D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTSafeCategory.h; path = ../libextobjc/extobjc/Modules/EXTSafeCategory.h; sourceTree = "<group>"; };
+		D0D7A1AA1492EE1B0057F90D /* EXTSafeCategory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTSafeCategory.m; path = ../libextobjc/extobjc/Modules/EXTSafeCategory.m; sourceTree = "<group>"; };
+		D0D7A1AB1492EE1B0057F90D /* EXTScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTScope.h; path = ../libextobjc/extobjc/Modules/EXTScope.h; sourceTree = "<group>"; };
+		D0D7A1AC1492EE1B0057F90D /* EXTScope.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTScope.m; path = ../libextobjc/extobjc/Modules/EXTScope.m; sourceTree = "<group>"; };
+		D0D7A1B91492EE210057F90D /* metamacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = metamacros.h; path = ../libextobjc/extobjc/metamacros.h; sourceTree = "<group>"; };
+		D0D7A1BD1492EE520057F90D /* EXTRuntimeExtensionsTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTRuntimeExtensionsTest.h; path = ../../libextobjc/extobjc/Tests/EXTRuntimeExtensionsTest.h; sourceTree = "<group>"; };
+		D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTRuntimeExtensionsTest.m; path = ../../libextobjc/extobjc/Tests/EXTRuntimeExtensionsTest.m; sourceTree = "<group>"; };
+		D0D7A1BF1492EE520057F90D /* EXTSafeCategoryTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTSafeCategoryTest.h; path = ../../libextobjc/extobjc/Tests/EXTSafeCategoryTest.h; sourceTree = "<group>"; };
+		D0D7A1C01492EE520057F90D /* EXTSafeCategoryTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTSafeCategoryTest.m; path = ../../libextobjc/extobjc/Tests/EXTSafeCategoryTest.m; sourceTree = "<group>"; };
+		D0D7A1C11492EE520057F90D /* EXTScopeTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTScopeTest.h; path = ../../libextobjc/extobjc/Tests/EXTScopeTest.h; sourceTree = "<group>"; };
+		D0D7A1C21492EE520057F90D /* EXTScopeTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTScopeTest.m; path = ../../libextobjc/extobjc/Tests/EXTScopeTest.m; sourceTree = "<group>"; };
 		D0DB5CC41492DDD5005955FB /* Proton.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Proton.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0DB5CCF1492DDD5005955FB /* Proton-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Proton-Info.plist"; sourceTree = "<group>"; };
 		D0DB5CD11492DDD5005955FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -116,6 +149,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D0D7A1A51492EE020057F90D /* libextobjc */ = {
+			isa = PBXGroup;
+			children = (
+				D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */,
+				D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */,
+				D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */,
+				D0D7A1AA1492EE1B0057F90D /* EXTSafeCategory.m */,
+				D0D7A1AB1492EE1B0057F90D /* EXTScope.h */,
+				D0D7A1AC1492EE1B0057F90D /* EXTScope.m */,
+				D0D7A1B91492EE210057F90D /* metamacros.h */,
+			);
+			name = libextobjc;
+			sourceTree = "<group>";
+		};
+		D0D7A1BC1492EE3F0057F90D /* libextobjc */ = {
+			isa = PBXGroup;
+			children = (
+				D0D7A1BD1492EE520057F90D /* EXTRuntimeExtensionsTest.h */,
+				D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */,
+				D0D7A1BF1492EE520057F90D /* EXTSafeCategoryTest.h */,
+				D0D7A1C01492EE520057F90D /* EXTSafeCategoryTest.m */,
+				D0D7A1C11492EE520057F90D /* EXTScopeTest.h */,
+				D0D7A1C21492EE520057F90D /* EXTScopeTest.m */,
+			);
+			name = libextobjc;
+			sourceTree = "<group>";
+		};
 		D0DB5CB81492DDD5005955FB = {
 			isa = PBXGroup;
 			children = (
@@ -141,6 +201,7 @@
 		D0DB5CC61492DDD5005955FB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D0D7A1A51492EE020057F90D /* libextobjc */,
 				D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */,
 				D0B07AF71492E76200A1E816 /* Foundation.framework */,
 				D0B07ACF1492E72800A1E816 /* Foundation.framework */,
@@ -173,6 +234,7 @@
 			children = (
 				D0DB5CE91492DDD5005955FB /* ProtonTests.h */,
 				D0DB5CEA1492DDD5005955FB /* ProtonTests.m */,
+				D0D7A1BC1492EE3F0057F90D /* libextobjc */,
 				D0DB5CE41492DDD5005955FB /* Supporting Files */,
 			);
 			path = ProtonTests;
@@ -258,6 +320,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0B07AF61492E75700A1E816 /* Proton.h in Headers */,
+				D0D7A1AE1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */,
+				D0D7A1B21492EE1B0057F90D /* EXTSafeCategory.h in Headers */,
+				D0D7A1B61492EE1B0057F90D /* EXTScope.h in Headers */,
+				D0D7A1BB1492EE210057F90D /* metamacros.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,6 +332,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0B07AF51492E75200A1E816 /* Proton.h in Headers */,
+				D0D7A1AD1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */,
+				D0D7A1B11492EE1B0057F90D /* EXTSafeCategory.h in Headers */,
+				D0D7A1B51492EE1B0057F90D /* EXTScope.h in Headers */,
+				D0D7A1BA1492EE210057F90D /* metamacros.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -435,6 +505,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0B07AF41492E74700A1E816 /* Proton.m in Sources */,
+				D0D7A1B01492EE1B0057F90D /* EXTRuntimeExtensions.m in Sources */,
+				D0D7A1B41492EE1B0057F90D /* EXTSafeCategory.m in Sources */,
+				D0D7A1B81492EE1B0057F90D /* EXTScope.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -443,6 +516,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0B07AF91492E94800A1E816 /* ProtonTests.m in Sources */,
+				D0D7A1C41492EE520057F90D /* EXTRuntimeExtensionsTest.m in Sources */,
+				D0D7A1C61492EE520057F90D /* EXTSafeCategoryTest.m in Sources */,
+				D0D7A1C81492EE520057F90D /* EXTScopeTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,6 +527,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0DB5CD61492DDD5005955FB /* Proton.m in Sources */,
+				D0D7A1AF1492EE1B0057F90D /* EXTRuntimeExtensions.m in Sources */,
+				D0D7A1B31492EE1B0057F90D /* EXTSafeCategory.m in Sources */,
+				D0D7A1B71492EE1B0057F90D /* EXTScope.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -459,6 +538,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0DB5CEB1492DDD5005955FB /* ProtonTests.m in Sources */,
+				D0D7A1C31492EE520057F90D /* EXTRuntimeExtensionsTest.m in Sources */,
+				D0D7A1C51492EE520057F90D /* EXTSafeCategoryTest.m in Sources */,
+				D0D7A1C71492EE520057F90D /* EXTScopeTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
