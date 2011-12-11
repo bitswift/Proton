@@ -7,6 +7,7 @@
 //
 
 #import <Proton/NSObject+ErrorAdditions.h>
+#import <Proton/EXTSafeCategory.h>
 
 @interface NSObject (DummyMethods)
 /*
@@ -16,7 +17,7 @@
 + (NSString *)errorDomain;
 @end
 
-@implementation NSObject (ErrorAdditions)
+@safecategory (NSObject, ErrorAdditions)
 
 - (NSError *)errorWithCode:(NSInteger)code description:(NSString *)description recoverySuggestion:(NSString *)recoverySuggestion {
 
