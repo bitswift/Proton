@@ -9,3 +9,4 @@
 #import <Proton/EXTRuntimeExtensions.h>
 #import <Proton/EXTSafeCategory.h>
 #import <Proton/EXTScope.h>
+#import <Proton/NSArray+HigherOrderAdditions.h>
