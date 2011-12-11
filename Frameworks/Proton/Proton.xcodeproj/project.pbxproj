@@ -623,6 +623,7 @@
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				WRAPPER_EXTENSION = octest;
@@ -657,6 +658,7 @@
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				WRAPPER_EXTENSION = octest;
@@ -673,6 +675,7 @@
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				WRAPPER_EXTENSION = octest;
