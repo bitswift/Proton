@@ -47,8 +47,8 @@
 		D0D7A1B61492EE1B0057F90D /* EXTScope.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1AB1492EE1B0057F90D /* EXTScope.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0D7A1B71492EE1B0057F90D /* EXTScope.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1AC1492EE1B0057F90D /* EXTScope.m */; };
 		D0D7A1B81492EE1B0057F90D /* EXTScope.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1AC1492EE1B0057F90D /* EXTScope.m */; };
-		D0D7A1BA1492EE210057F90D /* metamacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1B91492EE210057F90D /* metamacros.h */; settings = {ATTRIBUTES = (); }; };
-		D0D7A1BB1492EE210057F90D /* metamacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1B91492EE210057F90D /* metamacros.h */; settings = {ATTRIBUTES = (); }; };
+		D0D7A1BA1492EE210057F90D /* metamacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1B91492EE210057F90D /* metamacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D7A1BB1492EE210057F90D /* metamacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1B91492EE210057F90D /* metamacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0D7A1C31492EE520057F90D /* EXTRuntimeExtensionsTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */; };
 		D0D7A1C41492EE520057F90D /* EXTRuntimeExtensionsTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */; };
 		D0D7A1C51492EE520057F90D /* EXTSafeCategoryTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1C01492EE520057F90D /* EXTSafeCategoryTest.m */; };
@@ -381,11 +381,11 @@
 				D0D7A1AE1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */,
 				D0D7A1B21492EE1B0057F90D /* EXTSafeCategory.h in Headers */,
 				D0D7A1B61492EE1B0057F90D /* EXTScope.h in Headers */,
+				D0D7A1BB1492EE210057F90D /* metamacros.h in Headers */,
 				D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */,
 				D047032D1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */,
 				D04703311494A6F8004CB93A /* NSObject+ComparisonAdditions.h in Headers */,
 				D04703351494A6F8004CB93A /* NSObject+ErrorAdditions.h in Headers */,
-				D0D7A1BB1492EE210057F90D /* metamacros.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -397,11 +397,11 @@
 				D0D7A1AD1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */,
 				D0D7A1B11492EE1B0057F90D /* EXTSafeCategory.h in Headers */,
 				D0D7A1B51492EE1B0057F90D /* EXTScope.h in Headers */,
+				D0D7A1BA1492EE210057F90D /* metamacros.h in Headers */,
 				D06AA4521494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */,
 				D047032C1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */,
 				D04703301494A6F8004CB93A /* NSObject+ComparisonAdditions.h in Headers */,
 				D04703341494A6F8004CB93A /* NSObject+ErrorAdditions.h in Headers */,
-				D0D7A1BA1492EE210057F90D /* metamacros.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
