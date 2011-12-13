@@ -14,3 +14,4 @@
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/NSObject+ErrorAdditions.h>
 #import <Proton/PROTransformation.h>
+#import <Proton/PROUniqueTransformation.h>
