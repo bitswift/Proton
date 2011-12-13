@@ -75,6 +75,12 @@
 		D0DB5CDE1492DDD5005955FB /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0DB5CE21492DDD5005955FB /* Proton.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CC41492DDD5005955FB /* Proton.framework */; };
 		D0DB5CE81492DDD5005955FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0DB5CE61492DDD5005955FB /* InfoPlist.strings */; };
+		D0E0F2F41497E4A80072FE2C /* EXTNil.h in Headers */ = {isa = PBXBuildFile; fileRef = D0E0F2F21497E4A80072FE2C /* EXTNil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0E0F2F51497E4A80072FE2C /* EXTNil.h in Headers */ = {isa = PBXBuildFile; fileRef = D0E0F2F21497E4A80072FE2C /* EXTNil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0E0F2F61497E4A80072FE2C /* EXTNil.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F31497E4A80072FE2C /* EXTNil.m */; };
+		D0E0F2F71497E4A80072FE2C /* EXTNil.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F31497E4A80072FE2C /* EXTNil.m */; };
+		D0E0F2FA1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
+		D0E0F2FB1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -156,6 +162,10 @@
 		D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Framework.xcconfig"; sourceTree = "<group>"; };
 		D0DB5D071492DDE9005955FB /* Mac-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
 		D0DB5D081492DDE9005955FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		D0E0F2F21497E4A80072FE2C /* EXTNil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTNil.h; path = ../libextobjc/extobjc/Classes/EXTNil.h; sourceTree = "<group>"; };
+		D0E0F2F31497E4A80072FE2C /* EXTNil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNil.m; path = ../libextobjc/extobjc/Classes/EXTNil.m; sourceTree = "<group>"; };
+		D0E0F2F81497E4CD0072FE2C /* EXTNilTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTNilTest.h; path = ../../libextobjc/extobjc/Tests/EXTNilTest.h; sourceTree = "<group>"; };
+		D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNilTest.m; path = ../../libextobjc/extobjc/Tests/EXTNilTest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -250,6 +260,8 @@
 		D0D7A1A51492EE020057F90D /* libextobjc */ = {
 			isa = PBXGroup;
 			children = (
+				D0E0F2F21497E4A80072FE2C /* EXTNil.h */,
+				D0E0F2F31497E4A80072FE2C /* EXTNil.m */,
 				D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */,
 				D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */,
 				D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */,
@@ -264,6 +276,8 @@
 		D0D7A1BC1492EE3F0057F90D /* libextobjc */ = {
 			isa = PBXGroup;
 			children = (
+				D0E0F2F81497E4CD0072FE2C /* EXTNilTest.h */,
+				D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */,
 				D0D7A1BD1492EE520057F90D /* EXTRuntimeExtensionsTest.h */,
 				D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */,
 				D0D7A1BF1492EE520057F90D /* EXTSafeCategoryTest.h */,
@@ -430,6 +444,7 @@
 				D0477F601497460000B0DAB0 /* PROUniqueTransformation.h in Headers */,
 				D0477F661497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */,
 				D0477F6C149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
+				D0E0F2F51497E4A80072FE2C /* EXTNil.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,6 +465,7 @@
 				D0477F5F1497460000B0DAB0 /* PROUniqueTransformation.h in Headers */,
 				D0477F651497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */,
 				D0477F6B149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
+				D0E0F2F41497E4A80072FE2C /* EXTNil.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -629,6 +645,7 @@
 				D0477F621497460000B0DAB0 /* PROUniqueTransformation.m in Sources */,
 				D0477F681497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */,
 				D0477F6E149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */,
+				D0E0F2F71497E4A80072FE2C /* EXTNil.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -641,6 +658,7 @@
 				D0D7A1C81492EE520057F90D /* EXTScopeTest.m in Sources */,
 				D06AA45B1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */,
 				D047033C1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
+				D0E0F2FB1497E4CD0072FE2C /* EXTNilTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -659,6 +677,7 @@
 				D0477F611497460000B0DAB0 /* PROUniqueTransformation.m in Sources */,
 				D0477F671497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */,
 				D0477F6D149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */,
+				D0E0F2F61497E4A80072FE2C /* EXTNil.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -671,6 +690,7 @@
 				D0D7A1C71492EE520057F90D /* EXTScopeTest.m in Sources */,
 				D06AA45A1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */,
 				D047033B1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
+				D0E0F2FA1497E4CD0072FE2C /* EXTNilTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
