@@ -13,5 +13,6 @@
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/NSObject+ErrorAdditions.h>
+#import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
