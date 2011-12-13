@@ -13,3 +13,4 @@
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/NSObject+ErrorAdditions.h>
+#import <Proton/NSString+UniqueIdentifierAdditions.h>
