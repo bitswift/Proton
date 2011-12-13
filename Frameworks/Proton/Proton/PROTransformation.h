@@ -37,7 +37,7 @@
  */
 
 /**
- * Returns the reverse transformation of the receiver.
+ * The reverse transformation of the receiver.
  *
  * The reverse transformation is defined such that
  *
@@ -46,6 +46,6 @@
  * 
  * will return an object that compares equal to `obj`.
  */
-- (PROTransformation *)reverseTransformation;
+@property (nonatomic, strong, readonly) PROTransformation *reverseTransformation;
 
 @end
