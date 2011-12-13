@@ -40,7 +40,7 @@
  * @param outputValue The value to return from <transform:> when the
  * `inputValue` is given. This argument is copied.
  */
-- (id)initWithInputValue:(id)inputValue outputValue:(id)outputValue;
+- (id)initWithInputValue:(id<NSCoding, NSCopying>)inputValue outputValue:(id<NSCoding, NSCopying>)outputValue;
 
 /**
  * @name Input and Output Values
