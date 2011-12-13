@@ -21,6 +21,10 @@
 		D04703371494A6F8004CB93A /* NSObject+ErrorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D047032B1494A6F8004CB93A /* NSObject+ErrorAdditions.m */; };
 		D047033B1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */; };
 		D047033C1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */; };
+		D0477F5914970DE700B0DAB0 /* PROTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F5714970DE700B0DAB0 /* PROTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F5A14970DE700B0DAB0 /* PROTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F5714970DE700B0DAB0 /* PROTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F5B14970DE700B0DAB0 /* PROTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F5814970DE700B0DAB0 /* PROTransformation.m */; };
+		D0477F5C14970DE700B0DAB0 /* PROTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F5814970DE700B0DAB0 /* PROTransformation.m */; };
 		D06AA4521494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4541494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
@@ -87,6 +91,8 @@
 		D047032B1494A6F8004CB93A /* NSObject+ErrorAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+ErrorAdditions.m"; sourceTree = "<group>"; };
 		D04703391494A728004CB93A /* PRONSObjectAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSObjectAdditionsTests.h; sourceTree = "<group>"; };
 		D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSObjectAdditionsTests.m; sourceTree = "<group>"; };
+		D0477F5714970DE700B0DAB0 /* PROTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROTransformation.h; sourceTree = "<group>"; };
+		D0477F5814970DE700B0DAB0 /* PROTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROTransformation.m; sourceTree = "<group>"; };
 		D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSArrayAdditionsTests.h; sourceTree = "<group>"; };
@@ -174,6 +180,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D0477F5514970DDC00B0DAB0 /* Transformation */ = {
+			isa = PBXGroup;
+			children = (
+				D0477F5714970DE700B0DAB0 /* PROTransformation.h */,
+				D0477F5814970DE700B0DAB0 /* PROTransformation.m */,
+			);
+			name = Transformation;
+			sourceTree = "<group>";
+		};
 		D06AA4321494A19600F0F94B /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -192,6 +207,7 @@
 		D06AA43F1494A1B400F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				D0477F5514970DDC00B0DAB0 /* Transformation */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -386,6 +402,7 @@
 				D047032D1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */,
 				D04703311494A6F8004CB93A /* NSObject+ComparisonAdditions.h in Headers */,
 				D04703351494A6F8004CB93A /* NSObject+ErrorAdditions.h in Headers */,
+				D0477F5A14970DE700B0DAB0 /* PROTransformation.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -402,6 +419,7 @@
 				D047032C1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */,
 				D04703301494A6F8004CB93A /* NSObject+ComparisonAdditions.h in Headers */,
 				D04703341494A6F8004CB93A /* NSObject+ErrorAdditions.h in Headers */,
+				D0477F5914970DE700B0DAB0 /* PROTransformation.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -577,6 +595,7 @@
 				D047032F1494A6F8004CB93A /* Foundation+LocalizationAdditions.m in Sources */,
 				D04703331494A6F8004CB93A /* NSObject+ComparisonAdditions.m in Sources */,
 				D04703371494A6F8004CB93A /* NSObject+ErrorAdditions.m in Sources */,
+				D0477F5C14970DE700B0DAB0 /* PROTransformation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -603,6 +622,7 @@
 				D047032E1494A6F8004CB93A /* Foundation+LocalizationAdditions.m in Sources */,
 				D04703321494A6F8004CB93A /* NSObject+ComparisonAdditions.m in Sources */,
 				D04703361494A6F8004CB93A /* NSObject+ErrorAdditions.m in Sources */,
+				D0477F5B14970DE700B0DAB0 /* PROTransformation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
