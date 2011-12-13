@@ -33,6 +33,10 @@
 		D0477F661497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0477F671497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */; };
 		D0477F681497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */; };
+		D0477F6B149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F6C149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F6D149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */; };
+		D0477F6E149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */; };
 		D06AA4521494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4541494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
@@ -105,6 +109,8 @@
 		D0477F5E1497460000B0DAB0 /* PROUniqueTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueTransformation.m; sourceTree = "<group>"; };
 		D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformation.h; sourceTree = "<group>"; };
 		D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformation.m; sourceTree = "<group>"; };
+		D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformation.h; sourceTree = "<group>"; };
+		D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformation.m; sourceTree = "<group>"; };
 		D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSArrayAdditionsTests.h; sourceTree = "<group>"; };
@@ -195,6 +201,8 @@
 		D0477F5514970DDC00B0DAB0 /* Transformation */ = {
 			isa = PBXGroup;
 			children = (
+				D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */,
+				D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */,
 				D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */,
 				D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */,
 				D0477F5714970DE700B0DAB0 /* PROTransformation.h */,
@@ -421,6 +429,7 @@
 				D0477F5A14970DE700B0DAB0 /* PROTransformation.h in Headers */,
 				D0477F601497460000B0DAB0 /* PROUniqueTransformation.h in Headers */,
 				D0477F661497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */,
+				D0477F6C149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,6 +449,7 @@
 				D0477F5914970DE700B0DAB0 /* PROTransformation.h in Headers */,
 				D0477F5F1497460000B0DAB0 /* PROUniqueTransformation.h in Headers */,
 				D0477F651497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */,
+				D0477F6B149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -618,6 +628,7 @@
 				D0477F5C14970DE700B0DAB0 /* PROTransformation.m in Sources */,
 				D0477F621497460000B0DAB0 /* PROUniqueTransformation.m in Sources */,
 				D0477F681497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */,
+				D0477F6E149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -647,6 +658,7 @@
 				D0477F5B14970DE700B0DAB0 /* PROTransformation.m in Sources */,
 				D0477F611497460000B0DAB0 /* PROUniqueTransformation.m in Sources */,
 				D0477F671497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */,
+				D0477F6D149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
