@@ -42,7 +42,7 @@
 @interface PROKeyedTransformation : PROTransformation <NSCoding, NSCopying>
 
 /**
- * Initialization
+ * @name Initialization
  */
 
 /**
