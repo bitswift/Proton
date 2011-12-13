@@ -12,6 +12,7 @@
 #import <Proton/EXTScope.h>
 #import <Proton/Foundation+LocalizationAdditions.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
+#import <Proton/NSDictionary+PROKeyedObjectAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/NSObject+ErrorAdditions.h>
 #import <Proton/PROKeyedTransformation.h>
