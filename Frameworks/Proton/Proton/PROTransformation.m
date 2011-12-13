@@ -10,27 +10,29 @@
 
 @implementation PROTransformation
 
+#pragma mark Properties
+
+- (PROTransformation *)reverseTransformation; {
+    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
+    return self;
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    // TODO
+    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
     return obj;
-}
-
-- (PROTransformation *)reverseTransformation; {
-    // TODO
-    return self;
 }
 
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
-    // TODO
-    return nil;
+    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
+    return [self init];
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    // TODO
+    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
 }
 
 #pragma mark NSCopying
