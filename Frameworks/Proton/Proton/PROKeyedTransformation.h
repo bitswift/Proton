@@ -57,7 +57,8 @@
  *
  * @param valueTransformations A dictionary containing the transformations to
  * apply to any object given to <transform:>, associated with the key of the
- * given object whose value will be transformed.
+ * given object whose value will be transformed. The keys in this dictionary
+ * must be strings.
  */
 - (id)initWithValueTransformations:(NSDictionary *)valueTransformations;
 
@@ -68,6 +69,8 @@
 /**
  * The transformations performed by the receiver, associated with the keys whose
  * values will be transformed.
+ *
+ * The keys in this dictionary must be strings.
  */
 @property (nonatomic, copy, readonly) NSDictionary *valueTransformations;
 
