@@ -7,6 +7,8 @@
 //
 
 #import <Proton/PROModel.h>
+#import <Proton/EXTRuntimeExtensions.h>
+#import <Proton/EXTScope.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
@@ -21,12 +23,13 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
     BOOL m_initialized;
 }
 
++ (IMP)overriddenSetterForProperty:(objc_property_t)property type:(const char *)type method:(Method)method;
+
 /*
  * Enumerates all the properties of the receiver and any superclasses, up until
  * (and excluding) <PROModel>.
  */
 + (void)enumeratePropertiesUsingBlock:(void (^)(objc_property_t property))block;
-
 @end
 
 @implementation PROModel
@@ -64,6 +67,247 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
 
 		free(properties);
 	}
+}
+
++ (void)initialize {
+    if (self != [PROModel class])
+        return;
+
+    // find all subclasses and swizzle their setters to perform transformation
+    // instead of mutation
+
+    unsigned descendantCount = 0;
+    Class *descendants = ext_copySubclassList(self, &descendantCount);
+    if (!descendants) {
+        // nothing subclasses this class
+        return;
+    }
+
+    @onExit {
+        free(descendants);
+    };
+
+    for (unsigned classIndex = 0; classIndex < descendantCount; ++classIndex) {
+        Class class = descendants[classIndex];
+
+        // get a list of all properties specific to THIS class (excluding
+        // superclasses)
+        unsigned propertyCount = 0;
+        objc_property_t *properties = class_copyPropertyList(class, &propertyCount);
+
+        if (!properties) {
+            // no properties here
+            continue;
+        }
+
+        @onExit {
+            free(properties);
+        };
+
+        for (unsigned propertyIndex = 0; propertyIndex < propertyCount; ++propertyIndex) {
+            objc_property_t property = properties[propertyIndex];
+
+            // retrieve actual meaningful information about the property
+            ext_propertyAttributes *attributes = ext_copyPropertyAttributes(property);
+
+            if (!attributes) {
+                NSLog(@"*** Error occurred getting property attributes for \"%s\" on %@", property_getName(property), class);
+                continue;
+            }
+
+            @onExit {
+                free(attributes);
+            };
+
+            if (attributes->readonly) {
+                // if this property is declared as readonly, it should not be
+                // transformable, and there won't be a setter to swizzle
+                continue;
+            }
+
+            Method setter = class_getInstanceMethod(class, attributes->setter);
+            if (!setter) {
+                NSLog(@"*** Could not find setter \"%s\" on %@", sel_getName(attributes->setter), class);
+                continue;
+            }
+
+            IMP newIMP = [class overriddenSetterForProperty:property type:attributes->type method:setter];
+            if (!newIMP) {
+                // an error occurred
+                continue;
+            }
+
+            method_setImplementation(setter, newIMP);
+        }
+    }
+}
+
++ (IMP)overriddenSetterForProperty:(objc_property_t)property type:(const char *)type method:(Method)method {
+    // skip attributes in the provided type encoding
+    while (
+        *type == 'r' ||
+        *type == 'n' ||
+        *type == 'N' ||
+        *type == 'o' ||
+        *type == 'O' ||
+        *type == 'R' ||
+        *type == 'V'
+    ) {
+        ++type;
+    }
+
+    SEL selector = method_getName(method);
+    IMP originalIMP = method_getImplementation(method);
+    NSString *propertyKey = [NSString stringWithUTF8String:property_getName(property)];
+
+    id methodBlock = nil;
+
+    /*
+     * Code dealing with individual Objective-C type encodings becomes very
+     * redundant. These macros are only defined within the scope of this method
+     * and are used to take care of the repetitive part.
+     *
+     * The goal of all the code below is to define a method which does the
+     * following:
+     *
+     *  - If the PROModel instance is being initialized, call through to the
+     *  original setter.
+     *  - If the PROModel instance has been fully initialized, call through to
+     *  `setValue:forKey:` with an autoboxed value, which will trigger all the
+     *  transformation code in that method and prevent the actual mutation of
+     *  the object.
+     */
+
+    #define NSNUMBER_METHOD_BLOCK(TYPE, NSNUMBERTYPE) \
+        do { \
+            methodBlock = [^(PROModel *self, TYPE value){ \
+                if (self->m_initialized) \
+                    [self setValue:[NSNumber numberWith ## NSNUMBERTYPE :value] forKey:propertyKey]; \
+                else \
+                    ((void (*)(id, SEL, TYPE))originalIMP)(self, selector, value); \
+            } copy]; \
+        } while (0)
+
+    #define NSVALUE_METHOD_BLOCK(TYPE) \
+        do { \
+            methodBlock = [^(PROModel *self, TYPE value){ \
+                if (self->m_initialized) \
+                    [self setValue:[NSValue valueWithBytes:&value objCType:type] forKey:propertyKey]; \
+                else \
+                    ((void (*)(id, SEL, TYPE))originalIMP)(self, selector, value); \
+            } copy]; \
+        } while (0)
+
+    switch (*type) {
+        case 'c':
+            NSNUMBER_METHOD_BLOCK(char, Char);
+            break;
+        
+        case 'i':
+            NSNUMBER_METHOD_BLOCK(int, Int);
+            break;
+        
+        case 's':
+            NSNUMBER_METHOD_BLOCK(short, Short);
+            break;
+        
+        case 'l':
+            NSNUMBER_METHOD_BLOCK(long, Long);
+            break;
+        
+        case 'q':
+            NSNUMBER_METHOD_BLOCK(long long, LongLong);
+            break;
+        
+        case 'C':
+            NSNUMBER_METHOD_BLOCK(unsigned char, UnsignedChar);
+            break;
+        
+        case 'I':
+            NSNUMBER_METHOD_BLOCK(unsigned int, UnsignedInt);
+            break;
+        
+        case 'S':
+            NSNUMBER_METHOD_BLOCK(unsigned short, UnsignedShort);
+            break;
+        
+        case 'L':
+            NSNUMBER_METHOD_BLOCK(unsigned long, UnsignedLong);
+            break;
+        
+        case 'Q':
+            NSNUMBER_METHOD_BLOCK(unsigned long long, UnsignedLongLong);
+            break;
+        
+        case 'f':
+            NSNUMBER_METHOD_BLOCK(float, Float);
+            break;
+        
+        case 'd':
+            NSNUMBER_METHOD_BLOCK(double, Double);
+            break;
+        
+        case 'B':
+            NSNUMBER_METHOD_BLOCK(_Bool, Bool);
+            break;
+        
+        case '^':
+        case '*':
+            NSVALUE_METHOD_BLOCK(void *);
+            break;
+        
+        case '#':
+        case '@':
+            {
+                methodBlock = [^(PROModel *self, id value){
+                    if (self->m_initialized)
+                        [self setValue:value forKey:propertyKey];
+                    else
+                        ((void (*)(id, SEL, id))originalIMP)(self, selector, value);
+                } copy];
+            }
+
+            break;
+        
+        case ':':
+            NSVALUE_METHOD_BLOCK(SEL);
+            break;
+        
+        case '[':
+            NSLog(@"*** Cannot override setter for array with type code \"%s\"", type);
+            break;
+        
+        case 'b':
+            NSLog(@"*** Cannot override setter for bitfield with type code \"%s\"", type);
+            break;
+        
+        case '{':
+            // TODO: add support for CGRect, CGSize, etc.?
+            NSLog(@"*** Cannot override setter for struct with type code \"%s\"", type);
+            break;
+            
+        case '(':
+            NSLog(@"*** Cannot override setter for union with type code \"%s\"", type);
+            break;
+        
+        case '?':
+            // this is PROBABLY a function pointer, but the documentation
+            // leaves room open for uncertainty, so fall through to the error
+            // case
+            
+        default:
+            NSLog(@"*** Cannot override setter for type code \"%s\"", type);
+    }
+
+    #undef NSNUMBER_METHOD_BLOCK
+    #undef NSVALUE_METHOD_BLOCK
+
+    if (!methodBlock)
+        return NULL;
+
+    // leak the block, since it'll be used for a method implementation, which
+    // by its nature won't ever be deallocated anyways
+    return imp_implementationWithBlock((__bridge_retained void *)methodBlock);
 }
 
 + (NSArray *)propertyKeys {
