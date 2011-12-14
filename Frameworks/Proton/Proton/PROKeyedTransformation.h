@@ -84,10 +84,12 @@
  * 2. For each key in the <valueTransformations> dictionary which exists on
  * `obj`, applies the associated transformation to the value associated with
  * that key on `obj`.
- * 3. For each transformation, replaces the value in the dictionary of step
- * 1 with the value returned. If `nil` is returned from any transformation, this
- * method immediately returns `nil`.
- * 4. Returns a new instance of `[obj class]` initialized with the final
+ * 3. For each key in the <valueTransformations> dictionary which does not exist
+ * on `obj`, applies the associated transformation to `[NSNull null]`.
+ * 4. For each transformation, replaces the value in the dictionary of step
+ * 1 with the value returned by step 2 or 3. If `nil` is returned from any
+ * transformation, this method immediately returns `nil`.
+ * 5. Returns a new instance of `[obj class]` initialized with the final
  * dictionary value.
  *
  * If <valueTransformations> is empty, `obj` is passed through without
