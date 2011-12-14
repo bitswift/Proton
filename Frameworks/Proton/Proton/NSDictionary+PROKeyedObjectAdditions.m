@@ -7,7 +7,11 @@
 //
 
 #import <Proton/NSDictionary+PROKeyedObjectAdditions.h>
+#import <Proton/EXTSafeCategory.h>
 
-@implementation NSDictionary (PROKeyedObjectAdditions)
-
+@safecategory (NSDictionary, PROKeyedObjectAdditions)
+- (NSDictionary *)dictionaryValue {
+    // return an immutable snapshot, in case self is mutable
+    return [self copy];
+}
 @end
