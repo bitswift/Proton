@@ -23,7 +23,7 @@
         [reverseTransformations addObject:transformation.reverseTransformation];
     }];
     
-    return [[PROMultipleTransformation alloc] initWithTransformations:reverseTransformations];
+    return [[[self class] alloc] initWithTransformations:reverseTransformations];
 }
 
 #pragma mark Lifecycle

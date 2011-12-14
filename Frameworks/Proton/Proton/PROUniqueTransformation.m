@@ -19,7 +19,7 @@
 
 - (PROTransformation *)reverseTransformation; {
     // just flip our values around
-    return [[PROUniqueTransformation alloc] initWithInputValue:self.outputValue outputValue:self.inputValue];
+    return [[[self class] alloc] initWithInputValue:self.outputValue outputValue:self.inputValue];
 }
 
 #pragma mark Lifecycle
