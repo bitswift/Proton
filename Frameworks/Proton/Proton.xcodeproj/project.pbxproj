@@ -71,6 +71,8 @@
 		D0C42D8214985AA700A08989 /* PRODictionaryModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D0C42D7F14985AA700A08989 /* PRODictionaryModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0C42D8314985AA700A08989 /* PRODictionaryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D8014985AA700A08989 /* PRODictionaryModel.m */; };
 		D0C42D8414985AA700A08989 /* PRODictionaryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D8014985AA700A08989 /* PRODictionaryModel.m */; };
+		D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
+		D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
 		D0D7A1AD1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0D7A1AE1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0D7A1AF1492EE1B0057F90D /* EXTRuntimeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */; };
@@ -160,6 +162,8 @@
 		D0C42D6214984CE100A08989 /* PROModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModel.m; sourceTree = "<group>"; };
 		D0C42D7F14985AA700A08989 /* PRODictionaryModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRODictionaryModel.h; sourceTree = "<group>"; };
 		D0C42D8014985AA700A08989 /* PRODictionaryModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRODictionaryModel.m; sourceTree = "<group>"; };
+		D0C42D77149857CB00A08989 /* PROModelTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelTests.h; sourceTree = "<group>"; };
+		D0C42D78149857CB00A08989 /* PROModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelTests.m; sourceTree = "<group>"; };
 		D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTRuntimeExtensions.h; path = ../libextobjc/extobjc/Modules/EXTRuntimeExtensions.h; sourceTree = "<group>"; };
 		D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTRuntimeExtensions.m; path = ../libextobjc/extobjc/Modules/EXTRuntimeExtensions.m; sourceTree = "<group>"; };
 		D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTSafeCategory.h; path = ../libextobjc/extobjc/Modules/EXTSafeCategory.h; sourceTree = "<group>"; };
@@ -299,6 +303,8 @@
 			children = (
 				D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */,
 				D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */,
+				D0C42D77149857CB00A08989 /* PROModelTests.h */,
+				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */,
 				D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */,
 				D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */,
@@ -742,6 +748,7 @@
 				D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
 				D030A63D14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
 				D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
+				D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -781,6 +788,7 @@
 				D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
 				D030A63C14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
 				D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
+				D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
