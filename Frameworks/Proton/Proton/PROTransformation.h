@@ -14,7 +14,7 @@
  * The transformations implemented with this class should be pure (i.e., they
  * should have no side effects), so that they can be serialized and reversed.
  *
- * @warning *Important:* Subclasses should not attempt to invoke this class'
+ * @warning **Important:** Subclasses should not attempt to invoke this class'
  * implementation of `NSCoding`. Implement the methods directly instead.
  */
 @interface PROTransformation : NSObject <NSCoding, NSCopying>
