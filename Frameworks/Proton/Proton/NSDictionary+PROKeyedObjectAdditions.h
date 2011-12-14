@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <Proton/PROKeyedTransformation.h>
+#import <Proton/PROKeyedObject.h>
 
 /**
  * Implements <PROKeyedObject> for `NSDictionary`.

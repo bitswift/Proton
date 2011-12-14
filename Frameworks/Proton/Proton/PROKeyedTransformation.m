@@ -8,6 +8,7 @@
 
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROKeyedObject.h>
 
 @implementation PROKeyedTransformation
 

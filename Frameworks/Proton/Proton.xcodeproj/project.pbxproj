@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D00A490D1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D00A490E1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
 		D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
 		D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
@@ -113,6 +115,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D00A490C1499451400EEBD92 /* PROKeyedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedObject.h; sourceTree = "<group>"; };
 		D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformationTests.h; sourceTree = "<group>"; };
 		D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformationTests.m; sourceTree = "<group>"; };
 		D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformationTests.h; sourceTree = "<group>"; };
@@ -230,6 +233,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D00A490A1499450400EEBD92 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				D00A490C1499451400EEBD92 /* PROKeyedObject.h */,
+			);
+			name = Protocols;
+			sourceTree = "<group>";
+		};
 		D0477F5514970DDC00B0DAB0 /* Transformation */ = {
 			isa = PBXGroup;
 			children = (
@@ -359,6 +370,7 @@
 				D0DB5CD41492DDD5005955FB /* Proton.h */,
 				D06AA43F1494A1B400F0F94B /* Classes */,
 				D06AA4321494A19600F0F94B /* Extensions */,
+				D00A490A1499450400EEBD92 /* Protocols */,
 				D0DB5CCE1492DDD5005955FB /* Supporting Files */,
 			);
 			path = Proton;
@@ -478,6 +490,7 @@
 				D0477F6C149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
 				D0E0F2F51497E4A80072FE2C /* EXTNil.h in Headers */,
 				D030A63614981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */,
+				D00A490E1499451400EEBD92 /* PROKeyedObject.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -500,6 +513,7 @@
 				D0477F6B149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
 				D0E0F2F41497E4A80072FE2C /* EXTNil.h in Headers */,
 				D030A63514981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */,
+				D00A490D1499451400EEBD92 /* PROKeyedObject.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
