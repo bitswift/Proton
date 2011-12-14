@@ -85,8 +85,8 @@
  * `obj`, applies the associated transformation to the value associated with
  * that key on `obj`.
  * 3. For each transformation, replaces the value in the dictionary of step
- * 1 with the value returned. If `nil` was returned, the key is removed from
- * the dictionary.
+ * 1 with the value returned. If `nil` is returned from any transformation, this
+ * method immediately returns `nil`.
  * 4. Returns a new instance of `[obj class]` initialized with the final
  * dictionary value.
  *
