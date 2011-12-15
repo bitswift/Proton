@@ -11,8 +11,8 @@
 #import <Proton/EXTScope.h>
 
 @interface TestModel : PROModel
-@property (nonatomic, copy, readonly) NSString *name;
-@property (nonatomic, copy, readonly) NSDate *date;
+@property (nonatomic, copy, readwrite) NSString *name;
+@property (nonatomic, copy, readwrite) NSDate *date;
 
 + (TestModel *)testInstance;
 @end
@@ -167,11 +167,47 @@
     STAssertEqualObjects(modelA, modelB, @"");
 }
 
-@end
+- (void)testSetterTransformation {
+    TestModel *model = [[TestModel alloc] init];
 
-@interface TestModel ()
-@property (nonatomic, copy, readwrite) NSString *name;
-@property (nonatomic, copy, readwrite) NSDate *date;
+    __block BOOL notificationSent = NO;
+
+    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        notificationSent = YES;
+
+        NSDictionary *userInfo = notification.userInfo;
+        STAssertNotNil(userInfo, @"");
+
+        // verify that the transformation performed is in the userInfo
+        // dictionary
+        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+
+        // verify that the transformed object is correct
+        TestModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
+        STAssertNotNil(newModel, @"");
+
+        NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+            @"foobar", @"name",
+            [NSNull null], @"date",
+            nil
+        ];
+
+        STAssertEqualObjects(newModel.dictionaryValue, expectedDictionaryValue, @"");
+    }];
+
+    @onExit {
+        [[NSNotificationCenter defaultCenter] removeObserver:observer];
+    };
+
+    model.name = @"foobar";
+    
+    // setting a value should've triggered the transformation notification
+    STAssertTrue(notificationSent, @"");
+
+    // setting a value should not have modified the original object
+    STAssertNil([model valueForKey:@"name"], @"");
+}
+
 @end
 
 @implementation TestModel
