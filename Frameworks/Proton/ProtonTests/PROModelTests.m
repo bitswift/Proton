@@ -11,8 +11,9 @@
 #import <Proton/EXTScope.h>
 
 @interface TestModel : PROModel
-@property (nonatomic, copy, readwrite) NSString *name;
-@property (nonatomic, copy, readwrite) NSDate *date;
+@property (nonatomic, copy) NSString *name;
+@property (nonatomic, copy) NSDate *date;
+@property (nonatomic, getter = isEnabled) BOOL enabled;
 
 + (TestModel *)testInstance;
 @end
@@ -22,7 +23,7 @@
 - (void)testPropertyKeys {
     STAssertNil([PROModel propertyKeys], @"");
 
-    NSArray *keys = [NSArray arrayWithObjects:@"name", @"date", nil];
+    NSArray *keys = [NSArray arrayWithObjects:@"name", @"date", @"enabled", nil];
     STAssertEqualObjects([TestModel propertyKeys], keys, @"");
 }
 
@@ -39,6 +40,7 @@
     NSDictionary *emptyDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
         [NSNull null], @"name",
         [NSNull null], @"date",
+        [NSNumber numberWithBool:NO], @"enabled",
         nil
     ];
 
@@ -56,6 +58,7 @@
     NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
         @"foobar", @"name",
         [NSNull null], @"date",
+        [NSNumber numberWithBool:NO], @"enabled",
         nil
     ];
 
@@ -84,6 +87,7 @@
         NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
             @"foobar", @"name",
             [NSNull null], @"date",
+            [NSNumber numberWithBool:NO], @"enabled",
             nil
         ];
 
@@ -101,6 +105,8 @@
 
     // setting a value should not have modified the original object
     STAssertNil([model valueForKey:@"name"], @"");
+    STAssertNil([model valueForKey:@"date"], @"");
+    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
 }
 
 - (void)testSetValuesForKeysWithDictionary {
@@ -109,6 +115,7 @@
     NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
         @"foobar", @"name",
         [NSDate date], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
         nil
     ];
 
@@ -142,6 +149,7 @@
     // setting a value should not have modified the original object
     STAssertNil([model valueForKey:@"name"], @"");
     STAssertNil([model valueForKey:@"date"], @"");
+    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
 }
 
 - (void)testEquality {
@@ -189,6 +197,7 @@
         NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
             @"foobar", @"name",
             [NSNull null], @"date",
+            [NSNumber numberWithBool:NO], @"enabled",
             nil
         ];
 
@@ -206,13 +215,60 @@
 
     // setting a value should not have modified the original object
     STAssertNil([model valueForKey:@"name"], @"");
+    STAssertNil([model valueForKey:@"date"], @"");
+    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
+}
+
+- (void)testSetterTransformationWithNonObjectType {
+    TestModel *model = [[TestModel alloc] init];
+
+    __block BOOL notificationSent = NO;
+
+    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        notificationSent = YES;
+
+        NSDictionary *userInfo = notification.userInfo;
+        STAssertNotNil(userInfo, @"");
+
+        // verify that the transformation performed is in the userInfo
+        // dictionary
+        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+
+        // verify that the transformed object is correct
+        TestModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
+        STAssertNotNil(newModel, @"");
+
+        NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSNull null], @"name",
+            [NSNull null], @"date",
+            [NSNumber numberWithBool:YES], @"enabled",
+            nil
+        ];
+
+        STAssertEqualObjects(newModel.dictionaryValue, expectedDictionaryValue, @"");
+    }];
+
+    @onExit {
+        [[NSNotificationCenter defaultCenter] removeObserver:observer];
+    };
+
+    model.enabled = YES;
+    
+    // setting a value should've triggered the transformation notification
+    STAssertTrue(notificationSent, @"");
+
+    // setting a value should not have modified the original object
+    STAssertNil([model valueForKey:@"name"], @"");
+    STAssertNil([model valueForKey:@"date"], @"");
+    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
 }
 
 @end
 
 @implementation TestModel
-@synthesize name;
-@synthesize date;
+@synthesize name = m_name;
+@synthesize date = m_date;
+@synthesize enabled = m_enabled;
 
 + (TestModel *)testInstance; {
     NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
