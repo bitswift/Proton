@@ -9,14 +9,15 @@
 #import <Foundation/Foundation.h>
 
 /**
- * Higher order extensions to NSArray.
+ * Higher-order functions for `NSArray`.
  */
 @interface NSArray (HigherOrderAdditions)
 
 /**
  * Returns an array of filtered objects for which `block` returns true.
  *
- * @param block A predicate block that accepts an `obj`, an `index` and returns a predicate.
+ * @param block A predicate block that determines whether to include or exclude
+ * a given object.
  */
 - (NSArray *)filterUsingBlock:(BOOL(^)(id obj))block;
 
@@ -24,7 +25,8 @@
  * Returns an array of filtered objects for which `block` returns true, applying `opts` while filtering.
  *
  * @param opts A mask of `NSEnumerationOptions` to apply when filtering.
- * @param block A predicate block that accepts an `obj`, an `index` and returns a predicate.
+ * @param block A predicate block that determines whether to include or exclude
+ * a given object.
  */
 - (NSArray *)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL(^)(id obj))block;
 @end
