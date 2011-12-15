@@ -49,6 +49,26 @@ extern NSString * const PROModelTransformationKey;
 
 /**
  * A base class for immutable model objects.
+ *
+ * To create a subclass:
+ *
+ *  1. Declare and synthesize any properties desired. Properties can be
+ *  `readwrite`, in which case they will generate transformations (see below).
+ *  2. Implement key-value coding validation methods
+ *  (per the semantics of `validateValue:forKey:error:`) as desired. These
+ *  validation methods will be automatically invoked by <initWithDictionary:>.
+ *  3. Override <initWithDictionary:> if you need to verify object consistency
+ *  after it has been initialized.
+ *
+ * Subclasses do not need to implement `<NSCoding>`, `<NSCopying>`, `-hash`, or
+ * `isEqual:`. The implementations of all of these methods are based on the
+ * <initWithDictionary:> and <dictionaryValue> behaviors of the class.
+ *
+ * @warning **Important:** Subclasses of this class are expected to be
+ * immutable. To preserve the contract of immutability, but still allow
+ * convenient usage, `PROModel` will _automatically override_ any `@property`
+ * setters to generate a transformation (like <setValue:forKey:> does) instead
+ * of allowing mutation on the receiving object.
  */
 @interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
 
