@@ -11,11 +11,11 @@
 
 @safecategory (NSArray, HigherOrderAdditions)
 
-- (NSArray *)filterUsingBlock:(BOOL(^)(id obj))block {
+- (id)filterUsingBlock:(BOOL(^)(id obj))block {
     return [self filterWithOptions:0 usingBlock:block];
 }
 
-- (NSArray *)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL(^)(id obj))block {
+- (id)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL(^)(id obj))block {
     return [self objectsAtIndexes:
         [self indexesOfObjectsWithOptions:opts passingTest:^(id obj, NSUInteger idx, BOOL *stop) {
             return block(obj);

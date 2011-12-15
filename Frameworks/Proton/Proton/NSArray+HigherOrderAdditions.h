@@ -19,7 +19,7 @@
  * @param block A predicate block that determines whether to include or exclude
  * a given object.
  */
-- (NSArray *)filterUsingBlock:(BOOL(^)(id obj))block;
+- (id)filterUsingBlock:(BOOL(^)(id obj))block;
 
 /**
  * Returns an array of filtered objects for which `block` returns true, applying `opts` while filtering.
@@ -28,5 +28,6 @@
  * @param block A predicate block that determines whether to include or exclude
  * a given object.
  */
-- (NSArray *)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL(^)(id obj))block;
+- (id)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL(^)(id obj))block;
+
 @end
