@@ -45,7 +45,25 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
     if (!self)
         return nil;
 
-    [self setValuesForKeysWithDictionary:dictionary];
+    for (NSString *key in dictionary) {
+        // mark this as being autoreleased, because validateValue may return
+        // a new object to be stored in this variable (and we don't want ARC to
+        // double-free or leak the old or new values)
+        __autoreleasing id value = [dictionary objectForKey:key];
+        
+        // consider NSNull to be nil if it comes in the dictionary
+        if ([value isEqual:[NSNull null]]) {
+            value = nil;
+        }
+        
+        if (![self validateValue:&value forKey:key error:NULL]) {
+            // validation failed
+            // TODO: logging?
+            return nil;
+        }
+
+        [self setValue:value forKey:key];
+    }
     
     m_initialized = YES;
     return self;
