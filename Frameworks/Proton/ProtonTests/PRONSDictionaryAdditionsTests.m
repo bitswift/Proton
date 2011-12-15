@@ -11,6 +11,7 @@
 
 @interface PRONSDictionaryAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
+- (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
 @implementation PRONSDictionaryAdditionsTests
@@ -82,6 +83,77 @@
     ];
 
     STAssertEqualObjects(filteredDict, expectedDict, @"");
+}
+
+- (void)testMapping {
+    [self testMappingWithOptions:0];
+}
+
+- (void)testMappingEmptyDictionary {
+    NSDictionary *dict = [NSDictionary dictionary];
+
+    NSDictionary *mappedDictionary = [dict mapValuesUsingBlock:^(id key, id value){
+        return [value stringByAppendingString:@"buzz"];
+    }];
+
+    STAssertEqualObjects(mappedDictionary, [NSDictionary dictionary], @"");
+}
+
+- (void)testMappingRemovingElements {
+    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *mappedDictionary = [dict mapValuesUsingBlock:^(id key, id value){
+        if (![key hasPrefix:@"n"])
+            return [@"buzz" stringByAppendingString:value];
+        else
+            return nil;
+    }];
+
+    NSDictionary *expectedDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"buzzbar", @"foo",
+        @"buzzbuzz", @"baz",
+        nil
+    ];
+
+    STAssertEqualObjects(mappedDictionary, expectedDictionary, @"");
+}
+
+- (void)testMappingConcurrently {
+    [self testMappingWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testMappingReverse {
+    [self testMappingWithOptions:NSEnumerationReverse];
+}
+
+- (void)testMappingWithOptions:(NSEnumerationOptions)opts; {
+    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *mappedDictionary = [dict mapValuesUsingBlock:^(id key, id value){
+        if (![key hasPrefix:@"n"])
+            return [@"buzz" stringByAppendingString:value];
+        else
+            return value;
+    }];
+
+    NSDictionary *expectedDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"buzzbar", @"foo",
+        @"buzzbuzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    STAssertEqualObjects(mappedDictionary, expectedDictionary, @"");
 }
 
 @end
