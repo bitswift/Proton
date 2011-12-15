@@ -263,6 +263,39 @@
     STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
 }
 
+- (void)testSettingInvalidValue {
+    TestModel *model = [[TestModel alloc] init];
+
+    __block BOOL notificationSent = NO;
+
+    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        notificationSent = YES;
+
+        NSDictionary *userInfo = notification.userInfo;
+        STAssertNotNil(userInfo, @"");
+
+        // verify that the transformation attempted is in the userInfo
+        // dictionary
+        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+    }];
+
+    @onExit {
+        [[NSNotificationCenter defaultCenter] removeObserver:observer];
+    };
+
+    // this name should be too short, according to the validation method we have
+    model.name = @"foo";
+    
+    // setting the value to something invalid should've triggered the failure
+    // notification
+    STAssertTrue(notificationSent, @"");
+
+    // attempting to set an invalid value should not have modified the original object
+    STAssertNil([model valueForKey:@"name"], @"");
+    STAssertNil([model valueForKey:@"date"], @"");
+    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
+}
+
 @end
 
 @implementation TestModel
@@ -270,10 +303,17 @@
 @synthesize date = m_date;
 @synthesize enabled = m_enabled;
 
+- (BOOL)validateName:(NSString **)name error:(NSError **)error {
+    // consider the name valid if its length is at least 5 characters (or if it
+    // wasn't provided at all)
+    return (*name == nil) || [*name length] >= 5;
+}
+
 + (TestModel *)testInstance; {
     NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
         @"foobar", @"name",
         [NSDate dateWithTimeIntervalSinceReferenceDate:1000], @"date",
+        [NSNumber numberWithBool:NO], @"enabled",
         nil
     ];
 
