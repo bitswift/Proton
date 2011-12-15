@@ -7,8 +7,9 @@
 //
 
 #import <Proton/NSArray+HigherOrderAdditions.h>
+#import <Proton/EXTSafeCategory.h>
 
-@implementation NSArray (HigherOrderAdditions)
+@safecategory (NSArray, HigherOrderAdditions)
 
 - (NSArray *)filterUsingBlock:(BOOL(^)(id obj))block {
     return [self filterWithOptions:0 usingBlock:block];
