@@ -105,10 +105,13 @@
 }
 
 - (void)testEquality {
-    PROUniqueTransformation *transformationA = [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:self.outputValue];
-    PROUniqueTransformation *transformationB = [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:self.outputValue];
+    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:self.outputValue];
 
-    STAssertEqualObjects(transformationA, transformationB, @"");
+    PROUniqueTransformation *equalTransformation = [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:self.outputValue];
+    STAssertEqualObjects(transformation, equalTransformation, @"");
+
+    PROUniqueTransformation *inequalTransformation = [[PROUniqueTransformation alloc] init];
+    STAssertFalse([transformation isEqual:inequalTransformation], @"");
 }
 
 - (void)testCoding {
