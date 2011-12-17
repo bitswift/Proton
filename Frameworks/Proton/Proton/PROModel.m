@@ -23,6 +23,14 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
     BOOL m_initialized;
 }
 
+/*
+ * Creates and returns a method implementation that can override a setter to
+ * perform a transformation instead of a mutation.
+ *
+ * @param property The property to which this setter belongs.
+ * @param type The Objective-C type encoding for the property.
+ * @param method The original setter method of the class.
+ */
 + (IMP)overriddenSetterForProperty:(objc_property_t)property type:(const char *)type method:(Method)method;
 
 /*
