@@ -56,8 +56,6 @@
 }
 
 - (void)setValue:(id)value forUndefinedKey:(NSString *)key {
-    NSLog(@"%s %@: value = %@ key = %@", __func__, self, value, key);
-
     // this should only be invoked from an initialization method
     if (!m_dictionaryValue)
         m_dictionaryValue = [[NSMutableDictionary alloc] init];
