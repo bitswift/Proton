@@ -91,10 +91,13 @@
 }
 
 - (void)testEquality {
-    PROKeyedTransformation *transformationA = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
-    PROKeyedTransformation *transformationB = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
+    PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
 
-    STAssertEqualObjects(transformationA, transformationB, @"");
+    PROKeyedTransformation *equalTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
+    STAssertEqualObjects(transformation, equalTransformation, @"");
+
+    PROKeyedTransformation *inequalTransformation = [[PROKeyedTransformation alloc] init];
+    STAssertFalse([transformation isEqual:inequalTransformation], @"");
 }
 
 - (void)testCoding {
