@@ -94,6 +94,22 @@
         [[NSNotificationCenter defaultCenter] removeObserver:observer];
     };
 
+    id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        NSDictionary *userInfo = notification.userInfo;
+        STAssertNotNil(userInfo, @"");
+
+        // verify that the transformation performed is in the userInfo
+        // dictionary
+        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+
+        // and then fail the unit test, since this transformation should've succeeded
+        STFail(@"PROModel transformation failed");
+    }];
+
+    @onExit {
+        [[NSNotificationCenter defaultCenter] removeObserver:failedObserver];
+    };
+
     [model setValue:@"foobar" forKey:@"name"];
     
     // setting a value should've triggered the transformation notification
@@ -115,6 +131,10 @@
     __block BOOL notificationSent = NO;
 
     id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        // the notification for this transformation should only be sent once
+        // (even though we made multiple changes)
+        STAssertFalse(notificationSent, @"");
+
         notificationSent = YES;
 
         NSDictionary *userInfo = notification.userInfo;
@@ -134,6 +154,22 @@
         [[NSNotificationCenter defaultCenter] removeObserver:observer];
     };
 
+    id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        NSDictionary *userInfo = notification.userInfo;
+        STAssertNotNil(userInfo, @"");
+
+        // verify that the transformation performed is in the userInfo
+        // dictionary
+        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+
+        // and then fail the unit test, since this transformation should've succeeded
+        STFail(@"PROModel transformation failed");
+    }];
+
+    @onExit {
+        [[NSNotificationCenter defaultCenter] removeObserver:failedObserver];
+    };
+
     [model setValuesForKeysWithDictionary:newDictionary];
     
     // setting a value should've triggered the transformation notification
@@ -145,10 +181,13 @@
 }
 
 - (void)testEquality {
-    PROModel *modelA = [TestModel testInstance];
-    PROModel *modelB = [TestModel testInstance];
+    PROModel *model = [TestModel testInstance];
 
-    STAssertEqualObjects(modelA, modelB, @"");
+    PROModel *equalModel = [TestModel testInstance];
+    STAssertEqualObjects(model, equalModel, @"");
+
+    PROModel *inequalModel = [[TestModel alloc] init];
+    STAssertFalse([model isEqual:inequalModel], @"");
 }
 
 - (void)testCoding {

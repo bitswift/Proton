@@ -131,10 +131,13 @@
 }
 
 - (void)testEquality {
-    PRODictionaryModel *modelA = [self dictionaryModel];
-    PRODictionaryModel *modelB = [self dictionaryModel];
+    PRODictionaryModel *model = [self dictionaryModel];
 
-    STAssertEqualObjects(modelA, modelB, @"");
+    PRODictionaryModel *equalModel = [self dictionaryModel];
+    STAssertEqualObjects(model, equalModel, @"");
+
+    PRODictionaryModel *inequalModel = [[PRODictionaryModel alloc] init];
+    STAssertFalse([model isEqual:inequalModel], @"");
 }
 
 - (void)testCoding {
