@@ -1,5 +1,5 @@
 //
-//  PRONSDictionaryAdditionsTests.h
+//  PROUniqueTransformationTests.h
 //  Proton
 //
 //  Created by Justin Spahr-Summers on 13.12.11.
@@ -10,6 +10,6 @@
 
 #import <SenTestingKit/SenTestingKit.h>
 
-@interface PRONSDictionaryAdditionsTests : SenTestCase
+@interface PROUniqueTransformationTests : SenTestCase
 
 @end

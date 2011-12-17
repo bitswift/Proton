@@ -7,6 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D00A490D1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D00A490E1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
+		D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
+		D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
+		D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
+		D030A63514981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D030A63614981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D030A63714981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A63414981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m */; };
+		D030A63814981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A63414981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m */; };
+		D030A63C14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */; };
+		D030A63D14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */; };
 		D047032C1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D04703261494A6F8004CB93A /* Foundation+LocalizationAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D047032D1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D04703261494A6F8004CB93A /* Foundation+LocalizationAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D047032E1494A6F8004CB93A /* Foundation+LocalizationAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D04703271494A6F8004CB93A /* Foundation+LocalizationAdditions.m */; };
@@ -21,6 +33,22 @@
 		D04703371494A6F8004CB93A /* NSObject+ErrorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D047032B1494A6F8004CB93A /* NSObject+ErrorAdditions.m */; };
 		D047033B1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */; };
 		D047033C1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */; };
+		D0477F5914970DE700B0DAB0 /* PROTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F5714970DE700B0DAB0 /* PROTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F5A14970DE700B0DAB0 /* PROTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F5714970DE700B0DAB0 /* PROTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F5B14970DE700B0DAB0 /* PROTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F5814970DE700B0DAB0 /* PROTransformation.m */; };
+		D0477F5C14970DE700B0DAB0 /* PROTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F5814970DE700B0DAB0 /* PROTransformation.m */; };
+		D0477F5F1497460000B0DAB0 /* PROUniqueTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F5D1497460000B0DAB0 /* PROUniqueTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F601497460000B0DAB0 /* PROUniqueTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F5D1497460000B0DAB0 /* PROUniqueTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F611497460000B0DAB0 /* PROUniqueTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F5E1497460000B0DAB0 /* PROUniqueTransformation.m */; };
+		D0477F621497460000B0DAB0 /* PROUniqueTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F5E1497460000B0DAB0 /* PROUniqueTransformation.m */; };
+		D0477F651497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F661497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F671497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */; };
+		D0477F681497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */; };
+		D0477F6B149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F6C149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0477F6D149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */; };
+		D0477F6E149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */; };
 		D06AA4521494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4541494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
@@ -51,8 +79,6 @@
 		D0B07AF51492E75200A1E816 /* Proton.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DB5CD41492DDD5005955FB /* Proton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0B07AF61492E75700A1E816 /* Proton.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DB5CD41492DDD5005955FB /* Proton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0B07AF81492E76200A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07AF71492E76200A1E816 /* Foundation.framework */; };
-		D0C91961149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C91960149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m */; };
-		D0C91962149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C91960149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m */; };
 		D0D7A1AD1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0D7A1AE1492EE1B0057F90D /* EXTRuntimeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0D7A1AF1492EE1B0057F90D /* EXTRuntimeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */; };
@@ -77,6 +103,14 @@
 		D0DB5CDE1492DDD5005955FB /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0DB5CE21492DDD5005955FB /* Proton.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CC41492DDD5005955FB /* Proton.framework */; };
 		D0DB5CE81492DDD5005955FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0DB5CE61492DDD5005955FB /* InfoPlist.strings */; };
+		D0E0F2EF1497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2EE1497E4660072FE2C /* PROUniqueTransformationTests.m */; };
+		D0E0F2F01497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2EE1497E4660072FE2C /* PROUniqueTransformationTests.m */; };
+		D0E0F2F41497E4A80072FE2C /* EXTNil.h in Headers */ = {isa = PBXBuildFile; fileRef = D0E0F2F21497E4A80072FE2C /* EXTNil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0E0F2F51497E4A80072FE2C /* EXTNil.h in Headers */ = {isa = PBXBuildFile; fileRef = D0E0F2F21497E4A80072FE2C /* EXTNil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0E0F2F61497E4A80072FE2C /* EXTNil.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F31497E4A80072FE2C /* EXTNil.m */; };
+		D0E0F2F71497E4A80072FE2C /* EXTNil.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F31497E4A80072FE2C /* EXTNil.m */; };
+		D0E0F2FA1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
+		D0E0F2FB1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +131,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D00A490C1499451400EEBD92 /* PROKeyedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedObject.h; sourceTree = "<group>"; };
+		D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformationTests.h; sourceTree = "<group>"; };
+		D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformationTests.m; sourceTree = "<group>"; };
+		D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformationTests.h; sourceTree = "<group>"; };
+		D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformationTests.m; sourceTree = "<group>"; };
+		D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+PROKeyedObjectAdditions.h"; sourceTree = "<group>"; };
+		D030A63414981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+PROKeyedObjectAdditions.m"; sourceTree = "<group>"; };
+		D030A63A14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSDictionaryAdditionsTests.h; sourceTree = "<group>"; };
+		D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSDictionaryAdditionsTests.m; sourceTree = "<group>"; };
 		D04703261494A6F8004CB93A /* Foundation+LocalizationAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Foundation+LocalizationAdditions.h"; sourceTree = "<group>"; };
 		D04703271494A6F8004CB93A /* Foundation+LocalizationAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Foundation+LocalizationAdditions.m"; sourceTree = "<group>"; };
 		D04703281494A6F8004CB93A /* NSObject+ComparisonAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+ComparisonAdditions.h"; sourceTree = "<group>"; };
@@ -105,6 +148,14 @@
 		D047032B1494A6F8004CB93A /* NSObject+ErrorAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+ErrorAdditions.m"; sourceTree = "<group>"; };
 		D04703391494A728004CB93A /* PRONSObjectAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSObjectAdditionsTests.h; sourceTree = "<group>"; };
 		D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSObjectAdditionsTests.m; sourceTree = "<group>"; };
+		D0477F5714970DE700B0DAB0 /* PROTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROTransformation.h; sourceTree = "<group>"; };
+		D0477F5814970DE700B0DAB0 /* PROTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROTransformation.m; sourceTree = "<group>"; };
+		D0477F5D1497460000B0DAB0 /* PROUniqueTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROUniqueTransformation.h; sourceTree = "<group>"; };
+		D0477F5E1497460000B0DAB0 /* PROUniqueTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueTransformation.m; sourceTree = "<group>"; };
+		D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformation.h; sourceTree = "<group>"; };
+		D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformation.m; sourceTree = "<group>"; };
+		D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformation.h; sourceTree = "<group>"; };
+		D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformation.m; sourceTree = "<group>"; };
 		D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSArrayAdditionsTests.h; sourceTree = "<group>"; };
@@ -123,8 +174,6 @@
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07AF71492E76200A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = SDKs/MacOSX10.7.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		D0C9195F149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSDictionaryAdditionsTests.h; sourceTree = "<group>"; };
-		D0C91960149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSDictionaryAdditionsTests.m; sourceTree = "<group>"; };
 		D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTRuntimeExtensions.h; path = ../libextobjc/extobjc/Modules/EXTRuntimeExtensions.h; sourceTree = "<group>"; };
 		D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTRuntimeExtensions.m; path = ../libextobjc/extobjc/Modules/EXTRuntimeExtensions.m; sourceTree = "<group>"; };
 		D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTSafeCategory.h; path = ../libextobjc/extobjc/Modules/EXTSafeCategory.h; sourceTree = "<group>"; };
@@ -162,6 +211,12 @@
 		D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Framework.xcconfig"; sourceTree = "<group>"; };
 		D0DB5D071492DDE9005955FB /* Mac-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
 		D0DB5D081492DDE9005955FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		D0E0F2ED1497E4660072FE2C /* PROUniqueTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROUniqueTransformationTests.h; sourceTree = "<group>"; };
+		D0E0F2EE1497E4660072FE2C /* PROUniqueTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueTransformationTests.m; sourceTree = "<group>"; };
+		D0E0F2F21497E4A80072FE2C /* EXTNil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTNil.h; path = ../libextobjc/extobjc/Classes/EXTNil.h; sourceTree = "<group>"; };
+		D0E0F2F31497E4A80072FE2C /* EXTNil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNil.m; path = ../libextobjc/extobjc/Classes/EXTNil.m; sourceTree = "<group>"; };
+		D0E0F2F81497E4CD0072FE2C /* EXTNilTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTNilTest.h; path = ../../libextobjc/extobjc/Tests/EXTNilTest.h; sourceTree = "<group>"; };
+		D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNilTest.m; path = ../../libextobjc/extobjc/Tests/EXTNilTest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -204,6 +259,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D00A490A1499450400EEBD92 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				D00A490C1499451400EEBD92 /* PROKeyedObject.h */,
+			);
+			name = Protocols;
+			sourceTree = "<group>";
+		};
+		D0477F5514970DDC00B0DAB0 /* Transformation */ = {
+			isa = PBXGroup;
+			children = (
+				D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */,
+				D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */,
+				D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */,
+				D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */,
+				D0477F5714970DE700B0DAB0 /* PROTransformation.h */,
+				D0477F5814970DE700B0DAB0 /* PROTransformation.m */,
+				D0477F5D1497460000B0DAB0 /* PROUniqueTransformation.h */,
+				D0477F5E1497460000B0DAB0 /* PROUniqueTransformation.m */,
+			);
+			name = Transformation;
+			sourceTree = "<group>";
+		};
 		D06AA4321494A19600F0F94B /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -213,6 +291,8 @@
 				D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */,
 				D07D6E931499DFE900192DED /* NSDictionary+HigherOrderAdditions.h */,
 				D07D6E941499DFE900192DED /* NSDictionary+HigherOrderAdditions.m */,
+				D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */,
+				D030A63414981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m */,
 				D04703281494A6F8004CB93A /* NSObject+ComparisonAdditions.h */,
 				D04703291494A6F8004CB93A /* NSObject+ComparisonAdditions.m */,
 				D047032A1494A6F8004CB93A /* NSObject+ErrorAdditions.h */,
@@ -228,6 +308,7 @@
 		D06AA43F1494A1B400F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				D0477F5514970DDC00B0DAB0 /* Transformation */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -235,16 +316,22 @@
 		D06AA45C1494A22600F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */,
+				D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */,
+				D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */,
+				D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */,
 				D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */,
 				D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */,
-				D0C9195F149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.h */,
-				D0C91960149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m */,
-				D04703391494A728004CB93A /* PRONSObjectAdditionsTests.h */,
-				D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */,
 				D07D6EBE1499E47C00192DED /* PRONSOrderedSetAdditionsTests.h */,
 				D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */,
 				D07D6EB01499E22600192DED /* PRONSSetAdditionsTests.h */,
 				D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */,
+				D030A63A14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.h */,
+				D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */,
+				D04703391494A728004CB93A /* PRONSObjectAdditionsTests.h */,
+				D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */,
+				D0E0F2ED1497E4660072FE2C /* PROUniqueTransformationTests.h */,
+				D0E0F2EE1497E4660072FE2C /* PROUniqueTransformationTests.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -252,6 +339,8 @@
 		D0D7A1A51492EE020057F90D /* libextobjc */ = {
 			isa = PBXGroup;
 			children = (
+				D0E0F2F21497E4A80072FE2C /* EXTNil.h */,
+				D0E0F2F31497E4A80072FE2C /* EXTNil.m */,
 				D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */,
 				D0D7A1A81492EE1B0057F90D /* EXTRuntimeExtensions.m */,
 				D0D7A1A91492EE1B0057F90D /* EXTSafeCategory.h */,
@@ -266,6 +355,8 @@
 		D0D7A1BC1492EE3F0057F90D /* libextobjc */ = {
 			isa = PBXGroup;
 			children = (
+				D0E0F2F81497E4CD0072FE2C /* EXTNilTest.h */,
+				D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */,
 				D0D7A1BD1492EE520057F90D /* EXTRuntimeExtensionsTest.h */,
 				D0D7A1BE1492EE520057F90D /* EXTRuntimeExtensionsTest.m */,
 				D0D7A1BF1492EE520057F90D /* EXTSafeCategoryTest.h */,
@@ -315,6 +406,7 @@
 				D0DB5CD41492DDD5005955FB /* Proton.h */,
 				D06AA43F1494A1B400F0F94B /* Classes */,
 				D06AA4321494A19600F0F94B /* Extensions */,
+				D00A490A1499450400EEBD92 /* Protocols */,
 				D0DB5CCE1492DDD5005955FB /* Supporting Files */,
 			);
 			path = Proton;
@@ -431,6 +523,13 @@
 				D07D6E8F1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */,
 				D07D6E9C1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h in Headers */,
 				D07D6E961499DFE900192DED /* NSDictionary+HigherOrderAdditions.h in Headers */,
+				D0477F5A14970DE700B0DAB0 /* PROTransformation.h in Headers */,
+				D0477F601497460000B0DAB0 /* PROUniqueTransformation.h in Headers */,
+				D0477F661497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */,
+				D0477F6C149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
+				D0E0F2F51497E4A80072FE2C /* EXTNil.h in Headers */,
+				D030A63614981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */,
+				D00A490E1499451400EEBD92 /* PROKeyedObject.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,6 +549,13 @@
 				D07D6E8E1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */,
 				D07D6E9B1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h in Headers */,
 				D07D6E951499DFE900192DED /* NSDictionary+HigherOrderAdditions.h in Headers */,
+				D0477F5914970DE700B0DAB0 /* PROTransformation.h in Headers */,
+				D0477F5F1497460000B0DAB0 /* PROUniqueTransformation.h in Headers */,
+				D0477F651497464F00B0DAB0 /* PROMultipleTransformation.h in Headers */,
+				D0477F6B149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */,
+				D0E0F2F41497E4A80072FE2C /* EXTNil.h in Headers */,
+				D030A63514981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */,
+				D00A490D1499451400EEBD92 /* PROKeyedObject.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -628,6 +734,12 @@
 				D07D6E911499DF7300192DED /* NSSet+HigherOrderAdditions.m in Sources */,
 				D07D6E9E1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m in Sources */,
 				D07D6E981499DFE900192DED /* NSDictionary+HigherOrderAdditions.m in Sources */,
+				D0477F5C14970DE700B0DAB0 /* PROTransformation.m in Sources */,
+				D0477F621497460000B0DAB0 /* PROUniqueTransformation.m in Sources */,
+				D0477F681497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */,
+				D0477F6E149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */,
+				D0E0F2F71497E4A80072FE2C /* EXTNil.m in Sources */,
+				D030A63814981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -643,6 +755,11 @@
 				D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */,
 				D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */,
 				D0C91962149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m in Sources */,
+				D0E0F2FB1497E4CD0072FE2C /* EXTNilTest.m in Sources */,
+				D0E0F2F01497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */,
+				D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
+				D030A63D14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
+				D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -660,6 +777,12 @@
 				D07D6E901499DF7300192DED /* NSSet+HigherOrderAdditions.m in Sources */,
 				D07D6E9D1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m in Sources */,
 				D07D6E971499DFE900192DED /* NSDictionary+HigherOrderAdditions.m in Sources */,
+				D0477F5B14970DE700B0DAB0 /* PROTransformation.m in Sources */,
+				D0477F611497460000B0DAB0 /* PROUniqueTransformation.m in Sources */,
+				D0477F671497464F00B0DAB0 /* PROMultipleTransformation.m in Sources */,
+				D0477F6D149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */,
+				D0E0F2F61497E4A80072FE2C /* EXTNil.m in Sources */,
+				D030A63714981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -674,7 +797,11 @@
 				D047033B1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
 				D07D6EB21499E22600192DED /* PRONSSetAdditionsTests.m in Sources */,
 				D07D6EC01499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */,
-				D0C91961149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m in Sources */,
+				D0E0F2FA1497E4CD0072FE2C /* EXTNilTest.m in Sources */,
+				D0E0F2EF1497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */,
+				D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
+				D030A63C14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
+				D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
