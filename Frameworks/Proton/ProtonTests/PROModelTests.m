@@ -115,6 +115,10 @@
     __block BOOL notificationSent = NO;
 
     id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        // the notification for this transformation should only be sent once
+        // (even though we made multiple changes)
+        STAssertFalse(notificationSent, @"");
+
         notificationSent = YES;
 
         NSDictionary *userInfo = notification.userInfo;
