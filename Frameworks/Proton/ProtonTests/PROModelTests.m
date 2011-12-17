@@ -145,10 +145,13 @@
 }
 
 - (void)testEquality {
-    PROModel *modelA = [TestModel testInstance];
-    PROModel *modelB = [TestModel testInstance];
+    PROModel *model = [TestModel testInstance];
 
-    STAssertEqualObjects(modelA, modelB, @"");
+    PROModel *equalModel = [TestModel testInstance];
+    STAssertEqualObjects(model, equalModel, @"");
+
+    PROModel *inequalModel = [[TestModel alloc] init];
+    STAssertFalse([model isEqual:inequalModel], @"");
 }
 
 - (void)testCoding {
