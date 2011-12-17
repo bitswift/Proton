@@ -94,6 +94,22 @@
         [[NSNotificationCenter defaultCenter] removeObserver:observer];
     };
 
+    id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        NSDictionary *userInfo = notification.userInfo;
+        STAssertNotNil(userInfo, @"");
+
+        // verify that the transformation performed is in the userInfo
+        // dictionary
+        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+
+        // and then fail the unit test, since this transformation should've succeeded
+        STFail(@"PROModel transformation failed");
+    }];
+
+    @onExit {
+        [[NSNotificationCenter defaultCenter] removeObserver:failedObserver];
+    };
+
     [model setValue:@"foobar" forKey:@"name"];
     
     // setting a value should've triggered the transformation notification
@@ -136,6 +152,22 @@
 
     @onExit {
         [[NSNotificationCenter defaultCenter] removeObserver:observer];
+    };
+
+    id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+        NSDictionary *userInfo = notification.userInfo;
+        STAssertNotNil(userInfo, @"");
+
+        // verify that the transformation performed is in the userInfo
+        // dictionary
+        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+
+        // and then fail the unit test, since this transformation should've succeeded
+        STFail(@"PROModel transformation failed");
+    }];
+
+    @onExit {
+        [[NSNotificationCenter defaultCenter] removeObserver:failedObserver];
     };
 
     [model setValuesForKeysWithDictionary:newDictionary];
