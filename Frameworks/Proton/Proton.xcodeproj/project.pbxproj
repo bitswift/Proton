@@ -11,6 +11,8 @@
 		1A225923149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */; };
 		1A225924149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */; };
 		1A225925149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */; };
+		1A225929149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */; };
+		1A22592A149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */; };
 		D00A490D1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D00A490E1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
@@ -149,6 +151,8 @@
 /* Begin PBXFileReference section */
 		1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROUniqueIdentifier.h; sourceTree = "<group>"; };
 		1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueIdentifier.m; sourceTree = "<group>"; };
+		1A225927149C9D28004B7BF2 /* PROUniqueIdentifierTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROUniqueIdentifierTests.h; sourceTree = "<group>"; };
+		1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueIdentifierTests.m; sourceTree = "<group>"; };
 		D00A490C1499451400EEBD92 /* PROKeyedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedObject.h; sourceTree = "<group>"; };
 		D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformationTests.h; sourceTree = "<group>"; };
 		D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformationTests.m; sourceTree = "<group>"; };
@@ -365,6 +369,8 @@
 				D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */,
 				D0E0F2ED1497E4660072FE2C /* PROUniqueTransformationTests.h */,
 				D0E0F2EE1497E4660072FE2C /* PROUniqueTransformationTests.m */,
+				1A225927149C9D28004B7BF2 /* PROUniqueIdentifierTests.h */,
+				1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -815,6 +821,7 @@
 				D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
 				D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */,
 				D0E6764B14992F0E00B44750 /* PRODictionaryModelTests.m in Sources */,
+				1A22592A149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -862,6 +869,7 @@
 				D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
 				D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */,
 				D0E6764A14992F0E00B44750 /* PRODictionaryModelTests.m in Sources */,
+				1A225929149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
