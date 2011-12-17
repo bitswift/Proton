@@ -88,6 +88,15 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
 }
 
 + (void)initialize {
+    /*
+     * +initialize will be called for each class the first time it is used (and
+     * only once); however, it's subject to normal method lookup, which means
+     * that if a subclass doesn't implement it, the superclass' implementation
+     * will be called.
+     *
+     * We do this check to make sure that we only perform the logic of this
+     * method once (when +initialize is being called for PROModel itself)
+     */
     if (self != [PROModel class])
         return;
 
