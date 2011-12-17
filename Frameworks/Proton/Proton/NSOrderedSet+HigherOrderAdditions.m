@@ -1,28 +1,30 @@
 //
-//  NSArray+HigherOrderAdditions.m
+//  NSOrderedSet+HigherOrderAdditions.m
 //  Proton
 //
-//  Created by Josh Vera on 12/7/11.
+//  Created by Justin Spahr-Summers on 15.12.11.
 //  Copyright (c) 2011 Emerald Lark. All rights reserved.
 //
 
-#import <Proton/NSArray+HigherOrderAdditions.h>
+#import <Proton/NSOrderedSet+HigherOrderAdditions.h>
 #import <Proton/EXTSafeCategory.h>
 #import <Proton/EXTScope.h>
 #import <libkern/OSAtomic.h>
 
-@safecategory (NSArray, HigherOrderAdditions)
+@safecategory (NSOrderedSet, HigherOrderAdditions)
 
-- (id)filterUsingBlock:(BOOL(^)(id obj))block {
+- (id)filterUsingBlock:(BOOL (^)(id obj))block {
     return [self filterWithOptions:0 usingBlock:block];
 }
 
-- (id)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL(^)(id obj))block {
-    return [self objectsAtIndexes:
-        [self indexesOfObjectsWithOptions:opts passingTest:^(id obj, NSUInteger idx, BOOL *stop) {
+- (id)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL (^)(id obj))block {
+    NSArray *objects = [self objectsAtIndexes:
+        [self indexesOfObjectsWithOptions:opts passingTest:^(id obj, NSUInteger index, BOOL *stop) {
             return block(obj);
         }]
     ];
+
+    return [NSOrderedSet orderedSetWithArray:objects];
 }
 
 - (id)mapUsingBlock:(id (^)(id obj))block; {
@@ -56,7 +58,7 @@
 
     // if this gets incremented while enumerating, 'objects' contains some
     // (indeterminate) number of nil values, and must be compacted before
-    // creating an NSArray
+    // creating an NSOrderedSet
     volatile int32_t needsCompaction = 0;
 
     {
@@ -107,7 +109,7 @@
         }
     }
 
-    return [NSArray arrayWithObjects:(id *)objects count:actualCount];
+    return [NSOrderedSet orderedSetWithObjects:(id *)objects count:actualCount];
 }
 
 @end

@@ -10,14 +10,12 @@
 #import <Proton/NSArray+HigherOrderAdditions.h>
 
 @interface PRONSArrayAdditionsTests ()
-
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
-
+- (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
 @implementation PRONSArrayAdditionsTests
 
-// All code under test must be linked into the Unit Test bundle
 - (void)testFilter {
     NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
 
@@ -68,6 +66,58 @@
 
     NSArray *testArray = [NSArray arrayWithObjects:@"foo", @"bar", nil];
     STAssertEqualObjects(filteredArray, testArray, @"");
+}
+
+- (void)testMapping {
+    [self testMappingWithOptions:0];
+}
+
+- (void)testMappingEmptyArray {
+    NSArray *array = [NSArray array];
+
+    NSArray *mappedArray = [array mapUsingBlock:^(NSString *obj){
+        return [obj stringByAppendingString:@"buzz"];
+    }];
+
+    STAssertEqualObjects(mappedArray, [NSArray array], @"");
+}
+
+- (void)testMappingRemovingElements {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSArray *mappedArray = [array mapUsingBlock:^(NSString *obj){
+        if ([obj hasPrefix:@"b"])
+            return [@"buzz" stringByAppendingString:obj];
+        else
+            return nil;
+    }];
+
+    NSArray *expectedArray = [NSArray arrayWithObjects:@"buzzbar", @"buzzbaz", nil];
+    STAssertEqualObjects(mappedArray, expectedArray, @"");
+}
+
+- (void)testMappingConcurrently {
+    [self testMappingWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testMappingReverse {
+    [self testMappingWithOptions:NSEnumerationReverse];
+}
+
+- (void)testMappingWithOptions:(NSEnumerationOptions)opts; {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSArray *mappedArray = [array mapWithOptions:opts usingBlock:^(NSString *obj){
+        return [obj stringByAppendingString:@"buzz"];
+    }];
+
+    NSArray *expectedArray = [NSArray arrayWithObjects:@"foobuzz", @"barbuzz", @"bazbuzz", nil];
+    if (opts & NSEnumerationReverse) {
+        // reverse the expected array
+        expectedArray = [[expectedArray reverseObjectEnumerator] allObjects];
+    }
+
+    STAssertEqualObjects(mappedArray, expectedArray, @"");
 }
 
 @end
