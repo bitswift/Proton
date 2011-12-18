@@ -18,6 +18,19 @@
 + (TestModel *)testInstance;
 @end
 
+@interface PROModelTests ()
+/*
+ * Executes the given block and verifies that the transformed object is correct.
+ *
+ * @param originalObject The original object (the one to transform).
+ * @param transformedObject The expected value for the transformed (resultant)
+ * object. This argument may be `nil` to verify that an invalid transformation
+ * fails.
+ * @param transformationBlock A block containing transformation code to execute.
+ */
+- (void)verifyObject:(PROModel *)originalObject becomesObject:(PROModel *)transformedObject afterTransformation:(void (^)(void))transformationBlock;
+@end
+
 @implementation PROModelTests
 
 - (void)testPropertyKeys {
@@ -68,61 +81,18 @@
 - (void)testSetValueForKey {
     TestModel *model = [[TestModel alloc] init];
 
-    __block BOOL notificationSent = NO;
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:NO], @"enabled",
+        nil
+    ];
 
-    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
-        notificationSent = YES;
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
 
-        NSDictionary *userInfo = notification.userInfo;
-        STAssertNotNil(userInfo, @"");
-
-        // verify that the transformation performed is in the userInfo
-        // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
-
-        // verify that the transformed object is correct
-        TestModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
-        STAssertNotNil(newModel, @"");
-
-        NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
-            @"foobar", @"name",
-            [NSNull null], @"date",
-            [NSNumber numberWithBool:NO], @"enabled",
-            nil
-        ];
-
-        STAssertEqualObjects(newModel.dictionaryValue, expectedDictionaryValue, @"");
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [model setValue:@"foobar" forKey:@"name"];
     }];
-
-    @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:observer];
-    };
-
-    id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
-        NSDictionary *userInfo = notification.userInfo;
-        STAssertNotNil(userInfo, @"");
-
-        // verify that the transformation performed is in the userInfo
-        // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
-
-        // and then fail the unit test, since this transformation should've succeeded
-        STFail(@"PROModel transformation failed");
-    }];
-
-    @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:failedObserver];
-    };
-
-    [model setValue:@"foobar" forKey:@"name"];
-    
-    // setting a value should've triggered the transformation notification
-    STAssertTrue(notificationSent, @"");
-
-    // setting a value should not have modified the original object
-    STAssertNil([model valueForKey:@"name"], @"");
-    STAssertNil([model valueForKey:@"date"], @"");
-    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
 }
 
 - (void)testSetValuesForKeysWithDictionary {
@@ -135,57 +105,11 @@
         nil
     ];
 
-    __block BOOL notificationSent = NO;
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary];
 
-    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
-        // the notification for this transformation should only be sent once
-        // (even though we made multiple changes)
-        STAssertFalse(notificationSent, @"");
-
-        notificationSent = YES;
-
-        NSDictionary *userInfo = notification.userInfo;
-        STAssertNotNil(userInfo, @"");
-
-        // verify that the transformation performed is in the userInfo
-        // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
-
-        // verify that the transformed object is correct
-        TestModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
-        STAssertNotNil(newModel, @"");
-        STAssertEqualObjects(newModel.dictionaryValue, newDictionary, @"");
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [model setValuesForKeysWithDictionary:newDictionary];
     }];
-
-    @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:observer];
-    };
-
-    id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
-        NSDictionary *userInfo = notification.userInfo;
-        STAssertNotNil(userInfo, @"");
-
-        // verify that the transformation performed is in the userInfo
-        // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
-
-        // and then fail the unit test, since this transformation should've succeeded
-        STFail(@"PROModel transformation failed");
-    }];
-
-    @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:failedObserver];
-    };
-
-    [model setValuesForKeysWithDictionary:newDictionary];
-    
-    // setting a value should've triggered the transformation notification
-    STAssertTrue(notificationSent, @"");
-
-    // setting a value should not have modified the original object
-    STAssertNil([model valueForKey:@"name"], @"");
-    STAssertNil([model valueForKey:@"date"], @"");
-    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
 }
 
 - (void)testEquality {
@@ -217,53 +141,56 @@
 - (void)testSetterTransformation {
     TestModel *model = [[TestModel alloc] init];
 
-    __block BOOL notificationSent = NO;
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:NO], @"enabled",
+        nil
+    ];
 
-    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
-        notificationSent = YES;
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
 
-        NSDictionary *userInfo = notification.userInfo;
-        STAssertNotNil(userInfo, @"");
-
-        // verify that the transformation performed is in the userInfo
-        // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
-
-        // verify that the transformed object is correct
-        TestModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
-        STAssertNotNil(newModel, @"");
-
-        NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
-            @"foobar", @"name",
-            [NSNull null], @"date",
-            [NSNumber numberWithBool:NO], @"enabled",
-            nil
-        ];
-
-        STAssertEqualObjects(newModel.dictionaryValue, expectedDictionaryValue, @"");
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        model.name = @"foobar";
     }];
-
-    @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:observer];
-    };
-
-    model.name = @"foobar";
-    
-    // setting a value should've triggered the transformation notification
-    STAssertTrue(notificationSent, @"");
-
-    // setting a value should not have modified the original object
-    STAssertNil([model valueForKey:@"name"], @"");
-    STAssertNil([model valueForKey:@"date"], @"");
-    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
 }
 
 - (void)testSetterTransformationWithNonObjectType {
     TestModel *model = [[TestModel alloc] init];
 
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSNull null], @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        model.enabled = YES;
+    }];
+}
+
+- (void)testSettingInvalidValue {
+    TestModel *model = [[TestModel alloc] init];
+
+    [self verifyObject:model becomesObject:nil afterTransformation:^{
+        // this name should be too short, according to the validation method we have
+        model.name = @"foo";
+    }];
+}
+
+- (void)verifyObject:(PROModel *)originalObject becomesObject:(PROModel *)transformedObject afterTransformation:(void (^)(void))transformationBlock; {
+    NSDictionary *originalDictionaryValue = originalObject.dictionaryValue;
+
     __block BOOL notificationSent = NO;
 
-    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
+    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:originalObject queue:nil usingBlock:^(NSNotification *notification){
+        // if the transformedObject is nil, this wasn't supposed to succeed
+        if (!transformedObject)
+            STFail(@"Transformation on %@ should have failed", originalObject);
+
         notificationSent = YES;
 
         NSDictionary *userInfo = notification.userInfo;
@@ -274,65 +201,42 @@
         STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
 
         // verify that the transformed object is correct
-        TestModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
+        PROModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
         STAssertNotNil(newModel, @"");
 
-        NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
-            [NSNull null], @"name",
-            [NSNull null], @"date",
-            [NSNumber numberWithBool:YES], @"enabled",
-            nil
-        ];
-
-        STAssertEqualObjects(newModel.dictionaryValue, expectedDictionaryValue, @"");
+        STAssertEqualObjects(newModel, transformedObject, @"");
     }];
 
     @onExit {
         [[NSNotificationCenter defaultCenter] removeObserver:observer];
     };
 
-    model.enabled = YES;
-    
-    // setting a value should've triggered the transformation notification
-    STAssertTrue(notificationSent, @"");
+    id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:originalObject queue:nil usingBlock:^(NSNotification *notification){
+        // if transformedObject is not nil, this was supposed to succeed
+        if (transformedObject)
+            STFail(@"Transformation on %@ should have resulted in %@", originalObject, transformedObject);
 
-    // setting a value should not have modified the original object
-    STAssertNil([model valueForKey:@"name"], @"");
-    STAssertNil([model valueForKey:@"date"], @"");
-    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
-}
-
-- (void)testSettingInvalidValue {
-    TestModel *model = [[TestModel alloc] init];
-
-    __block BOOL notificationSent = NO;
-
-    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:model queue:nil usingBlock:^(NSNotification *notification){
         notificationSent = YES;
 
         NSDictionary *userInfo = notification.userInfo;
         STAssertNotNil(userInfo, @"");
 
-        // verify that the transformation attempted is in the userInfo
+        // verify that the transformation performed is in the userInfo
         // dictionary
         STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
     }];
 
     @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:observer];
+        [[NSNotificationCenter defaultCenter] removeObserver:failedObserver];
     };
 
-    // this name should be too short, according to the validation method we have
-    model.name = @"foo";
+    transformationBlock();
     
-    // setting the value to something invalid should've triggered the failure
-    // notification
+    // should've triggered the transformation notification
     STAssertTrue(notificationSent, @"");
 
-    // attempting to set an invalid value should not have modified the original object
-    STAssertNil([model valueForKey:@"name"], @"");
-    STAssertNil([model valueForKey:@"date"], @"");
-    STAssertEqualObjects([model valueForKey:@"enabled"], [NSNumber numberWithBool:NO], @"");
+    // the original object should not have changed
+    STAssertEqualObjects(originalObject.dictionaryValue, originalDictionaryValue, @"");
 }
 
 @end
