@@ -7,7 +7,6 @@
 //
 
 #import "PROModelTests.h"
-#import <Proton/PROModel.h>
 #import <Proton/EXTScope.h>
 
 @interface TestModel : PROModel
@@ -16,19 +15,6 @@
 @property (nonatomic, getter = isEnabled) BOOL enabled;
 
 + (TestModel *)testInstance;
-@end
-
-@interface PROModelTests ()
-/*
- * Executes the given block and verifies that the transformed object is correct.
- *
- * @param originalObject The original object (the one to transform).
- * @param transformedObject The expected value for the transformed (resultant)
- * object. This argument may be `nil` to verify that an invalid transformation
- * fails.
- * @param transformationBlock A block containing transformation code to execute.
- */
-- (void)verifyObject:(PROModel *)originalObject becomesObject:(PROModel *)transformedObject afterTransformation:(void (^)(void))transformationBlock;
 @end
 
 @implementation PROModelTests
