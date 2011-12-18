@@ -11,7 +11,7 @@
 
 /**
  * A notification posted when a transformed copy of a <PROModel> was
- * automatically created (such as by calling a setter).
+ * created.
  *
  * The sender of this notification will be the original object. The `userInfo`
  * dictionary will contain the following keys:
@@ -21,8 +21,8 @@
 extern NSString * const PROModelDidTransformNotification;
 
 /**
- * A notification posted when a <PROModel> should have been automatically
- * transformed, but the transformation failed.
+ * A notification posted when a <PROModel> should have been transformed, but the
+ * transformation failed.
  *
  * The sender of this notification will be the original object. The `userInfo`
  * dictionary will contain the following keys:
@@ -66,9 +66,8 @@ extern NSString * const PROModelTransformationKey;
  *
  * @warning **Important:** Subclasses of this class are expected to be
  * immutable. To preserve the contract of immutability, but still allow
- * convenient usage, `PROModel` will _automatically override_ any `@property`
- * setters to generate a transformation (like <setValue:forKey:> does) instead
- * of allowing mutation on the receiving object.
+ * convenient usage, `PROModel` will disable any `@property` setters outside of
+ * normal usage, but will allow them to be used with <[PROModel performTransformation:]>.
  */
 @interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
 
@@ -132,6 +131,25 @@ extern NSString * const PROModelTransformationKey;
  */
 
 /**
+ * Generates transformations for any key-value coding or setters that are
+ * invoked in the given block.
+ *
+ * Inside the `transformationBlock`, the use of key-value coding (such as
+ * `setValue:forKey:` or `setValuesForKeysWithDictionary:`) or the use of
+ * `@property` setters will automatically generate <PROTransformation> objects,
+ * as if <transformValue:forKey:> or <transformValuesForKeysWithDictionary:>
+ * had been invoked. The original objects will not be modified.
+ *
+ * An atomic transformation will be generated for each invocation of
+ * `setValue:forKey:` or a setter. An atomic transformation will be generated
+ * for each invocation of `setValuesForKeysWithDictionary:`.
+ *
+ * @param transformationBlock A block containing any number of operations to
+ * perform on <PROModel> objects.
+ */
++ (void)performTransformation:(void (^)(void))transformationBlock;
+
+/**
  * Triggers a transformation of the receiver that will change the value of the
  * given key.
  *
@@ -145,11 +163,12 @@ extern NSString * const PROModelTransformationKey;
  *  and the new instance. The original object (the receiver) is left unchanged.
  *  4. Observers of the notification can update any references they have to
  *  point to the latest version of the object, if desired.
+ *  5. The transformed object (the new instance) is returned.
  *
  * @param key The key to transform.
  * @param value The new value for `key`.
  */
-- (void)setValue:(id)value forKey:(NSString *)key;
+- (id)transformValue:(id)value forKey:(NSString *)key;
 
 /**
  * Triggers a transformation of the receiver that will atomically change the
@@ -165,10 +184,11 @@ extern NSString * const PROModelTransformationKey;
  *  and the new instance. The original object (the receiver) is left unchanged.
  *  4. Observers of the notification can update any references they have to
  *  point to the latest version of the object, if desired.
+ *  5. The transformed object (the new instance) is returned.
  *
  * @param dictionary The keys to transform, and the new values to set for those
  * keys.
  */
-- (void)setValuesForKeysWithDictionary:(NSDictionary *)dictionary;
+- (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary;
 
 @end

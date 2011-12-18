@@ -65,7 +65,7 @@
     STAssertEqualObjects(model.dictionaryValue, expectedDictionaryValue, @"");
 }
 
-- (void)testSetValueForKey {
+- (void)testTransformValueForKey {
     TestModel *model = [[TestModel alloc] init];
 
     NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -78,11 +78,12 @@
     TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
 
     [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
-        [model setValue:@"foobar" forKey:@"name"];
+        id result = [model transformValue:@"foobar" forKey:@"name"];
+        STAssertEqualObjects(result, expectedObject, @"");
     }];
 }
 
-- (void)testSetValuesForKeysWithDictionary {
+- (void)testTransformValuesForKeysWithDictionary {
     TestModel *model = [[TestModel alloc] init];
 
     NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -95,7 +96,8 @@
     TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary];
 
     [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
-        [model setValuesForKeysWithDictionary:newDictionary];
+        id result = [model transformValuesForKeysWithDictionary:newDictionary];
+        STAssertEqualObjects(result, expectedObject, @"");
     }];
 }
 
@@ -138,7 +140,9 @@
     TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
 
     [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
-        model.name = @"foobar";
+        [PROModel performTransformation:^{
+            model.name = @"foobar";
+        }];
     }];
 }
 
@@ -155,7 +159,9 @@
     TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
 
     [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
-        model.enabled = YES;
+        [PROModel performTransformation:^{
+            model.enabled = YES;
+        }];
     }];
 }
 
@@ -163,8 +169,10 @@
     TestModel *model = [[TestModel alloc] init];
 
     [self verifyObject:model becomesObject:nil afterTransformation:^{
-        // this name should be too short, according to the validation method we have
-        model.name = @"foo";
+        [PROModel performTransformation:^{
+            // this name should be too short, according to the validation method we have
+            model.name = @"foo";
+        }];
     }];
 }
 

@@ -19,9 +19,27 @@ NSString * const PROModelTransformationFailedNotification = @"PROModelTransforma
 NSString * const PROModelTransformedObjectKey = @"PROModelTransformedObjectKey";
 NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
 
+/*
+ * A key, associated with an `NSNumber`, used in thread dictionaries to indicate
+ * whether the current thread is executing a block passed to
+ * <[PROModel performTransformation:]>.
+ *
+ * In other words, the value associated with this key will be `YES` if any
+ * invocations of <[PROModel performTransformation:]> are in the call stack and
+ * have yet to return.
+ */
+static NSString * const PROModelIsInTransformationBlockKey = @"PROModelIsInTransformationBlock";
+
 @interface PROModel () {
     BOOL m_initialized;
 }
+
+/*
+ * Whether the currently executing code is running inside of a transformation
+ * block (a block passed to <[PROModel performTransformation:]>) on the current
+ * thread.
+ */
++ (BOOL)isInTransformationBlock;
 
 /*
  * Creates and returns a method implementation that can override a setter to
@@ -361,40 +379,49 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
         return nil;
 }
 
-#pragma mark PROKeyedObject
+#pragma mark Transformation
 
-- (NSDictionary *)dictionaryValue {
-    return [self dictionaryWithValuesForKeys:[[self class] propertyKeys]];
++ (BOOL)isInTransformationBlock; {
+    // check whether the current thread is running a transformation block (using
+    // the thread dictionary as thread-local storage)
+    NSDictionary *threadDictionary = [[NSThread currentThread] threadDictionary];
+    NSNumber *inBlockNumber = [threadDictionary objectForKey:PROModelIsInTransformationBlockKey];
+
+    return [inBlockNumber boolValue];
 }
 
-#pragma mark NSKeyValueCoding
++ (void)performTransformation:(void (^)(void))transformationBlock; {
+    NSMutableDictionary *threadDictionary = [[NSThread currentThread] threadDictionary];
 
-+ (BOOL)accessInstanceVariablesDirectly {
-    return NO;
+    // store the old value
+    NSNumber *inBlockNumber = [threadDictionary objectForKey:PROModelIsInTransformationBlockKey];
+
+    // indicate that the current thread is running a transformation block (using
+    // the thread dictionary as thread-local storage)
+    [threadDictionary setObject:[NSNumber numberWithBool:YES] forKey:PROModelIsInTransformationBlockKey];
+
+    @onExit {
+        // when this scope exits, restore the old value (or, if it's nil, just
+        // delete the key entirely)
+        if (!inBlockNumber)
+            [threadDictionary removeObjectForKey:PROModelIsInTransformationBlockKey];
+        else
+            [threadDictionary setObject:inBlockNumber forKey:PROModelIsInTransformationBlockKey];
+    };
+
+    transformationBlock();
 }
 
-- (void)setValue:(id)value forKey:(NSString *)key; {
-    if (!m_initialized) {
-        // use superclass implementation (no magic) while initializing ourself
-        [super setValue:value forKey:key];
-        return;
-    }
-
+- (id)transformValue:(id)value forKey:(NSString *)key {
     if (!value) {
         value = [NSNull null];
     }
 
     NSDictionary *dictionary = [NSDictionary dictionaryWithObject:value forKey:key];
-    [self setValuesForKeysWithDictionary:dictionary];
+    return [self transformValuesForKeysWithDictionary:dictionary];
 }
 
-- (void)setValuesForKeysWithDictionary:(NSDictionary *)dictionary; {
-    if (!m_initialized) {
-        // use superclass implementation (no magic) while initializing ourself
-        [super setValuesForKeysWithDictionary:dictionary];
-        return;
-    }
-
+- (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary {
     NSMutableDictionary *transformations = [[NSMutableDictionary alloc] initWithCapacity:[dictionary count]];
 
     for (NSString *key in dictionary) {
@@ -420,7 +447,7 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
 
     if (![transformations count]) {
         // nothing to do
-        return;
+        return self;
     }
     
     // set up a key-based transformation for self
@@ -456,6 +483,44 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
             userInfo:userInfo
         ];
     }
+
+    return transformedObject;
+}
+
+#pragma mark PROKeyedObject
+
+- (NSDictionary *)dictionaryValue {
+    return [self dictionaryWithValuesForKeys:[[self class] propertyKeys]];
+}
+
+#pragma mark NSKeyValueCoding
+
++ (BOOL)accessInstanceVariablesDirectly {
+    return NO;
+}
+
+- (void)setValue:(id)value forKey:(NSString *)key; {
+    if (!m_initialized) {
+        // use superclass implementation (no magic) while initializing ourself
+        [super setValue:value forKey:key];
+        return;
+    }
+
+    NSAssert3([[self class] isInTransformationBlock], @"Attempting to set \"%@\" for key \"%@\" outside of a transformation block: %@", value, key, self);
+
+    [self transformValue:value forKey:key];
+}
+
+- (void)setValuesForKeysWithDictionary:(NSDictionary *)dictionary; {
+    if (!m_initialized) {
+        // use superclass implementation (no magic) while initializing ourself
+        [super setValuesForKeysWithDictionary:dictionary];
+        return;
+    }
+
+    NSAssert2([[self class] isInTransformationBlock], @"Attempting to mutate \"%@\" outside of a transformation block with the following changes: %@", self, dictionary);
+
+    [self transformValuesForKeysWithDictionary:dictionary];
 }
 
 #pragma mark NSCoding

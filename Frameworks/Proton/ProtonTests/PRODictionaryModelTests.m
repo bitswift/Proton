@@ -53,18 +53,19 @@
     STAssertEqualObjects(model.dictionaryValue, dictionaryValue, @"");
 }
 
-- (void)testSetValueForKey {
+- (void)testTransformValueForKey {
     PRODictionaryModel *model = [[PRODictionaryModel alloc] init];
 
     NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
     PRODictionaryModel *expectedModel = [[PRODictionaryModel alloc] initWithDictionary:expectedDictionaryValue];
 
     [self verifyObject:model becomesObject:expectedModel afterTransformation:^{
-        [model setValue:@"foobar" forKey:@"name"];
+        id result = [model transformValue:@"foobar" forKey:@"name"];
+        STAssertEqualObjects(result, expectedModel, @"");
     }];
 }
 
-- (void)testSetValuesForKeysWithDictionary {
+- (void)testTransformValuesForKeysWithDictionary {
     PRODictionaryModel *model = [[PRODictionaryModel alloc] init];
 
     NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -76,7 +77,8 @@
     PRODictionaryModel *expectedModel = [[PRODictionaryModel alloc] initWithDictionary:newDictionary];
 
     [self verifyObject:model becomesObject:expectedModel afterTransformation:^{
-        [model setValuesForKeysWithDictionary:newDictionary];
+        id result = [model transformValuesForKeysWithDictionary:newDictionary];
+        STAssertEqualObjects(result, expectedModel, @"");
     }];
 }
 
