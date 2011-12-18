@@ -53,4 +53,10 @@
     STAssertEqualObjects(uid1, uid2, @"");
 }
 
+- (void)testHash {
+    PROUniqueIdentifier *uid = [[PROUniqueIdentifier alloc] init];
+    PROUniqueIdentifier *uidFromString = [[PROUniqueIdentifier alloc] initWithString:uid.stringValue];
+    STAssertEquals(uid.hash, uidFromString.hash, @"");
+}
+
 @end
