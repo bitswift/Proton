@@ -146,6 +146,27 @@
     }];
 }
 
+- (void)testRecursiveSetterTransformation {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:NO], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [PROModel performTransformation:^{
+            [PROModel performTransformation:^{
+                model.name = @"foobar";
+            }];
+        }];
+    }];
+}
+
 - (void)testSetterTransformationWithNonObjectType {
     TestModel *model = [[TestModel alloc] init];
 
