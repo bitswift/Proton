@@ -478,6 +478,25 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
 
 #pragma mark NSObject overrides
 
+- (NSString *)description {
+    NSMutableString *str = [[NSMutableString alloc] initWithFormat:@"<%@: %p>{", [self class], (__bridge void *)self];
+
+    NSDictionary *dictionaryValue = self.dictionaryValue;
+    NSArray *sortedKeys = [[dictionaryValue allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+
+    [sortedKeys enumerateObjectsUsingBlock:^(NSString *key, NSUInteger index, BOOL *stop){
+        id value = [dictionaryValue objectForKey:key];
+
+        if (index != 0)
+            [str appendString:@","];
+
+        [str appendFormat:@"\n\t\"%@\" = %@", key, value];
+    }];
+
+    [str appendString:@"\n}"];
+    return str;
+}
+
 - (NSUInteger)hash {
     return [self.dictionaryValue hash];
 }
