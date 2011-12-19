@@ -11,6 +11,7 @@
 #import <Proton/EXTScope.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedTransformation.h>
+#import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
 #import <objc/runtime.h>
 
@@ -29,6 +30,19 @@ NSString * const PROModelTransformationKey = @"PROModelTransformationKey";
  * have yet to return.
  */
 static NSString * const PROModelIsInTransformationBlockKey = @"PROModelIsInTransformationBlock";
+
+/*
+ * A key, associated with an `NSMutableDictionary`, used in thread dictionaries
+ * to store the transformations that will occur when all current invocations of
+ * <[PROModel performTransformation:]> finish executing.
+ *
+ * The keys in the associated dictionary will be <PROModel> objects, and the
+ * values will be the <PROTransformation> to be applied.
+ *
+ * The associated dictionary will be for _all_ the currently executing
+ * invocations of <[PROModel performTransformation:]> (if any).
+ */
+static NSString * const PROModelOutstandingTransformationsKey = @"PROModelOutstandingTransformations";
 
 @interface PROModel () {
     BOOL m_initialized;
@@ -56,6 +70,42 @@ static NSString * const PROModelIsInTransformationBlockKey = @"PROModelIsInTrans
  * (and excluding) <PROModel>.
  */
 + (void)enumeratePropertiesUsingBlock:(void (^)(objc_property_t property))block;
+
+/*
+ * Attempts to create a new transformation which combines the effects of two
+ * distinct transformations. Returns `nil` on error.
+ *
+ * This differs from <PROMultipleTransformation> in that the transformations are
+ * not _chained_, meaning each transformation does not have to have an output
+ * valid for the next one's input. Instead, their effects are combined on the
+ * _initial_ value of the input object. For example, one transformation
+ * overwriting an earlier one is valid, and the result is the latest
+ * transformation's output.
+ *
+ * @param laterTransformation The transformation whose effect should come
+ * afterward. The effect of this transformation may overwrite effects of the
+ * `earlierTransformation`.
+ * @param earlierTransformation The transformation whose effect should come
+ * first.
+ */
+- (PROKeyedTransformation *)coalesceTransformation:(PROKeyedTransformation *)laterTransformation intoTransformation:(PROKeyedTransformation *)earlierTransformation;
+
+/*
+ * Performs the given transformation upon the receiver when the outermost
+ * transformation block finishes executing, returning the object as it would be
+ * transformed.
+ *
+ * If multiple transformations are enqueued on the receiver within the same
+ * transformation block, they may be coalesced according to the semantics of
+ * <[PROModel performTransformation:]>. The returned object will be the result
+ * of all the coalesced transformations being applied.
+ *
+ * If no transformation block is executing, the transformation is performed
+ * immediately, and the transformed object is returned.
+ *
+ * @param transformation The transformation to perform or queue.
+ */
+- (id)performOrQueueTransformation:(PROKeyedTransformation *)transformation;
 @end
 
 @implementation PROModel
@@ -396,6 +446,29 @@ static NSString * const PROModelIsInTransformationBlockKey = @"PROModelIsInTrans
     // store the old value
     NSNumber *inBlockNumber = [threadDictionary objectForKey:PROModelIsInTransformationBlockKey];
 
+    // make sure a transformations dictionary exists
+    if (![threadDictionary objectForKey:PROModelOutstandingTransformationsKey]) {
+        [threadDictionary setObject:[[NSMutableDictionary alloc] init] forKey:PROModelOutstandingTransformationsKey];
+    }
+
+    @onExit {
+        // if there was no existing transformation block before this method,
+        // that means we're the outermost invocation, and should execute any
+        // coalesced transformations at this point
+        if (![inBlockNumber boolValue]) {
+            // save and remove the transformations (so
+            // -performOrQueueTransformation: does not coalesce with what we're
+            // executing right now)
+            NSDictionary *transformations = [threadDictionary objectForKey:PROModelOutstandingTransformationsKey];
+            [threadDictionary removeObjectForKey:PROModelOutstandingTransformationsKey];
+
+            for (PROModel *obj in transformations) {
+                id transformation = [transformations objectForKey:obj];
+                [obj performOrQueueTransformation:transformation];
+            }
+        }
+    };
+
     // indicate that the current thread is running a transformation block (using
     // the thread dictionary as thread-local storage)
     [threadDictionary setObject:[NSNumber numberWithBool:YES] forKey:PROModelIsInTransformationBlockKey];
@@ -403,13 +476,80 @@ static NSString * const PROModelIsInTransformationBlockKey = @"PROModelIsInTrans
     @onExit {
         // when this scope exits, restore the old value (or, if it's nil, just
         // delete the key entirely)
-        if (!inBlockNumber)
-            [threadDictionary removeObjectForKey:PROModelIsInTransformationBlockKey];
-        else
+        if (inBlockNumber)
             [threadDictionary setObject:inBlockNumber forKey:PROModelIsInTransformationBlockKey];
+        else
+            [threadDictionary removeObjectForKey:PROModelIsInTransformationBlockKey];
     };
 
     transformationBlock();
+}
+
+- (PROKeyedTransformation *)coalesceTransformation:(PROKeyedTransformation *)laterTransformation intoTransformation:(PROKeyedTransformation *)earlierTransformation; {
+    NSMutableDictionary *valueTransformations = [earlierTransformation.valueTransformations mutableCopy];
+    [valueTransformations addEntriesFromDictionary:laterTransformation.valueTransformations];
+
+    return [[PROKeyedTransformation alloc] initWithValueTransformations:valueTransformations];
+}
+
+- (id)performOrQueueTransformation:(PROKeyedTransformation *)originalTransformation; {
+    NSMutableDictionary *threadDictionary = [[NSThread currentThread] threadDictionary];
+    NSMutableDictionary *transformationsByObject = [threadDictionary objectForKey:PROModelOutstandingTransformationsKey];
+
+    if (transformationsByObject) {
+        PROKeyedTransformation *existingTransformation = [transformationsByObject objectForKey:self];
+    
+        // this will be the sum transformation to apply to the object
+        PROKeyedTransformation *transformation;
+
+        if (existingTransformation) {
+            transformation = [self coalesceTransformation:originalTransformation intoTransformation:existingTransformation];
+        } else {
+            // if no existing transformation, this is the first one
+            transformation = originalTransformation;
+        }
+
+        [transformationsByObject setObject:transformation forKey:self];
+
+        // transform with what we have so far and return it, without posting any
+        // notifications
+        return [transformation transform:self];
+    }
+
+    // otherwise, not inside a transformation block, so we should transform and
+    // post a notification
+    id transformedObject = [originalTransformation transform:self];
+
+    if (transformedObject) {
+        // transformation succeeded
+        
+        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+            originalTransformation, PROModelTransformationKey,
+            transformedObject, PROModelTransformedObjectKey,
+            nil
+        ];
+        
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:PROModelDidTransformNotification
+            object:self
+            userInfo:userInfo
+        ];
+    } else {
+        // transformation failed
+        
+        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+            originalTransformation, PROModelTransformationKey,
+            nil
+        ];
+        
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:PROModelTransformationFailedNotification
+            object:self
+            userInfo:userInfo
+        ];
+    }
+
+    return transformedObject;
 }
 
 - (id)transformValue:(id)value forKey:(NSString *)key {
@@ -452,39 +592,7 @@ static NSString * const PROModelIsInTransformationBlockKey = @"PROModelIsInTrans
     
     // set up a key-based transformation for self
     PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
-    
-    id transformedObject = [keyedTransformation transform:self];
-
-    if (transformedObject) {
-        // transformation succeeded
-        
-        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-            keyedTransformation, PROModelTransformationKey,
-            transformedObject, PROModelTransformedObjectKey,
-            nil
-        ];
-        
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:PROModelDidTransformNotification
-            object:self
-            userInfo:userInfo
-        ];
-    } else {
-        // transformation failed
-        
-        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-            keyedTransformation, PROModelTransformationKey,
-            nil
-        ];
-        
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:PROModelTransformationFailedNotification
-            object:self
-            userInfo:userInfo
-        ];
-    }
-
-    return transformedObject;
+    return [self performOrQueueTransformation:keyedTransformation];   
 }
 
 #pragma mark PROKeyedObject

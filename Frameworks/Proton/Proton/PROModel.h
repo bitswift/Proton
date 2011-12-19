@@ -140,9 +140,20 @@ extern NSString * const PROModelTransformationKey;
  * as if <transformValue:forKey:> or <transformValuesForKeysWithDictionary:>
  * had been invoked. The original objects will not be modified.
  *
- * An atomic transformation will be generated for each invocation of
- * `setValue:forKey:` or a setter. An atomic transformation will be generated
- * for each invocation of `setValuesForKeysWithDictionary:`.
+ * For a given object, all invocations of its setters, `setValue:forKey:`,
+ * `setValuesForKeysWithDictionary:`, `transformValue:forKey:`, and
+ * `transformValuesForKeysWithDictionary:`, will be coalesced into a single
+ * transformation. The single transformation will perform all of the
+ * aforementioned changes atomically.
+ *
+ * <PROModelDidTransformNotification> and
+ * <PROModelTransformationFailedNotifications> notifications will only be posted
+ * from the outermost invocation of this method, after its `transformationBlock`
+ * finishes executing, but before the method itself returns.
+ *
+ * If this method is invoked recursively (i.e., from the block passed in), all
+ * recursive invocations will be coalesced into a single transformation per
+ * object. Any notifications will be posted only once per object.
  *
  * @param transformationBlock A block containing any number of operations to
  * perform on <PROModel> objects.
@@ -165,6 +176,11 @@ extern NSString * const PROModelTransformationKey;
  *  point to the latest version of the object, if desired.
  *  5. The transformed object (the new instance) is returned.
  *
+ * If this method is invoked from within a block passed to <[PROModel
+ * performTransformation:]>, the transformation will be coalesced according to
+ * the semantics of that method. In such a case, the returned value will be the
+ * combined result of all transformations queued up thus far.
+ *
  * @param key The key to transform.
  * @param value The new value for `key`.
  */
@@ -185,6 +201,11 @@ extern NSString * const PROModelTransformationKey;
  *  4. Observers of the notification can update any references they have to
  *  point to the latest version of the object, if desired.
  *  5. The transformed object (the new instance) is returned.
+ *
+ * If this method is invoked from within a block passed to <[PROModel
+ * performTransformation:]>, the transformation will be coalesced according to
+ * the semantics of that method. In such a case, the returned value will be the
+ * combined result of all transformations queued up thus far.
  *
  * @param dictionary The keys to transform, and the new values to set for those
  * keys.

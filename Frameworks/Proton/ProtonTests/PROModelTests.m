@@ -197,6 +197,172 @@
     }];
 }
 
+- (void)testMultipleSetterTransformation {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [PROModel performTransformation:^{
+            // these two changes should be coalesced into one transformation and
+            // performed atomically
+            model.name = @"foobar";
+            model.enabled = YES;
+        }];
+    }];
+}
+
+- (void)testTransformationBlockSetValueForKey {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [PROModel performTransformation:^{
+            // these two changes should be coalesced into one transformation and
+            // performed atomically
+            [model setValue:@"foobar" forKey:@"name"];
+            [model setValue:[NSNumber numberWithBool:YES] forKey:@"enabled"];
+        }];
+    }];
+}
+
+- (void)testTransformationBlockSetValuesForKeysWithDictionary {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [PROModel performTransformation:^{
+            [model setValuesForKeysWithDictionary:expectedDictionaryValue];
+        }];
+    }];
+}
+
+- (void)testTransformationBlockTransformValueForKey {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [PROModel performTransformation:^{
+            // the two changes below should be coalesced into one transformation
+            // and performed atomically
+            
+            // this should return the object with just this transformation so
+            // far
+            TestModel *intermediateObject = [model transformValue:@"foobar" forKey:@"name"];
+
+            STAssertEqualObjects(intermediateObject.name, @"foobar", @"");
+            STAssertNil(intermediateObject.date, @"");
+            STAssertFalse(intermediateObject.enabled, @"");
+
+            NSDictionary *intermediateDictionaryValue = intermediateObject.dictionaryValue;
+
+            // this should return the object with both transformations applied
+            TestModel *finalObject = [model transformValue:[NSNumber numberWithBool:YES] forKey:@"enabled"];
+            STAssertEqualObjects(finalObject, expectedObject, @"");
+
+            // make sure that the intermediate value is still consistent
+            STAssertEqualObjects(intermediateObject.dictionaryValue, intermediateDictionaryValue, @"");
+        }];
+    }];
+}
+
+- (void)testTransformationBlockTransformValuesForKeysWithDictionary {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSNull null], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        [PROModel performTransformation:^{
+            NSDictionary *intermediateDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+                @"fizzbuzz", @"name",
+                [NSDate date], @"date",
+                [NSNumber numberWithBool:YES], @"enabled",
+                nil
+            ];
+
+            // the two changes below should be coalesced into one transformation
+            // and performed atomically
+            
+            // this should return the object with just this transformation so
+            // far
+            TestModel *intermediateObject = [model transformValuesForKeysWithDictionary:intermediateDictionaryValue];
+            STAssertEqualObjects(intermediateObject.dictionaryValue, intermediateDictionaryValue, @"");
+
+            // this should return the object with both transformations applied
+            TestModel *finalObject = [model transformValuesForKeysWithDictionary:expectedDictionaryValue];
+            STAssertEqualObjects(finalObject, expectedObject, @"");
+            
+            // make sure that the intermediate value is still consistent
+            STAssertEqualObjects(intermediateObject.dictionaryValue, intermediateDictionaryValue, @"");
+        }];
+    }];
+}
+
+- (void)testRecursiveMultipleTransformation {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDate *now = [[NSDate alloc] init];
+
+    NSDictionary *finalExpectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        now, @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *finalExpectedObject = [[TestModel alloc] initWithDictionary:finalExpectedDictionaryValue];
+
+    [self verifyObject:model becomesObject:finalExpectedObject afterTransformation:^{
+        [PROModel performTransformation:^{
+            [PROModel performTransformation:^{
+                model.name = @"fizzbuzz";
+                model.enabled = YES;
+            }];
+            
+            model.name = @"foobar";
+            model.date = now;
+        }];
+    }];
+}
+
 - (void)verifyObject:(PROModel *)originalObject becomesObject:(PROModel *)transformedObject afterTransformation:(void (^)(void))transformationBlock; {
     NSDictionary *originalDictionaryValue = originalObject.dictionaryValue;
 
