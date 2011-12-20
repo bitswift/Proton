@@ -116,6 +116,10 @@
 
 #pragma mark NSObject overrides
 
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p>: %@", [self class], (__bridge void *)self, self.valueTransformations];
+}
+
 - (NSUInteger)hash {
     return [self.valueTransformations hash];
 }
