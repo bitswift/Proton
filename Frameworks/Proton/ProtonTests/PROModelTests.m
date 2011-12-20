@@ -8,6 +8,7 @@
 
 #import "PROModelTests.h"
 #import <Proton/EXTScope.h>
+#import <Proton/PROTransformation.h>
 
 @interface TestModel : PROModel
 @property (nonatomic, copy) NSString *name;
@@ -173,18 +174,19 @@
     __block BOOL notificationSent = NO;
 
     id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:originalObject queue:nil usingBlock:^(NSNotification *notification){
-        // if the transformedObject is nil, this wasn't supposed to succeed
-        if (!transformedObject)
-            STFail(@"Transformation on %@ should have failed", originalObject);
-
-        notificationSent = YES;
-
         NSDictionary *userInfo = notification.userInfo;
         STAssertNotNil(userInfo, @"");
 
         // verify that the transformation performed is in the userInfo
         // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+        PROTransformation *performedTransformation = [userInfo objectForKey:PROModelTransformationKey];
+        STAssertNotNil(performedTransformation, @"");
+
+        // if the transformedObject is nil, this wasn't supposed to succeed
+        if (!transformedObject)
+            STFail(@"Transformation %@ on %@ should have failed", performedTransformation, originalObject);
+
+        notificationSent = YES;
 
         // verify that the transformed object is correct
         PROModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
@@ -198,18 +200,19 @@
     };
 
     id failedObserver = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelTransformationFailedNotification object:originalObject queue:nil usingBlock:^(NSNotification *notification){
-        // if transformedObject is not nil, this was supposed to succeed
-        if (transformedObject)
-            STFail(@"Transformation on %@ should have resulted in %@", originalObject, transformedObject);
-
-        notificationSent = YES;
-
         NSDictionary *userInfo = notification.userInfo;
         STAssertNotNil(userInfo, @"");
 
         // verify that the transformation performed is in the userInfo
         // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
+        PROTransformation *performedTransformation = [userInfo objectForKey:PROModelTransformationKey];
+        STAssertNotNil(performedTransformation, @"");
+
+        // if transformedObject is not nil, this was supposed to succeed
+        if (transformedObject)
+            STFail(@"Transformation %@ on %@ should have resulted in %@", performedTransformation, originalObject, transformedObject);
+
+        notificationSent = YES;
     }];
 
     @onExit {
