@@ -138,7 +138,8 @@ static NSString * const PROModelOutstandingTransformationsKey = @"PROModelOutsta
             return nil;
         }
 
-        [self setValue:value forKey:key];
+        if (value)
+            [self setValue:value forKey:key];
     }
     
     m_initialized = YES;
