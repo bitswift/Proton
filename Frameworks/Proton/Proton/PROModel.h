@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <Proton/PROKeyedObject.h>
 
+@class PROTransformation;
+
 /**
  * A notification posted when a transformed copy of a <PROModel> was
  * created.
@@ -211,5 +213,21 @@ extern NSString * const PROModelTransformationKey;
  * keys.
  */
 - (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary;
+
+/**
+ * Performs the given transformation on the receiver, posts
+ * a `PROModelDidTransformNotification`, and returns the transformed instance.
+ *
+ * If the transformation is not valid for the receiver,
+ * a `PROModelTransformationFailedNotification` is posted, and `nil` is
+ * returned.
+ *
+ * @param transformation The transformation to apply to the receiver.
+ *
+ * @warning **Important:** Invocations of this method are not coalesced inside
+ * of a <[PROModel performTransformation:]> block. Invocations of this method
+ * take immediate effect and always post a notification upon success.
+ */
+- (id)transformWithTransformation:(PROTransformation *)transformation;
 
 @end

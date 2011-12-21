@@ -523,38 +523,7 @@ static NSString * const PROModelOutstandingTransformationsKey = @"PROModelOutsta
 
     // otherwise, not inside a transformation block, so we should transform and
     // post a notification
-    id transformedObject = [originalTransformation transform:self];
-
-    if (transformedObject) {
-        // transformation succeeded
-        
-        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-            originalTransformation, PROModelTransformationKey,
-            transformedObject, PROModelTransformedObjectKey,
-            nil
-        ];
-        
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:PROModelDidTransformNotification
-            object:self
-            userInfo:userInfo
-        ];
-    } else {
-        // transformation failed
-        
-        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-            originalTransformation, PROModelTransformationKey,
-            nil
-        ];
-        
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:PROModelTransformationFailedNotification
-            object:self
-            userInfo:userInfo
-        ];
-    }
-
-    return transformedObject;
+    return [self transformWithTransformation:originalTransformation];
 }
 
 - (id)transformValue:(id)value forKey:(NSString *)key {
@@ -598,6 +567,41 @@ static NSString * const PROModelOutstandingTransformationsKey = @"PROModelOutsta
     // set up a key-based transformation for self
     PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
     return [self performOrQueueTransformation:keyedTransformation];   
+}
+
+- (id)transformWithTransformation:(PROTransformation *)transformation; {
+    id transformedObject = [transformation transform:self];
+
+    if (transformedObject) {
+        // transformation succeeded
+        
+        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+            transformation, PROModelTransformationKey,
+            transformedObject, PROModelTransformedObjectKey,
+            nil
+        ];
+        
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:PROModelDidTransformNotification
+            object:self
+            userInfo:userInfo
+        ];
+    } else {
+        // transformation failed
+        
+        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+            transformation, PROModelTransformationKey,
+            nil
+        ];
+        
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:PROModelTransformationFailedNotification
+            object:self
+            userInfo:userInfo
+        ];
+    }
+
+    return transformedObject;
 }
 
 #pragma mark PROKeyedObject

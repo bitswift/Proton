@@ -9,6 +9,7 @@
 #import "PROModelTests.h"
 #import <Proton/EXTScope.h>
 #import <Proton/PROTransformation.h>
+#import <Proton/PROUniqueTransformation.h>
 
 @interface TestModel : PROModel
 @property (nonatomic, copy) NSString *name;
@@ -98,6 +99,70 @@
     [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
         id result = [model transformValuesForKeysWithDictionary:newDictionary];
         STAssertEqualObjects(result, expectedObject, @"");
+    }];
+}
+
+- (void)testTransformWithTransformation {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSDate date], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary];
+
+    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:model outputValue:expectedObject];
+    [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+        id result = [model transformWithTransformation:transformation];
+        STAssertEqualObjects(result, expectedObject, @"");
+    }];
+}
+
+- (void)testInvalidTransformWithTransformation {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSDate date], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary];
+
+    // this is the reverse of what should work (so this direction is invalid for
+    // what we have)
+    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:expectedObject outputValue:model];
+
+    [self verifyObject:model becomesObject:nil afterTransformation:^{
+        id result = [model transformWithTransformation:transformation];
+        STAssertNil(result, @"");
+    }];
+}
+
+- (void)testTransformWithTransformationInsidePerformTransformation {
+    TestModel *model = [[TestModel alloc] init];
+
+    NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"foobar", @"name",
+        [NSDate date], @"date",
+        [NSNumber numberWithBool:YES], @"enabled",
+        nil
+    ];
+
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary];
+
+    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:model outputValue:expectedObject];
+
+    // even with this block, changes should still happen immediately
+    [PROModel performTransformation:^{
+        [self verifyObject:model becomesObject:expectedObject afterTransformation:^{
+            id result = [model transformWithTransformation:transformation];
+            STAssertEqualObjects(result, expectedObject, @"");
+        }];
     }];
 }
 
