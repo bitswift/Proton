@@ -9,9 +9,11 @@
 #import <Foundation/Foundation.h>
 #import <Proton/PROKeyedObject.h>
 
+@class PROTransformation;
+
 /**
  * A notification posted when a transformed copy of a <PROModel> was
- * automatically created (such as by calling a setter).
+ * created.
  *
  * The sender of this notification will be the original object. The `userInfo`
  * dictionary will contain the following keys:
@@ -21,8 +23,8 @@
 extern NSString * const PROModelDidTransformNotification;
 
 /**
- * A notification posted when a <PROModel> should have been automatically
- * transformed, but the transformation failed.
+ * A notification posted when a <PROModel> should have been transformed, but the
+ * transformation failed.
  *
  * The sender of this notification will be the original object. The `userInfo`
  * dictionary will contain the following keys:
@@ -66,9 +68,8 @@ extern NSString * const PROModelTransformationKey;
  *
  * @warning **Important:** Subclasses of this class are expected to be
  * immutable. To preserve the contract of immutability, but still allow
- * convenient usage, `PROModel` will _automatically override_ any `@property`
- * setters to generate a transformation (like <setValue:forKey:> does) instead
- * of allowing mutation on the receiving object.
+ * convenient usage, `PROModel` will disable any `@property` setters outside of
+ * normal usage, but will allow them to be used with <[PROModel performTransformation:]>.
  */
 @interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
 
@@ -132,6 +133,36 @@ extern NSString * const PROModelTransformationKey;
  */
 
 /**
+ * Generates transformations for any key-value coding or setters that are
+ * invoked in the given block.
+ *
+ * Inside the `transformationBlock`, the use of key-value coding (such as
+ * `setValue:forKey:` or `setValuesForKeysWithDictionary:`) or the use of
+ * `@property` setters will automatically generate <PROTransformation> objects,
+ * as if <transformValue:forKey:> or <transformValuesForKeysWithDictionary:>
+ * had been invoked. The original objects will not be modified.
+ *
+ * For a given object, all invocations of its setters, `setValue:forKey:`,
+ * `setValuesForKeysWithDictionary:`, `transformValue:forKey:`, and
+ * `transformValuesForKeysWithDictionary:`, will be coalesced into a single
+ * transformation. The single transformation will perform all of the
+ * aforementioned changes atomically.
+ *
+ * <PROModelDidTransformNotification> and
+ * <PROModelTransformationFailedNotifications> notifications will only be posted
+ * from the outermost invocation of this method, after its `transformationBlock`
+ * finishes executing, but before the method itself returns.
+ *
+ * If this method is invoked recursively (i.e., from the block passed in), all
+ * recursive invocations will be coalesced into a single transformation per
+ * object. Any notifications will be posted only once per object.
+ *
+ * @param transformationBlock A block containing any number of operations to
+ * perform on <PROModel> objects.
+ */
++ (void)performTransformation:(void (^)(void))transformationBlock;
+
+/**
  * Triggers a transformation of the receiver that will change the value of the
  * given key.
  *
@@ -145,11 +176,17 @@ extern NSString * const PROModelTransformationKey;
  *  and the new instance. The original object (the receiver) is left unchanged.
  *  4. Observers of the notification can update any references they have to
  *  point to the latest version of the object, if desired.
+ *  5. The transformed object (the new instance) is returned.
+ *
+ * If this method is invoked from within a block passed to <[PROModel
+ * performTransformation:]>, the transformation will be coalesced according to
+ * the semantics of that method. In such a case, the returned value will be the
+ * combined result of all transformations queued up thus far.
  *
  * @param key The key to transform.
  * @param value The new value for `key`.
  */
-- (void)setValue:(id)value forKey:(NSString *)key;
+- (id)transformValue:(id)value forKey:(NSString *)key;
 
 /**
  * Triggers a transformation of the receiver that will atomically change the
@@ -165,10 +202,32 @@ extern NSString * const PROModelTransformationKey;
  *  and the new instance. The original object (the receiver) is left unchanged.
  *  4. Observers of the notification can update any references they have to
  *  point to the latest version of the object, if desired.
+ *  5. The transformed object (the new instance) is returned.
+ *
+ * If this method is invoked from within a block passed to <[PROModel
+ * performTransformation:]>, the transformation will be coalesced according to
+ * the semantics of that method. In such a case, the returned value will be the
+ * combined result of all transformations queued up thus far.
  *
  * @param dictionary The keys to transform, and the new values to set for those
  * keys.
  */
-- (void)setValuesForKeysWithDictionary:(NSDictionary *)dictionary;
+- (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary;
+
+/**
+ * Performs the given transformation on the receiver, posts
+ * a `PROModelDidTransformNotification`, and returns the transformed instance.
+ *
+ * If the transformation is not valid for the receiver,
+ * a `PROModelTransformationFailedNotification` is posted, and `nil` is
+ * returned.
+ *
+ * @param transformation The transformation to apply to the receiver.
+ *
+ * @warning **Important:** Invocations of this method are not coalesced inside
+ * of a <[PROModel performTransformation:]> block. Invocations of this method
+ * take immediate effect and always post a notification upon success.
+ */
+- (id)transformWithTransformation:(PROTransformation *)transformation;
 
 @end

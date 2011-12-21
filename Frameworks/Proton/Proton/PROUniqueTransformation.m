@@ -89,6 +89,10 @@
 
 #pragma mark NSObject overrides
 
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p>{ old = %@, new = %@ }", [self class], (__bridge void *)self, self.inputValue, self.outputValue];
+}
+
 - (NSUInteger)hash {
     return [self.inputValue hash] ^ [self.outputValue hash];
 }
