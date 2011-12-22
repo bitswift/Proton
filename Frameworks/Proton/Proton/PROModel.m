@@ -139,11 +139,6 @@
         PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:originalValue outputValue:value];
         [transformations setObject:transformation forKey:key];
     }
-
-    if (![transformations count]) {
-        // nothing to do
-        return nil;
-    }
     
     // set up a key-based transformation for self
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
