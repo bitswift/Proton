@@ -125,14 +125,14 @@
         id value = [dictionary objectForKey:key];
         id originalValue = [self valueForKey:key];
 
-        if (NSEqualObjects(value, originalValue)) {
-            // nothing to do
-            continue;
-        }
-
         if (!originalValue) {
             // 'nil' needs to be represented as NSNull for PROUniqueTransformation
             originalValue = [NSNull null];
+        }
+
+        if (NSEqualObjects(value, originalValue)) {
+            // nothing to do
+            continue;
         }
 
         // create the transformation for the specific property
