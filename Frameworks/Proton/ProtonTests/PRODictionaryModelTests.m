@@ -53,43 +53,19 @@
     STAssertEqualObjects(model.dictionaryValue, dictionaryValue, @"");
 }
 
-- (void)testSetValueForKey {
+- (void)testTransformValueForKey {
     PRODictionaryModel *model = [[PRODictionaryModel alloc] init];
 
-    __block BOOL notificationSent = NO;
+    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
+    PRODictionaryModel *expectedModel = [[PRODictionaryModel alloc] initWithDictionary:expectedDictionaryValue];
 
-    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
-        notificationSent = YES;
-
-        NSDictionary *userInfo = notification.userInfo;
-        STAssertNotNil(userInfo, @"");
-
-        // verify that the transformation performed is in the userInfo
-        // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
-
-        // verify that the transformed object is correct
-        PRODictionaryModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
-        STAssertNotNil(newModel, @"");
-
-        NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
-        STAssertEqualObjects(newModel.dictionaryValue, expectedDictionaryValue, @"");
+    [self verifyObject:model becomesObject:expectedModel afterTransformation:^{
+        id result = [model transformValue:@"foobar" forKey:@"name"];
+        STAssertEqualObjects(result, expectedModel, @"");
     }];
-
-    @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:observer];
-    };
-
-    [model setValue:@"foobar" forKey:@"name"];
-    
-    // setting a value should've triggered the transformation notification
-    STAssertTrue(notificationSent, @"");
-
-    // setting a value should not have modified the original object
-    STAssertNil([model valueForKey:@"name"], @"");
 }
 
-- (void)testSetValuesForKeysWithDictionary {
+- (void)testTransformValuesForKeysWithDictionary {
     PRODictionaryModel *model = [[PRODictionaryModel alloc] init];
 
     NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -98,36 +74,12 @@
         nil
     ];
 
-    __block BOOL notificationSent = NO;
+    PRODictionaryModel *expectedModel = [[PRODictionaryModel alloc] initWithDictionary:newDictionary];
 
-    id observer = [[NSNotificationCenter defaultCenter] addObserverForName:PROModelDidTransformNotification object:model queue:nil usingBlock:^(NSNotification *notification){
-        notificationSent = YES;
-
-        NSDictionary *userInfo = notification.userInfo;
-        STAssertNotNil(userInfo, @"");
-
-        // verify that the transformation performed is in the userInfo
-        // dictionary
-        STAssertNotNil([userInfo objectForKey:PROModelTransformationKey], @"");
-
-        // verify that the transformed object is correct
-        PRODictionaryModel *newModel = [userInfo objectForKey:PROModelTransformedObjectKey];
-        STAssertNotNil(newModel, @"");
-        STAssertEqualObjects(newModel.dictionaryValue, newDictionary, @"");
+    [self verifyObject:model becomesObject:expectedModel afterTransformation:^{
+        id result = [model transformValuesForKeysWithDictionary:newDictionary];
+        STAssertEqualObjects(result, expectedModel, @"");
     }];
-
-    @onExit {
-        [[NSNotificationCenter defaultCenter] removeObserver:observer];
-    };
-
-    [model setValuesForKeysWithDictionary:newDictionary];
-    
-    // setting a value should've triggered the transformation notification
-    STAssertTrue(notificationSent, @"");
-
-    // setting a value should not have modified the original object
-    STAssertNil([model valueForKey:@"name"], @"");
-    STAssertNil([model valueForKey:@"date"], @"");
 }
 
 - (void)testEquality {
