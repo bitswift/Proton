@@ -9,53 +9,16 @@
 #import <Foundation/Foundation.h>
 #import <Proton/PROKeyedObject.h>
 
-@class PROTransformation;
-
-/**
- * A notification posted when a transformed copy of a <PROModel> was
- * created.
- *
- * The sender of this notification will be the original object. The `userInfo`
- * dictionary will contain the following keys:
- *  - <PROModelTransformedObjectKey>
- *  - <PROModelTransformationKey>
- */
-extern NSString * const PROModelDidTransformNotification;
-
-/**
- * A notification posted when a <PROModel> should have been transformed, but the
- * transformation failed.
- *
- * The sender of this notification will be the original object. The `userInfo`
- * dictionary will contain the following keys:
- *  - <PROModelTransformationKey>
- */
-extern NSString * const PROModelTransformationFailedNotification;
-
-/**
- * Associated with the object that was returned from the transformation.
- *
- * This will be a key in the `userInfo` dictionary of
- * a <PROModelDidTransformNotification>.
- */
-extern NSString * const PROModelTransformedObjectKey;
-
-/**
- * Associated with the transformation that occurred or failed.
- *
- * This will be a key in the `userInfo` dictionary of
- * a <PROModelDidTransformNotification> or
- * a <PROModelTransformationFailedNotification>.
- */
-extern NSString * const PROModelTransformationKey;
+@class PROKeyedTransformation;
 
 /**
  * A base class for immutable model objects.
  *
  * To create a subclass:
  *
- *  1. Declare and synthesize any properties desired. Properties can be
- *  `readwrite`, in which case they will generate transformations (see below).
+ *  1. Declare and synthesize any properties desired. Properties should be
+ *  `readwrite` (even if exposed as `readonly`) so that their values can be set
+ *  with key-value coding.
  *  2. Implement key-value coding validation methods
  *  (per the semantics of `validateValue:forKey:error:`) as desired. These
  *  validation methods will be automatically invoked by <initWithDictionary:>.
@@ -69,7 +32,7 @@ extern NSString * const PROModelTransformationKey;
  * @warning **Important:** Subclasses of this class are expected to be
  * immutable. To preserve the contract of immutability, but still allow
  * convenient usage, `PROModel` will disable any `@property` setters outside of
- * normal usage, but will allow them to be used with <[PROModel performTransformation:]>.
+ * <initWithDictionary:>.
  */
 @interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
 
@@ -133,81 +96,21 @@ extern NSString * const PROModelTransformationKey;
  */
 
 /**
- * Generates transformations for any key-value coding or setters that are
- * invoked in the given block.
+ * Returns a copy of the receiver which has the given key set to the given
+ * value.
  *
- * Inside the `transformationBlock`, the use of key-value coding (such as
- * `setValue:forKey:` or `setValuesForKeysWithDictionary:`) or the use of
- * `@property` setters will automatically generate <PROTransformation> objects,
- * as if <transformValue:forKey:> or <transformValuesForKeysWithDictionary:>
- * had been invoked. The original objects will not be modified.
- *
- * For a given object, all invocations of its setters, `setValue:forKey:`,
- * `setValuesForKeysWithDictionary:`, `transformValue:forKey:`, and
- * `transformValuesForKeysWithDictionary:`, will be coalesced into a single
- * transformation. The single transformation will perform all of the
- * aforementioned changes atomically.
- *
- * <PROModelDidTransformNotification> and
- * <PROModelTransformationFailedNotifications> notifications will only be posted
- * from the outermost invocation of this method, after its `transformationBlock`
- * finishes executing, but before the method itself returns.
- *
- * If this method is invoked recursively (i.e., from the block passed in), all
- * recursive invocations will be coalesced into a single transformation per
- * object. Any notifications will be posted only once per object.
- *
- * @param transformationBlock A block containing any number of operations to
- * perform on <PROModel> objects.
- */
-+ (void)performTransformation:(void (^)(void))transformationBlock;
-
-/**
- * Triggers a transformation of the receiver that will change the value of the
- * given key.
- *
- * *This method does not mutate the receiver.* Instead:
- *
- *  1. A <PROTransformation> is created that will set `value` for `key` on the
- *  receiver.
- *  2. A modified copy of the receiver is created using the transformation and
- *  <initWithDictionary:>.
- *  3. A `PROModelDidTransformNotification` is posted with the transformation
- *  and the new instance. The original object (the receiver) is left unchanged.
- *  4. Observers of the notification can update any references they have to
- *  point to the latest version of the object, if desired.
- *  5. The transformed object (the new instance) is returned.
- *
- * If this method is invoked from within a block passed to <[PROModel
- * performTransformation:]>, the transformation will be coalesced according to
- * the semantics of that method. In such a case, the returned value will be the
- * combined result of all transformations queued up thus far.
+ * *This method does not mutate the receiver.*
  *
  * @param key The key to transform.
  * @param value The new value for `key`.
  */
-- (id)transformValue:(id)value forKey:(NSString *)key;
+- (id)transformValueForKey:(NSString *)key toValue:(id)value;
 
 /**
- * Triggers a transformation of the receiver that will atomically change the
- * values of the given keys.
+ * Returns a copy of the receiver which has the given keys set to the given
+ * values.
  *
- * *This method does not mutate the receiver.* Instead:
- *
- *  1. A <PROTransformation> is created that will set the values for the keys in
- *  `dictionary` on the receiver.
- *  2. A modified copy of the receiver is created using the transformation and
- *  <initWithDictionary:>.
- *  3. A `PROModelDidTransformNotification` is posted with the transformation
- *  and the new instance. The original object (the receiver) is left unchanged.
- *  4. Observers of the notification can update any references they have to
- *  point to the latest version of the object, if desired.
- *  5. The transformed object (the new instance) is returned.
- *
- * If this method is invoked from within a block passed to <[PROModel
- * performTransformation:]>, the transformation will be coalesced according to
- * the semantics of that method. In such a case, the returned value will be the
- * combined result of all transformations queued up thus far.
+ * *This method does not mutate the receiver.*
  *
  * @param dictionary The keys to transform, and the new values to set for those
  * keys.
@@ -215,19 +118,27 @@ extern NSString * const PROModelTransformationKey;
 - (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary;
 
 /**
- * Performs the given transformation on the receiver, posts
- * a `PROModelDidTransformNotification`, and returns the transformed instance.
+ * Returns a keyed transformation which will transform the value for `key` from
+ * its current value on the receiver to `value`. Returns `nil` if the transformation
+ * would not be valid.
  *
- * If the transformation is not valid for the receiver,
- * a `PROModelTransformationFailedNotification` is posted, and `nil` is
- * returned.
- *
- * @param transformation The transformation to apply to the receiver.
- *
- * @warning **Important:** Invocations of this method are not coalesced inside
- * of a <[PROModel performTransformation:]> block. Invocations of this method
- * take immediate effect and always post a notification upon success.
+ * @param key The key to transform. The returned transformation will only be
+ * valid for the current value of this key.
+ * @param value The value for `key` that will be set by the transformation.
  */
-- (id)transformWithTransformation:(PROTransformation *)transformation;
+- (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value;
+
+/**
+ * Returns a keyed transformation which will transform the values for the given
+ * keys from their current values on the receiver. Returns `nil` if the
+ * transformation would not be valid.
+ *
+ * This will retrieve the current value on the receiver of every key in
+ * `dictionary` and create a transformation for each one to convert it to the
+ * value in the dictionary.
+ *
+ * @param dictionary The keys to transform, along with the new values to set.
+ */
+- (PROKeyedTransformation *)transformationForKeysWithDictionary:(NSDictionary *)dictionary;
 
 @end
