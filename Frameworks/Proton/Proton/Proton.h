@@ -18,7 +18,6 @@
 #import <Proton/NSDictionary+PROKeyedObjectAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/NSObject+ErrorAdditions.h>
-#import <Proton/PRODictionaryModel.h>
 #import <Proton/PROIndexedTransformation.h>
 #import <Proton/PROKeyedObject.h>
 #import <Proton/PROKeyedTransformation.h>
