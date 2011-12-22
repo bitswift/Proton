@@ -289,6 +289,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */ = {
+			isa = PBXGroup;
+			children = (
+				1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */,
+				1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */,
+			);
+			name = "Unique Identifier";
+			sourceTree = "<group>";
+		};
 		D00A490A1499450400EEBD92 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
@@ -338,10 +347,9 @@
 		D06AA43F1494A1B400F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
 				D0C42D5F14984CD100A08989 /* Model */,
 				D0477F5514970DDC00B0DAB0 /* Transformation */,
-				1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */,
-				1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -813,7 +821,6 @@
 				D047033C1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
 				D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */,
 				D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */,
-				D0C91962149A69CA00D1E23C /* PRONSDictionaryAdditionsTests.m in Sources */,
 				D0E0F2FB1497E4CD0072FE2C /* EXTNilTest.m in Sources */,
 				D0E0F2F01497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */,
 				D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
