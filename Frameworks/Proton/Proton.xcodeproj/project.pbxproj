@@ -83,6 +83,12 @@
 		D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */; };
 		D07D6EC01499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
 		D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
+		D084678B14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; };
+		D084678C14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; };
+		D084678D14A40DE800E2856F /* SDQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = D084678A14A40DE800E2856F /* SDQueue.m */; };
+		D084678E14A40DE800E2856F /* SDQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = D084678A14A40DE800E2856F /* SDQueue.m */; };
+		D084679114A40DEF00E2856F /* SDQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D084679014A40DEF00E2856F /* SDQueueTests.m */; };
+		D084679214A40DEF00E2856F /* SDQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D084679014A40DEF00E2856F /* SDQueueTests.m */; };
 		D09186741492EC3E001DEBC8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07AF71492E76200A1E816 /* Foundation.framework */; };
 		D0B07AD01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
 		D0B07ADD1492E72800A1E816 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
@@ -200,6 +206,10 @@
 		D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSSetAdditionsTests.m; sourceTree = "<group>"; };
 		D07D6EBE1499E47C00192DED /* PRONSOrderedSetAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSOrderedSetAdditionsTests.h; sourceTree = "<group>"; };
 		D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSOrderedSetAdditionsTests.m; sourceTree = "<group>"; };
+		D084678914A40DE800E2856F /* SDQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueue.h; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.h; sourceTree = "<group>"; };
+		D084678A14A40DE800E2856F /* SDQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueue.m; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.m; sourceTree = "<group>"; };
+		D084678F14A40DEF00E2856F /* SDQueueTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueueTests.h; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.h; sourceTree = "<group>"; };
+		D084679014A40DEF00E2856F /* SDQueueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueueTests.m; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.m; sourceTree = "<group>"; };
 		D0B07ACE1492E72800A1E816 /* libProton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libProton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -393,6 +403,24 @@
 			name = Classes;
 			sourceTree = "<group>";
 		};
+		D084678614A40DC700E2856F /* SafeDispatch */ = {
+			isa = PBXGroup;
+			children = (
+				D084678914A40DE800E2856F /* SDQueue.h */,
+				D084678A14A40DE800E2856F /* SDQueue.m */,
+			);
+			name = SafeDispatch;
+			sourceTree = "<group>";
+		};
+		D084678814A40DD100E2856F /* SafeDispatch */ = {
+			isa = PBXGroup;
+			children = (
+				D084678F14A40DEF00E2856F /* SDQueueTests.h */,
+				D084679014A40DEF00E2856F /* SDQueueTests.m */,
+			);
+			name = SafeDispatch;
+			sourceTree = "<group>";
+		};
 		D0C42D5F14984CD100A08989 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -459,6 +487,7 @@
 			isa = PBXGroup;
 			children = (
 				D0D7A1A51492EE020057F90D /* libextobjc */,
+				D084678814A40DD100E2856F /* SafeDispatch */,
 				D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */,
 				D0B07AF71492E76200A1E816 /* Foundation.framework */,
 				D0B07ACF1492E72800A1E816 /* Foundation.framework */,
@@ -493,6 +522,7 @@
 			children = (
 				D06AA45C1494A22600F0F94B /* Classes */,
 				D0D7A1BC1492EE3F0057F90D /* libextobjc */,
+				D084678614A40DC700E2856F /* SafeDispatch */,
 				D0DB5CE41492DDD5005955FB /* Supporting Files */,
 			);
 			path = ProtonTests;
@@ -600,6 +630,7 @@
 				1A225923149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */,
 				1EA5FB0614A2C17400E3B764 /* PROIndexedTransformation.h in Headers */,
 				D0FCD02A14A3605A00E05395 /* NSObject+KVOAdditions.h in Headers */,
+				D084678C14A40DE800E2856F /* SDQueue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -630,6 +661,7 @@
 				1A225922149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */,
 				1EA5FB0314A2C16100E3B764 /* PROIndexedTransformation.h in Headers */,
 				D0FCD02914A3605A00E05395 /* NSObject+KVOAdditions.h in Headers */,
+				D084678B14A40DE800E2856F /* SDQueue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -818,6 +850,7 @@
 				1A225925149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */,
 				1EA5FB0514A2C16B00E3B764 /* PROIndexedTransformation.m in Sources */,
 				D0FCD02C14A3605A00E05395 /* NSObject+KVOAdditions.m in Sources */,
+				D084678E14A40DE800E2856F /* SDQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -840,6 +873,7 @@
 				D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */,
 				1A22592A149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
 				1EA5FB1C14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
+				D084679214A40DEF00E2856F /* SDQueueTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -867,6 +901,7 @@
 				1A225924149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */,
 				1EA5FB0414A2C16100E3B764 /* PROIndexedTransformation.m in Sources */,
 				D0FCD02B14A3605A00E05395 /* NSObject+KVOAdditions.m in Sources */,
+				D084678D14A40DE800E2856F /* SDQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -889,6 +924,7 @@
 				D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */,
 				1A225929149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
 				1EA5FB1B14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
+				D084679114A40DEF00E2856F /* SDQueueTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
