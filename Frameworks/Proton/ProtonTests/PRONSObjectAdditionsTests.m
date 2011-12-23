@@ -180,6 +180,21 @@
     [operation waitUntilFinished];
 }
 
+- (void)testBlockBasedKVOMemoryManagement {
+    __weak id observer = nil;
+
+    @autoreleasepool {
+        __autoreleasing NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
+
+        observer = [operation addObserverForKeyPath:@"isExecuting" usingBlock:^(NSDictionary *changes){}];
+        STAssertNotNil(observer, @"");
+    }
+
+    // the observer should've been destroyed with the popping of the autorelease
+    // pool (since the operation would get destroyed at that time)
+    STAssertNil(observer, @"");
+}
+
 // test the crazy block-based KVO code on a class that is likely to blow up
 - (void)testBlockBasedKVOForClassCluster {
     NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
