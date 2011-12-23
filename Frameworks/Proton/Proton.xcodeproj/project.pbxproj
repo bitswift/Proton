@@ -35,6 +35,8 @@
 		D031BA9014A53B5000A38526 /* PROKeyValueObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = D031BA8D14A53B5000A38526 /* PROKeyValueObserver.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D031BA9114A53B5000A38526 /* PROKeyValueObserver.m in Sources */ = {isa = PBXBuildFile; fileRef = D031BA8E14A53B5000A38526 /* PROKeyValueObserver.m */; };
 		D031BA9214A53B5000A38526 /* PROKeyValueObserver.m in Sources */ = {isa = PBXBuildFile; fileRef = D031BA8E14A53B5000A38526 /* PROKeyValueObserver.m */; };
+		D031BA9514A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */; };
+		D031BA9614A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */; };
 		D047032C1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D04703261494A6F8004CB93A /* Foundation+LocalizationAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D047032D1494A6F8004CB93A /* Foundation+LocalizationAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D04703261494A6F8004CB93A /* Foundation+LocalizationAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D047032E1494A6F8004CB93A /* Foundation+LocalizationAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D04703271494A6F8004CB93A /* Foundation+LocalizationAdditions.m */; };
@@ -178,6 +180,8 @@
 		D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSDictionaryAdditionsTests.m; sourceTree = "<group>"; };
 		D031BA8D14A53B5000A38526 /* PROKeyValueObserver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueObserver.h; sourceTree = "<group>"; };
 		D031BA8E14A53B5000A38526 /* PROKeyValueObserver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueObserver.m; sourceTree = "<group>"; };
+		D031BA9314A53F4600A38526 /* PROKeyValueObserverTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueObserverTests.h; sourceTree = "<group>"; };
+		D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueObserverTests.m; sourceTree = "<group>"; };
 		D04703261494A6F8004CB93A /* Foundation+LocalizationAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Foundation+LocalizationAdditions.h"; sourceTree = "<group>"; };
 		D04703271494A6F8004CB93A /* Foundation+LocalizationAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Foundation+LocalizationAdditions.m"; sourceTree = "<group>"; };
 		D04703281494A6F8004CB93A /* NSObject+ComparisonAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+ComparisonAdditions.h"; sourceTree = "<group>"; };
@@ -389,6 +393,8 @@
 				1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */,
 				D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */,
 				D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */,
+				D031BA9314A53F4600A38526 /* PROKeyValueObserverTests.h */,
+				D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */,
 				D0C42D77149857CB00A08989 /* PROModelTests.h */,
 				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */,
@@ -882,6 +888,7 @@
 				1A22592A149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
 				1EA5FB1C14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
 				D084679214A40DEF00E2856F /* SDQueueTests.m in Sources */,
+				D031BA9614A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -933,6 +940,7 @@
 				1A225929149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
 				1EA5FB1B14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
 				D084679114A40DEF00E2856F /* SDQueueTests.m in Sources */,
+				D031BA9514A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
