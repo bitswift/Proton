@@ -83,8 +83,8 @@
 		D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */; };
 		D07D6EC01499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
 		D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
-		D084678B14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; };
-		D084678C14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; };
+		D084678B14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D084678C14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D084678D14A40DE800E2856F /* SDQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = D084678A14A40DE800E2856F /* SDQueue.m */; };
 		D084678E14A40DE800E2856F /* SDQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = D084678A14A40DE800E2856F /* SDQueue.m */; };
 		D084679114A40DEF00E2856F /* SDQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D084679014A40DEF00E2856F /* SDQueueTests.m */; };
@@ -206,10 +206,10 @@
 		D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSSetAdditionsTests.m; sourceTree = "<group>"; };
 		D07D6EBE1499E47C00192DED /* PRONSOrderedSetAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSOrderedSetAdditionsTests.h; sourceTree = "<group>"; };
 		D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSOrderedSetAdditionsTests.m; sourceTree = "<group>"; };
-		D084678914A40DE800E2856F /* SDQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueue.h; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.h; sourceTree = "<group>"; };
-		D084678A14A40DE800E2856F /* SDQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueue.m; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.m; sourceTree = "<group>"; };
-		D084678F14A40DEF00E2856F /* SDQueueTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueueTests.h; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.h; sourceTree = "<group>"; };
-		D084679014A40DEF00E2856F /* SDQueueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueueTests.m; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.m; sourceTree = "<group>"; };
+		D084678914A40DE800E2856F /* SDQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueue.h; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.h; sourceTree = "<group>"; };
+		D084678A14A40DE800E2856F /* SDQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueue.m; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.m; sourceTree = "<group>"; };
+		D084678F14A40DEF00E2856F /* SDQueueTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueueTests.h; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.h; sourceTree = "<group>"; };
+		D084679014A40DEF00E2856F /* SDQueueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueueTests.m; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.m; sourceTree = "<group>"; };
 		D0B07ACE1492E72800A1E816 /* libProton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libProton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -406,8 +406,8 @@
 		D084678614A40DC700E2856F /* SafeDispatch */ = {
 			isa = PBXGroup;
 			children = (
-				D084678914A40DE800E2856F /* SDQueue.h */,
-				D084678A14A40DE800E2856F /* SDQueue.m */,
+				D084678F14A40DEF00E2856F /* SDQueueTests.h */,
+				D084679014A40DEF00E2856F /* SDQueueTests.m */,
 			);
 			name = SafeDispatch;
 			sourceTree = "<group>";
@@ -415,8 +415,8 @@
 		D084678814A40DD100E2856F /* SafeDispatch */ = {
 			isa = PBXGroup;
 			children = (
-				D084678F14A40DEF00E2856F /* SDQueueTests.h */,
-				D084679014A40DEF00E2856F /* SDQueueTests.m */,
+				D084678914A40DE800E2856F /* SDQueue.h */,
+				D084678A14A40DE800E2856F /* SDQueue.m */,
 			);
 			name = SafeDispatch;
 			sourceTree = "<group>";
