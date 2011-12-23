@@ -135,10 +135,6 @@
 		D0E0F2F71497E4A80072FE2C /* EXTNil.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F31497E4A80072FE2C /* EXTNil.m */; };
 		D0E0F2FA1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
 		D0E0F2FB1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
-		D0FCD02914A3605A00E05395 /* NSObject+KVOAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FCD02714A3605A00E05395 /* NSObject+KVOAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D0FCD02A14A3605A00E05395 /* NSObject+KVOAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FCD02714A3605A00E05395 /* NSObject+KVOAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D0FCD02B14A3605A00E05395 /* NSObject+KVOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FCD02814A3605A00E05395 /* NSObject+KVOAdditions.m */; };
-		D0FCD02C14A3605A00E05395 /* NSObject+KVOAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FCD02814A3605A00E05395 /* NSObject+KVOAdditions.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -261,8 +257,6 @@
 		D0E0F2F31497E4A80072FE2C /* EXTNil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNil.m; path = ../libextobjc/extobjc/Classes/EXTNil.m; sourceTree = "<group>"; };
 		D0E0F2F81497E4CD0072FE2C /* EXTNilTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTNilTest.h; path = ../../libextobjc/extobjc/Tests/EXTNilTest.h; sourceTree = "<group>"; };
 		D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNilTest.m; path = ../../libextobjc/extobjc/Tests/EXTNilTest.m; sourceTree = "<group>"; };
-		D0FCD02714A3605A00E05395 /* NSObject+KVOAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+KVOAdditions.h"; sourceTree = "<group>"; };
-		D0FCD02814A3605A00E05395 /* NSObject+KVOAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+KVOAdditions.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -354,8 +348,6 @@
 				D04703291494A6F8004CB93A /* NSObject+ComparisonAdditions.m */,
 				D047032A1494A6F8004CB93A /* NSObject+ErrorAdditions.h */,
 				D047032B1494A6F8004CB93A /* NSObject+ErrorAdditions.m */,
-				D0FCD02714A3605A00E05395 /* NSObject+KVOAdditions.h */,
-				D0FCD02814A3605A00E05395 /* NSObject+KVOAdditions.m */,
 				D07D6E991499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h */,
 				D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */,
 				D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */,
@@ -367,9 +359,9 @@
 		D06AA43F1494A1B400F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
 				D0C42D5F14984CD100A08989 /* Model */,
 				D0477F5514970DDC00B0DAB0 /* Transformation */,
-				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -629,7 +621,6 @@
 				D0C42D6414984CE100A08989 /* PROModel.h in Headers */,
 				1A225923149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */,
 				1EA5FB0614A2C17400E3B764 /* PROIndexedTransformation.h in Headers */,
-				D0FCD02A14A3605A00E05395 /* NSObject+KVOAdditions.h in Headers */,
 				D084678C14A40DE800E2856F /* SDQueue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -660,7 +651,6 @@
 				D0C42D6314984CE100A08989 /* PROModel.h in Headers */,
 				1A225922149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */,
 				1EA5FB0314A2C16100E3B764 /* PROIndexedTransformation.h in Headers */,
-				D0FCD02914A3605A00E05395 /* NSObject+KVOAdditions.h in Headers */,
 				D084678B14A40DE800E2856F /* SDQueue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -849,7 +839,6 @@
 				D0C42D6614984CE100A08989 /* PROModel.m in Sources */,
 				1A225925149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */,
 				1EA5FB0514A2C16B00E3B764 /* PROIndexedTransformation.m in Sources */,
-				D0FCD02C14A3605A00E05395 /* NSObject+KVOAdditions.m in Sources */,
 				D084678E14A40DE800E2856F /* SDQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -900,7 +889,6 @@
 				D0C42D6514984CE100A08989 /* PROModel.m in Sources */,
 				1A225924149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */,
 				1EA5FB0414A2C16100E3B764 /* PROIndexedTransformation.m in Sources */,
-				D0FCD02B14A3605A00E05395 /* NSObject+KVOAdditions.m in Sources */,
 				D084678D14A40DE800E2856F /* SDQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
