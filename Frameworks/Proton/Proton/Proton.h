@@ -21,6 +21,7 @@
 #import <Proton/PROIndexedTransformation.h>
 #import <Proton/PROKeyedObject.h>
 #import <Proton/PROKeyedTransformation.h>
+#import <Proton/PROKeyValueObserver.h>
 #import <Proton/PROModel.h>
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROTransformation.h>
