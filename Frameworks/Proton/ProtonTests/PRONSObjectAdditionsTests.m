@@ -136,16 +136,18 @@
         free((void *)observers);
     };
 
-    dispatch_apply(count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
-        // each thread has its own autorelease pool -- verify that it does not
-        // destroy the observer created on this thread
-        @autoreleasepool {
-            observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
-        }
-    });
+    @autoreleasepool {
+        dispatch_apply(count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+            // each thread has its own autorelease pool -- verify that it does not
+            // destroy the observer created on this thread
+            @autoreleasepool {
+                observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
+            }
+        });
 
-    // make sure all stores complete
-    OSMemoryBarrier();
+        // make sure all stores complete
+        OSMemoryBarrier();
+    }
 
     // verify that each observer was instantiated correctly and is still alive
     for (size_t i = 0;i < count;++i) {
@@ -184,27 +186,29 @@
 
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
 
-    dispatch_apply(count, queue, ^(size_t index){
-        @autoreleasepool {
-            observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
-        }
-
-        dispatch_group_async(group, queue, ^{
-            // make sure the store to this index completes before trying to
-            // remove it
-            OSMemoryBarrier();
-            
+    @autoreleasepool {
+        dispatch_apply(count, queue, ^(size_t index){
             @autoreleasepool {
-                [self removeOwnedObserver:observers[index]];
+                observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
+
+                dispatch_group_async(group, queue, ^{
+                    @autoreleasepool {
+                        // make sure the store to this index completes before trying to
+                        // remove it
+                        OSMemoryBarrier();
+                    
+                        [self removeOwnedObserver:observers[index]];
+                    }
+                });
             }
         });
-    });
 
-    // wait for all removals to complete as well
-    dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+        // wait for all removals to complete as well
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
 
-    // make sure all stores and weak reference updates complete
-    OSMemoryBarrier();
+        // make sure all stores and weak reference updates complete
+        OSMemoryBarrier();
+    }
 
     // verify that each observer was removed correctly and niled out
     for (size_t i = 0;i < count;++i) {
