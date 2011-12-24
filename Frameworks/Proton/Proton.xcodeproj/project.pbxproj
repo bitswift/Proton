@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1A225922149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */; };
-		1A225923149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */; };
+		1A225922149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A225923149C9887004B7BF2 /* PROUniqueIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A225924149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */; };
 		1A225925149C9887004B7BF2 /* PROUniqueIdentifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */; };
 		1A225929149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */; };
