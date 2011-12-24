@@ -9,7 +9,19 @@
 #import "PROKeyValueObserverTests.h"
 #import <Proton/PROKeyValueObserver.h>
 
+@interface PROKeyValueObserverTests ()
+@property (nonatomic, strong) PROKeyValueObserver *executingObserver;
+@property (nonatomic, strong) PROKeyValueObserver *finishedObserver;
+@end
+
 @implementation PROKeyValueObserverTests
+@synthesize executingObserver = m_executingObserver;
+@synthesize finishedObserver = m_finishedObserver;
+
+- (void)tearDown {
+    self.executingObserver = nil;
+    self.finishedObserver = nil;
+}
 
 - (void)testInitialization {
     NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
@@ -83,15 +95,12 @@
     __block BOOL observerInvokedForExecuting = NO;
     __block BOOL observerInvokedForFinished = NO;
 
-    // use '__autoreleasing' to indicate to the compiler that these values are
-    // used, and should be autoreleased (normal usage would store these objects
-    // into a property)
-    __autoreleasing id executingObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isExecuting" block:^(NSDictionary *changes){
+    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isExecuting" block:^(NSDictionary *changes){
         callbackBlock(changes);
         observerInvokedForExecuting = YES;
     }];
 
-    __autoreleasing id finishedObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isFinished" block:^(NSDictionary *changes){
+    self.finishedObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isFinished" block:^(NSDictionary *changes){
         callbackBlock(changes);
         observerInvokedForFinished = YES;
     }];
@@ -137,10 +146,7 @@
     __block BOOL observerInvokedForExecuting = NO;
     __block BOOL observerInvokedForFinished = NO;
 
-    // use '__autoreleasing' to indicate to the compiler that these values are
-    // used, and should be autoreleased (normal usage would store these objects
-    // into a property)
-    __autoreleasing id executingObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isExecuting" options:NSKeyValueObservingOptionNew block:^(NSDictionary *changes){
+    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isExecuting" options:NSKeyValueObservingOptionNew block:^(NSDictionary *changes){
         callbackBlock(changes);
 
         // the change dictionary should contain the new value (as a boolean
@@ -151,7 +157,7 @@
         observerInvokedForExecuting = YES;
     }];
 
-    __autoreleasing id finishedObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isFinished" options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionInitial block:^(NSDictionary *changes){
+    self.finishedObserver = [[PROKeyValueObserver alloc] initWithTarget:operation keyPath:@"isFinished" options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionInitial block:^(NSDictionary *changes){
         callbackBlock(changes);
 
         // the change dictionary should not contain the new value
@@ -205,10 +211,7 @@
 
     __block BOOL observerInvoked = NO;
 
-    // use '__autoreleasing' to indicate to the compiler that this value is
-    // used, and should be autoreleased (normal usage would store this object
-    // into a property)
-    __autoreleasing id observer = [[PROKeyValueObserver alloc] initWithTarget:dictionary keyPath:@"foobar" block:^(NSDictionary *changes){
+    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:dictionary keyPath:@"foobar" block:^(NSDictionary *changes){
         observerInvoked = YES;
     }];
 
