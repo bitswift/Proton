@@ -9,6 +9,7 @@
 #import <Proton/NSOrderedSet+HigherOrderAdditions.h>
 #import <Proton/EXTSafeCategory.h>
 #import <Proton/EXTScope.h>
+#import <Proton/NSArray+HigherOrderAdditions.h>
 #import <libkern/OSAtomic.h>
 
 @safecategory (NSOrderedSet, HigherOrderAdditions)
@@ -25,6 +26,18 @@
     ];
 
     return [NSOrderedSet orderedSetWithArray:objects];
+}
+
+- (id)foldLeftWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {
+    // a fold on an ordered set is equivalent to a fold on that set represented
+    // as an array
+    return [[self array] foldLeftWithValue:startingValue usingBlock:block];
+}
+
+- (id)foldRightWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {
+    // a fold on an ordered set is equivalent to a fold on that set represented
+    // as an array
+    return [[self array] foldRightWithValue:startingValue usingBlock:block];
 }
 
 - (id)mapUsingBlock:(id (^)(id obj))block; {

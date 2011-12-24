@@ -34,6 +34,48 @@
 - (id)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL (^)(id obj))block;
 
 /**
+ * Reduces the receiver to a single value from left to right, using the given
+ * block.
+ *
+ * If the receiver is empty, `startingValue` is returned. Otherwise, the
+ * algorithm proceeds as follows:
+ *
+ *  1. `startingValue` is passed into the block as the `left` value, and the
+ *  first element of the receiver is passed into the block as the `right` value.
+ *  2. The result of the previous invocation (`left`) and the next element of
+ *  the receiver (`right`) is passed into `block`.
+ *  3. Step 2 is repeated until all elements have been processed.
+ *  4. The result of the last call to `block` is returned.
+ *
+ * @param startingValue The value to be combined with the first element of the
+ * receiver. If the receiver is empty, this is the value returned.
+ * @param block A block that describes how to combine elements of the receiver.
+ * If the receiver is empty, this block will never be invoked.
+ */
+- (id)foldLeftWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block;
+
+/**
+ * Reduces the receiver to a single value from right to left, using the given
+ * block.
+ *
+ * If the receiver is empty, `startingValue` is returned. Otherwise, the
+ * algorithm proceeds as follows:
+ *
+ *  1. The last element of the receiver is passed into the block as the `left`
+ *  value, and `startingValue` is passed into the block as the `right` value.
+ *  2. The previous element of the receiver (`left`) and the result of the
+ *  previous invocation (`right`) is passed into `block`.
+ *  3. Step 2 is repeated until all elements have been processed.
+ *  4. The result of the last call to `block` is returned.
+ *
+ * @param startingValue The value to be combined with the last element of the
+ * receiver. If the receiver is empty, this is the value returned.
+ * @param block A block that describes how to combine elements of the receiver.
+ * If the receiver is empty, this block will never be invoked.
+ */
+- (id)foldRightWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block;
+
+/**
  * Transforms each object in the receiver with the given predicate, returning
  * a new ordered set built from the resulting objects.
  *
