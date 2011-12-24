@@ -71,6 +71,10 @@
 		D0477F6C149746BD00B0DAB0 /* PROKeyedTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0477F6D149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */; };
 		D0477F6E149746BD00B0DAB0 /* PROKeyedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */; };
+		D04D284814A5628B00197AB9 /* PROKeyValueCodingMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D04D284914A5628B00197AB9 /* PROKeyValueCodingMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D04D284C14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */; };
+		D04D284D14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */; };
 		D06AA4521494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4541494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
@@ -204,6 +208,9 @@
 		D0477F641497464F00B0DAB0 /* PROMultipleTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformation.m; sourceTree = "<group>"; };
 		D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformation.h; sourceTree = "<group>"; };
 		D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformation.m; sourceTree = "<group>"; };
+		D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueCodingMacros.h; sourceTree = "<group>"; };
+		D04D284A14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueCodingMacrosTests.h; sourceTree = "<group>"; };
+		D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueCodingMacrosTests.m; sourceTree = "<group>"; };
 		D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSArrayAdditionsTests.h; sourceTree = "<group>"; };
@@ -358,6 +365,14 @@
 			name = Transformation;
 			sourceTree = "<group>";
 		};
+		D04D284514A5626F00197AB9 /* Macros */ = {
+			isa = PBXGroup;
+			children = (
+				D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */,
+			);
+			name = Macros;
+			sourceTree = "<group>";
+		};
 		D06AA4321494A19600F0F94B /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -401,6 +416,8 @@
 				1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */,
 				D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */,
 				D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */,
+				D04D284A14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.h */,
+				D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */,
 				D031BA9314A53F4600A38526 /* PROKeyValueObserverTests.h */,
 				D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */,
 				D0C42D77149857CB00A08989 /* PROModelTests.h */,
@@ -523,6 +540,7 @@
 				D0DB5CD41492DDD5005955FB /* Proton.h */,
 				D06AA43F1494A1B400F0F94B /* Classes */,
 				D06AA4321494A19600F0F94B /* Extensions */,
+				D04D284514A5626F00197AB9 /* Macros */,
 				D00A490A1499450400EEBD92 /* Protocols */,
 				D0DB5CCE1492DDD5005955FB /* Supporting Files */,
 			);
@@ -654,6 +672,7 @@
 				D084678C14A40DE800E2856F /* SDQueue.h in Headers */,
 				D031BA9014A53B5000A38526 /* PROKeyValueObserver.h in Headers */,
 				D031BAA014A543E900A38526 /* NSObject+PROKeyValueObserverAdditions.h in Headers */,
+				D04D284914A5628B00197AB9 /* PROKeyValueCodingMacros.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -686,6 +705,7 @@
 				D084678B14A40DE800E2856F /* SDQueue.h in Headers */,
 				D031BA8F14A53B5000A38526 /* PROKeyValueObserver.h in Headers */,
 				D031BA9F14A543E900A38526 /* NSObject+PROKeyValueObserverAdditions.h in Headers */,
+				D04D284814A5628B00197AB9 /* PROKeyValueCodingMacros.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -900,6 +920,7 @@
 				1EA5FB1C14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
 				D084679214A40DEF00E2856F /* SDQueueTests.m in Sources */,
 				D031BA9614A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */,
+				D04D284D14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -953,6 +974,7 @@
 				1EA5FB1B14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
 				D084679114A40DEF00E2856F /* SDQueueTests.m in Sources */,
 				D031BA9514A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */,
+				D04D284C14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
