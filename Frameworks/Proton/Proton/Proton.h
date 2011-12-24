@@ -19,6 +19,7 @@
 #import <Proton/NSObject+PROKeyValueObserverAdditions.h>
 #import <Proton/NSOrderedSet+HigherOrderAdditions.h>
 #import <Proton/NSSet+HigherOrderAdditions.h>
+#import <Proton/PROFuture.h>
 #import <Proton/PROIndexedTransformation.h>
 #import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROKeyValueObserver.h>
