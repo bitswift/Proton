@@ -76,30 +76,14 @@
         }];
 
         NSUInteger indexCount = [self.startIndexes count];
+        NSAssert(indexCount == [self.endIndexes count], @"%@ should have the same number of start and end indexes", self);
 
         // we have to copy the indexes into C arrays, since there's no way to
         // retrieve values from them one-by-one
-        NSUInteger *startIndexes = malloc(sizeof(*startIndexes) * indexCount);
-        if (!startIndexes) {
-            return nil;
-        }
-
-        @onExit {
-            free(startIndexes);
-        };
-
-        NSAssert(indexCount == [self.endIndexes count], @"%@ should have the same number of start and end indexes", self);
-
-        NSUInteger *endIndexes = malloc(sizeof(*endIndexes) * indexCount);
-        if (!endIndexes) {
-            return nil;
-        }
-
-        @onExit {
-            free(endIndexes);
-        };
-
+        NSUInteger startIndexes[indexCount];
         [self.startIndexes getIndexes:startIndexes maxCount:indexCount inIndexRange:nil];
+
+        NSUInteger endIndexes[indexCount];
         [self.endIndexes getIndexes:endIndexes maxCount:indexCount inIndexRange:nil];
 
         // for every index that was moved, insert the objects into the proper
