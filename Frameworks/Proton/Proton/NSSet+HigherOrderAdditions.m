@@ -23,6 +23,16 @@
     }];
 }
 
+- (id)foldWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {
+    __block id value = startingValue;
+
+    [self enumerateObjectsUsingBlock:^(id obj, BOOL *stop){
+        value = block(value, obj);
+    }];
+
+    return value;
+}
+
 - (id)mapUsingBlock:(id (^)(id obj))block; {
     return [self mapWithOptions:0 usingBlock:block];
 }
