@@ -25,6 +25,26 @@
     ];
 }
 
+- (id)foldLeftWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {
+    __block id value = startingValue;
+
+    [self enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop){
+        value = block(value, obj);
+    }];
+
+    return value;
+}
+
+- (id)foldRightWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {
+    __block id value = startingValue;
+
+    [self enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id obj, NSUInteger index, BOOL *stop){
+        value = block(obj, value);
+    }];
+
+    return value;
+}
+
 - (id)mapUsingBlock:(id (^)(id obj))block; {
     return [self mapWithOptions:0 usingBlock:block];
 }
