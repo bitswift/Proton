@@ -47,52 +47,72 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    if (!self.valueTransformations) {
-        return obj;
-    }
+    return [super transform:obj];
+}
 
-    if (![obj respondsToSelector:@selector(dictionaryValue)]) {
-        // doesn't conform to <PROKeyedObject>
-        return nil;
-    }
-    
-    // check with the class for this method, since runtime magic could
-    // (potentially) hide an init method after it's already initialized, or
-    // perhaps proxy this message to another object
-    if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
-        // doesn't conform to <PROKeyedObject>
-        return nil;
-    }
-
-    NSMutableDictionary *values = [[obj dictionaryValue] mutableCopy];
-
-    for (NSString *key in self.valueTransformations) {
-        NSAssert2([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
-
-        id value = [values valueForKey:key];
-        if (!value) {
-            // the key to transform does not exist -- consider it to be NSNull
-            value = [NSNull null];
+- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+    PROTransformationBlock baseTransformation = ^(id obj){
+        if (!self.valueTransformations) {
+            return obj;
         }
 
-        PROTransformation *transformation = [self.valueTransformations objectForKey:key];
-        value = [transformation transform:value];
-
-        if (!value) {
-            // invalid transformation
+        if (![obj respondsToSelector:@selector(dictionaryValue)]) {
+            // doesn't conform to <PROKeyedObject>
+            return nil;
+        }
+        
+        // check with the class for this method, since runtime magic could
+        // (potentially) hide an init method after it's already initialized, or
+        // perhaps proxy this message to another object
+        if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
+            // doesn't conform to <PROKeyedObject>
             return nil;
         }
 
-        [values setObject:value forKey:key];
-    }
+        NSMutableDictionary *values = [[obj dictionaryValue] mutableCopy];
 
-    // construct the object with its changed values and return it
-    if ([obj isKindOfClass:[NSDictionary class]]) {
-        // special-case NSDictionary, since it's a class cluster
-        return [values copy];
-    } else {
-        return [[[obj class] alloc] initWithDictionary:values];
-    }
+        for (NSString *key in self.valueTransformations) {
+            NSAssert2([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
+
+            id value = [values valueForKey:key];
+            if (!value) {
+                // the key to transform does not exist -- consider it to be NSNull
+                value = [NSNull null];
+            }
+
+            PROTransformation *transformation = [self.valueTransformations objectForKey:key];
+            PROTransformationBlock transformationBlock = [transformation rewrittenTransformationUsingBlock:block];
+
+            value = transformationBlock(value);
+
+            if (!value) {
+                // invalid transformation
+                return nil;
+            }
+
+            [values setObject:value forKey:key];
+        }
+
+        // construct the object with its changed values and return it
+        if ([obj isKindOfClass:[NSDictionary class]]) {
+            // special-case NSDictionary, since it's a class cluster
+            return [values copy];
+        } else {
+            return [[[obj class] alloc] initWithDictionary:values];
+        }
+    };
+
+    return ^(id oldValue){
+        id newValue;
+
+        if (block) {
+            newValue = block(self, baseTransformation, oldValue);
+        } else {
+            newValue = baseTransformation(oldValue);
+        }
+
+        return newValue;
+    };
 }
 
 #pragma mark NSCoding

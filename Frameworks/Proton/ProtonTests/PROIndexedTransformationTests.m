@@ -148,4 +148,31 @@
 
     STAssertEqualObjects(transformation, transformationCopy, @"");
 }
+
+- (void)testRewritingTransformations {
+    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+
+    id uniqueStartValue = [self.endValue objectAtIndex:indexedTransformation.index];
+    id uniqueEndValue = [self.startValue objectAtIndex:indexedTransformation.index];
+
+    PROUniqueTransformation *modifiedUniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:uniqueStartValue outputValue:uniqueEndValue];
+
+    PROTransformationRewriterBlock rewriterBlock = ^(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
+        if (transformation == indexedTransformation) {
+            return transformationBlock(obj);
+        }
+
+        STAssertEqualObjects(transformation, self.uniqueTransformation, @"");
+
+        // discard the unique transformation given and use our own
+        return [modifiedUniqueTransformation transform:obj];
+    };
+
+    PROTransformationBlock rewrittenBlock = [indexedTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    STAssertNotNil(rewrittenBlock, @"");
+
+    STAssertEqualObjects(rewrittenBlock(self.endValue), self.startValue, @"");
+    STAssertNil(rewrittenBlock(self.startValue), @"");
+}
+
 @end

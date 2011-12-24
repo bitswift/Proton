@@ -144,4 +144,19 @@
     STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
 }
 
+- (void)testRewritingTransformations {
+    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:self.outputValue];
+    PROTransformationRewriterBlock rewriterBlock = ^(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
+        STAssertEqualObjects([uniqueTransformation transform:obj],  transformationBlock(obj), @"");
+        STAssertEqualObjects(transformation, uniqueTransformation, @"");
+
+        return obj;
+    };
+
+    PROTransformationBlock rewrittenBlock = [uniqueTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    STAssertNotNil(rewrittenBlock, @"");
+    STAssertEqualObjects(rewrittenBlock(self.inputValue), self.inputValue, @"");
+    STAssertEqualObjects(rewrittenBlock(self.outputValue), self.outputValue, @"");
+}
+
 @end

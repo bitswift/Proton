@@ -44,15 +44,35 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    id currentValue = obj;
+    return [super transform:obj];
+}
 
-    for (PROTransformation *transformation in self.transformations) {
-        currentValue = [transformation transform:currentValue];
-        if (!currentValue)
-            return nil;
-    }
+- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+    PROTransformationBlock baseTransformation = ^ id (id obj){
+        id currentValue = obj;
 
-    return currentValue;
+        for (PROTransformation *transformation in self.transformations) {
+            PROTransformationBlock transformationBlock = [transformation rewrittenTransformationUsingBlock:block];
+
+            currentValue = transformationBlock(currentValue);
+            if (!currentValue)
+                return nil;
+        }
+
+        return currentValue;
+    };
+
+    return ^(id oldValue){
+        id newValue;
+
+        if (block) {
+            newValue = block(self, baseTransformation, oldValue);
+        } else {
+            newValue = baseTransformation(oldValue);
+        }
+
+        return newValue;
+    };
 }
 
 #pragma mark NSCoding

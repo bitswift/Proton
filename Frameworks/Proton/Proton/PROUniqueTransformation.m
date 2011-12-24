@@ -55,13 +55,31 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    if (!self.inputValue)
-        return obj;
+    return [super transform:obj];
+}
 
-    if ([self.inputValue isEqual:obj])
-        return self.outputValue;
-    else
-        return nil;
+- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+    PROTransformationBlock baseTransformation = ^(id obj){
+        if (!self.inputValue)
+            return obj;
+
+        if ([self.inputValue isEqual:obj])
+            return self.outputValue;
+        else
+            return nil;
+    };
+
+    return ^(id oldValue){
+        id newValue;
+
+        if (block) {
+            newValue = block(self, baseTransformation, oldValue);
+        } else {
+            newValue = baseTransformation(oldValue);
+        }
+
+        return newValue;
+    };
 }
 
 #pragma mark NSCoding

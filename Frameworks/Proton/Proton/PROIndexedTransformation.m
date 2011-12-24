@@ -37,26 +37,46 @@
 
 #pragma mark Transformation
 
-- (id)transform:(NSArray *)array {
-    // Return the unmodified object if transformation is nil
-    if (!self.transformation)
-        return array;
+- (id)transform:(id)obj; {
+    return [super transform:obj];
+}
 
-    if (![array isKindOfClass:[NSArray class]])
-        return nil;
+- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+    PROTransformationBlock baseTransformation = ^(id array){
+        // Return the unmodified object if transformation is nil
+        if (!self.transformation)
+            return array;
 
-    if (self.index >= [array count])
-        return nil;
+        if (![array isKindOfClass:[NSArray class]])
+            return nil;
 
-    id inputValue = [array objectAtIndex:self.index];
+        if (self.index >= [array count])
+            return nil;
 
-    id result = [self.transformation transform:inputValue];
-    if (!result)
-        return nil;
+        id inputValue = [array objectAtIndex:self.index];
 
-    NSMutableArray *mutableArray = [array mutableCopy];
-    [mutableArray replaceObjectAtIndex:self.index withObject:result];
-    return [mutableArray copy];
+        PROTransformationBlock transformationBlock = [self.transformation rewrittenTransformationUsingBlock:block];
+        id result = transformationBlock(inputValue);
+
+        if (!result)
+            return nil;
+
+        NSMutableArray *mutableArray = [array mutableCopy];
+        [mutableArray replaceObjectAtIndex:self.index withObject:result];
+        return [mutableArray copy];
+    };
+
+    return ^(id oldValue){
+        id newValue;
+
+        if (block) {
+            newValue = block(self, baseTransformation, oldValue);
+        } else {
+            newValue = baseTransformation(oldValue);
+        }
+
+        return newValue;
+    };
 }
 
 - (PROTransformation *)reverseTransformation {

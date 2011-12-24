@@ -135,4 +135,33 @@
     STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
 }
 
+- (void)testRewritingTransformations {
+    PROMultipleTransformation *multipleTransformation = [[PROMultipleTransformation alloc] initWithTransformations:self.transformations]; 
+
+    PROTransformationRewriterBlock rewriterBlock = ^ id (PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
+        id result = transformationBlock(obj);
+
+        // anything invalid for this transformation will be invalid for our
+        // rewritten one as well
+        if (!result)
+            return nil;
+
+        // otherwise, if the input was the middle value, don't return anything
+        // farther than that
+        if ([obj isEqual:self.middleValue])
+            return obj;
+
+        return result;
+    };
+
+    PROTransformationBlock rewrittenBlock = [multipleTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    STAssertNotNil(rewrittenBlock, @"");
+
+    STAssertEqualObjects(rewrittenBlock(self.startValue), self.middleValue, @"");
+    
+    // Input isn't valid for the first transformation
+    STAssertNil(rewrittenBlock(self.middleValue), @"");
+    STAssertNil(rewrittenBlock(self.endValue), @"");
+}
+
 @end
