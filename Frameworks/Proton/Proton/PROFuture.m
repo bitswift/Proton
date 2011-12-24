@@ -37,7 +37,7 @@
  * The object proxied by the future, namespaced to avoid conflicts with message
  * forwarding.
  */
-@property (nonatomic, strong) id PROFutureResolvedObject;
+@property (strong) id PROFutureResolvedObject;
 
 @end
 
