@@ -120,4 +120,62 @@
     STAssertEqualObjects(mappedSet, expectedSet, @"");
 }
 
+- (void)testFold {
+    NSSet *set = [NSSet setWithObjects:
+        [NSNumber numberWithInt:2],
+        @"foobar",
+        [NSNumber numberWithInt:20],
+        [NSNull null],
+        [NSNumber numberWithInt:-1],
+        nil
+    ];
+
+    // adds up all NSNumbers in the set
+    NSNumber *result = [set foldWithValue:[NSNumber numberWithInt:0] usingBlock:^(NSNumber *sum, NSNumber *value){
+        STAssertNotNil(sum, @"");
+        STAssertNotNil(value, @"");
+
+        if ([value isKindOfClass:[NSNumber class]])
+            sum = [NSNumber numberWithInt:[sum intValue] + [value intValue]];
+
+        return sum;
+    }];
+
+    STAssertEquals([result intValue], 21, @"");
+}
+
+- (void)testFoldOnEmptySet {
+    NSSet *set = [NSSet set];
+
+    NSString *str = [set foldWithValue:@"" usingBlock:^ id (id left, id right){
+        STFail(@"Folding block should never be invoked if the set is empty");
+        return nil;
+    }];
+
+    STAssertEqualObjects(str, @"", @"");
+}
+
+- (void)testFoldWithNil {
+    NSSet *set = [NSSet setWithObjects:
+        [NSNumber numberWithInt:2],
+        @"foobar",
+        [NSNumber numberWithInt:20],
+        [NSNull null],
+        [NSNumber numberWithInt:-1],
+        nil
+    ];
+
+    // adds up all NSNumbers in the set
+    NSNumber *result = [set foldWithValue:nil usingBlock:^(NSNumber *sum, NSNumber *value){
+        STAssertNotNil(value, @"");
+
+        if ([value isKindOfClass:[NSNumber class]])
+            sum = [NSNumber numberWithInt:[sum intValue] + [value intValue]];
+
+        return sum;
+    }];
+
+    STAssertEquals([result intValue], 21, @"");
+}
+
 @end
