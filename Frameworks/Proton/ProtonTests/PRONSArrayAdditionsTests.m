@@ -120,4 +120,86 @@
     STAssertEqualObjects(mappedArray, expectedArray, @"");
 }
 
+- (void)testLeftFold {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSString *str = [array foldLeftWithValue:@"buzz" usingBlock:^(NSString *left, NSString *right){
+        STAssertNotNil(left, @"");
+        STAssertNotNil(right, @"");
+
+        return [left stringByAppendingString:right];
+    }];
+
+    STAssertEqualObjects(str, @"buzzfoobarbaz", @"");
+}
+
+- (void)testLeftFoldOnEmptyArray {
+    NSArray *array = [NSArray array];
+
+    NSString *str = [array foldLeftWithValue:@"" usingBlock:^ id (id left, id right){
+        STFail(@"Folding block should never be invoked if the array is empty");
+        return nil;
+    }];
+
+    STAssertEqualObjects(str, @"", @"");
+}
+
+- (void)testLeftFoldWithNil {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSString *str = [array foldLeftWithValue:nil usingBlock:^ id (NSString *left, NSString *right){
+        // 'left' should be our given value or a result previously returned from
+        // this block
+        STAssertNil(left, @"");
+
+        // 'right' should be a string from the array
+        STAssertNotNil(right, @"");
+
+        return nil;
+    }];
+
+    STAssertNil(str, @"");
+}
+
+- (void)testRightFold {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSString *str = [array foldRightWithValue:@"buzz" usingBlock:^(NSString *left, NSString *right){
+        STAssertNotNil(left, @"");
+        STAssertNotNil(right, @"");
+
+        return [left stringByAppendingString:right];
+    }];
+
+    STAssertEqualObjects(str, @"foobarbazbuzz", @"");
+}
+
+- (void)testRightFoldOnEmptyArray {
+    NSArray *array = [NSArray array];
+
+    NSString *str = [array foldRightWithValue:@"" usingBlock:^ id (id left, id right){
+        STFail(@"Folding block should never be invoked if the array is empty");
+        return nil;
+    }];
+
+    STAssertEqualObjects(str, @"", @"");
+}
+
+- (void)testRightFoldWithNil {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSString *str = [array foldRightWithValue:nil usingBlock:^ id (NSString *left, NSString *right){
+        // 'left' should be a string from the array
+        STAssertNotNil(left, @"");
+
+        // 'right' should be our given value or a result previously returned from
+        // this block
+        STAssertNil(right, @"");
+
+        return nil;
+    }];
+
+    STAssertNil(str, @"");
+}
+
 @end

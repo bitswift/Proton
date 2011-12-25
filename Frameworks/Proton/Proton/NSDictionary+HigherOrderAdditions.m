@@ -28,6 +28,16 @@
     return [NSDictionary dictionaryWithObjects:values forKeys:keys];
 }
 
+- (id)foldEntriesWithValue:(id)startingValue usingBlock:(id (^)(id left, id rightKey, id rightValue))block; {
+    __block id value = startingValue;
+    
+    [self enumerateKeysAndObjectsUsingBlock:^(id dictionaryKey, id dictionaryValue, BOOL *stop){
+        value = block(value, dictionaryKey, dictionaryValue);
+    }];
+
+    return value;
+}
+
 - (NSDictionary *)mapValuesUsingBlock:(id (^)(id key, id value))block; {
     return [self mapValuesWithOptions:0 usingBlock:block];
 }

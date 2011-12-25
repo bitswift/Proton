@@ -34,6 +34,32 @@
 - (NSDictionary *)filterEntriesWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL (^)(id key, id value))block;
 
 /**
+ * Reduces the receiver to a single value, using the given block.
+ *
+ * If the receiver is empty, `startingValue` is returned. Otherwise, the
+ * algorithm proceeds as follows:
+ *
+ *  1. `startingValue` is passed into the block as the `left` value, and the
+ *  first key and value of the receiver are passed into the block as `rightKey`
+ *  and `rightValue`, respectively.
+ *  2. The result of the previous invocation is passed into the block as the
+ *  `left` value, and the next key and value of the receiver are passed into the
+ *  block as `rightKey` and `rightValue`, respectively.
+ *  3. Step 2 is repeated until all elements have been processed.
+ *  4. The result of the last call to `block` is returned.
+ *
+ * @param startingValue The value to be combined with the first entry of the
+ * receiver. If the receiver is empty, this is the value returned.
+ * @param block A block that describes how to combine elements of the receiver.
+ * If the receiver is empty, this block will never be invoked.
+ *
+ * @warning **Important:** Although this method is structured as a left fold,
+ * the algorithm used for `block` must work irrespective of the order that the
+ * dictionary's elements are processed, as dictionaries are unordered.
+ */
+- (id)foldEntriesWithValue:(id)startingValue usingBlock:(id (^)(id left, id rightKey, id rightValue))block;
+
+/**
  * Transforms each value in the receiver with the given predicate, returning
  * a new dictionary built from the original keys and the transformed values.
  *

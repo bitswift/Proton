@@ -168,4 +168,71 @@
     STAssertEqualObjects([dict dictionaryValue], dict, @"");
 }
 
+- (void)testFold {
+    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"bar", @"buzz",
+        [NSNumber numberWithBool:NO], [NSNumber numberWithInt:20],
+        @"buzz", @"baz",
+        @"foo", @"bar",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    // creates a set of dictionary's string keys and string values
+    NSSet *valuesSet = [dict foldEntriesWithValue:[NSSet set] usingBlock:^(NSSet *set, NSString *key, NSString *value){
+        STAssertNotNil(set, @"");
+        STAssertNotNil(key, @"");
+        STAssertNotNil(value, @"");
+
+        if ([key isKindOfClass:[NSString class]])
+            set = [set setByAddingObject:key];
+        
+        if ([value isKindOfClass:[NSString class]])
+            set = [set setByAddingObject:value];
+
+        return set;
+    }];
+
+    NSSet *expectedSet = [NSSet setWithObjects:@"foo", @"bar", @"buzz", @"baz", @"null", nil];
+    STAssertEqualObjects(valuesSet, expectedSet, @"");
+}
+
+- (void)testFoldOnEmptyDictionary {
+    NSDictionary *dictionary = [NSDictionary dictionary];
+
+    NSString *str = [dictionary foldEntriesWithValue:@"" usingBlock:^ id (id left, id rightKey, id rightValue){
+        STFail(@"Folding block should never be invoked if the dictionary is empty");
+        return nil;
+    }];
+
+    STAssertEqualObjects(str, @"", @"");
+}
+
+- (void)testFoldWithNil {
+    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"bar", @"buzz",
+        [NSNumber numberWithBool:NO], [NSNumber numberWithInt:20],
+        @"buzz", @"baz",
+        @"foo", @"bar",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    id obj = [dict foldEntriesWithValue:nil usingBlock:^ id (id obj, id key, id value){
+        // this will be our starting value, or the last value returned by this
+        // block
+        STAssertNil(obj, @"");
+
+        // these should be elements of the dictionary
+        STAssertNotNil(key, @"");
+        STAssertNotNil(value, @"");
+
+        return nil;
+    }];
+
+    STAssertNil(obj, @"");
+}
+
 @end
