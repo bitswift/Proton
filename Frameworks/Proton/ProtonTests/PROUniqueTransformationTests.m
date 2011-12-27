@@ -31,6 +31,9 @@
     // both values should be nil if not initialized with anything
     STAssertNil(transformation.inputValue, @"");
     STAssertNil(transformation.outputValue, @"");
+
+    // a unique transformation should not have any child transformations
+    STAssertNil(transformation.transformations, @"");
 }
 
 - (void)testInitializationWithValues {
@@ -39,6 +42,9 @@
 
     STAssertEqualObjects(transformation.inputValue, self.inputValue, @"");
     STAssertEqualObjects(transformation.outputValue, self.outputValue, @"");
+    
+    // a unique transformation should not have any child transformations
+    STAssertNil(transformation.transformations, @"");
 }
 
 - (void)testInitializationCopyingValues {
