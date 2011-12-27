@@ -74,9 +74,9 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  *  necessarily have to be called.
  *  - The input value for the current transformation.
  *
- * The block should return the desired output value for the transformation at
- * each level. If the block returns `nil`, this method immediately returns
- * `nil`.
+ * `block` should return the desired output value for the transformation at each
+ * level. If it returns `nil`, the returned transformation block immediately
+ * returns `nil` at that point.
  *
  * @param block The block with which to rewrite the logic of the receiver. See
  * the documentation for `PROTransformationRewriterBlock`.
