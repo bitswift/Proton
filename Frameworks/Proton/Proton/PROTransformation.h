@@ -20,7 +20,7 @@ typedef id (^PROTransformationBlock)(id obj);
 /**
  * A block that can rewrite the logic of a <PROTransformation> on the fly.
  *
- * See <[PROTransformation rewrittenTransformationUsingBlock:]> for more
+ * See <[PROTransformation transformationBlockUsingRewriterBlock:]> for more
  * information.
  *
  * @param transformation The transformation currently being rewritten.
@@ -81,7 +81,7 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  * @param block The block with which to rewrite the logic of the receiver. See
  * the documentation for `PROTransformationRewriterBlock`.
  */
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block;
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block;
 
 /**
  * @name Reversing the Transformation

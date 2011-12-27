@@ -50,7 +50,7 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^(id array){
         // if our index sets are nil (both are or neither are), pass all objects
         // through

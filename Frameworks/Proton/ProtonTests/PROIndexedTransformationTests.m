@@ -168,7 +168,7 @@
         return [modifiedUniqueTransformation transform:obj];
     };
 
-    PROTransformationBlock rewrittenBlock = [indexedTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    PROTransformationBlock rewrittenBlock = [indexedTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
     STAssertNotNil(rewrittenBlock, @"");
 
     STAssertEqualObjects(rewrittenBlock(self.endValue), self.startValue, @"");

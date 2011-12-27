@@ -154,7 +154,7 @@
         return result;
     };
 
-    PROTransformationBlock rewrittenBlock = [multipleTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    PROTransformationBlock rewrittenBlock = [multipleTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
     STAssertNotNil(rewrittenBlock, @"");
 
     STAssertEqualObjects(rewrittenBlock(self.startValue), self.middleValue, @"");
