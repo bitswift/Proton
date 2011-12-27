@@ -158,7 +158,7 @@
         return result;
     };
 
-    PROTransformationBlock rewrittenBlock = [keyedTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    PROTransformationBlock rewrittenBlock = [keyedTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
     STAssertNotNil(rewrittenBlock, @"");
 
     NSMutableDictionary *expectedEndValue = [self.endValue mutableCopy];

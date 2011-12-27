@@ -58,7 +58,7 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^(id obj){
         if (!self.inputValue)
             return obj;

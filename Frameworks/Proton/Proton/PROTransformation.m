@@ -20,11 +20,11 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj {
-    PROTransformationBlock block = [self rewrittenTransformationUsingBlock:nil];
+    PROTransformationBlock block = [self transformationBlockUsingRewriterBlock:nil];
     return block(obj);
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
     return nil;
 }

@@ -47,12 +47,12 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^ id (id obj){
         id currentValue = obj;
 
         for (PROTransformation *transformation in self.transformations) {
-            PROTransformationBlock transformationBlock = [transformation rewrittenTransformationUsingBlock:block];
+            PROTransformationBlock transformationBlock = [transformation transformationBlockUsingRewriterBlock:block];
 
             currentValue = transformationBlock(currentValue);
             if (!currentValue)

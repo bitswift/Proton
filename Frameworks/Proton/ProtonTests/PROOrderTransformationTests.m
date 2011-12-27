@@ -185,7 +185,7 @@
         return [multipleIndexTransformation transform:obj];
     };
 
-    PROTransformationBlock rewrittenBlock = [singleIndexTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    PROTransformationBlock rewrittenBlock = [singleIndexTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
     STAssertNotNil(rewrittenBlock, @"");
 
     // now we should be able to use the test data from the multiple-index version
