@@ -20,7 +20,7 @@
 /**
  * Initializes the receiver to pass through values without modification.
  *
- * Invokes <initWithTransformations:indexes:> with `nil` objects.
+ * Invokes <initWithIndexes:transformations:> with `nil` objects.
  */
 - (id)init;
 
@@ -34,12 +34,12 @@
  *
  * This is the designated initializer.
  *
- * @param transformations A <PROTransformation> to apply for each index specified
- * in `indexes`.
  * @param indexes The indexes at which to apply the corresponding objects in
  * `transformations`.
+ * @param transformations A <PROTransformation> to apply for each index specified
+ * in `indexes`.
  */
-- (id)initWithTransformations:(NSArray *)transformations indexes:(NSIndexSet *)indexes;
+- (id)initWithIndexes:(NSIndexSet *)indexes transformations:(NSArray *)transformations;
 
 /**
  * @name Transformation
