@@ -80,6 +80,9 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  *
  * @param block The block with which to rewrite the logic of the receiver. See
  * the documentation for `PROTransformationRewriterBlock`.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
  */
 - (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block;
 
@@ -96,6 +99,9 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  *  2. Passing the result to the <transform:> method of the reverse transformation
  * 
  * will return an object that compares equal to `obj`.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
  */
 @property (nonatomic, strong, readonly) PROTransformation *reverseTransformation;
 
