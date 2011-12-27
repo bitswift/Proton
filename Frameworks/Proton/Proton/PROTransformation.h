@@ -20,7 +20,7 @@ typedef id (^PROTransformationBlock)(id obj);
 /**
  * A block that can rewrite the logic of a <PROTransformation> on the fly.
  *
- * See <[PROTransformation rewrittenTransformationUsingBlock:]> for more
+ * See <[PROTransformation transformationBlockUsingRewriterBlock:]> for more
  * information.
  *
  * @param transformation The transformation currently being rewritten.
@@ -74,14 +74,38 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  *  necessarily have to be called.
  *  - The input value for the current transformation.
  *
- * The block should return the desired output value for the transformation at
- * each level. If the block returns `nil`, this method immediately returns
- * `nil`.
+ * `block` should return the desired output value for the transformation at each
+ * level. If it returns `nil`, the returned transformation block immediately
+ * returns `nil` at that point.
  *
  * @param block The block with which to rewrite the logic of the receiver. See
  * the documentation for `PROTransformationRewriterBlock`.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
  */
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block;
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block;
+
+/**
+ * @name Compound Transformations
+ */
+
+/**
+ * If the receiver performs additional or nested transformations, this array
+ * will contain all of them. Otherwise, if the receiver's class never performs
+ * other transformations, this property should be `nil`.
+ *
+ * The order of the array is unspecified, unless a subclass imposes a specific
+ * order.
+ *
+ * Classes that do perform other transformations should never return `nil` for
+ * this property, even if a specific instance does not have any transformations
+ * set up.
+ *
+ * @warning **Important:** This property must be implemented by subclasses. You
+ * should not call the superclass implementation.
+ */
+@property (nonatomic, copy, readonly) NSArray *transformations;
 
 /**
  * @name Reversing the Transformation
@@ -96,6 +120,9 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  *  2. Passing the result to the <transform:> method of the reverse transformation
  * 
  * will return an object that compares equal to `obj`.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
  */
 @property (nonatomic, strong, readonly) PROTransformation *reverseTransformation;
 

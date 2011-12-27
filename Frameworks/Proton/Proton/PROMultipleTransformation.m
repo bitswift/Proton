@@ -37,7 +37,14 @@
     if (!self)
         return nil;
 
-    m_transformations = [transformations copy];
+    if (!transformations) {
+        // the contract from PROTransformation says that the 'transformations'
+        // property can never be nil for this class
+        m_transformations = [NSArray array];
+    } else {
+        m_transformations = [transformations copy];
+    }
+
     return self;
 }
 
@@ -47,12 +54,12 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^ id (id obj){
         id currentValue = obj;
 
         for (PROTransformation *transformation in self.transformations) {
-            PROTransformationBlock transformationBlock = [transformation rewrittenTransformationUsingBlock:block];
+            PROTransformationBlock transformationBlock = [transformation transformationBlockUsingRewriterBlock:block];
 
             currentValue = transformationBlock(currentValue);
             if (!currentValue)

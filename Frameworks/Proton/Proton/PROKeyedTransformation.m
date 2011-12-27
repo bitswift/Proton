@@ -29,6 +29,13 @@
     return [[[self class] alloc] initWithValueTransformations:reverseTransformations];
 }
 
+- (NSArray *)transformations {
+    if (self.valueTransformations)
+        return [self.valueTransformations allValues];
+    else
+        return [NSArray array];
+}
+
 #pragma mark Lifecycle
 
 - (id)init; {
@@ -50,7 +57,7 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^(id obj){
         if (!self.valueTransformations) {
             return obj;
@@ -81,7 +88,7 @@
             }
 
             PROTransformation *transformation = [self.valueTransformations objectForKey:key];
-            PROTransformationBlock transformationBlock = [transformation rewrittenTransformationUsingBlock:block];
+            PROTransformationBlock transformationBlock = [transformation transformationBlockUsingRewriterBlock:block];
 
             value = transformationBlock(value);
 

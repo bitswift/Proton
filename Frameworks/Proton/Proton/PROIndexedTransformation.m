@@ -17,6 +17,13 @@
 @synthesize index = m_index;
 @synthesize transformation = m_transformation;
 
+- (NSArray *)transformations {
+    if (self.transformation)
+        return [NSArray arrayWithObject:self.transformation];
+    else
+        return [NSArray array];
+}
+
 #pragma mark Initialization
 
 - (id)init {
@@ -41,7 +48,7 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^(id array){
         // Return the unmodified object if transformation is nil
         if (!self.transformation)
@@ -55,7 +62,7 @@
 
         id inputValue = [array objectAtIndex:self.index];
 
-        PROTransformationBlock transformationBlock = [self.transformation rewrittenTransformationUsingBlock:block];
+        PROTransformationBlock transformationBlock = [self.transformation transformationBlockUsingRewriterBlock:block];
         id result = transformationBlock(inputValue);
 
         if (!result)
