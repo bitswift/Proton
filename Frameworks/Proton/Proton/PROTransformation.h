@@ -87,6 +87,27 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
 - (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block;
 
 /**
+ * @name Compound Transformations
+ */
+
+/**
+ * If the receiver performs additional or nested transformations, this array
+ * will contain all of them. Otherwise, if the receiver's class never performs
+ * other transformations, this property should be `nil`.
+ *
+ * The order of the array is unspecified, unless a subclass imposes a specific
+ * order.
+ *
+ * Classes that do perform other transformations should never return `nil` for
+ * this property, even if a specific instance does not have any transformations
+ * set up.
+ *
+ * @warning **Important:** This property must be implemented by subclasses. You
+ * should not call the superclass implementation.
+ */
+@property (nonatomic, copy, readonly) NSArray *transformations;
+
+/**
  * @name Reversing the Transformation
  */
 
