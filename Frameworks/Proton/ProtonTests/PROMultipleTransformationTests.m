@@ -47,7 +47,11 @@
 - (void)testInitialization {
     PROMultipleTransformation *transformation = [[PROMultipleTransformation alloc] init];
     STAssertNotNil(transformation, @"");
-    STAssertNil(transformation.transformations, @"");
+    
+    // a multiple transformation without child transformations should have an
+    // empty 'transformations' array (it should not be 'nil', since the class
+    // supports children)
+    STAssertEqualObjects(transformation.transformations, [NSArray array], @"");
 }
 
 - (void)testInitializationWithTransformations {
