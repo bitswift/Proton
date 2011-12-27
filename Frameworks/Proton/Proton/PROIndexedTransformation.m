@@ -17,6 +17,13 @@
 @synthesize index = m_index;
 @synthesize transformation = m_transformation;
 
+- (NSArray *)transformations {
+    if (self.transformation)
+        return [NSArray arrayWithObject:self.transformation];
+    else
+        return [NSArray array];
+}
+
 #pragma mark Initialization
 
 - (id)init {
