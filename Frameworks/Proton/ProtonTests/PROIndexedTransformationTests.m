@@ -100,7 +100,7 @@
    STAssertNotNil(indexedTransformation, @"");
 
    STAssertEqualObjects(indexedTransformation.indexes, [NSIndexSet indexSetWithIndex:1], @"");
-   STAssertEqualObjects(indexedTransformation.transformations, [NSArray arrayWithObject:[self.transformations objectAtIndex:0]]);
+   STAssertEqualObjects(indexedTransformation.transformations, [NSArray arrayWithObject:[self.transformations objectAtIndex:0]], @"");
 }
 
 - (void)testTransformationInBounds {

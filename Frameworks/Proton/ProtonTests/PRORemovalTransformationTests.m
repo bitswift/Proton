@@ -90,7 +90,7 @@
     STAssertNil(transformation.transformations, @"");
 
     STAssertEqualObjects(transformation.removalIndexes, [NSIndexSet indexSetWithIndex:1], @"");
-    STAssertEqualObjects(transformation.expectedObjects, [NSArray arrayWithObject:[NSNumber numberWithInt:5]]);
+    STAssertEqualObjects(transformation.expectedObjects, [NSArray arrayWithObject:[NSNumber numberWithInt:5]], @"");
 }
 
 - (void)testTransformationInBounds {
