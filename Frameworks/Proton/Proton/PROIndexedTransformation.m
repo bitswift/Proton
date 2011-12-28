@@ -47,14 +47,13 @@
     return self;
 }
 
-
-- (id)initWithIndex:(NSUInteger)startIndex transformation:(PROTransformation *)transformation; {
+- (id)initWithIndex:(NSUInteger)index transformation:(PROTransformation *)transformation; {
     if (!transformation) {
         // just pass through everything
         return [self init];
     }
 
-    return [self initWithIndexes:[NSIndexSet indexSetWithIndex:startIndex] transformations:[NSArray arrayWithObject:transformation]];
+    return [self initWithIndexes:[NSIndexSet indexSetWithIndex:index] transformations:[NSArray arrayWithObject:transformation]];
 }
 
 #pragma mark Transformation

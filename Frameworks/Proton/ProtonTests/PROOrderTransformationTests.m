@@ -132,8 +132,10 @@
 }
 
 - (void)testSingleIndexMovement {
-    PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndex:1 endIndex:3];
+    NSUInteger startIndex = [self.singleStartIndexSet firstIndex];
+    NSUInteger endIndex = [self.singleEndIndexSet firstIndex];
 
+    PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndex:startIndex endIndex:endIndex];
     STAssertEqualObjects([transformation transform:self.singleMovementStartValue], self.singleMovementEndValue, @"");
 }
 

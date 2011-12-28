@@ -32,7 +32,6 @@
     return [self initWithInsertionIndexes:nil objects:nil];
 }
 
-
 - (id)initWithInsertionIndex:(NSUInteger)index object:(id)object; {
     if (!object)
         return [self init];

@@ -42,9 +42,11 @@
 - (id)initWithIndexes:(NSIndexSet *)indexes transformations:(NSArray *)transformations;
 
 /**
- * Initializes the receiver to transform the value at `startIndex` with
- * `transformation`. If `transformation` is `nil`, the receiver is
- * initialized to pass through all values without modification.
+ * Initializes the receiver to transform the value at the given index with
+ * the given transformation.
+ *
+ * If `transformation` is `nil`, the receiver is initialized to pass through all
+ * values without modification.
  *
  * @param index The index at which to apply `transformation` to the
  * corresponding object.

@@ -52,9 +52,12 @@
 }
 
 - (id)initWithTransformation:(PROTransformation *)transformation forKey:(NSString *)key {
-    NSParameterAssert(transformation);
-    NSParameterAssert(key);
-    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:transformation, key, nil];
+    if (!transformation && !key) {
+        // pass everything through
+        return [self init];
+    }
+
+    NSDictionary *dict = [NSDictionary dictionaryWithObject:transformation forKey:key];
     return [self initWithValueTransformations:dict];
 }
 
