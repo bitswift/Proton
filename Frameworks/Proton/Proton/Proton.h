@@ -29,6 +29,7 @@
 #import <Proton/PROModel.h>
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROOrderTransformation.h>
+#import <Proton/PRORemovalTransformation.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueIdentifier.h>
 #import <Proton/PROUniqueTransformation.h>
