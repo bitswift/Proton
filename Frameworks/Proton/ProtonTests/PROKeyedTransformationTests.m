@@ -28,7 +28,7 @@
 
 - (NSDictionary *)transformations {
     NSMutableDictionary *transformations = [[NSMutableDictionary alloc] init];
-    
+
     {
         // for key "nil": NSNull -> EXTNil
         PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:[NSNull null] outputValue:[EXTNil null]];
@@ -59,11 +59,19 @@
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] init];
     STAssertNotNil(transformation, @"");
     STAssertNil(transformation.valueTransformations, @"");
-    
+
     // a keyed transformation without value transformations should have an empty
     // 'transformations' array (it should not be 'nil', since the class supports
     // children)
     STAssertEqualObjects(transformation.transformations, [NSArray array], @"");
+}
+
+- (void)testSingularInitialization {
+    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] init];
+    PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithTransformation:uniqueTransformation forKey:@"bar"];
+
+    STAssertNotNil(transformation, @"");
+    STAssertNil(transformation.valueTransformations, @"");
 }
 
 - (void)testInitializationWithTransformations {
@@ -129,7 +137,7 @@
 
     // the transformations of the reverse transformation should be the same
     // keys, with the reversed transformations of each value
-    
+
     NSMutableDictionary *reverseTransformations = [[NSMutableDictionary alloc] init];
     for (id key in self.transformations) {
         PROTransformation *t = [self.transformations objectForKey:key];
@@ -137,7 +145,7 @@
     }
 
     STAssertEqualObjects(reverseTransformation.valueTransformations, reverseTransformations, @"");
-    
+
     // for the reverse transformation, giving the endValue should yield the
     // startValue
     STAssertEqualObjects([reverseTransformation transform:self.endValue], self.startValue, @"");

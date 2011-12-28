@@ -36,6 +36,15 @@
 - (id)initWithValueTransformations:(NSDictionary *)valueTransformations;
 
 /**
+ * Initializes the receiver to perform the given transformation.
+ *
+ * @param transformation A <PROTransformation> to apply to a given object.
+ * @param key A key on the given object at which to apply the
+ * transformation.
+ */
+- (id)initWithTransformation:(PROTransformation *)transformation forKey:(NSString *)key;
+
+/**
  * @name Transformation
  */
 
