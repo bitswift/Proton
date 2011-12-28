@@ -109,6 +109,10 @@
 		D080D58814A5DF3800FABAA2 /* PROFuture.m in Sources */ = {isa = PBXBuildFile; fileRef = D080D58414A5DF3800FABAA2 /* PROFuture.m */; };
 		D080D58B14A5E4B200FABAA2 /* PROFutureTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */; };
 		D080D58C14A5E4B200FABAA2 /* PROFutureTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */; };
+		D080E0F214AA971000F6EABB /* PROInsertionTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D080E0F014AA971000F6EABB /* PROInsertionTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D080E0F314AA971000F6EABB /* PROInsertionTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = D080E0F014AA971000F6EABB /* PROInsertionTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D080E0F414AA971000F6EABB /* PROInsertionTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D080E0F114AA971000F6EABB /* PROInsertionTransformation.m */; };
+		D080E0F514AA971000F6EABB /* PROInsertionTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D080E0F114AA971000F6EABB /* PROInsertionTransformation.m */; };
 		D084678B14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D084678C14A40DE800E2856F /* SDQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D084678914A40DE800E2856F /* SDQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D084678D14A40DE800E2856F /* SDQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = D084678A14A40DE800E2856F /* SDQueue.m */; };
@@ -245,6 +249,8 @@
 		D080D58414A5DF3800FABAA2 /* PROFuture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFuture.m; sourceTree = "<group>"; };
 		D080D58914A5E4B200FABAA2 /* PROFutureTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROFutureTests.h; sourceTree = "<group>"; };
 		D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFutureTests.m; sourceTree = "<group>"; };
+		D080E0F014AA971000F6EABB /* PROInsertionTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROInsertionTransformation.h; sourceTree = "<group>"; };
+		D080E0F114AA971000F6EABB /* PROInsertionTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROInsertionTransformation.m; sourceTree = "<group>"; };
 		D084678914A40DE800E2856F /* SDQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueue.h; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.h; sourceTree = "<group>"; };
 		D084678A14A40DE800E2856F /* SDQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueue.m; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.m; sourceTree = "<group>"; };
 		D084678F14A40DEF00E2856F /* SDQueueTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueueTests.h; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.h; sourceTree = "<group>"; };
@@ -373,6 +379,8 @@
 			children = (
 				1EA5FB0114A2C16100E3B764 /* PROIndexedTransformation.h */,
 				1EA5FB0214A2C16100E3B764 /* PROIndexedTransformation.m */,
+				D080E0F014AA971000F6EABB /* PROInsertionTransformation.h */,
+				D080E0F114AA971000F6EABB /* PROInsertionTransformation.m */,
 				D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */,
 				D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */,
 				D0477F631497464F00B0DAB0 /* PROMultipleTransformation.h */,
@@ -711,6 +719,7 @@
 				D04D284914A5628B00197AB9 /* PROKeyValueCodingMacros.h in Headers */,
 				D080D58614A5DF3800FABAA2 /* PROFuture.h in Headers */,
 				D04460EC14A6828D000053C9 /* PROOrderTransformation.h in Headers */,
+				D080E0F314AA971000F6EABB /* PROInsertionTransformation.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -746,6 +755,7 @@
 				D04D284814A5628B00197AB9 /* PROKeyValueCodingMacros.h in Headers */,
 				D080D58514A5DF3800FABAA2 /* PROFuture.h in Headers */,
 				D04460EB14A6828D000053C9 /* PROOrderTransformation.h in Headers */,
+				D080E0F214AA971000F6EABB /* PROInsertionTransformation.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -938,6 +948,7 @@
 				D031BAA214A543E900A38526 /* NSObject+PROKeyValueObserverAdditions.m in Sources */,
 				D080D58814A5DF3800FABAA2 /* PROFuture.m in Sources */,
 				D04460EE14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
+				D080E0F514AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -996,6 +1007,7 @@
 				D031BAA114A543E900A38526 /* NSObject+PROKeyValueObserverAdditions.m in Sources */,
 				D080D58714A5DF3800FABAA2 /* PROFuture.m in Sources */,
 				D04460ED14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
+				D080E0F414AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
