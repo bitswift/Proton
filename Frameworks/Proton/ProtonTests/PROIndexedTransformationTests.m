@@ -11,10 +11,11 @@
 #import <Proton/PROIndexedTransformation.h>
 
 @interface PROIndexedTransformationTests ()
-@property (nonatomic, copy, readonly) PROUniqueTransformation *uniqueTransformation;
 @property (nonatomic, copy, readonly) NSArray *startValue;
 @property (nonatomic, copy, readonly) NSArray *endValue;
-@property (nonatomic, assign, readonly) NSUInteger index;
+
+@property (nonatomic, copy, readonly) NSArray *transformations;
+@property (nonatomic, copy, readonly) NSIndexSet *indexes;
 @end
 
 @implementation PROIndexedTransformationTests
@@ -34,37 +35,68 @@
         [NSNull null],
         [NSNumber numberWithBool:NO],
         [NSNumber numberWithInt:5],
-        @"foo",
+        @"bar",
         nil
     ];
 }
 
-- (PROUniqueTransformation *)uniqueTransformation {
-    id inputValue = [NSNumber numberWithInt:5];
-    id outputValue = [NSNumber numberWithBool:NO];
-    return [[PROUniqueTransformation alloc] initWithInputValue:inputValue outputValue:outputValue];
+- (NSArray *)transformations {
+    NSMutableArray *transformations = [[NSMutableArray alloc] init];
+
+    {
+        // array[1] = 5 -> NO
+
+        id inputValue = [NSNumber numberWithInt:5];
+        id outputValue = [NSNumber numberWithBool:NO];
+        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:inputValue outputValue:outputValue];
+
+        [transformations addObject:transformation];
+    }
+
+    {
+        // array[3] = "foo" -> "bar"
+
+        id inputValue = @"foo";
+        id outputValue = @"bar";
+        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:inputValue outputValue:outputValue];
+
+        [transformations addObject:transformation];
+    }
+
+    return transformations;
 }
 
-- (NSUInteger)index {
-    return 1;
+- (NSIndexSet *)indexes {
+    NSMutableIndexSet *indexes = [[NSMutableIndexSet alloc] init];
+
+    [indexes addIndex:1];
+    [indexes addIndex:3];
+
+    return indexes;
 }
 
 - (void)testInitialization {
     PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] init];
     STAssertNotNil(transformation, @"");
-    STAssertNil(transformation.transformation, @"");
-    STAssertTrue(transformation.index == 0, @"");
+
+    STAssertNil(transformation.indexes, @"");
+    
+    // an indexed transformation without a transformation should have an empty
+    // 'transformations' array (it should not be 'nil', since the class supports
+    // children)
+    STAssertEqualObjects(transformation.transformations, [NSArray array], @"");
 }
 
 - (void)testInitializationWithTransformation {
-    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
     STAssertNotNil(indexedTransformation, @"");
-    STAssertEqualObjects(indexedTransformation.transformation, self.uniqueTransformation, @"");
-    STAssertTrue(indexedTransformation.index == self.index, @"");
+
+    STAssertEqualObjects(indexedTransformation.indexes, self.indexes, @"");
+    STAssertEqualObjects(indexedTransformation.transformations, self.transformations, @"");
 }
 
 - (void)testTransformationInBounds {
-    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
 
     // giving the startValue should yield the endValue
     STAssertEqualObjects([indexedTransformation transform:self.startValue], self.endValue, @"");
@@ -76,7 +108,10 @@
 }
 
 - (void)testTransformationOutOfBounds {
-    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:50000];
+    NSIndexSet *outOfBoundsSet = [NSIndexSet indexSetWithIndex:50000];
+    NSArray *transformations = [NSArray arrayWithObject:[self.transformations objectAtIndex:0]];
+
+    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndexes:outOfBoundsSet transformations:transformations];
 
     // an out of bounds index should return nil
     STAssertNil([indexedTransformation transform:self.startValue], @"");
@@ -100,15 +135,19 @@
 }
 
 - (void)testReverseTransformation {
-    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
 
     PROIndexedTransformation *reverseTransformation = (id)[transformation reverseTransformation];
     STAssertNotNil(reverseTransformation, @"");
 
-    // the reverse transformation of the transformation-at-the-index
-    // should be the transformation-at-the-index of our reverse
-    // transformation
-    STAssertEqualObjects(transformation.transformation.reverseTransformation, reverseTransformation.transformation, @"");
+    // indexes should stay the same
+    STAssertEqualObjects(transformation.indexes, reverseTransformation.indexes, @"");
+
+    [transformation.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformationAtIndex, NSUInteger index, BOOL *stop){
+        // the reverse transformation of this sub-transformation should be the
+        // object at the same index of our reverse transformation
+        STAssertEqualObjects(transformationAtIndex.reverseTransformation, [reverseTransformation.transformations objectAtIndex:index], @"");
+    }];
 
     // for the reverse transformation, giving the endValue should yield the
     // startValue
@@ -123,9 +162,9 @@
 }
 
 - (void)testEquality {
-    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
 
-    PROIndexedTransformation *equalTransformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+    PROIndexedTransformation *equalTransformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
 
     STAssertEqualObjects(transformation, equalTransformation, @"");
 
@@ -134,7 +173,7 @@
 }
 
 - (void)testCoding {
-    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
 
     NSData *encodedTransformation = [NSKeyedArchiver archivedDataWithRootObject:transformation];
     PROIndexedTransformation *decodedTransformation = [NSKeyedUnarchiver unarchiveObjectWithData:encodedTransformation];
@@ -143,32 +182,27 @@
 }
 
 - (void)testCopying {
-    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
+    PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
     PROIndexedTransformation *transformationCopy = [transformation copy];
 
     STAssertEqualObjects(transformation, transformationCopy, @"");
 }
 
 - (void)testRewritingTransformations {
-    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
-
-    id uniqueStartValue = [self.endValue objectAtIndex:indexedTransformation.index];
-    id uniqueEndValue = [self.startValue objectAtIndex:indexedTransformation.index];
-
-    PROUniqueTransformation *modifiedUniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:uniqueStartValue outputValue:uniqueEndValue];
+    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
 
     PROTransformationRewriterBlock rewriterBlock = ^(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
         if (transformation == indexedTransformation) {
             return transformationBlock(obj);
         }
 
-        STAssertEqualObjects(transformation, self.uniqueTransformation, @"");
+        STAssertTrue([self.transformations containsObject:transformation], @"");
 
-        // discard the unique transformation given and use our own
-        return [modifiedUniqueTransformation transform:obj];
+        // use the reverse of the transformation given
+        return [transformation.reverseTransformation transform:obj];
     };
 
-    PROTransformationBlock rewrittenBlock = [indexedTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    PROTransformationBlock rewrittenBlock = [indexedTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
     STAssertNotNil(rewrittenBlock, @"");
 
     STAssertEqualObjects(rewrittenBlock(self.endValue), self.startValue, @"");

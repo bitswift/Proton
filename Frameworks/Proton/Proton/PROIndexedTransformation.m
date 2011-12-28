@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PROIndexedTransformation.h>
+#import <Proton/EXTScope.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 
@@ -14,23 +15,34 @@
 
 #pragma mark Properties
 
-@synthesize index = m_index;
-@synthesize transformation = m_transformation;
+@synthesize indexes = m_indexes;
+@synthesize transformations = m_transformations;
 
 #pragma mark Initialization
 
 - (id)init {
-    return [self initWithTransformation:nil index:0];
+    return [self initWithIndexes:nil transformations:nil];
 }
 
-- (id)initWithTransformation:(PROTransformation *)transformation index:(NSUInteger)index {
+- (id)initWithIndexes:(NSIndexSet *)indexes transformations:(NSArray *)transformations; {
+    NSParameterAssert([indexes count] == [transformations count]);
+
     self = [super init];
     if (!self)
         return nil;
 
-    m_transformation = [transformation copy];
+    if (!transformations) {
+        // the contract from PROTransformation says that the 'transformations'
+        // property can never be nil for this class
+        m_transformations = [NSArray array];
+    } else {
+        m_transformations = [transformations copy];
+    }
 
-    m_index = index;
+    // don't save an empty index set -- consider it to be nil instead
+    if ([indexes count]) {
+        m_indexes = [indexes copy];
+    }
 
     return self;
 }
@@ -41,29 +53,56 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^(id array){
-        // Return the unmodified object if transformation is nil
-        if (!self.transformation)
+        // Return the unmodified object if indexes is nil
+        if (!self.indexes)
             return array;
 
         if (![array isKindOfClass:[NSArray class]])
             return nil;
 
-        if (self.index >= [array count])
+        NSUInteger arrayCount = [array count];
+
+        // if the index set goes out of bounds, return nil
+        if (self.indexes.lastIndex >= arrayCount)
             return nil;
 
-        id inputValue = [array objectAtIndex:self.index];
+        NSUInteger indexCount = [self.indexes count];
 
-        PROTransformationBlock transformationBlock = [self.transformation rewrittenTransformationUsingBlock:block];
-        id result = transformationBlock(inputValue);
-
-        if (!result)
+        // we have to copy the indexes into a C array, since there's no way to
+        // retrieve values from it one-by-one
+        NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+        if (!indexes) {
             return nil;
+        }
 
-        NSMutableArray *mutableArray = [array mutableCopy];
-        [mutableArray replaceObjectAtIndex:self.index withObject:result];
-        return [mutableArray copy];
+        @onExit {
+            free(indexes);
+        };
+
+        [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
+
+        __block NSMutableArray *newArray = [array mutableCopy];
+
+        [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
+            NSUInteger index = indexes[setIndex];
+            id inputValue = [array objectAtIndex:index];
+
+            PROTransformationBlock transformationBlock = [transformation transformationBlockUsingRewriterBlock:block];
+            id result = transformationBlock(inputValue);
+
+            if (!result) {
+                newArray = nil;
+
+                *stop = YES;
+                return;
+            }
+
+            [newArray replaceObjectAtIndex:index withObject:result];
+        }];
+
+        return [newArray copy];
     };
 
     return ^(id oldValue){
@@ -80,8 +119,13 @@
 }
 
 - (PROTransformation *)reverseTransformation {
-    PROTransformation *reverseSubtransformation = self.transformation.reverseTransformation;
-    return [[[self class] alloc] initWithTransformation:reverseSubtransformation index:self.index];
+    NSMutableArray *reversedTransformations = [[NSMutableArray alloc] initWithCapacity:self.transformations.count];
+
+    for (PROTransformation *transformation in self.transformations) {
+        [reversedTransformations addObject:transformation.reverseTransformation];
+    }
+
+    return [[[self class] alloc] initWithIndexes:self.indexes transformations:reversedTransformations];
 }
 
 #pragma mark Equality
@@ -90,20 +134,17 @@
     if (![obj isKindOfClass:[PROIndexedTransformation class]])
         return NO;
 
-    if (!NSEqualObjects(self.transformation, obj.transformation))
+    if (!NSEqualObjects(self.transformations, obj.transformations))
         return NO;
 
-    // if the objects don't have a transformation, they're equal
-    if (self.transformation) {
-        if (self.index != obj.index)
-            return NO;
-    }
+    if (!NSEqualObjects(self.indexes, obj.indexes))
+        return NO;
 
     return YES;
 }
 
 - (NSUInteger)hash {
-    return [self.transformation hash] ^ self.index;
+    return [self.transformations hash] ^ [self.indexes hash];
 }
 
 #pragma mark Copying
@@ -115,17 +156,18 @@
 #pragma mark Coding
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    if (self.transformation)
-        [coder encodeObject:self.transformation forKey:@"transformation"];
+    if (self.transformations)
+        [coder encodeObject:self.transformations forKey:@"transformations"];
 
-    [coder encodeInteger:self.index forKey:@"index"];
+    if (self.indexes)
+        [coder encodeObject:self.indexes forKey:@"indexes"];
 }
 
 - (id)initWithCoder:(NSCoder *)coder {
-    PROTransformation *transformation = [coder decodeObjectForKey:@"transformation"];
-    NSUInteger index = [coder decodeIntegerForKey:@"index"];
+    NSArray *transformations = [coder decodeObjectForKey:@"transformations"];
+    NSIndexSet *indexes = [coder decodeObjectForKey:@"indexes"];
 
-    return [self initWithTransformation:transformation index:index];
+    return [self initWithIndexes:indexes transformations:transformations];
 }
 
 @end

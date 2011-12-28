@@ -38,6 +38,8 @@
 
 /**
  * The transformations performed by the receiver, in order.
+ *
+ * This property will never be `nil`.
  */
 @property (nonatomic, copy, readonly) NSArray *transformations;
 

@@ -22,6 +22,11 @@
     return [[[self class] alloc] initWithStartIndexes:self.endIndexes endIndexes:self.startIndexes];
 }
 
+- (NSArray *)transformations {
+    // we don't have any child transformations
+    return nil;
+}
+
 #pragma mark Initialization
 
 - (id)init; {
@@ -50,7 +55,7 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^(id array){
         // if our index sets are nil (both are or neither are), pass all objects
         // through

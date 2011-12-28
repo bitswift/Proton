@@ -59,6 +59,11 @@
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] init];
     STAssertNotNil(transformation, @"");
     STAssertNil(transformation.valueTransformations, @"");
+    
+    // a keyed transformation without value transformations should have an empty
+    // 'transformations' array (it should not be 'nil', since the class supports
+    // children)
+    STAssertEqualObjects(transformation.transformations, [NSArray array], @"");
 }
 
 - (void)testInitializationWithTransformations {
@@ -66,6 +71,7 @@
     STAssertNotNil(transformation, @"");
 
     STAssertEqualObjects(transformation.valueTransformations, self.transformations, @"");
+    STAssertEqualObjects(transformation.transformations, [transformation.valueTransformations allValues], @"");
 }
 
 - (void)testMultipleTransformations {
@@ -158,7 +164,7 @@
         return result;
     };
 
-    PROTransformationBlock rewrittenBlock = [keyedTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    PROTransformationBlock rewrittenBlock = [keyedTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
     STAssertNotNil(rewrittenBlock, @"");
 
     NSMutableDictionary *expectedEndValue = [self.endValue mutableCopy];
