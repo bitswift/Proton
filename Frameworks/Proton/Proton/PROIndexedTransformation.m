@@ -47,6 +47,16 @@
     return self;
 }
 
+
+- (id)initWithIndex:(NSUInteger)startIndex transformation:(PROTransformation *)transformation; {
+    if (!transformation) {
+        // just pass through everything
+        return [self init];
+    }
+
+    return [self initWithIndexes:[NSIndexSet indexSetWithIndex:startIndex] transformations:[NSArray arrayWithObject:transformation]];
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {

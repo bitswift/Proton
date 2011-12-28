@@ -80,7 +80,7 @@
     STAssertNotNil(transformation, @"");
 
     STAssertNil(transformation.indexes, @"");
-    
+
     // an indexed transformation without a transformation should have an empty
     // 'transformations' array (it should not be 'nil', since the class supports
     // children)
@@ -93,6 +93,14 @@
 
     STAssertEqualObjects(indexedTransformation.indexes, self.indexes, @"");
     STAssertEqualObjects(indexedTransformation.transformations, self.transformations, @"");
+}
+
+- (void)testSingularInitialization {
+   PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndex:1 transformation:[self.transformations objectAtIndex:0]];
+   STAssertNotNil(indexedTransformation, @"");
+
+   STAssertEqualObjects(indexedTransformation.indexes, [NSIndexSet indexSetWithIndex:1], @"");
+   STAssertEqualObjects(indexedTransformation.transformations, [NSArray arrayWithObject:[self.transformations objectAtIndex:0]]);
 }
 
 - (void)testTransformationInBounds {
