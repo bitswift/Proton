@@ -42,6 +42,15 @@
 - (id)initWithRemovalIndexes:(NSIndexSet *)removalIndexes expectedObjects:(NSArray *)expectedObjects;
 
 /**
+ * Initializes the receiver to remove the given object from the given
+ * index.
+ *
+ * @param index The index from which to remove the corresponding `object`
+ * @param object The object that should exist at `index`
+ */
+- (id)initWithRemovalIndex:(NSUInteger)index expectedObject:(id)object;
+
+/**
  * @name Transformation
  */
 

@@ -53,10 +53,10 @@
 
     // remove(array[0], null)
     [indexes addIndex:0];
-    
+
     // remove(array[1], NO)
     [indexes addIndex:1];
-    
+
     // remove(array[4], "bar")
     [indexes addIndex:4];
 
@@ -81,6 +81,16 @@
 
     STAssertEqualObjects(transformation.removalIndexes, self.indexes, @"");
     STAssertEqualObjects(transformation.expectedObjects, self.objects, @"");
+}
+
+- (void)testSingularInitialization {
+    PRORemovalTransformation *transformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:1 expectedObject:[NSNumber numberWithInt:5]];
+
+    STAssertNotNil(transformation, @"");
+    STAssertNil(transformation.transformations, @"");
+
+    STAssertEqualObjects(transformation.removalIndexes, [NSIndexSet indexSetWithIndex:1], @"");
+    STAssertEqualObjects(transformation.expectedObjects, [NSArray arrayWithObject:[NSNumber numberWithInt:5]]);
 }
 
 - (void)testTransformationInBounds {

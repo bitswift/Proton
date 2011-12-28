@@ -32,6 +32,16 @@
     return [self initWithRemovalIndexes:nil expectedObjects:nil];
 }
 
+- (id)initWithRemovalIndex:(NSUInteger)index expectedObject:(id)object; {
+    if (!object)
+        return [self init];
+
+    return [self
+        initWithRemovalIndexes:[NSIndexSet indexSetWithIndex:index]
+        expectedObjects:[NSArray arrayWithObject:object]
+    ];
+}
+
 - (id)initWithRemovalIndexes:(NSIndexSet *)removalIndexes expectedObjects:(NSArray *)expectedObjects; {
     NSParameterAssert([removalIndexes count] == [expectedObjects count]);
 
@@ -45,9 +55,10 @@
 
     if ([expectedObjects count])
         m_expectedObjects = [expectedObjects copy];
-    
+
     return self;
 }
+
 
 #pragma mark Transformation
 
