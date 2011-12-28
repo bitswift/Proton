@@ -36,6 +36,19 @@
 - (id)initWithValueTransformations:(NSDictionary *)valueTransformations;
 
 /**
+ * Initializes the receiver to perform the given transformation upon the value
+ * associated with the given key.
+ *
+ * If both `transformation` and `key` are `nil`, the receiver is initialized to
+ * pass through all values without modification.
+ *
+ * @param transformation A <PROTransformation> to apply to the value associated
+ * with `key`.
+ * @param key The key on the input object containing the value to transform.
+ */
+- (id)initWithTransformation:(PROTransformation *)transformation forKey:(NSString *)key;
+
+/**
  * @name Transformation
  */
 

@@ -32,6 +32,13 @@
     return [self initWithInsertionIndexes:nil objects:nil];
 }
 
+- (id)initWithInsertionIndex:(NSUInteger)index object:(id)object; {
+    if (!object)
+        return [self init];
+
+    return [self initWithInsertionIndexes:[NSIndexSet indexSetWithIndex:index] objects:[NSArray arrayWithObject:object]];
+}
+
 - (id)initWithInsertionIndexes:(NSIndexSet *)insertionIndexes objects:(NSArray *)objects; {
     NSParameterAssert([insertionIndexes count] == [objects count]);
 
@@ -45,7 +52,7 @@
 
     if ([objects count])
         m_objects = [objects copy];
-    
+
     return self;
 }
 

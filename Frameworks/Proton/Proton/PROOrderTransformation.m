@@ -49,6 +49,10 @@
     return self;
 }
 
+- (id)initWithStartIndex:(NSUInteger)startIndex endIndex:(NSUInteger)endIndex {
+    return [self initWithStartIndexes:[NSIndexSet indexSetWithIndex:startIndex] endIndexes:[NSIndexSet indexSetWithIndex:endIndex]];
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {

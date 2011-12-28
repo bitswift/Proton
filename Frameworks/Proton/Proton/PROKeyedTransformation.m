@@ -51,6 +51,16 @@
     return self;
 }
 
+- (id)initWithTransformation:(PROTransformation *)transformation forKey:(NSString *)key {
+    if (!transformation && !key) {
+        // pass everything through
+        return [self init];
+    }
+
+    NSDictionary *dict = [NSDictionary dictionaryWithObject:transformation forKey:key];
+    return [self initWithValueTransformations:dict];
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
@@ -67,7 +77,7 @@
             // doesn't conform to <PROKeyedObject>
             return nil;
         }
-        
+
         // check with the class for this method, since runtime magic could
         // (potentially) hide an init method after it's already initialized, or
         // perhaps proxy this message to another object

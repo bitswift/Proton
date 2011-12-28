@@ -53,7 +53,7 @@
 
     // insert(array[1], NO)
     [indexes addIndex:1];
-    
+
     // insert(array[2], "bar")
     [indexes addIndex:2];
 
@@ -78,6 +78,17 @@
 
     STAssertEqualObjects(transformation.insertionIndexes, self.indexes, @"");
     STAssertEqualObjects(transformation.objects, self.objects, @"");
+}
+
+- (void)testSingularInitialization {
+    NSNumber *number = [NSNumber numberWithInt:5];
+    PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:number];
+
+    STAssertNotNil(transformation, @"");
+    STAssertNil(transformation.transformations, @"");
+
+    STAssertEqualObjects(transformation.insertionIndexes, [NSIndexSet indexSetWithIndex:0], @"");
+    STAssertEqualObjects(transformation.objects, [NSArray arrayWithObject:number], @"");
 }
 
 - (void)testTransformationInBounds {
