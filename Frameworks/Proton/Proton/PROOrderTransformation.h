@@ -40,6 +40,18 @@
 - (id)initWithStartIndexes:(NSIndexSet *)startIndexes endIndexes:(NSIndexSet *)endIndexes;
 
 /**
+ * Initializes the receiver to move the object at `startIndex` to `endIndex`
+ *
+ * If both indexes are `nil`, the receiver is initialized to pas through all
+ * values without modificaiton.
+ *
+ * @param startIndex The index of the object to move.
+ * @param endIndex Indicates where the object from `startIndex` should end up.
+ */
+
+- (id)initWithStartIndex:(NSUInteger)startIndex endIndex:(NSUInteger)endIndex;
+
+/**
  * @name Transformation
  */
 

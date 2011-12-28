@@ -97,7 +97,7 @@
     // both index sets should be nil if not initialized with anything
     STAssertNil(transformation.startIndexes, @"");
     STAssertNil(transformation.endIndexes, @"");
-    
+
     // an order transformation should not have any child transformations
     STAssertNil(transformation.transformations, @"");
 }
@@ -108,7 +108,7 @@
 
     STAssertEqualObjects(transformation.startIndexes, self.singleStartIndexSet, @"");
     STAssertEqualObjects(transformation.endIndexes, self.singleEndIndexSet, @"");
-    
+
     // an order transformation should not have any child transformations
     STAssertNil(transformation.transformations, @"");
 }
@@ -127,6 +127,12 @@
 
 - (void)testSingleMovement {
     PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndexes:self.singleStartIndexSet endIndexes:self.singleEndIndexSet];
+
+    STAssertEqualObjects([transformation transform:self.singleMovementStartValue], self.singleMovementEndValue, @"");
+}
+
+- (void)testSingleIndexMovement {
+    PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndex:1 endIndex:3];
 
     STAssertEqualObjects([transformation transform:self.singleMovementStartValue], self.singleMovementEndValue, @"");
 }
