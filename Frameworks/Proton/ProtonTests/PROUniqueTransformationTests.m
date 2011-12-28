@@ -31,6 +31,9 @@
     // both values should be nil if not initialized with anything
     STAssertNil(transformation.inputValue, @"");
     STAssertNil(transformation.outputValue, @"");
+
+    // a unique transformation should not have any child transformations
+    STAssertNil(transformation.transformations, @"");
 }
 
 - (void)testInitializationWithValues {
@@ -39,6 +42,9 @@
 
     STAssertEqualObjects(transformation.inputValue, self.inputValue, @"");
     STAssertEqualObjects(transformation.outputValue, self.outputValue, @"");
+    
+    // a unique transformation should not have any child transformations
+    STAssertNil(transformation.transformations, @"");
 }
 
 - (void)testInitializationCopyingValues {
@@ -153,7 +159,7 @@
         return obj;
     };
 
-    PROTransformationBlock rewrittenBlock = [uniqueTransformation rewrittenTransformationUsingBlock:rewriterBlock];
+    PROTransformationBlock rewrittenBlock = [uniqueTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
     STAssertNotNil(rewrittenBlock, @"");
     STAssertEqualObjects(rewrittenBlock(self.inputValue), self.inputValue, @"");
     STAssertEqualObjects(rewrittenBlock(self.outputValue), self.outputValue, @"");

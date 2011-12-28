@@ -21,6 +21,7 @@
 #import <Proton/NSSet+HigherOrderAdditions.h>
 #import <Proton/PROFuture.h>
 #import <Proton/PROIndexedTransformation.h>
+#import <Proton/PROInsertionTransformation.h>
 #import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROKeyValueObserver.h>
 #import <Proton/PROKeyedObject.h>
@@ -28,6 +29,7 @@
 #import <Proton/PROModel.h>
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROOrderTransformation.h>
+#import <Proton/PRORemovalTransformation.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueIdentifier.h>
 #import <Proton/PROUniqueTransformation.h>

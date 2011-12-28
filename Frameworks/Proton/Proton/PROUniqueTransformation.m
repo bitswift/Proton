@@ -22,6 +22,11 @@
     return [[[self class] alloc] initWithInputValue:self.outputValue outputValue:self.inputValue];
 }
 
+- (NSArray *)transformations {
+    // we don't have any child transformations
+    return nil;
+}
+
 #pragma mark Lifecycle
 
 - (id)init; {
@@ -58,7 +63,7 @@
     return [super transform:obj];
 }
 
-- (PROTransformationBlock)rewrittenTransformationUsingBlock:(PROTransformationRewriterBlock)block; {
+- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     PROTransformationBlock baseTransformation = ^(id obj){
         if (!self.inputValue)
             return obj;
