@@ -71,7 +71,8 @@
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithTransformation:uniqueTransformation forKey:@"bar"];
 
     STAssertNotNil(transformation, @"");
-    STAssertNil(transformation.valueTransformations, @"");
+    STAssertNotNil(transformation.valueTransformations, @"");
+    STAssertEqualObjects(uniqueTransformation, [transformation.valueTransformations objectForKey:@"bar"], @"");
 }
 
 - (void)testInitializationWithTransformations {
