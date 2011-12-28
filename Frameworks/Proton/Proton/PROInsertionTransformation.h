@@ -41,6 +41,18 @@
 - (id)initWithInsertionIndexes:(NSIndexSet *)insertionIndexes objects:(NSArray *)objects;
 
 /**
+ * Initializaes the receiver to insert the given object at the given index.
+ *
+ * If `object` is `nil`, the receiver will pass through all values without
+ * modification.
+ *
+ * @param insertionIndex The index at which to insert the corresponding
+ * `object`.
+ * @param object An object to be inserted at the corresponding `index`.
+ */
+- (id)initWithInsertionIndex:(NSUInteger)index object:(id)object;
+
+/**
  * @name Transformation
  */
 
