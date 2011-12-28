@@ -52,15 +52,26 @@
 - (void)testInitialization {
     PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] init];
     STAssertNotNil(transformation, @"");
+
     STAssertNil(transformation.transformation, @"");
     STAssertTrue(transformation.index == 0, @"");
+    
+    // an indexed transformation without a transformation should have an empty
+    // 'transformations' array (it should not be 'nil', since the class supports
+    // children)
+    STAssertEqualObjects(transformation.transformations, [NSArray array], @"");
 }
 
 - (void)testInitializationWithTransformation {
     PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithTransformation:self.uniqueTransformation index:self.index];
     STAssertNotNil(indexedTransformation, @"");
+
     STAssertEqualObjects(indexedTransformation.transformation, self.uniqueTransformation, @"");
     STAssertTrue(indexedTransformation.index == self.index, @"");
+    
+    // an indexed transformation should contain its one transformation as
+    // a child
+    STAssertEqualObjects(indexedTransformation.transformations, [NSArray arrayWithObject:indexedTransformation.transformation], @"");
 }
 
 - (void)testTransformationInBounds {

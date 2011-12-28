@@ -29,6 +29,13 @@
     return [[[self class] alloc] initWithValueTransformations:reverseTransformations];
 }
 
+- (NSArray *)transformations {
+    if (self.valueTransformations)
+        return [self.valueTransformations allValues];
+    else
+        return [NSArray array];
+}
+
 #pragma mark Lifecycle
 
 - (id)init; {

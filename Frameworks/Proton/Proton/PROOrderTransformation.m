@@ -22,6 +22,11 @@
     return [[[self class] alloc] initWithStartIndexes:self.endIndexes endIndexes:self.startIndexes];
 }
 
+- (NSArray *)transformations {
+    // we don't have any child transformations
+    return nil;
+}
+
 #pragma mark Initialization
 
 - (id)init; {

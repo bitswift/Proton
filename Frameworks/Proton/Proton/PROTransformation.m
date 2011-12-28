@@ -17,6 +17,11 @@
     return self;
 }
 
+- (NSArray *)transformations {
+    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
+    return nil;
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj {
