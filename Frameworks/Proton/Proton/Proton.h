@@ -6,6 +6,11 @@
 //  Copyright (c) 2011 Emerald Lark. All rights reserved.
 //
 
+#import <Proton/DDAbstractDatabaseLogger.h>
+#import <Proton/DDASLLogger.h>
+#import <Proton/DDFileLogger.h>
+#import <Proton/DDLog.h>
+#import <Proton/DDTTYLogger.h>
 #import <Proton/EXTNil.h>
 #import <Proton/EXTRuntimeExtensions.h>
 #import <Proton/EXTSafeCategory.h>

@@ -23,6 +23,26 @@
 		D00A490E1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
 		D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
+		D013816114AD491C008E7942 /* DDAbstractDatabaseLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815714AD491C008E7942 /* DDAbstractDatabaseLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816214AD491C008E7942 /* DDAbstractDatabaseLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815714AD491C008E7942 /* DDAbstractDatabaseLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816314AD491C008E7942 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815814AD491C008E7942 /* DDAbstractDatabaseLogger.m */; };
+		D013816414AD491C008E7942 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815814AD491C008E7942 /* DDAbstractDatabaseLogger.m */; };
+		D013816514AD491C008E7942 /* DDASLLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815914AD491C008E7942 /* DDASLLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816614AD491C008E7942 /* DDASLLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815914AD491C008E7942 /* DDASLLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816714AD491C008E7942 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815A14AD491C008E7942 /* DDASLLogger.m */; };
+		D013816814AD491C008E7942 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815A14AD491C008E7942 /* DDASLLogger.m */; };
+		D013816914AD491C008E7942 /* DDFileLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815B14AD491C008E7942 /* DDFileLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816A14AD491C008E7942 /* DDFileLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815B14AD491C008E7942 /* DDFileLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816B14AD491C008E7942 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815C14AD491C008E7942 /* DDFileLogger.m */; };
+		D013816C14AD491C008E7942 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815C14AD491C008E7942 /* DDFileLogger.m */; };
+		D013816D14AD491C008E7942 /* DDLog.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815D14AD491C008E7942 /* DDLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816E14AD491C008E7942 /* DDLog.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815D14AD491C008E7942 /* DDLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013816F14AD491C008E7942 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815E14AD491C008E7942 /* DDLog.m */; };
+		D013817014AD491C008E7942 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D013815E14AD491C008E7942 /* DDLog.m */; };
+		D013817114AD491C008E7942 /* DDTTYLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815F14AD491C008E7942 /* DDTTYLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013817214AD491C008E7942 /* DDTTYLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815F14AD491C008E7942 /* DDTTYLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D013817314AD491C008E7942 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013816014AD491C008E7942 /* DDTTYLogger.m */; };
+		D013817414AD491C008E7942 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013816014AD491C008E7942 /* DDTTYLogger.m */; };
 		D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A63514981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -204,6 +224,16 @@
 		D00A490C1499451400EEBD92 /* PROKeyedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedObject.h; sourceTree = "<group>"; };
 		D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformationTests.h; sourceTree = "<group>"; };
 		D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformationTests.m; sourceTree = "<group>"; };
+		D013815714AD491C008E7942 /* DDAbstractDatabaseLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDAbstractDatabaseLogger.h; path = ../CocoaLumberjack/Lumberjack/DDAbstractDatabaseLogger.h; sourceTree = "<group>"; };
+		D013815814AD491C008E7942 /* DDAbstractDatabaseLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DDAbstractDatabaseLogger.m; path = ../CocoaLumberjack/Lumberjack/DDAbstractDatabaseLogger.m; sourceTree = "<group>"; };
+		D013815914AD491C008E7942 /* DDASLLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDASLLogger.h; path = ../CocoaLumberjack/Lumberjack/DDASLLogger.h; sourceTree = "<group>"; };
+		D013815A14AD491C008E7942 /* DDASLLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DDASLLogger.m; path = ../CocoaLumberjack/Lumberjack/DDASLLogger.m; sourceTree = "<group>"; };
+		D013815B14AD491C008E7942 /* DDFileLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDFileLogger.h; path = ../CocoaLumberjack/Lumberjack/DDFileLogger.h; sourceTree = "<group>"; };
+		D013815C14AD491C008E7942 /* DDFileLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DDFileLogger.m; path = ../CocoaLumberjack/Lumberjack/DDFileLogger.m; sourceTree = "<group>"; };
+		D013815D14AD491C008E7942 /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDLog.h; path = ../CocoaLumberjack/Lumberjack/DDLog.h; sourceTree = "<group>"; };
+		D013815E14AD491C008E7942 /* DDLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DDLog.m; path = ../CocoaLumberjack/Lumberjack/DDLog.m; sourceTree = "<group>"; };
+		D013815F14AD491C008E7942 /* DDTTYLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDTTYLogger.h; path = ../CocoaLumberjack/Lumberjack/DDTTYLogger.h; sourceTree = "<group>"; };
+		D013816014AD491C008E7942 /* DDTTYLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DDTTYLogger.m; path = ../CocoaLumberjack/Lumberjack/DDTTYLogger.m; sourceTree = "<group>"; };
 		D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformationTests.h; sourceTree = "<group>"; };
 		D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformationTests.m; sourceTree = "<group>"; };
 		D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+PROKeyedObjectAdditions.h"; sourceTree = "<group>"; };
@@ -377,6 +407,23 @@
 				D00A490C1499451400EEBD92 /* PROKeyedObject.h */,
 			);
 			name = Protocols;
+			sourceTree = "<group>";
+		};
+		D013815514AD490A008E7942 /* CocoaLumberjack */ = {
+			isa = PBXGroup;
+			children = (
+				D013815714AD491C008E7942 /* DDAbstractDatabaseLogger.h */,
+				D013815814AD491C008E7942 /* DDAbstractDatabaseLogger.m */,
+				D013815914AD491C008E7942 /* DDASLLogger.h */,
+				D013815A14AD491C008E7942 /* DDASLLogger.m */,
+				D013815B14AD491C008E7942 /* DDFileLogger.h */,
+				D013815C14AD491C008E7942 /* DDFileLogger.m */,
+				D013815D14AD491C008E7942 /* DDLog.h */,
+				D013815E14AD491C008E7942 /* DDLog.m */,
+				D013815F14AD491C008E7942 /* DDTTYLogger.h */,
+				D013816014AD491C008E7942 /* DDTTYLogger.m */,
+			);
+			name = CocoaLumberjack;
 			sourceTree = "<group>";
 		};
 		D031BA8C14A53B4000A38526 /* Key-Value Observing */ = {
@@ -589,6 +636,7 @@
 		D0DB5CC61492DDD5005955FB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D013815514AD490A008E7942 /* CocoaLumberjack */,
 				D0D7A1A51492EE020057F90D /* libextobjc */,
 				D084678814A40DD100E2856F /* SafeDispatch */,
 				D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */,
@@ -741,6 +789,11 @@
 				D04460EC14A6828D000053C9 /* PROOrderTransformation.h in Headers */,
 				D080E0F314AA971000F6EABB /* PROInsertionTransformation.h in Headers */,
 				D080E0FA14AA976500F6EABB /* PRORemovalTransformation.h in Headers */,
+				D013816214AD491C008E7942 /* DDAbstractDatabaseLogger.h in Headers */,
+				D013816614AD491C008E7942 /* DDASLLogger.h in Headers */,
+				D013816A14AD491C008E7942 /* DDFileLogger.h in Headers */,
+				D013816E14AD491C008E7942 /* DDLog.h in Headers */,
+				D013817214AD491C008E7942 /* DDTTYLogger.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -778,6 +831,11 @@
 				D04460EB14A6828D000053C9 /* PROOrderTransformation.h in Headers */,
 				D080E0F214AA971000F6EABB /* PROInsertionTransformation.h in Headers */,
 				D080E0F914AA976500F6EABB /* PRORemovalTransformation.h in Headers */,
+				D013816114AD491C008E7942 /* DDAbstractDatabaseLogger.h in Headers */,
+				D013816514AD491C008E7942 /* DDASLLogger.h in Headers */,
+				D013816914AD491C008E7942 /* DDFileLogger.h in Headers */,
+				D013816D14AD491C008E7942 /* DDLog.h in Headers */,
+				D013817114AD491C008E7942 /* DDTTYLogger.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -972,6 +1030,11 @@
 				D04460EE14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
 				D080E0F514AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 				D080E0FC14AA976500F6EABB /* PRORemovalTransformation.m in Sources */,
+				D013816414AD491C008E7942 /* DDAbstractDatabaseLogger.m in Sources */,
+				D013816814AD491C008E7942 /* DDASLLogger.m in Sources */,
+				D013816C14AD491C008E7942 /* DDFileLogger.m in Sources */,
+				D013817014AD491C008E7942 /* DDLog.m in Sources */,
+				D013817414AD491C008E7942 /* DDTTYLogger.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1034,6 +1097,11 @@
 				D04460ED14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
 				D080E0F414AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 				D080E0FB14AA976500F6EABB /* PRORemovalTransformation.m in Sources */,
+				D013816314AD491C008E7942 /* DDAbstractDatabaseLogger.m in Sources */,
+				D013816714AD491C008E7942 /* DDASLLogger.m in Sources */,
+				D013816B14AD491C008E7942 /* DDFileLogger.m in Sources */,
+				D013816F14AD491C008E7942 /* DDLog.m in Sources */,
+				D013817314AD491C008E7942 /* DDTTYLogger.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
