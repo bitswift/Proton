@@ -43,6 +43,8 @@
 		D013817214AD491C008E7942 /* DDTTYLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = D013815F14AD491C008E7942 /* DDTTYLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D013817314AD491C008E7942 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013816014AD491C008E7942 /* DDTTYLogger.m */; };
 		D013817414AD491C008E7942 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = D013816014AD491C008E7942 /* DDTTYLogger.m */; };
+		D013817614AD4AB8008E7942 /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D013817514AD4AB8008E7942 /* Proton.m */; };
+		D013817714AD4AB8008E7942 /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D013817514AD4AB8008E7942 /* Proton.m */; };
 		D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A63514981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -234,6 +236,7 @@
 		D013815E14AD491C008E7942 /* DDLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DDLog.m; path = ../CocoaLumberjack/Lumberjack/DDLog.m; sourceTree = "<group>"; };
 		D013815F14AD491C008E7942 /* DDTTYLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DDTTYLogger.h; path = ../CocoaLumberjack/Lumberjack/DDTTYLogger.h; sourceTree = "<group>"; };
 		D013816014AD491C008E7942 /* DDTTYLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DDTTYLogger.m; path = ../CocoaLumberjack/Lumberjack/DDTTYLogger.m; sourceTree = "<group>"; };
+		D013817514AD4AB8008E7942 /* Proton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Proton.m; sourceTree = "<group>"; };
 		D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformationTests.h; sourceTree = "<group>"; };
 		D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformationTests.m; sourceTree = "<group>"; };
 		D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+PROKeyedObjectAdditions.h"; sourceTree = "<group>"; };
@@ -650,6 +653,7 @@
 			isa = PBXGroup;
 			children = (
 				D0DB5CD41492DDD5005955FB /* Proton.h */,
+				D013817514AD4AB8008E7942 /* Proton.m */,
 				D06AA43F1494A1B400F0F94B /* Classes */,
 				D06AA4321494A19600F0F94B /* Extensions */,
 				D04D284514A5626F00197AB9 /* Macros */,
@@ -1035,6 +1039,7 @@
 				D013816C14AD491C008E7942 /* DDFileLogger.m in Sources */,
 				D013817014AD491C008E7942 /* DDLog.m in Sources */,
 				D013817414AD491C008E7942 /* DDTTYLogger.m in Sources */,
+				D013817714AD4AB8008E7942 /* Proton.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1102,6 +1107,7 @@
 				D013816B14AD491C008E7942 /* DDFileLogger.m in Sources */,
 				D013816F14AD491C008E7942 /* DDLog.m in Sources */,
 				D013817314AD491C008E7942 /* DDTTYLogger.m in Sources */,
+				D013817614AD4AB8008E7942 /* Proton.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
