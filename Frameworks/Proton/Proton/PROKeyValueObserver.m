@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PROKeyValueObserver.h>
+#import <Proton/SDQueue.h>
 
 /*
  * A unique context pointer for our class, so that we can uniquely identify
@@ -22,6 +23,7 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
 @synthesize keyPath = m_keyPath;
 @synthesize block = m_block;
 @synthesize options = m_options;
+@synthesize queue = m_queue;
 
 #pragma mark Initialization
 
@@ -43,6 +45,7 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
     m_options = options;
     m_block = [block copy];
 
+    self.queue = [SDQueue mainQueue];
     [self.target addObserver:self forKeyPath:self.keyPath options:self.options context:PROKeyValueObserverContext];
 
     return self;
@@ -66,7 +69,16 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
     NSAssert(object == self.target, @"%@ should not be receiving change notifications for an object other than its own", self);
     NSAssert(context == PROKeyValueObserverContext, @"%@ should not be receiving change notifications for a context other than its own", self);
 
-    self.block(changes);
+    void (^trampoline)(void) = ^{
+        self.block(changes);
+    };
+
+    SDQueue *queue = self.queue;
+
+    if ([queue isCurrentQueue])
+        trampoline();
+    else
+        [queue runAsynchronously:trampoline];
 }
 
 @end
