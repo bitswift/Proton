@@ -8,6 +8,7 @@
 
 #import "PROKeyValueObserverTests.h"
 #import <Proton/PROKeyValueObserver.h>
+#import <Proton/SDQueue.h>
 
 @interface PROKeyValueObserverTests ()
 @property (nonatomic, strong) id observedObject;
@@ -51,6 +52,7 @@
     STAssertEqualObjects(self.executingObserver.keyPath, @"isExecuting", @"");
     STAssertEquals(self.executingObserver.options, (NSKeyValueObservingOptions)0, @"");
     STAssertEqualObjects(self.executingObserver.block, block, @"");
+    STAssertEqualObjects(self.executingObserver.queue, [SDQueue currentQueue], @"");
 }
 
 - (void)testInitializationWithOptions {
@@ -74,6 +76,7 @@
     STAssertEqualObjects(self.executingObserver.keyPath, @"isExecuting", @"");
     STAssertEquals(self.executingObserver.options, options, @"");
     STAssertEqualObjects(self.executingObserver.block, block, @"");
+    STAssertEqualObjects(self.executingObserver.queue, [SDQueue currentQueue], @"");
 }
 
 - (void)testObservation {
@@ -281,6 +284,48 @@
 
     // change something and make sure the observer is not triggered
     [self.observedObject setValue:@"blah" forKey:@"foobar"];
+}
+
+- (void)testBackgroundQueue {
+    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
+
+    __block BOOL observerInvokedForExecuting = NO;
+
+    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" block:^(NSDictionary *changes){
+        observerInvokedForExecuting = YES;
+    }];
+
+    SDQueue *queue = [[SDQueue alloc] init];
+    self.executingObserver.queue = queue;
+    
+    STAssertFalse(observerInvokedForExecuting, @"");
+
+    // start the self.observedObject and make sure the observer on -isExecuting is
+    // triggered
+    [self.observedObject start];
+
+    [queue runSynchronously:^{
+        STAssertTrue(observerInvokedForExecuting, @"");
+    }];
+}
+
+- (void)testNilQueue {
+    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
+
+    __block BOOL observerInvokedForExecuting = NO;
+
+    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" block:^(NSDictionary *changes){
+        observerInvokedForExecuting = YES;
+    }];
+
+    self.executingObserver.queue = nil;
+    
+    STAssertFalse(observerInvokedForExecuting, @"");
+
+    // start the self.observedObject and make sure the observer on -isExecuting is
+    // triggered
+    [self.observedObject start];
+    STAssertTrue(observerInvokedForExecuting, @"");
 }
 
 @end
