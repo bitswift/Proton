@@ -68,7 +68,7 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
 
     SDQueue *queue = self.queue;
 
-    if ([queue isCurrentQueue])
+    if (!queue || [queue isCurrentQueue])
         trampoline();
     else
         [queue runAsynchronously:trampoline];

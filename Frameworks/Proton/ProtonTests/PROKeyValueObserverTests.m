@@ -309,6 +309,25 @@
     }];
 }
 
+- (void)testNilQueue {
+    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
+
+    __block BOOL observerInvokedForExecuting = NO;
+
+    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" block:^(NSDictionary *changes){
+        observerInvokedForExecuting = YES;
+    }];
+
+    self.executingObserver.queue = nil;
+    
+    STAssertFalse(observerInvokedForExecuting, @"");
+
+    // start the self.observedObject and make sure the observer on -isExecuting is
+    // triggered
+    [self.observedObject start];
+    STAssertTrue(observerInvokedForExecuting, @"");
+}
+
 @end
 
 @implementation KVOTestObject
