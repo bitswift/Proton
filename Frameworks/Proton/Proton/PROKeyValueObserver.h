@@ -21,12 +21,8 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
 
 /**
  * Implements support for key-value observation using blocks.
- *
- * This class is immutable, and conforms to `<NSCopying>` so that instances can
- * be used as keys in a dictionary. Attempting to copy an instance will just
- * return the same object.
  */
-@interface PROKeyValueObserver : NSObject <NSCopying>
+@interface PROKeyValueObserver : NSObject
 
 /**
  * @name Initialization

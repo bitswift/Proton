@@ -55,13 +55,6 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
     [self.target removeObserver:self forKeyPath:self.keyPath context:PROKeyValueObserverContext];
 }
 
-#pragma mark NSCopying
-
-- (id)copyWithZone:(NSZone *)zone {
-    // this object is immutable
-    return self;
-}
-
 #pragma mark NSKeyValueObserving
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)changes context:(void *)context {
