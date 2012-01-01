@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class SDQueue;
+
 /**
  * The type for a KVO callback block.
  *
@@ -19,12 +21,8 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
 
 /**
  * Implements support for key-value observation using blocks.
- *
- * This class is immutable, and conforms to `<NSCopying>` so that instances can
- * be used as keys in a dictionary. Attempting to copy an instance will just
- * return the same object.
  */
-@interface PROKeyValueObserver : NSObject <NSCopying>
+@interface PROKeyValueObserver : NSObject
 
 /**
  * @name Initialization
@@ -51,7 +49,7 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
 
 /**
  * Initializes the receiver to observe the given target and key path, invoking
- * the given block when a change occurs.
+ * the given block on the main dispatch queue when a change occurs.
  *
  * Observation will begin immediately, and will not stop until the receiver is
  * destroyed.
@@ -102,4 +100,17 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
  */
 @property (nonatomic, assign, readonly) NSKeyValueObservingOptions options;
 
+/**
+ * The dispatch queue upon which <block> will be invoked.
+ *
+ * If a change ocurrs on this dispatch queue (directly or indirectly), or this
+ * property is `nil`, <block> is invoked synchronously on the thread that caused
+ * the change. Otherwise, <block> is dispatched to this queue asynchronously.
+ *
+ * This property defaults to the main dispatch queue.
+ *
+ * @warning Changes to this property will not affect any currently executing
+ * blocks.
+ */
+@property (strong) SDQueue *queue;
 @end
