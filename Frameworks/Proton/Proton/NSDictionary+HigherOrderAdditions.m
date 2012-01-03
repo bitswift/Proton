@@ -102,4 +102,39 @@
     return [NSDictionary dictionaryWithObjects:(id *)values forKeys:(id *)keys count:(NSUInteger)nextIndex];
 }
 
+- (id)keyOfEntryPassingTest:(BOOL (^)(id key, id obj, BOOL *stop))predicate; {
+    return [self keyOfEntryWithOptions:0 passingTest:predicate];
+}
+
+- (id)keyOfEntryWithOptions:(NSEnumerationOptions)opts passingTest:(BOOL (^)(id key, id obj, BOOL *stop))predicate; {
+    BOOL concurrent = (opts & NSEnumerationConcurrent);
+
+    void * volatile match = NULL;
+    void * volatile * matchPtr = &match;
+
+    [self enumerateKeysAndObjectsWithOptions:opts usingBlock:^(id key, id obj, BOOL *stop){
+        BOOL passed = predicate(key, obj, stop);
+        if (!passed)
+            return;
+
+        if (concurrent) {
+            // we don't use a barrier because it doesn't really matter if we
+            // overwrite a previous value, since we can match any object from
+            // the set
+            OSAtomicCompareAndSwapPtr(*matchPtr, (__bridge void *)key, matchPtr);
+        } else {
+            *matchPtr = (__bridge void *)key;
+        }
+    }];
+
+    if (concurrent) {
+        // make sure that any compare-and-swaps complete
+        OSMemoryBarrier();
+    }
+
+    // call through -self to remove a bogus analyzer warning about returning
+    // a stack-local object (we're not)
+    return [(__bridge id)match self];
+}
+
 @end
