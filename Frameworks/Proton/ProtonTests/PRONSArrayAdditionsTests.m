@@ -11,6 +11,7 @@
 
 @interface PRONSArrayAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
@@ -66,6 +67,94 @@
 
     NSArray *testArray = [NSArray arrayWithObjects:@"foo", @"bar", nil];
     STAssertEqualObjects(filteredArray, testArray, @"");
+}
+
+- (void)testPartitioning; {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSArray *failureArray = nil;
+    NSArray *successArray = [array filterWithFailedObjects:&failureArray usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSArray *expectedSuccessArray = [NSArray arrayWithObjects:@"foo", @"bar", nil];
+    NSArray *expectedFailureArray = [NSArray arrayWithObjects:@"baz", nil];
+
+    STAssertEqualObjects(successArray, expectedSuccessArray, @"");
+    STAssertEqualObjects(failureArray, expectedFailureArray, @"");
+}
+
+- (void)testPartitioningEmptyArray {
+    NSArray *array = [NSArray array];
+
+    NSArray *failureArray = nil;
+    NSArray *successArray = [array filterWithFailedObjects:&failureArray usingBlock:^(NSString *string) {
+        return [string isEqualToString:@"bar"];
+    }];
+
+    NSArray *expectedSuccessArray = [NSArray array];
+    NSArray *expectedFailureArray = [NSArray array];
+
+    STAssertEqualObjects(successArray, expectedSuccessArray, @"");
+    STAssertEqualObjects(failureArray, expectedFailureArray, @"");
+}
+
+- (void)testPartitioningWithoutSuccess {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSArray *failureArray = nil;
+    NSArray *successArray = [array filterWithFailedObjects:&failureArray usingBlock:^(NSString *string) {
+        return [string isEqualToString:@"quux"];
+    }];
+
+    NSArray *expectedSuccessArray = [NSArray array];
+    NSArray *expectedFailureArray = array;
+
+    STAssertEqualObjects(successArray, expectedSuccessArray, @"");
+    STAssertEqualObjects(failureArray, expectedFailureArray, @"");
+}
+
+- (void)testPartitioningWithNullFailedArray {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSArray *successArray = [array filterWithFailedObjects:NULL usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSArray *expectedSuccessArray = [NSArray arrayWithObjects:@"foo", @"bar", nil];
+    STAssertEqualObjects(successArray, expectedSuccessArray, @"");
+}
+
+- (void)testPartitioningConcurrently {
+    [self testPartitioningWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testPartitioningReverse {
+    [self testPartitioningWithOptions:NSEnumerationReverse];
+}
+
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts; {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSArray *failureArray = nil;
+    NSArray *successArray = [array filterWithOptions:opts failedObjects:&failureArray usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSArray *expectedSuccessArray = [NSArray arrayWithObjects:@"foo", @"bar", nil];
+    NSArray *expectedFailureArray = [NSArray arrayWithObjects:@"baz", nil];
+
+    STAssertEqualObjects(successArray, expectedSuccessArray, @"");
+    STAssertEqualObjects(failureArray, expectedFailureArray, @"");
 }
 
 - (void)testMapping {
