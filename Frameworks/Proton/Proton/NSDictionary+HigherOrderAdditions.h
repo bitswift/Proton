@@ -34,6 +34,37 @@
 - (NSDictionary *)filterEntriesWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL (^)(id key, id value))block;
 
 /**
+ * Returns an dictionary of filtered entries for which `block` returns `YES`,
+ * and sets `failedEntries` to a dictionary of the entries for which `block`
+ * returned `NO`.
+ *
+ * @param failedEntries If not `NULL`, this will be a collection of all the
+ * entries for which `block` returned `NO`. If no entries failed, this will be
+ * an empty dictionary.
+ * @param block A predicate with which to filter key-value pairs in the
+ * receiver. If this block returns `YES`, the entry will be added to the
+ * returned collection. If this block returns `NO`, the object will be added to
+ * `failedEntries`.
+ */
+- (NSDictionary *)filterEntriesWithFailedEntries:(NSDictionary **)failedEntries usingBlock:(BOOL(^)(id key, id value))block;
+
+/**
+ * Returns an dictionary of filtered entries for which `block` returns `YES`,
+ * and sets `failedEntries` to a dictionary of the entries for which `block`
+ * returned `NO`, applying `opts` while filtering.
+ *
+ * @param opts A mask of `NSEnumerationOptions` to apply when filtering.
+ * @param failedEntries If not `NULL`, this will be a collection of all the
+ * entries for which `block` returned `NO`. If no entries failed, this will be
+ * an empty dictionary.
+ * @param block A predicate with which to filter key-value pairs in the
+ * receiver. If this block returns `YES`, the entry will be added to the
+ * returned collection. If this block returns `NO`, the object will be added to
+ * `failedEntries`.
+ */
+- (NSDictionary *)filterEntriesWithOptions:(NSEnumerationOptions)opts failedEntries:(NSDictionary **)failedEntries usingBlock:(BOOL(^)(id key, id value))block;
+
+/**
  * Reduces the receiver to a single value, using the given block.
  *
  * If the receiver is empty, `startingValue` is returned. Otherwise, the
