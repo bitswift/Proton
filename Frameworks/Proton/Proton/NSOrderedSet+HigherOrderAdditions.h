@@ -103,4 +103,23 @@
  */
 - (id)mapWithOptions:(NSEnumerationOptions)opts usingBlock:(id (^)(id obj))block;
 
+/**
+ * Returns the first object in the receiver that passes the given test, or `nil`
+ * if no such object exists.
+ *
+ * @param predicate The test to apply to each element in the receiver. This block
+ * should return whether the object passed the test.
+ */
+- (id)objectPassingTest:(BOOL (^)(id obj, NSUInteger index, BOOL *stop))predicate;
+
+/**
+ * Returns the first object in the receiver that passes the given test, or `nil`
+ * if no such object exists.
+ *
+ * @param opts A mask of `NSEnumerationOptions` to apply when enumerating.
+ * @param predicate The test to apply to each element in the receiver. This block
+ * should return whether the object passed the test.
+ */
+- (id)objectWithOptions:(NSEnumerationOptions)opts passingTest:(BOOL (^)(id obj, NSUInteger index, BOOL *stop))predicate;
+
 @end

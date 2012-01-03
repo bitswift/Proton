@@ -68,6 +68,68 @@
     STAssertEqualObjects(filteredArray, testArray, @"");
 }
 
+- (void)testObjectPassingTest {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [array objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(obj, @"bar", @"");
+}
+
+- (void)testObjectPassingTestOnEmptyArray {
+    NSArray *array = [NSArray array];
+
+    id obj = [array objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestWithoutSuccess {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [array objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"quux"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestWithStop {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [array objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        *stop = YES;
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestConcurrently {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [array objectWithOptions:NSEnumerationConcurrent passingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(obj, @"bar", @"");
+}
+
+- (void)testObjectPassingTestReverse {
+    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", @"quux", nil];
+
+    id obj = [array objectWithOptions:NSEnumerationReverse passingTest:^ BOOL (id obj, NSUInteger index, BOOL *stop){
+        return (index % 2 == 0);
+    }];
+
+    // this is the last object with an even index
+    STAssertEqualObjects(obj, @"baz", @"");
+}
+
 - (void)testMapping {
     [self testMappingWithOptions:0];
 }

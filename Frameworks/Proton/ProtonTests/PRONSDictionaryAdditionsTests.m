@@ -12,6 +12,7 @@
 
 @interface PRONSDictionaryAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
+- (void)testKeyOfEntryPassingTestWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
@@ -84,6 +85,69 @@
     ];
 
     STAssertEqualObjects(filteredDict, expectedDict, @"");
+}
+
+- (void)testKeyOfEntryPassingTest {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    id key = [dictionary keyOfEntryPassingTest:^(id key, id obj, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(key, @"foo", @"");
+}
+
+- (void)testKeyOfEntryPassingTestOnEmptyDictionary {
+    NSDictionary *dictionary = [NSDictionary dictionary];
+
+    id key = [dictionary keyOfEntryPassingTest:^(id key, id obj, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertNil(key, @"");
+}
+
+- (void)testKeyOfEntryPassingTestWithoutSuccess {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    id key = [dictionary keyOfEntryPassingTest:^(id key, id obj, BOOL *stop){
+        return [obj isEqual:@"quux"];
+    }];
+
+    STAssertNil(key, @"");
+}
+
+- (void)testKeyOfEntryPassingTestWithOptions:(NSEnumerationOptions)opts; {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    id key = [dictionary keyOfEntryWithOptions:opts passingTest:^(id key, id obj, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(key, @"foo", @"");
+}
+
+- (void)testKeyOfEntryPassingTestConcurrently {
+    [self testKeyOfEntryPassingTestWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testKeyOfEntryPassingTestReverse {
+    [self testKeyOfEntryPassingTestWithOptions:NSEnumerationReverse];
 }
 
 - (void)testMapping {
