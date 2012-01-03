@@ -33,6 +33,37 @@
 - (id)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL (^)(id obj))block;
 
 /**
+ * Returns an set of filtered objects for which `block` returns `YES`, and
+ * sets `failedObjects` to an set of the objects for which `block` returned
+ * `NO`.
+ *
+ * @param failedObjects If not `NULL`, this will be a collection of all the
+ * objects for which `block` returned `NO`. If no objects failed, this will be
+ * an empty set.
+ * @param block A predicate with which to filter objects in the receiver. If
+ * this block returns `YES`, the object will be added to the returned
+ * collection. If this block returns `NO`, the object will be added to
+ * `failedObjects`.
+ */
+- (id)filterWithFailedObjects:(NSSet **)failedObjects usingBlock:(BOOL(^)(id obj))block;
+
+/**
+ * Returns an set of filtered objects for which `block` returns `YES`, and
+ * sets `failedObjects` to an set of the objects for which `block` returned
+ * `NO`, applying `opts` while filtering.
+ *
+ * @param opts A mask of `NSEnumerationOptions` to apply when filtering.
+ * @param failedObjects If not `NULL`, this will be a collection of all the
+ * objects for which `block` returned `NO`. If no objects failed, this will be
+ * an empty set.
+ * @param block A predicate with which to filter objects in the receiver. If
+ * this block returns `YES`, the object will be added to the returned
+ * collection. If this block returns `NO`, the object will be added to
+ * `failedObjects`.
+ */
+- (id)filterWithOptions:(NSEnumerationOptions)opts failedObjects:(NSSet **)failedObjects usingBlock:(BOOL(^)(id obj))block;
+
+/**
  * Reduces the receiver to a single value, using the given block.
  *
  * If the receiver is empty, `startingValue` is returned. Otherwise, the

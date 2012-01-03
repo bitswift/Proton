@@ -11,6 +11,7 @@
 
 @interface PRONSSetAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
@@ -66,6 +67,94 @@
 
     NSSet *testSet = [NSSet setWithObjects:@"foo", @"bar", nil];
     STAssertEqualObjects(filteredSet, testSet, @"");
+}
+
+- (void)testPartitioning; {
+    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSSet *failureSet = nil;
+    NSSet *successSet = [set filterWithFailedObjects:&failureSet usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSSet *expectedSuccessSet = [NSSet setWithObjects:@"foo", @"bar", nil];
+    NSSet *expectedFailureSet = [NSSet setWithObjects:@"baz", nil];
+
+    STAssertEqualObjects(successSet, expectedSuccessSet, @"");
+    STAssertEqualObjects(failureSet, expectedFailureSet, @"");
+}
+
+- (void)testPartitioningEmptySet {
+    NSSet *set = [NSSet set];
+
+    NSSet *failureSet = nil;
+    NSSet *successSet = [set filterWithFailedObjects:&failureSet usingBlock:^(NSString *string) {
+        return [string isEqualToString:@"bar"];
+    }];
+
+    NSSet *expectedSuccessSet = [NSSet set];
+    NSSet *expectedFailureSet = [NSSet set];
+
+    STAssertEqualObjects(successSet, expectedSuccessSet, @"");
+    STAssertEqualObjects(failureSet, expectedFailureSet, @"");
+}
+
+- (void)testPartitioningWithoutSuccess {
+    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSSet *failureSet = nil;
+    NSSet *successSet = [set filterWithFailedObjects:&failureSet usingBlock:^(NSString *string) {
+        return [string isEqualToString:@"quux"];
+    }];
+
+    NSSet *expectedSuccessSet = [NSSet set];
+    NSSet *expectedFailureSet = set;
+
+    STAssertEqualObjects(successSet, expectedSuccessSet, @"");
+    STAssertEqualObjects(failureSet, expectedFailureSet, @"");
+}
+
+- (void)testPartitioningWithNullFailedSet {
+    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSSet *successSet = [set filterWithFailedObjects:NULL usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSSet *expectedSuccessSet = [NSSet setWithObjects:@"foo", @"bar", nil];
+    STAssertEqualObjects(successSet, expectedSuccessSet, @"");
+}
+
+- (void)testPartitioningConcurrently {
+    [self testPartitioningWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testPartitioningReverse {
+    [self testPartitioningWithOptions:NSEnumerationReverse];
+}
+
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts; {
+    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSSet *failureSet = nil;
+    NSSet *successSet = [set filterWithOptions:opts failedObjects:&failureSet usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSSet *expectedSuccessSet = [NSSet setWithObjects:@"foo", @"bar", nil];
+    NSSet *expectedFailureSet = [NSSet setWithObjects:@"baz", nil];
+
+    STAssertEqualObjects(successSet, expectedSuccessSet, @"");
+    STAssertEqualObjects(failureSet, expectedFailureSet, @"");
 }
 
 - (void)testMapping {

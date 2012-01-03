@@ -23,6 +23,66 @@
     }];
 }
 
+- (id)filterWithFailedObjects:(NSSet **)failedObjects usingBlock:(BOOL(^)(id obj))block; {
+    return [self filterWithOptions:0 failedObjects:failedObjects usingBlock:block];
+}
+
+- (id)filterWithOptions:(NSEnumerationOptions)opts failedObjects:(NSSet **)failedObjects usingBlock:(BOOL(^)(id obj))block; {
+    NSUInteger originalCount = [self count];
+    BOOL concurrent = (opts & NSEnumerationConcurrent);
+
+    // this will be used to store both the successful objects (starting from the
+    // beginning) and the failed objects (starting from the end)
+    //
+    // note that we don't need to retain the objects, since the set is already
+    // doing so
+    __unsafe_unretained volatile id *objects = (__unsafe_unretained id *)calloc(originalCount, sizeof(*objects));
+    if (!objects) {
+        return nil;
+    }
+
+    @onExit {
+        free((void *)objects);
+    };
+
+    volatile int64_t nextSuccessIndex = 0;
+    volatile int64_t *nextSuccessIndexPtr = &nextSuccessIndex;
+
+    volatile int64_t nextFailureIndex = originalCount - 1;
+    volatile int64_t *nextFailureIndexPtr = &nextFailureIndex;
+
+    [self enumerateObjectsWithOptions:opts usingBlock:^(id obj, BOOL *stop){
+        BOOL result = block(obj);
+
+        int64_t index;
+        
+        // find the index to store into the array
+        if (result) {
+            int64_t indexPlusOne = OSAtomicIncrement64Barrier(nextSuccessIndexPtr);
+            index = indexPlusOne - 1;
+        } else {
+            int64_t indexMinusOne = OSAtomicDecrement64Barrier(nextFailureIndexPtr);
+            index = indexMinusOne + 1;
+        }
+
+        objects[index] = obj;
+    }];
+
+    if (concurrent) {
+        // finish all assignments into the 'objects' array
+        OSMemoryBarrier();
+    }
+
+    NSUInteger successCount = (NSUInteger)nextSuccessIndex;
+    NSUInteger failureCount = originalCount - 1 - (NSUInteger)nextFailureIndex;
+
+    if (failedObjects) {
+        *failedObjects = [NSSet setWithObjects:(id *)(objects + nextFailureIndex + 1) count:failureCount];
+    }
+
+    return [NSSet setWithObjects:(id *)objects count:successCount];
+}
+
 - (id)foldWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {
     __block id value = startingValue;
 
