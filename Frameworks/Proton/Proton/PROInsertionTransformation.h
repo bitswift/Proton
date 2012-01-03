@@ -46,8 +46,7 @@
  * If `object` is `nil`, the receiver will pass through all values without
  * modification.
  *
- * @param insertionIndex The index at which to insert the corresponding
- * `object`.
+ * @param index The index at which to insert the corresponding `object`.
  * @param object An object to be inserted at the corresponding `index`.
  */
 - (id)initWithInsertionIndex:(NSUInteger)index object:(id)object;

@@ -56,6 +56,8 @@ complete, simply resolve it in the background:
         [PROFuture resolveFuture:future];
     });
 
+@param future The future to resolve.
+
 */
 + (id)resolveFuture:(PROFuture *)future;
 
