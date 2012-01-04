@@ -147,4 +147,16 @@
     return [NSArray arrayWithObjects:(id *)objects count:actualCount];
 }
 
+- (id)objectPassingTest:(BOOL (^)(id obj, NSUInteger index, BOOL *stop))predicate; {
+    return [self objectWithOptions:0 passingTest:predicate];
+}
+
+- (id)objectWithOptions:(NSEnumerationOptions)opts passingTest:(BOOL (^)(id obj, NSUInteger index, BOOL *stop))predicate; {
+    NSUInteger index = [self indexOfObjectWithOptions:opts passingTest:predicate];
+    if (index == NSNotFound)
+        return nil;
+    else
+        return [self objectAtIndex:index];
+}
+
 @end

@@ -11,11 +11,60 @@
 
 @interface PRONSSetAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
-- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
+- (void)testObjectPassingTestWithOptions:(NSEnumerationOptions)opts;
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts;
 @end
 
 @implementation PRONSSetAdditionsTests
+
+- (void)testObjectPassingTest {
+    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [set objectPassingTest:^(id obj, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(obj, @"bar", @"");
+}
+
+- (void)testObjectPassingTestOnEmptySet {
+    NSSet *set = [NSSet set];
+
+    id obj = [set objectPassingTest:^(id obj, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestWithoutSuccess {
+    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [set objectPassingTest:^(id obj, BOOL *stop){
+        return [obj isEqual:@"quux"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestWithOptions:(NSEnumerationOptions)opts; {
+    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [set objectWithOptions:opts passingTest:^(id obj, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(obj, @"bar", @"");
+}
+
+- (void)testObjectPassingTestConcurrently {
+    [self testObjectPassingTestWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testObjectPassingTestReverse {
+    [self testObjectPassingTestWithOptions:NSEnumerationReverse];
+}
 
 - (void)testFilter {
     NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];

@@ -122,4 +122,23 @@
  */
 - (NSDictionary *)mapValuesWithOptions:(NSEnumerationOptions)opts usingBlock:(id (^)(id key, id value))block;
 
+/**
+ * Returns the key of an entry in the receiver that passes the given test, or
+ * `nil` if no such entry exists.
+ *
+ * @param predicate The test to apply to each entry in the receiver. This block
+ * should return whether the entry passed the test.
+ */
+- (id)keyOfEntryPassingTest:(BOOL (^)(id key, id obj, BOOL *stop))predicate;
+
+/**
+ * Returns the key of an entry in the receiver that passes the given test, or
+ * `nil` if no such entry exists.
+ *
+ * @param opts A mask of `NSEnumerationOptions` to apply when enumerating.
+ * @param predicate The test to apply to each entry in the receiver. This block
+ * should return whether the entry passed the test.
+ */
+- (id)keyOfEntryWithOptions:(NSEnumerationOptions)opts passingTest:(BOOL (^)(id key, id obj, BOOL *stop))predicate;
+
 @end

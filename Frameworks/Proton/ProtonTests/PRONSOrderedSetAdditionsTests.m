@@ -157,6 +157,68 @@
     STAssertEqualObjects(failureOrderedSet, expectedFailureOrderedSet, @"");
 }
 
+- (void)testObjectPassingTest {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [orderedSet objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(obj, @"bar", @"");
+}
+
+- (void)testObjectPassingTestOnEmptyOrderedSet {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSet];
+
+    id obj = [orderedSet objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestWithoutSuccess {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [orderedSet objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"quux"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestWithStop {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [orderedSet objectPassingTest:^(id obj, NSUInteger index, BOOL *stop){
+        *stop = YES;
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertNil(obj, @"");
+}
+
+- (void)testObjectPassingTestConcurrently {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    id obj = [orderedSet objectWithOptions:NSEnumerationConcurrent passingTest:^(id obj, NSUInteger index, BOOL *stop){
+        return [obj isEqual:@"bar"];
+    }];
+
+    STAssertEqualObjects(obj, @"bar", @"");
+}
+
+- (void)testObjectPassingTestReverse {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", @"quux", nil];
+
+    id obj = [orderedSet objectWithOptions:NSEnumerationReverse passingTest:^ BOOL (id obj, NSUInteger index, BOOL *stop){
+        return (index % 2 == 0);
+    }];
+
+    // this is the last object with an even index
+    STAssertEqualObjects(obj, @"baz", @"");
+}
+
 - (void)testMapping {
     [self testMappingWithOptions:0];
 }
