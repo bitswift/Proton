@@ -12,6 +12,7 @@
 
 @interface PRONSDictionaryAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
@@ -84,6 +85,125 @@
     ];
 
     STAssertEqualObjects(filteredDict, expectedDict, @"");
+}
+
+- (void)testPartitioning; {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *failureDictionary = nil;
+    NSDictionary *successDictionary = [dictionary filterEntriesWithFailedEntries:&failureDictionary usingBlock:^(id key, id value) {
+        return [key isEqual:@"null"];
+    }];
+
+    NSDictionary *expectedSuccessDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *expectedFailureDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        nil
+    ];
+
+    STAssertEqualObjects(successDictionary, expectedSuccessDictionary, @"");
+    STAssertEqualObjects(failureDictionary, expectedFailureDictionary, @"");
+}
+
+- (void)testPartitioningEmptyDictionary {
+    NSDictionary *dictionary = [NSDictionary dictionary];
+
+    NSDictionary *failureDictionary = nil;
+    NSDictionary *successDictionary = [dictionary filterEntriesWithFailedEntries:&failureDictionary usingBlock:^(id key, id value) {
+        return [key isEqual:@"null"];
+    }];
+
+    NSDictionary *expectedSuccessDictionary = [NSDictionary dictionary];
+    NSDictionary *expectedFailureDictionary = [NSDictionary dictionary];
+
+    STAssertEqualObjects(successDictionary, expectedSuccessDictionary, @"");
+    STAssertEqualObjects(failureDictionary, expectedFailureDictionary, @"");
+}
+
+- (void)testPartitioningWithoutSuccess {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *failureDictionary = nil;
+    NSDictionary *successDictionary = [dictionary filterEntriesWithFailedEntries:&failureDictionary usingBlock:^(id key, id value) {
+        return [key isEqual:@"quux"];
+    }];
+
+    NSDictionary *expectedSuccessDictionary = [NSDictionary dictionary];
+    NSDictionary *expectedFailureDictionary = dictionary;
+
+    STAssertEqualObjects(successDictionary, expectedSuccessDictionary, @"");
+    STAssertEqualObjects(failureDictionary, expectedFailureDictionary, @"");
+}
+
+- (void)testPartitioningWithNullFailedDictionary {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *successDictionary = [dictionary filterEntriesWithFailedEntries:NULL usingBlock:^(id key, id value) {
+        return [key isEqual:@"null"];
+    }];
+
+    NSDictionary *expectedSuccessDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSNull null], @"null",
+        nil
+    ];
+
+    STAssertEqualObjects(successDictionary, expectedSuccessDictionary, @"");
+}
+
+- (void)testPartitioningConcurrently {
+    [self testPartitioningWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testPartitioningReverse {
+    [self testPartitioningWithOptions:NSEnumerationReverse];
+}
+
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts; {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *failureDictionary = nil;
+    NSDictionary *successDictionary = [dictionary filterEntriesWithOptions:opts failedEntries:&failureDictionary usingBlock:^(id key, id value) {
+        return [key isEqual:@"null"];
+    }];
+
+    NSDictionary *expectedSuccessDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSNull null], @"null",
+        nil
+    ];
+
+    NSDictionary *expectedFailureDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"bar", @"foo",
+        @"buzz", @"baz",
+        nil
+    ];
+
+    STAssertEqualObjects(successDictionary, expectedSuccessDictionary, @"");
+    STAssertEqualObjects(failureDictionary, expectedFailureDictionary, @"");
 }
 
 - (void)testMapping {

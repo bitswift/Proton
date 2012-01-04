@@ -11,6 +11,7 @@
 
 @interface PRONSOrderedSetAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
@@ -66,6 +67,94 @@
 
     NSOrderedSet *testOrderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", nil];
     STAssertEqualObjects(filteredOrderedSet, testOrderedSet, @"");
+}
+
+- (void)testPartitioning; {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSOrderedSet *failureOrderedSet = nil;
+    NSOrderedSet *successOrderedSet = [orderedSet filterWithFailedObjects:&failureOrderedSet usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSOrderedSet *expectedSuccessOrderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", nil];
+    NSOrderedSet *expectedFailureOrderedSet = [NSOrderedSet orderedSetWithObjects:@"baz", nil];
+
+    STAssertEqualObjects(successOrderedSet, expectedSuccessOrderedSet, @"");
+    STAssertEqualObjects(failureOrderedSet, expectedFailureOrderedSet, @"");
+}
+
+- (void)testPartitioningEmptyOrderedSet {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSet];
+
+    NSOrderedSet *failureOrderedSet = nil;
+    NSOrderedSet *successOrderedSet = [orderedSet filterWithFailedObjects:&failureOrderedSet usingBlock:^(NSString *string) {
+        return [string isEqualToString:@"bar"];
+    }];
+
+    NSOrderedSet *expectedSuccessOrderedSet = [NSOrderedSet orderedSet];
+    NSOrderedSet *expectedFailureOrderedSet = [NSOrderedSet orderedSet];
+
+    STAssertEqualObjects(successOrderedSet, expectedSuccessOrderedSet, @"");
+    STAssertEqualObjects(failureOrderedSet, expectedFailureOrderedSet, @"");
+}
+
+- (void)testPartitioningWithoutSuccess {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSOrderedSet *failureOrderedSet = nil;
+    NSOrderedSet *successOrderedSet = [orderedSet filterWithFailedObjects:&failureOrderedSet usingBlock:^(NSString *string) {
+        return [string isEqualToString:@"quux"];
+    }];
+
+    NSOrderedSet *expectedSuccessOrderedSet = [NSOrderedSet orderedSet];
+    NSOrderedSet *expectedFailureOrderedSet = orderedSet;
+
+    STAssertEqualObjects(successOrderedSet, expectedSuccessOrderedSet, @"");
+    STAssertEqualObjects(failureOrderedSet, expectedFailureOrderedSet, @"");
+}
+
+- (void)testPartitioningWithNullFailedOrderedSet {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSOrderedSet *successOrderedSet = [orderedSet filterWithFailedObjects:NULL usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSOrderedSet *expectedSuccessOrderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", nil];
+    STAssertEqualObjects(successOrderedSet, expectedSuccessOrderedSet, @"");
+}
+
+- (void)testPartitioningConcurrently {
+    [self testPartitioningWithOptions:NSEnumerationConcurrent];
+}
+
+- (void)testPartitioningReverse {
+    [self testPartitioningWithOptions:NSEnumerationReverse];
+}
+
+- (void)testPartitioningWithOptions:(NSEnumerationOptions)opts; {
+    NSOrderedSet *orderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", @"baz", nil];
+
+    NSOrderedSet *failureOrderedSet = nil;
+    NSOrderedSet *successOrderedSet = [orderedSet filterWithOptions:opts failedObjects:&failureOrderedSet usingBlock:^(NSString *string) {
+        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
+            return YES;
+        else
+            return NO;
+    }];
+
+    NSOrderedSet *expectedSuccessOrderedSet = [NSOrderedSet orderedSetWithObjects:@"foo", @"bar", nil];
+    NSOrderedSet *expectedFailureOrderedSet = [NSOrderedSet orderedSetWithObjects:@"baz", nil];
+
+    STAssertEqualObjects(successOrderedSet, expectedSuccessOrderedSet, @"");
+    STAssertEqualObjects(failureOrderedSet, expectedFailureOrderedSet, @"");
 }
 
 - (void)testMapping {

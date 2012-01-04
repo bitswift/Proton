@@ -18,11 +18,28 @@
 }
 
 - (id)filterWithOptions:(NSEnumerationOptions)opts usingBlock:(BOOL(^)(id obj))block {
-    return [self objectsAtIndexes:
-        [self indexesOfObjectsWithOptions:opts passingTest:^(id obj, NSUInteger idx, BOOL *stop) {
-            return block(obj);
-        }]
-    ];
+    return [self filterWithOptions:opts failedObjects:NULL usingBlock:block];
+}
+
+- (id)filterWithFailedObjects:(NSArray **)failedObjects usingBlock:(BOOL(^)(id obj))block; {
+    return [self filterWithOptions:0 failedObjects:failedObjects usingBlock:block];
+}
+
+- (id)filterWithOptions:(NSEnumerationOptions)opts failedObjects:(NSArray **)failedObjects usingBlock:(BOOL(^)(id obj))block; {
+    NSIndexSet *successIndexes = [self indexesOfObjectsWithOptions:opts passingTest:^(id obj, NSUInteger idx, BOOL *stop) {
+        return block(obj);
+    }];
+
+    if (failedObjects) {
+        NSUInteger totalCount = self.count;
+
+        NSMutableIndexSet *failedIndexes = [[NSMutableIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, totalCount)];
+        [failedIndexes removeIndexes:successIndexes];
+
+        *failedObjects = [self objectsAtIndexes:failedIndexes];
+    }
+
+    return [self objectsAtIndexes:successIndexes];
 }
 
 - (id)foldLeftWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {

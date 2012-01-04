@@ -28,6 +28,83 @@
     return [NSDictionary dictionaryWithObjects:values forKeys:keys];
 }
 
+- (NSDictionary *)filterEntriesWithFailedEntries:(NSDictionary **)failedEntries usingBlock:(BOOL(^)(id key, id value))block; {
+    return [self filterEntriesWithOptions:0 failedEntries:failedEntries usingBlock:block];
+}
+
+- (NSDictionary *)filterEntriesWithOptions:(NSEnumerationOptions)opts failedEntries:(NSDictionary **)failedEntries usingBlock:(BOOL(^)(id key, id value))block; {
+    NSUInteger originalCount = [self count];
+    BOOL concurrent = (opts & NSEnumerationConcurrent);
+
+    // this will be used to store both the successful keys (starting from the
+    // beginning) and the failed keys (starting from the end)
+    // 
+    // note that we don't need to retain the objects, since the dictionary is already
+    // doing so
+    __unsafe_unretained volatile id *keys = (__unsafe_unretained id *)calloc(originalCount, sizeof(*keys));
+    if (!keys) {
+        return nil;
+    }
+
+    @onExit {
+        free((void *)keys);
+    };
+
+    // this will be used to store both the successful values (starting from the
+    // beginning) and the failed values (starting from the end)
+    // 
+    // note that we don't need to retain the objects, since the dictionary is already
+    // doing so
+    __unsafe_unretained volatile id *values = (__unsafe_unretained id *)calloc(originalCount, sizeof(*values));
+    if (!values) {
+        return nil;
+    }
+
+    @onExit {
+        free((void *)values);
+    };
+
+    volatile int64_t nextSuccessIndex = 0;
+    volatile int64_t *nextSuccessIndexPtr = &nextSuccessIndex;
+
+    volatile int64_t nextFailureIndex = originalCount - 1;
+    volatile int64_t *nextFailureIndexPtr = &nextFailureIndex;
+
+    [self enumerateKeysAndObjectsWithOptions:opts usingBlock:^(id key, id value, BOOL *stop){
+        BOOL result = block(key, value);
+
+        int64_t index;
+
+        // find the index to store into the arrays
+        if (result) {
+            int64_t indexPlusOne = OSAtomicIncrement64Barrier(nextSuccessIndexPtr);
+            index = indexPlusOne - 1;
+        } else {
+            int64_t indexMinusOne = OSAtomicDecrement64Barrier(nextFailureIndexPtr);
+            index = indexMinusOne + 1;
+        }
+        
+        keys[index] = key;
+        values[index] = value;
+    }];
+
+    if (concurrent) {
+        // finish all assignments into the 'keys' and 'values' arrays
+        OSMemoryBarrier();
+    }
+
+    NSUInteger successCount = (NSUInteger)nextSuccessIndex;
+    NSUInteger failureCount = originalCount - 1 - (NSUInteger)nextFailureIndex;
+
+    if (failedEntries) {
+        size_t objectsOffset = (size_t)(nextFailureIndex + 1);
+
+        *failedEntries = [NSDictionary dictionaryWithObjects:(id *)(values + objectsOffset) forKeys:(id *)(keys + objectsOffset) count:failureCount];
+    }
+
+    return [NSDictionary dictionaryWithObjects:(id *)values forKeys:(id *)keys count:successCount];
+}
+
 - (id)foldEntriesWithValue:(id)startingValue usingBlock:(id (^)(id left, id rightKey, id rightValue))block; {
     __block id value = startingValue;
     
