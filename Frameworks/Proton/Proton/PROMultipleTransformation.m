@@ -67,6 +67,16 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
+    /*
+     * Unfortunately, for a multiple transformation, we have to redo the
+     * actual work of the transformation in order to properly update the model
+     * controller step-by-step. It would be unsafe to update it just with the
+     * final result, because the child transformations may be granular and
+     * independent enough that they need to be separately applied one-by-one.
+     */
+
+    // obtain the key path to the model, relative to the model controller, so
+    // that we can read the existing value
     NSString *fullModelKeyPath = @"model";
     if (modelKeyPath)
         fullModelKeyPath = [fullModelKeyPath stringByAppendingFormat:@".%@", modelKeyPath];
@@ -76,12 +86,6 @@
     NSAssert([[self transform:currentValue] isEqual:result], @"Model at key path \"%@\" on %@ does not match the original value passed into %@", modelKeyPath, modelController, self);
 
     for (PROTransformation *transformation in self.transformations) {
-        /*
-         * Unfortunately, for a multiple transformation, we have to redo the
-         * actual work in order to properly step the 'transformationResult'
-         * parameter and be able to apply the effects of our children to the
-         * model controller.
-         */
         currentValue = [transformation transform:currentValue];
 
         [transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath];
