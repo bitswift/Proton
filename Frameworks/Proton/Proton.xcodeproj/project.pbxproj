@@ -154,8 +154,6 @@
 		D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5DA14B5788E00E278CA /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
 		D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
-		D0A0E5F614B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		D0A0E5F714B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D0B07AD01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
 		D0B07ADD1492E72800A1E816 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0B07AE01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
@@ -310,7 +308,6 @@
 		D084679014A40DEF00E2856F /* SDQueueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueueTests.m; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.m; sourceTree = "<group>"; };
 		D0A0E5DA14B5788E00E278CA /* PROModelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelController.h; sourceTree = "<group>"; };
 		D0A0E5DB14B5788E00E278CA /* PROModelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelController.m; sourceTree = "<group>"; };
-		D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelControllerPrivate.h; sourceTree = "<group>"; };
 		D0B07ACE1492E72800A1E816 /* libProton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libProton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -590,7 +587,6 @@
 				D0C42D6214984CE100A08989 /* PROModel.m */,
 				D0A0E5DA14B5788E00E278CA /* PROModelController.h */,
 				D0A0E5DB14B5788E00E278CA /* PROModelController.m */,
-				D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */,
 			);
 			name = "Model Framework";
 			sourceTree = "<group>";
@@ -811,7 +807,6 @@
 				D013816E14AD491C008E7942 /* DDLog.h in Headers */,
 				D013817214AD491C008E7942 /* DDTTYLogger.h in Headers */,
 				D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */,
-				D0A0E5F714B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -855,7 +850,6 @@
 				D013816D14AD491C008E7942 /* DDLog.h in Headers */,
 				D013817114AD491C008E7942 /* DDTTYLogger.h in Headers */,
 				D0A0E5DC14B5788E00E278CA /* PROModelController.h in Headers */,
-				D0A0E5F614B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
