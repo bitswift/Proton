@@ -135,4 +135,13 @@
  */
 - (BOOL)performTransformation:(PROTransformation *)transformation;
 
+/**
+ * Whether the _current thread_ is performing a transformation (i.e., executing
+ * the <performTransformation:> method).
+ *
+ * This information can be used, for example, to ignore synchronous KVO
+ * notifications that are received during the course of a transformation.
+ */
+@property (assign, readonly, getter = isPerformingTransformation) BOOL performingTransformation;
+
 @end

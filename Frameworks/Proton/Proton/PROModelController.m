@@ -7,11 +7,32 @@
 //
 
 #import <Proton/PROModelController.h>
+#import <Proton/EXTScope.h>
 #import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROModel.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
 #import <Proton/SDQueue.h>
+
+/*
+ * A key into the thread dictionary, associated with an `NSNumber` indicating
+ * whether the current thread is performing a transformation.
+ *
+ * Used to implement <[PROModelController performingTransformation]>.
+ */
+static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
+
+@interface PROModelController ()
+/*
+ * Whether <performTransformation:> is currently being executed on the
+ * <dispatchQueue>.
+ *
+ * @warning **Important:** This should only be read or written while already
+ * running on <dispatchQueue>. Use <performingTransformation> in all other
+ * cases.
+ */
+@property (nonatomic, assign, getter = isPerformingTransformationOnDispatchQueue) BOOL performingTransformationOnDispatchQueue;
+@end
 
 @implementation PROModelController
 
@@ -19,6 +40,7 @@
 
 @synthesize dispatchQueue = m_dispatchQueue;
 @synthesize model = m_model;
+@synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 
 - (id)model {
     __block id model;
@@ -42,6 +64,16 @@
         
         [self didChangeValueForKey:PROKeyForObject(self, model)];
     }];
+}
+
+- (BOOL)isPerformingTransformation {
+    if (![self.dispatchQueue isCurrentQueue]) {
+        // impossible that a transformation could be getting performed on the
+        // current thread if we're not on the dispatch queue
+        return NO;
+    }
+
+    return self.performingTransformationOnDispatchQueue;
 }
 
 #pragma mark Lifecycle
@@ -78,11 +110,19 @@
 #pragma mark Transformations
 
 - (BOOL)performTransformation:(PROTransformation *)transformation; {
+    NSAssert(!self.performingTransformation, @"%s should not be invoked recursively", __func__);
+
     __block BOOL success = NO;
     
     // TODO: seems like this should synchronize with child model controllers as
     // well, to prevent deadlocks from jumping back and forth
     [self.dispatchQueue runSynchronously:^{
+        self.performingTransformationOnDispatchQueue = YES;
+
+        @onExit {
+            self.performingTransformationOnDispatchQueue = NO;
+        };
+
         id model = [transformation transform:self.model];
 
         if (!model) {
@@ -100,6 +140,7 @@
             // to replace all of the model controllers
             [self willChangeValueForKey:PROKeyForObject(self, model)];
 
+            // TODO: changing this as an ivar sucks!
             m_model = model;
             [transformation updateModelController:self transformationResult:model forModelKeyPath:nil];
 
