@@ -30,8 +30,9 @@
     return nil;
 }
 
-- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
+    return NO;
 }
 
 #pragma mark NSCoding

@@ -42,8 +42,9 @@
 - (id)transform:(id)obj;
 
 /**
- * Updates the given key path, relative to the given model controller, with
- * the result of this transformation.
+ * Attempts to update the given key path, relative to the given model
+ * controller, with the result of this transformation. Returns whether the
+ * update was validly applied.
  *
  * This will update the other model controllers specified with
  * <[PROModelController modelControllersKeyPathForModelKeyPath:]>, if appropriate.
@@ -61,7 +62,7 @@
  * @warning **Important:** This method must be implemented by subclasses. You
  * should not call the superclass implementation.
  */
-- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath;
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath;
 
 /**
  * @name Compound Transformations

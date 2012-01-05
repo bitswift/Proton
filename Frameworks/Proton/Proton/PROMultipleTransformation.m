@@ -64,7 +64,7 @@
     return currentValue;
 }
 
-- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
@@ -89,8 +89,15 @@
     for (PROTransformation *transformation in self.transformations) {
         currentValue = [transformation transform:currentValue];
 
-        [transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath];
+        if (![transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath]) {
+            // some model propagation failed, so just set the top-level object
+            // after all
+            modelController.model = result;
+            break;
+        }
     }
+
+    return YES;
 }
 
 #pragma mark NSCoding

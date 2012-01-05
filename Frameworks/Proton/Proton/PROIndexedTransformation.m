@@ -108,7 +108,7 @@
     return [newArray copy];
 }
 
-- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
@@ -120,11 +120,11 @@
      */
 
     if (!modelKeyPath)
-        return;
+        return NO;
 
     NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
     if (!ownedModelControllersKeyPath)
-        return;
+        return NO;
 
     NSArray *associatedControllers = [modelController valueForKey:ownedModelControllersKeyPath];
     NSAssert([associatedControllers count] == [result count], @"Should be exactly as many model controllers at key path \"%@\" from %@ as models at key path \"%@\": %@", ownedModelControllersKeyPath, modelController, modelKeyPath, result);
@@ -135,7 +135,7 @@
     // retrieve values from it one-by-one
     NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
     if (!indexes) {
-        return;
+        return NO;
     }
 
     @onExit {
@@ -154,8 +154,13 @@
         id object = [result objectAtIndex:index];
 
         PROModelController *controller = [associatedControllers objectAtIndex:index];
-        [transformation updateModelController:controller transformationResult:object forModelKeyPath:nil];
+        if (![transformation updateModelController:controller transformationResult:object forModelKeyPath:nil]) {
+            // no model below here, so update the top-level object
+            controller.model = object;
+        }
     }];
+
+    return YES;
 }
 
 - (PROTransformation *)reverseTransformation {

@@ -81,7 +81,7 @@
     return [newArray copy];
 }
 
-- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
@@ -92,11 +92,11 @@
      */
 
     if (!modelKeyPath)
-        return;
+        return NO;
 
     NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
     if (!ownedModelControllersKeyPath)
-        return;
+        return NO;
 
     Class ownedModelControllerClass = [modelController modelControllerClassAtKeyPath:ownedModelControllersKeyPath];
 
@@ -106,6 +106,8 @@
 
     NSMutableArray *mutableControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
     [mutableControllers insertObjects:newControllers atIndexes:self.insertionIndexes];
+
+    return YES;
 }
 
 #pragma mark NSCoding

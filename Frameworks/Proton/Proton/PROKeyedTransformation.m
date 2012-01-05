@@ -113,7 +113,7 @@
     }
 }
 
-- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
@@ -121,6 +121,8 @@
      * A keyed transformation is simply a descent into the model, so we just
      * need to keep updating the model key path.
      */
+
+    BOOL allModelUpdatesSuccessful = YES;
 
     for (NSString *key in self.valueTransformations) {
         PROTransformation *transformation = [self.valueTransformations objectForKey:key];
@@ -137,13 +139,18 @@
         }
 
         id value = [result valueForKey:key];
-        [transformation updateModelController:modelController transformationResult:value forModelKeyPath:newKeyPath];
+        allModelUpdatesSuccessful &= [transformation updateModelController:modelController transformationResult:value forModelKeyPath:newKeyPath];
     }
 
-    if (!modelKeyPath) {
-        // update the top-level model
+    if (!modelKeyPath && !allModelUpdatesSuccessful) {
+        // not all changes correctly propagated, so we just need to set the
+        // top-level object
         modelController.model = result;
+
+        allModelUpdatesSuccessful = YES;
     }
+
+    return allModelUpdatesSuccessful;
 }
 
 #pragma mark NSCoding

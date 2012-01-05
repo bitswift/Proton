@@ -71,7 +71,7 @@
     return self.outputValue;
 }
 
-- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
@@ -90,12 +90,12 @@
     if (!modelKeyPath) {
         // update the top-level model
         modelController.model = result;
-        return;
+        return YES;
     }
 
     NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
     if (!ownedModelControllersKeyPath)
-        return;
+        return NO;
 
     NSAssert([self.outputValue isKindOfClass:[NSArray class]], @"Model controller %@ key path \"%@\" doesn't make any sense without an array at model key path \"%@\"", modelController, ownedModelControllersKeyPath, modelKeyPath);
 
@@ -111,6 +111,8 @@
     // replace the controllers outright, since we replaced the associated models
     // outright
     [mutableControllers replaceObjectsInRange:NSMakeRange(0, count) withObjectsFromArray:newControllers];
+
+    return YES;
 }
 
 #pragma mark NSCoding
