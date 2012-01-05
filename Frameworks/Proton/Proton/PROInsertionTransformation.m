@@ -85,6 +85,12 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
+    /*
+     * An insertion transformation means that we're going to be inserting
+     * objects into an array of the model (e.g., model.submodels), so we need to
+     * create and insert a new model controller for each such insertion.
+     */
+
     if (!modelKeyPath)
         return;
 
