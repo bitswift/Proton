@@ -93,6 +93,23 @@
     STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
 }
 
+- (void)testPerformingKeyedTransformation {
+    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+    NSArray *subModels = [NSArray arrayWithObject:subModel];
+
+    // this will create a transformation keyed on 'subModels'
+    PROTransformation *transformation = [controller.model transformationForKey:PROKeyForObject(controller.model, subModels) value:subModels];
+
+    STAssertTrue([controller performTransformation:transformation], @"");
+    STAssertEqualObjects(controller.model.subModels, subModels, @"");
+
+    // make sure that a SubModelController exists for the new SubModel
+    STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
+    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
+}
+
 @end
 
 @implementation TestSubModel
