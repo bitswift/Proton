@@ -8,6 +8,7 @@
 
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROModelController.h>
 
 @implementation PROMultipleTransformation
@@ -77,7 +78,7 @@
 
     // obtain the key path to the model, relative to the model controller, so
     // that we can read the existing value
-    NSString *fullModelKeyPath = @"model";
+    NSString *fullModelKeyPath = PROKeyForObject(modelController, model);
     if (modelKeyPath)
         fullModelKeyPath = [fullModelKeyPath stringByAppendingFormat:@".%@", modelKeyPath];
 
