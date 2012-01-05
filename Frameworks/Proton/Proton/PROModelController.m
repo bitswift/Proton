@@ -10,6 +10,7 @@
 #import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROModel.h>
 #import <Proton/PROTransformation.h>
+#import <Proton/PROUniqueTransformation.h>
 #import <Proton/SDQueue.h>
 
 @implementation PROModelController
@@ -90,12 +91,20 @@
             return;
         }
 
-        [self willChangeValueForKey:PROKeyForObject(self, model)];
+        if ([transformation isKindOfClass:[PROUniqueTransformation class]]) {
+            // for a unique transformation, we want to use the proper setter for
+            // 'model' to make sure that all model controllers are replaced
+            self.model = model;
+        } else {
+            // for any other kind of transformation, we don't necessarily want
+            // to replace all of the model controllers
+            [self willChangeValueForKey:PROKeyForObject(self, model)];
 
-        m_model = model;
-        [transformation updateModelController:self transformationResult:model forModelKeyPath:nil];
+            m_model = model;
+            [transformation updateModelController:self transformationResult:model forModelKeyPath:nil];
 
-        [self didChangeValueForKey:PROKeyForObject(self, model)];
+            [self didChangeValueForKey:PROKeyForObject(self, model)];
+        }
 
         success = YES;
     }];

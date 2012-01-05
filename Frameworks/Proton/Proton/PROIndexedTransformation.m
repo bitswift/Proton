@@ -143,9 +143,6 @@
 
         PROModelController *controller = [associatedControllers objectAtIndex:index];
         [transformation updateModelController:controller transformationResult:object forModelKeyPath:nil];
-
-        // TODO seems like this should be part of unique transformations
-        controller.model = object;
     }];
 }
 

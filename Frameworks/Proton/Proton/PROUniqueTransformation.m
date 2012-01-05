@@ -75,8 +75,11 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
-    if (!modelKeyPath)
+    if (!modelKeyPath) {
+        // update the top-level model
+        modelController.model = result;
         return;
+    }
 
     NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
     if (!ownedModelControllersKeyPath)
