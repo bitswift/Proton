@@ -54,8 +54,9 @@
  * controller responsible for `result`.
  * @param result A value previously returned from an invocation of <transform:>
  * on the receiver.
- * @param modelKeyPath The key path, relative to the model controller, at which
- * to set to `result`.
+ * @param modelKeyPath The key path, relative to the <model> property of the
+ * model controller, at which to set to `result`. If `nil`, the result is
+ * assumed to be a new value for <model> itself.
  *
  * @warning **Important:** This method must be implemented by subclasses. You
  * should not call the superclass implementation.
