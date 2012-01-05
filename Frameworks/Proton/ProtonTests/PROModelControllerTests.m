@@ -18,6 +18,8 @@
 
 @interface TestSuperModel : PROModel
 @property (copy) NSArray *subModels;
+
+- (id)initWithSubModel:(TestSubModel *)subModel;
 @end
 
 @interface TestSuperModelController : PROModelController
@@ -126,6 +128,22 @@
     STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
 }
 
+- (void)testPerformingRemovalTransformation {
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+    TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
+
+    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
+
+    PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
+    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertEqualObjects(controller.model.subModels, [NSArray array], @"");
+
+    // make sure that the SubModelController was removed
+    STAssertEqualObjects(controller.subModelControllers, [NSArray array], @"");
+}
+
 @end
 
 @implementation TestSubModel
@@ -150,6 +168,13 @@
     }
 
     return self;
+}
+
+- (id)initWithSubModel:(TestSubModel *)subModel; {
+    NSArray *subModels = [NSArray arrayWithObject:subModel];
+
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(self, subModels)];
+    return [self initWithDictionary:dictionary];
 }
 @end
 
