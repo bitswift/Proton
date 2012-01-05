@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
+@class PROModelController;
 @class PROTransformation;
 
 /**
@@ -17,6 +18,7 @@
  */
 typedef id (^PROTransformationBlock)(id obj);
 
+// TODO: remove this
 /**
  * A block that can rewrite the logic of a <PROTransformation> on the fly.
  *
@@ -55,8 +57,32 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  *
  * @param obj The object to attempt to transform. This value should not be
  * `nil`.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
  */
 - (id)transform:(id)obj;
+
+/**
+ * Updates the given key path, relative to the given model controller, with
+ * the result of this transformation.
+ *
+ * This will update the other model controllers specified with
+ * <[PROModelController modelControllersKeyPathForModelKeyPath:]>, if appropriate.
+ * Such updates are performed as granularly as possible (e.g., by preferring to
+ * update model controllers in place instead of replacing them).
+ *
+ * @param modelController The model controller to update. This should be the
+ * controller responsible for `result`.
+ * @param result A value previously returned from an invocation of <transform:>
+ * on the receiver.
+ * @param modelKeyPath The key path, relative to the model controller, at which
+ * to set to `result`.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
+ */
+- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath;
 
 /**
  * Returns a block that combines the logic of the receiver with that of the

@@ -8,6 +8,7 @@
 
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROMultipleTransformation
 
@@ -51,7 +52,15 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    return [super transform:obj];
+    id currentValue = obj;
+
+    for (PROTransformation *transformation in self.transformations) {
+        currentValue = [transformation transform:currentValue];
+        if (!currentValue)
+            return nil;
+    }
+
+    return currentValue;
 }
 
 - (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
@@ -80,6 +89,31 @@
 
         return newValue;
     };
+}
+
+- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
+
+    NSString *fullModelKeyPath = @"model";
+    if (modelKeyPath)
+        fullModelKeyPath = [fullModelKeyPath stringByAppendingFormat:@".%@", modelKeyPath];
+
+    id currentValue = [modelController valueForKeyPath:fullModelKeyPath];
+
+    NSAssert([[self transform:currentValue] isEqual:result], @"Model at key path \"%@\" on %@ does not match the original value passed into %@", modelKeyPath, modelController, self);
+
+    for (PROTransformation *transformation in self.transformations) {
+        /*
+         * Unfortunately, for a multiple transformation, we have to redo the
+         * actual work in order to properly step the 'transformationResult'
+         * parameter and be able to apply the effects of our children to the
+         * model controller.
+         */
+        currentValue = [transformation transform:currentValue];
+
+        [transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath];
+    }
 }
 
 #pragma mark NSCoding

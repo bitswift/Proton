@@ -10,6 +10,7 @@
 #import <Proton/EXTScope.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROIndexedTransformation
 
@@ -58,8 +59,53 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
-    return [super transform:obj];
+- (id)transform:(id)array; {
+    // Return the unmodified object if indexes is nil
+    if (!self.indexes)
+        return array;
+
+    if (![array isKindOfClass:[NSArray class]])
+        return nil;
+
+    NSUInteger arrayCount = [array count];
+
+    // if the index set goes out of bounds, return nil
+    if (self.indexes.lastIndex >= arrayCount)
+        return nil;
+
+    NSUInteger indexCount = [self.indexes count];
+
+    // we have to copy the indexes into a C array, since there's no way to
+    // retrieve values from it one-by-one
+    NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+    if (!indexes) {
+        return nil;
+    }
+
+    @onExit {
+        free(indexes);
+    };
+
+    [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
+
+    __block NSMutableArray *newArray = [array mutableCopy];
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
+        NSUInteger index = indexes[setIndex];
+        id inputValue = [array objectAtIndex:index];
+
+        id result = [transformation transform:inputValue];
+        if (!result) {
+            newArray = nil;
+
+            *stop = YES;
+            return;
+        }
+
+        [newArray replaceObjectAtIndex:index withObject:result];
+    }];
+
+    return [newArray copy];
 }
 
 - (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
@@ -125,6 +171,47 @@
 
         return newValue;
     };
+}
+
+- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
+
+    if (!modelKeyPath)
+        return;
+
+    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
+    if (!ownedModelControllersKeyPath)
+        return;
+
+    NSArray *associatedControllers = [modelController valueForKey:ownedModelControllersKeyPath];
+    NSAssert([associatedControllers count] == [result count], @"Should be exactly as many model controllers at key path \"%@\" from %@ as models at key path \"%@\": %@", ownedModelControllersKeyPath, modelController, modelKeyPath, result);
+
+    NSUInteger indexCount = [self.indexes count];
+    
+    // we have to copy the indexes into a C array, since there's no way to
+    // retrieve values from it one-by-one
+    NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+    if (!indexes) {
+        return;
+    }
+
+    @onExit {
+        free(indexes);
+    };
+
+    [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
+        NSUInteger index = indexes[setIndex];
+        id object = [result objectAtIndex:index];
+
+        PROModelController *controller = [associatedControllers objectAtIndex:index];
+        [transformation updateModelController:controller transformationResult:object forModelKeyPath:nil];
+
+        // TODO seems like this should be part of unique transformations
+        controller.model = object;
+    }];
 }
 
 - (PROTransformation *)reverseTransformation {

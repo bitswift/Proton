@@ -9,6 +9,7 @@
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedObject.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROKeyedTransformation
 
@@ -64,7 +65,52 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    return [super transform:obj];
+    if (!self.valueTransformations) {
+        return obj;
+    }
+
+    if (![obj respondsToSelector:@selector(dictionaryValue)]) {
+        // doesn't conform to <PROKeyedObject>
+        return nil;
+    }
+
+    // check with the class for this method, since runtime magic could
+    // (potentially) hide an init method after it's already initialized, or
+    // perhaps proxy this message to another object
+    if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
+        // doesn't conform to <PROKeyedObject>
+        return nil;
+    }
+
+    NSMutableDictionary *values = [[obj dictionaryValue] mutableCopy];
+
+    for (NSString *key in self.valueTransformations) {
+        NSAssert2([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
+
+        id value = [values valueForKey:key];
+        if (!value) {
+            // the key to transform does not exist -- consider it to be NSNull
+            value = [NSNull null];
+        }
+
+        PROTransformation *transformation = [self.valueTransformations objectForKey:key];
+
+        value = [transformation transform:value];
+        if (!value) {
+            // invalid transformation
+            return nil;
+        }
+
+        [values setObject:value forKey:key];
+    }
+
+    // construct the object with its changed values and return it
+    if ([obj isKindOfClass:[NSDictionary class]]) {
+        // special-case NSDictionary, since it's a class cluster
+        return [values copy];
+    } else {
+        return [[[obj class] alloc] initWithDictionary:values];
+    }
 }
 
 - (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
@@ -130,6 +176,25 @@
 
         return newValue;
     };
+}
+
+- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
+
+    for (NSString *key in self.valueTransformations) {
+        PROTransformation *transformation = [self.valueTransformations objectForKey:key];
+
+        NSString *newKeyPath;
+
+        if (modelKeyPath)
+            newKeyPath = [modelKeyPath stringByAppendingFormat:@".%@", key];
+        else
+            newKeyPath = key;
+
+        id value = [result valueForKey:key];
+        [transformation updateModelController:modelController transformationResult:value forModelKeyPath:newKeyPath];
+    }
 }
 
 #pragma mark NSCoding

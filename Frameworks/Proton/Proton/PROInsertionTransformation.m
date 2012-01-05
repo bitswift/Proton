@@ -7,7 +7,9 @@
 //
 
 #import <Proton/PROInsertionTransformation.h>
+#import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROModelController.h>
 #import <Proton/PRORemovalTransformation.h>
 
 @implementation PROInsertionTransformation
@@ -58,8 +60,46 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
-    return [super transform:obj];
+- (id)transform:(id)array; {
+    // if we don't have indexes, pass all objects through
+    if (!self.insertionIndexes)
+        return array;
+
+    if (![array isKindOfClass:[NSArray class]])
+        return nil;
+
+    NSUInteger count = [array count];
+
+    // if the index set goes out of bounds (including empty slots at the end
+    // for insertion), return nil
+    if ([self.insertionIndexes lastIndex] >= count + [self.insertionIndexes count])
+        return nil;
+
+    NSMutableArray *newArray = [array mutableCopy];
+    [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];
+
+    return [newArray copy];
+}
+
+- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
+
+    if (!modelKeyPath)
+        return;
+
+    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
+    if (!ownedModelControllersKeyPath)
+        return;
+
+    Class ownedModelControllerClass = [modelController modelControllerClassForModelKeyPath:modelKeyPath];
+
+    NSArray *newControllers = [self.objects mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
+        return [[ownedModelControllerClass alloc] initWithModel:model];
+    }];
+
+    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    [mutableControllers insertObjects:newControllers atIndexes:self.insertionIndexes];
 }
 
 - (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {

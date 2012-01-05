@@ -9,6 +9,7 @@
 #import <Proton/PROOrderTransformation.h>
 #import <Proton/EXTScope.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROOrderTransformation
 
@@ -55,8 +56,52 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
-    return [super transform:obj];
+- (id)transform:(id)array; {
+    // if our index sets are nil (both are or neither are), pass all objects
+    // through
+    if (!self.startIndexes)
+        return array;
+
+    if (![array isKindOfClass:[NSArray class]])
+        return nil;
+
+    // if either index set goes out of bounds, return nil
+    NSUInteger count = [array count];
+    if ([self.startIndexes lastIndex] >= count || [self.endIndexes lastIndex] >= count)
+        return nil;
+
+    NSMutableArray *newArray = [[NSMutableArray alloc] initWithCapacity:count];
+
+    [array enumerateObjectsUsingBlock:^(id obj, NSUInteger originalIndex, BOOL *stop){
+        // if this index isn't moved,
+        if (![self.startIndexes containsIndex:originalIndex]) {
+            // add the object into the new array
+            [newArray addObject:obj];
+        }
+    }];
+
+    NSUInteger indexCount = [self.startIndexes count];
+    NSAssert(indexCount == [self.endIndexes count], @"%@ should have the same number of start and end indexes", self);
+
+    // we have to copy the indexes into C arrays, since there's no way to
+    // retrieve values from them one-by-one
+    NSUInteger startIndexes[indexCount];
+    [self.startIndexes getIndexes:startIndexes maxCount:indexCount inIndexRange:nil];
+
+    NSUInteger endIndexes[indexCount];
+    [self.endIndexes getIndexes:endIndexes maxCount:indexCount inIndexRange:nil];
+
+    // for every index that was moved, insert the objects into the proper
+    // place after the fact
+    for (NSUInteger setIndex = 0; setIndex < indexCount; ++setIndex) {
+        NSUInteger originalIndex = startIndexes[setIndex];
+        NSUInteger newIndex = endIndexes[setIndex];
+
+        id obj = [array objectAtIndex:originalIndex];
+        [newArray insertObject:obj atIndex:newIndex];
+    }
+
+    return [newArray copy];
 }
 
 - (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
@@ -119,6 +164,24 @@
 
         return newValue;
     };
+}
+
+- (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
+
+    if (!modelKeyPath)
+        return;
+
+    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
+    if (!ownedModelControllersKeyPath)
+        return;
+
+    NSMutableArray *associatedControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+
+    NSArray *movedControllers = [associatedControllers objectsAtIndexes:self.startIndexes];
+    [associatedControllers removeObjectsAtIndexes:self.startIndexes];
+    [associatedControllers insertObjects:movedControllers atIndexes:self.endIndexes];
 }
 
 #pragma mark NSCoding
