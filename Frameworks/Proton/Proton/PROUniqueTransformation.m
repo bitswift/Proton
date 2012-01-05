@@ -105,9 +105,12 @@
         return [[ownedModelControllerClass alloc] initWithModel:model];
     }];
 
+    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    NSUInteger count = [mutableControllers count];
+
     // replace the controllers outright, since we replaced the associated models
     // outright
-    [modelController setValue:newControllers forKeyPath:ownedModelControllersKeyPath];
+    [mutableControllers replaceObjectsInRange:NSMakeRange(0, count) withObjectsFromArray:newControllers];
 }
 
 #pragma mark NSCoding
