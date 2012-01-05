@@ -34,11 +34,6 @@
     NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
-    return nil;
-}
-
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {

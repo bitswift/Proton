@@ -12,28 +12,6 @@
 @class PROTransformation;
 
 /**
- * A block that can perform a transformation and return the result.
- *
- * @param obj The input value, to be transformed into something else.
- */
-typedef id (^PROTransformationBlock)(id obj);
-
-// TODO: remove this
-/**
- * A block that can rewrite the logic of a <PROTransformation> on the fly.
- *
- * See <[PROTransformation transformationBlockUsingRewriterBlock:]> for more
- * information.
- *
- * @param transformation The transformation currently being rewritten.
- * @param transformationBlock The original logic of the transformation. If given
- * `obj` as an input, this will return the value that the transformation would
- * have returned without rewriting.
- * @param obj The input value, to be transformed into something else.
- */
-typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj);
-
-/**
  * An abstract class describing the transformation of an object.
  *
  * The transformations implemented with this class should be pure (i.e., they
@@ -83,34 +61,6 @@ typedef id (^PROTransformationRewriterBlock)(PROTransformation *transformation, 
  * should not call the superclass implementation.
  */
 - (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath;
-
-/**
- * Returns a block that combines the logic of the receiver with that of the
- * given block.
- *
- * This can be used to "rewrite" the logic of a transformation by adding side
- * effects, or by intercepting input and/or output values.
- *
- * For the receiver, and any sub-transformations that the receiver has, `block`
- * will be invoked with the following arguments:
- *
- *  - The transformation currently being rewritten (starting with the receiver).
- *  - A block containing the original logic of the receiver. This block is meant
- *  to be invoked to perform the actual work of the transformation, but does not
- *  necessarily have to be called.
- *  - The input value for the current transformation.
- *
- * `block` should return the desired output value for the transformation at each
- * level. If it returns `nil`, the returned transformation block immediately
- * returns `nil` at that point.
- *
- * @param block The block with which to rewrite the logic of the receiver. See
- * the documentation for `PROTransformationRewriterBlock`.
- *
- * @warning **Important:** This method must be implemented by subclasses. You
- * should not call the superclass implementation.
- */
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block;
 
 /**
  * @name Compound Transformations

@@ -180,25 +180,4 @@
     STAssertEqualObjects(transformation, transformationCopy, @"");
 }
 
-- (void)testRewritingTransformations {
-    PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:self.indexes objects:self.objects];
-
-    // just pass through values
-    PROTransformationRewriterBlock rewriterBlock = ^(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
-        STAssertEqualObjects([insertionTransformation transform:obj],  transformationBlock(obj), @"");
-        STAssertEqualObjects(transformation, insertionTransformation, @"");
-
-        return obj;
-    };
-
-    PROTransformationBlock rewrittenBlock = [insertionTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
-    STAssertNotNil(rewrittenBlock, @"");
-
-    // everything should be passed through
-    STAssertEqualObjects(rewrittenBlock(self.startValue), self.startValue, @"");
-    STAssertEqualObjects(rewrittenBlock(self.endValue), self.endValue, @"");
-    STAssertEqualObjects(rewrittenBlock([NSArray array]), [NSArray array], @"");
-    STAssertEqualObjects(rewrittenBlock([NSNull null]), [NSNull null], @"");
-}
-
 @end

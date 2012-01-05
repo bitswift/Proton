@@ -157,29 +157,4 @@
     STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
 }
 
-- (void)testRewritingTransformations {
-    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
-
-    PROTransformationRewriterBlock rewriterBlock = ^ id (PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
-        id result = transformationBlock(obj);
-
-        if (transformation == keyedTransformation) {
-            NSMutableDictionary *modifiedResult = [result mutableCopy];
-            [modifiedResult setObject:@"baz" forKey:@"foo"];
-
-            result = modifiedResult;
-        }
-
-        return result;
-    };
-
-    PROTransformationBlock rewrittenBlock = [keyedTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
-    STAssertNotNil(rewrittenBlock, @"");
-
-    NSMutableDictionary *expectedEndValue = [self.endValue mutableCopy];
-    [expectedEndValue setObject:@"baz" forKey:@"foo"];
-
-    STAssertEqualObjects(rewrittenBlock(self.startValue), expectedEndValue, @"");
-}
-
 @end

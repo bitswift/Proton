@@ -63,34 +63,6 @@
     return currentValue;
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^ id (id obj){
-        id currentValue = obj;
-
-        for (PROTransformation *transformation in self.transformations) {
-            PROTransformationBlock transformationBlock = [transformation transformationBlockUsingRewriterBlock:block];
-
-            currentValue = transformationBlock(currentValue);
-            if (!currentValue)
-                return nil;
-        }
-
-        return currentValue;
-    };
-
-    return ^(id oldValue){
-        id newValue;
-
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
-        }
-
-        return newValue;
-    };
-}
-
 - (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);

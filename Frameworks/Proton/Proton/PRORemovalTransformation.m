@@ -87,45 +87,6 @@
     return [newArray copy];
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^(id array){
-        // if we don't have indexes, pass all objects through
-        if (!self.removalIndexes)
-            return array;
-
-        if (![array isKindOfClass:[NSArray class]])
-            return nil;
-
-        NSUInteger count = [array count];
-
-        // if the index set goes out of bounds, return nil
-        if ([self.removalIndexes lastIndex] >= count)
-            return nil;
-
-        // if one or more objects doesn't match, return nil
-        NSArray *objectsFromArray = [array objectsAtIndexes:self.removalIndexes];
-        if (![objectsFromArray isEqualToArray:self.expectedObjects])
-            return nil;
-
-        NSMutableArray *newArray = [array mutableCopy];
-        [newArray removeObjectsAtIndexes:self.removalIndexes];
-
-        return [newArray copy];
-    };
-
-    return ^(id oldValue){
-        id newValue;
-
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
-        }
-
-        return newValue;
-    };
-}
-
 - (void)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);

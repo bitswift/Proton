@@ -196,25 +196,4 @@
     STAssertEqualObjects(transformation, transformationCopy, @"");
 }
 
-- (void)testRewritingTransformations {
-    PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
-
-    PROTransformationRewriterBlock rewriterBlock = ^(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
-        if (transformation == indexedTransformation) {
-            return transformationBlock(obj);
-        }
-
-        STAssertTrue([self.transformations containsObject:transformation], @"");
-
-        // use the reverse of the transformation given
-        return [transformation.reverseTransformation transform:obj];
-    };
-
-    PROTransformationBlock rewrittenBlock = [indexedTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
-    STAssertNotNil(rewrittenBlock, @"");
-
-    STAssertEqualObjects(rewrittenBlock(self.endValue), self.startValue, @"");
-    STAssertNil(rewrittenBlock(self.startValue), @"");
-}
-
 @end

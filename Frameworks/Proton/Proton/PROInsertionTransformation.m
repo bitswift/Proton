@@ -102,41 +102,6 @@
     [mutableControllers insertObjects:newControllers atIndexes:self.insertionIndexes];
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^(id array){
-        // if we don't have indexes, pass all objects through
-        if (!self.insertionIndexes)
-            return array;
-
-        if (![array isKindOfClass:[NSArray class]])
-            return nil;
-
-        NSUInteger count = [array count];
-
-        // if the index set goes out of bounds (including empty slots at the end
-        // for insertion), return nil
-        if ([self.insertionIndexes lastIndex] >= count + [self.insertionIndexes count])
-            return nil;
-
-        NSMutableArray *newArray = [array mutableCopy];
-        [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];
-
-        return [newArray copy];
-    };
-
-    return ^(id oldValue){
-        id newValue;
-
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
-        }
-
-        return newValue;
-    };
-}
-
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
