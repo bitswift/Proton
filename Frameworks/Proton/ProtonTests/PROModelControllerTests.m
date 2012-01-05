@@ -146,6 +146,26 @@
     STAssertEqualObjects(controller.subModelControllers, [NSArray array], @"");
 }
 
+- (void)testPerformingMultipleTransformation {
+    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+
+    PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
+    PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
+
+    NSArray *transformations = [NSArray arrayWithObjects:insertionTransformation, removalTransformation, nil];
+    PROMultipleTransformation *subModelsTransformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
+
+    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertEqualObjects(controller.model.subModels, [NSArray array], @"");
+
+    // make sure that no SubModelController exists
+    STAssertEqualObjects(controller.subModelControllers, [NSArray array], @"");
+}
+
 - (void)testPerformingOrderTransformation {
     TestSubModel *firstSubModel = [[TestSubModel alloc] init];
     TestSubModel *secondSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
