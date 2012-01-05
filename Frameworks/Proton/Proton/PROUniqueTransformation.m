@@ -75,6 +75,18 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
+    /*
+     * A unique transformation can mean one of two things:
+     *
+     *  1. We're replacing the entire model of the model controller. In this
+     *  case, we simply replace its 'model' property, and depend on the model
+     *  controller to reset its own model controllers as necessary.
+     *
+     *  2. We're replacing a property or sub-model of the top-level model
+     *  object. In this case, we need to update the reference held by the
+     *  associated model controller.
+     */
+
     if (!modelKeyPath) {
         // update the top-level model
         modelController.model = result;
