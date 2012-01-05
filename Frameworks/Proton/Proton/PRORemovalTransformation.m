@@ -91,6 +91,12 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
+    /*
+     * A removal transformation means that we're going to be removing objects
+     * from an array of the model (e.g., model.submodels), so we need to remove
+     * the associated model controllers from the same indexes.
+     */
+
     if (!modelKeyPath)
         return;
 
