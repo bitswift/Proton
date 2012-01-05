@@ -77,6 +77,22 @@
     STAssertTrue(notificationSent, @"");
 }
 
+- (void)testPerformingUniqueTransformation {
+    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+    TestSuperModel *newModel = [controller.model transformValueForKey:PROKeyForObject(controller.model, subModels) toValue:[NSArray arrayWithObject:subModel]];
+
+    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:controller.model outputValue:newModel];
+
+    STAssertTrue([controller performTransformation:transformation], @"");
+    STAssertEqualObjects(controller.model, newModel, @"");
+
+    // make sure that a SubModelController exists for the new SubModel
+    STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
+    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
+}
+
 @end
 
 @implementation TestSubModel
@@ -114,6 +130,9 @@
         return nil;
 
     m_subModelControllers = [[NSMutableArray alloc] init];
+
+    // set up a default model for the purposes of this test
+    self.model = [[TestSuperModel alloc] init];
     return self;
 }
 
