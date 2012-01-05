@@ -139,6 +139,11 @@
         id value = [result valueForKey:key];
         [transformation updateModelController:modelController transformationResult:value forModelKeyPath:newKeyPath];
     }
+
+    if (!modelKeyPath) {
+        // update the top-level model
+        modelController.model = result;
+    }
 }
 
 #pragma mark NSCoding
