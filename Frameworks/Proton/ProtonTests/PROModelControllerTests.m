@@ -59,26 +59,27 @@
 
     PROModel *newModel = [[PROModel alloc] init];
 
-    // keep the KVO observer in its own scope, so that it's deallocated
-    // before the controller
-    [controller
-        addObserverOwnedByObject:self
-        forKeyPath:PROKeyForObject(controller, model)
-        options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
-        usingBlock:^(NSDictionary *changes){
-            STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
-            STAssertEqualObjects([changes objectForKey:NSKeyValueChangeOldKey], [NSNull null], @"");
+    {
+        // keep the KVO observer in its own scope, so that it's deallocated
+        // before the controller
+        id observer = [[PROKeyValueObserver alloc]
+            initWithTarget:controller
+            keyPath:PROKeyForObject(controller, model)
+            options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
+            block:^(NSDictionary *changes){
+                STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
+                STAssertEqualObjects([changes objectForKey:NSKeyValueChangeOldKey], [NSNull null], @"");
 
-            notificationSent = YES;
-        }
-    ];
+                notificationSent = YES;
+            }
+        ];
 
-    @onExit {
-        [self removeAllOwnedObservers];
-    };
+        // shut up about not using 'observer'
+        [observer self];
 
-    controller.model = newModel;
-    STAssertTrue(notificationSent, @"");
+        controller.model = newModel;
+        STAssertTrue(notificationSent, @"");
+    }
 }
 
 - (void)testPerformingUniqueTransformation {
