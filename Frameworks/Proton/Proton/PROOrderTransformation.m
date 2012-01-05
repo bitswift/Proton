@@ -108,6 +108,12 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
+    /*
+     * An order transformation means that we're going to be reordering objects
+     * in an array of the model (e.g., model.submodels), so we need to reorder
+     * the model controllers identically.
+     */
+
     if (!modelKeyPath)
         return;
 
