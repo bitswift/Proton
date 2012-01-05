@@ -201,25 +201,4 @@
     STAssertEqualObjects(transformation, transformationCopy, @"");
 }
 
-- (void)testRewritingTransformations {
-    PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:self.indexes expectedObjects:self.objects];
-
-    // just pass through values
-    PROTransformationRewriterBlock rewriterBlock = ^(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
-        STAssertEqualObjects([removalTransformation transform:obj],  transformationBlock(obj), @"");
-        STAssertEqualObjects(transformation, removalTransformation, @"");
-
-        return obj;
-    };
-
-    PROTransformationBlock rewrittenBlock = [removalTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
-    STAssertNotNil(rewrittenBlock, @"");
-
-    // everything should be passed through
-    STAssertEqualObjects(rewrittenBlock(self.startValue), self.startValue, @"");
-    STAssertEqualObjects(rewrittenBlock(self.endValue), self.endValue, @"");
-    STAssertEqualObjects(rewrittenBlock([NSArray array]), [NSArray array], @"");
-    STAssertEqualObjects(rewrittenBlock([NSNull null]), [NSNull null], @"");
-}
-
 @end

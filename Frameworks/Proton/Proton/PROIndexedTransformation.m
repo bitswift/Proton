@@ -10,6 +10,7 @@
 #import <Proton/EXTScope.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROIndexedTransformation
 
@@ -58,73 +59,108 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
-    return [super transform:obj];
+- (id)transform:(id)array; {
+    // Return the unmodified object if indexes is nil
+    if (!self.indexes)
+        return array;
+
+    if (![array isKindOfClass:[NSArray class]])
+        return nil;
+
+    NSUInteger arrayCount = [array count];
+
+    // if the index set goes out of bounds, return nil
+    if (self.indexes.lastIndex >= arrayCount)
+        return nil;
+
+    NSUInteger indexCount = [self.indexes count];
+
+    // we have to copy the indexes into a C array, since there's no way to
+    // retrieve values from it one-by-one
+    NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+    if (!indexes) {
+        return nil;
+    }
+
+    @onExit {
+        free(indexes);
+    };
+
+    [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
+
+    __block NSMutableArray *newArray = [array mutableCopy];
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
+        NSUInteger index = indexes[setIndex];
+        id inputValue = [array objectAtIndex:index];
+
+        id result = [transformation transform:inputValue];
+        if (!result) {
+            newArray = nil;
+
+            *stop = YES;
+            return;
+        }
+
+        [newArray replaceObjectAtIndex:index withObject:result];
+    }];
+
+    return [newArray copy];
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^(id array){
-        // Return the unmodified object if indexes is nil
-        if (!self.indexes)
-            return array;
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
 
-        if (![array isKindOfClass:[NSArray class]])
-            return nil;
+    /*
+     * An indexed transformation usually means that we're starting to get to
+     * a nested model (e.g., model.submodels[index]), so we need to descend into
+     * the specific model controller associated with that nested model (e.g.,
+     * modelControllers[index]).
+     */
 
-        NSUInteger arrayCount = [array count];
+    if (!modelKeyPath)
+        return NO;
 
-        // if the index set goes out of bounds, return nil
-        if (self.indexes.lastIndex >= arrayCount)
-            return nil;
+    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
+    if (!ownedModelControllersKeyPath)
+        return NO;
 
-        NSUInteger indexCount = [self.indexes count];
+    NSArray *associatedControllers = [modelController valueForKey:ownedModelControllersKeyPath];
+    NSAssert([associatedControllers count] == [result count], @"Should be exactly as many model controllers at key path \"%@\" from %@ as models at key path \"%@\": %@", ownedModelControllersKeyPath, modelController, modelKeyPath, result);
 
-        // we have to copy the indexes into a C array, since there's no way to
-        // retrieve values from it one-by-one
-        NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
-        if (!indexes) {
-            return nil;
-        }
+    NSUInteger indexCount = [self.indexes count];
+    
+    // we have to copy the indexes into a C array, since there's no way to
+    // retrieve values from it one-by-one
+    NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+    if (!indexes) {
+        return NO;
+    }
 
-        @onExit {
-            free(indexes);
-        };
-
-        [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
-
-        __block NSMutableArray *newArray = [array mutableCopy];
-
-        [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
-            NSUInteger index = indexes[setIndex];
-            id inputValue = [array objectAtIndex:index];
-
-            PROTransformationBlock transformationBlock = [transformation transformationBlockUsingRewriterBlock:block];
-            id result = transformationBlock(inputValue);
-
-            if (!result) {
-                newArray = nil;
-
-                *stop = YES;
-                return;
-            }
-
-            [newArray replaceObjectAtIndex:index withObject:result];
-        }];
-
-        return [newArray copy];
+    @onExit {
+        free(indexes);
     };
 
-    return ^(id oldValue){
-        id newValue;
+    [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
 
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
+        /*
+         * For each sub-transformation, update the nested model controller with
+         * that transformation's result.
+         */
+
+        NSUInteger index = indexes[setIndex];
+        id object = [result objectAtIndex:index];
+
+        PROModelController *controller = [associatedControllers objectAtIndex:index];
+        if (![transformation updateModelController:controller transformationResult:object forModelKeyPath:nil]) {
+            // no model below here, so update the top-level object
+            controller.model = object;
         }
+    }];
 
-        return newValue;
-    };
+    return YES;
 }
 
 - (PROTransformation *)reverseTransformation {

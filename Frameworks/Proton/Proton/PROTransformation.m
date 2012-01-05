@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PROTransformation.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROTransformation
 
@@ -25,13 +26,13 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj {
-    PROTransformationBlock block = [self transformationBlockUsingRewriterBlock:nil];
-    return block(obj);
-}
-
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
     NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
     return nil;
+}
+
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
+    return NO;
 }
 
 #pragma mark NSCoding

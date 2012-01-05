@@ -8,7 +8,9 @@
 
 #import <Proton/PROUniqueTransformation.h>
 #import <Proton/EXTNil.h>
+#import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROUniqueTransformation
 
@@ -60,31 +62,57 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    return [super transform:obj];
+    if (!self.inputValue)
+        return obj;
+
+    if (![self.inputValue isEqual:obj])
+        return nil;
+
+    return self.outputValue;
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^(id obj){
-        if (!self.inputValue)
-            return obj;
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
 
-        if ([self.inputValue isEqual:obj])
-            return self.outputValue;
-        else
-            return nil;
-    };
+    /*
+     * A unique transformation can mean one of two things:
+     *
+     *  1. We're replacing the entire model of the model controller. In this
+     *  case, we simply replace its 'model' property, and depend on the model
+     *  controller to reset its own model controllers as necessary.
+     *
+     *  2. We're replacing a property or sub-model of the top-level model
+     *  object. In this case, we need to update the reference held by the
+     *  associated model controller.
+     */
 
-    return ^(id oldValue){
-        id newValue;
+    if (!modelKeyPath) {
+        // update the top-level model
+        modelController.model = result;
+        return YES;
+    }
 
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
-        }
+    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
+    if (!ownedModelControllersKeyPath)
+        return NO;
 
-        return newValue;
-    };
+    NSAssert([self.outputValue isKindOfClass:[NSArray class]], @"Model controller %@ key path \"%@\" doesn't make any sense without an array at model key path \"%@\"", modelController, ownedModelControllersKeyPath, modelKeyPath);
+
+    Class ownedModelControllerClass = [modelController modelControllerClassAtKeyPath:ownedModelControllersKeyPath];
+
+    NSArray *newControllers = [self.outputValue mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
+        return [[ownedModelControllerClass alloc] initWithModel:model];
+    }];
+
+    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    NSUInteger count = [mutableControllers count];
+
+    // replace the controllers outright, since we replaced the associated models
+    // outright
+    [mutableControllers replaceObjectsInRange:NSMakeRange(0, count) withObjectsFromArray:newControllers];
+
+    return YES;
 }
 
 #pragma mark NSCoding

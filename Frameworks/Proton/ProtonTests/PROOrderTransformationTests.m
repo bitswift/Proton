@@ -187,24 +187,4 @@
     STAssertEqualObjects(transformation, transformationCopy, @"");
 }
 
-- (void)testRewritingTransformation {
-    PROOrderTransformation *singleIndexTransformation = [[PROOrderTransformation alloc] initWithStartIndexes:self.singleStartIndexSet endIndexes:self.singleEndIndexSet];
-    PROOrderTransformation *multipleIndexTransformation = [[PROOrderTransformation alloc] initWithStartIndexes:self.multipleStartIndexSet endIndexes:self.multipleEndIndexSet];
-
-    // rewrite the single-index version to act like the multiple-index version
-    PROTransformationRewriterBlock rewriterBlock = ^(PROTransformation *transformation, PROTransformationBlock transformationBlock, id obj) {
-        STAssertEqualObjects([singleIndexTransformation transform:obj],  transformationBlock(obj), @"");
-        STAssertEqualObjects(transformation, singleIndexTransformation, @"");
-
-        return [multipleIndexTransformation transform:obj];
-    };
-
-    PROTransformationBlock rewrittenBlock = [singleIndexTransformation transformationBlockUsingRewriterBlock:rewriterBlock];
-    STAssertNotNil(rewrittenBlock, @"");
-
-    // now we should be able to use the test data from the multiple-index version
-    // and have it succeed
-    STAssertEqualObjects(rewrittenBlock(self.multipleMovementStartValue), self.multipleMovementEndValue, @"");
-}
-
 @end

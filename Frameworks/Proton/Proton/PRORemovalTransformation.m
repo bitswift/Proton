@@ -9,6 +9,7 @@
 #import <Proton/PRORemovalTransformation.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROInsertionTransformation.h>
+#import <Proton/PROModelController.h>
 
 @implementation PRORemovalTransformation
 
@@ -62,47 +63,51 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
-    return [super transform:obj];
+- (id)transform:(id)array; {
+    if (!self.removalIndexes)
+        return array;
+
+    if (![array isKindOfClass:[NSArray class]])
+        return nil;
+
+    NSUInteger count = [array count];
+
+    // if the index set goes out of bounds, return nil
+    if ([self.removalIndexes lastIndex] >= count)
+        return nil;
+
+    // if one or more objects doesn't match, return nil
+    NSArray *objectsFromArray = [array objectsAtIndexes:self.removalIndexes];
+    if (![objectsFromArray isEqualToArray:self.expectedObjects])
+        return nil;
+
+    NSMutableArray *newArray = [array mutableCopy];
+    [newArray removeObjectsAtIndexes:self.removalIndexes];
+
+    return [newArray copy];
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^(id array){
-        // if we don't have indexes, pass all objects through
-        if (!self.removalIndexes)
-            return array;
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
 
-        if (![array isKindOfClass:[NSArray class]])
-            return nil;
+    /*
+     * A removal transformation means that we're going to be removing objects
+     * from an array of the model (e.g., model.submodels), so we need to remove
+     * the associated model controllers from the same indexes.
+     */
 
-        NSUInteger count = [array count];
+    if (!modelKeyPath)
+        return NO;
 
-        // if the index set goes out of bounds, return nil
-        if ([self.removalIndexes lastIndex] >= count)
-            return nil;
+    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
+    if (!ownedModelControllersKeyPath)
+        return NO;
 
-        // if one or more objects doesn't match, return nil
-        NSArray *objectsFromArray = [array objectsAtIndexes:self.removalIndexes];
-        if (![objectsFromArray isEqualToArray:self.expectedObjects])
-            return nil;
+    NSMutableArray *associatedControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    [associatedControllers removeObjectsAtIndexes:self.removalIndexes];
 
-        NSMutableArray *newArray = [array mutableCopy];
-        [newArray removeObjectsAtIndexes:self.removalIndexes];
-
-        return [newArray copy];
-    };
-
-    return ^(id oldValue){
-        id newValue;
-
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
-        }
-
-        return newValue;
-    };
+    return YES;
 }
 
 #pragma mark NSCoding

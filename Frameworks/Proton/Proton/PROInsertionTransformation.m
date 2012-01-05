@@ -7,7 +7,9 @@
 //
 
 #import <Proton/PROInsertionTransformation.h>
+#import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROModelController.h>
 #import <Proton/PRORemovalTransformation.h>
 
 @implementation PROInsertionTransformation
@@ -58,43 +60,54 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
-    return [super transform:obj];
+- (id)transform:(id)array; {
+    // if we don't have indexes, pass all objects through
+    if (!self.insertionIndexes)
+        return array;
+
+    if (![array isKindOfClass:[NSArray class]])
+        return nil;
+
+    NSUInteger count = [array count];
+
+    // if the index set goes out of bounds (including empty slots at the end
+    // for insertion), return nil
+    if ([self.insertionIndexes lastIndex] >= count + [self.insertionIndexes count])
+        return nil;
+
+    NSMutableArray *newArray = [array mutableCopy];
+    [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];
+
+    return [newArray copy];
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^(id array){
-        // if we don't have indexes, pass all objects through
-        if (!self.insertionIndexes)
-            return array;
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
 
-        if (![array isKindOfClass:[NSArray class]])
-            return nil;
+    /*
+     * An insertion transformation means that we're going to be inserting
+     * objects into an array of the model (e.g., model.submodels), so we need to
+     * create and insert a new model controller for each such insertion.
+     */
 
-        NSUInteger count = [array count];
+    if (!modelKeyPath)
+        return NO;
 
-        // if the index set goes out of bounds (including empty slots at the end
-        // for insertion), return nil
-        if ([self.insertionIndexes lastIndex] >= count + [self.insertionIndexes count])
-            return nil;
+    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
+    if (!ownedModelControllersKeyPath)
+        return NO;
 
-        NSMutableArray *newArray = [array mutableCopy];
-        [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];
+    Class ownedModelControllerClass = [modelController modelControllerClassAtKeyPath:ownedModelControllersKeyPath];
 
-        return [newArray copy];
-    };
+    NSArray *newControllers = [self.objects mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
+        return [[ownedModelControllerClass alloc] initWithModel:model];
+    }];
 
-    return ^(id oldValue){
-        id newValue;
+    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    [mutableControllers insertObjects:newControllers atIndexes:self.insertionIndexes];
 
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
-        }
-
-        return newValue;
-    };
+    return YES;
 }
 
 #pragma mark NSCoding

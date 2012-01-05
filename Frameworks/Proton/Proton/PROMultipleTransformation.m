@@ -8,6 +8,8 @@
 
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROKeyValueCodingMacros.h>
+#import <Proton/PROModelController.h>
 
 @implementation PROMultipleTransformation
 
@@ -51,35 +53,51 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {
-    return [super transform:obj];
+    id currentValue = obj;
+
+    for (PROTransformation *transformation in self.transformations) {
+        currentValue = [transformation transform:currentValue];
+        if (!currentValue)
+            return nil;
+    }
+
+    return currentValue;
 }
 
-- (PROTransformationBlock)transformationBlockUsingRewriterBlock:(PROTransformationRewriterBlock)block; {
-    PROTransformationBlock baseTransformation = ^ id (id obj){
-        id currentValue = obj;
+- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
+    NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
 
-        for (PROTransformation *transformation in self.transformations) {
-            PROTransformationBlock transformationBlock = [transformation transformationBlockUsingRewriterBlock:block];
+    /*
+     * Unfortunately, for a multiple transformation, we have to redo the
+     * actual work of the transformation in order to properly update the model
+     * controller step-by-step. It would be unsafe to update it just with the
+     * final result, because the child transformations may be granular and
+     * independent enough that they need to be separately applied one-by-one.
+     */
 
-            currentValue = transformationBlock(currentValue);
-            if (!currentValue)
-                return nil;
+    // obtain the key path to the model, relative to the model controller, so
+    // that we can read the existing value
+    NSString *fullModelKeyPath = PROKeyForObject(modelController, model);
+    if (modelKeyPath)
+        fullModelKeyPath = [fullModelKeyPath stringByAppendingFormat:@".%@", modelKeyPath];
+
+    id currentValue = [modelController valueForKeyPath:fullModelKeyPath];
+
+    NSAssert([[self transform:currentValue] isEqual:result], @"Model at key path \"%@\" on %@ does not match the original value passed into %@", modelKeyPath, modelController, self);
+
+    for (PROTransformation *transformation in self.transformations) {
+        currentValue = [transformation transform:currentValue];
+
+        if (![transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath]) {
+            // some model propagation failed, so just set the top-level object
+            // after all
+            modelController.model = result;
+            break;
         }
+    }
 
-        return currentValue;
-    };
-
-    return ^(id oldValue){
-        id newValue;
-
-        if (block) {
-            newValue = block(self, baseTransformation, oldValue);
-        } else {
-            newValue = baseTransformation(oldValue);
-        }
-
-        return newValue;
-    };
+    return YES;
 }
 
 #pragma mark NSCoding
