@@ -117,15 +117,24 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
+    /*
+     * A keyed transformation is simply a descent into the model, so we just
+     * need to keep updating the model key path.
+     */
+
     for (NSString *key in self.valueTransformations) {
         PROTransformation *transformation = [self.valueTransformations objectForKey:key];
 
         NSString *newKeyPath;
 
-        if (modelKeyPath)
+        if (modelKeyPath) {
             newKeyPath = [modelKeyPath stringByAppendingFormat:@".%@", key];
-        else
+        } else {
+            // a nil modelKeyPath means that we're at the top level (i.e., the
+            // model itself), so we need to start keeping track of the
+            // properties we're going into
             newKeyPath = key;
+        }
 
         id value = [result valueForKey:key];
         [transformation updateModelController:modelController transformationResult:value forModelKeyPath:newKeyPath];
