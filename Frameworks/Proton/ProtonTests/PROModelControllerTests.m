@@ -11,6 +11,8 @@
 
 @interface TestSubModel : PROModel
 @property (copy) NSString *name;
+
+- (id)initWithName:(NSString *)name;
 @end
 
 @interface TestSubModelController : PROModelController
@@ -144,6 +146,29 @@
     STAssertEqualObjects(controller.subModelControllers, [NSArray array], @"");
 }
 
+- (void)testPerformingOrderTransformation {
+    TestSubModel *firstSubModel = [[TestSubModel alloc] init];
+    TestSubModel *secondSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
+    NSArray *subModels = [NSArray arrayWithObjects:firstSubModel, secondSubModel, nil];
+
+    NSDictionary *modelDictionary = [NSDictionary dictionaryWithObject:subModels forKey:@"subModels"];
+    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:modelDictionary];
+
+    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
+
+    PROOrderTransformation *subModelsTransformation = [[PROOrderTransformation alloc] initWithStartIndex:0 endIndex:1];
+    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+    STAssertTrue([controller performTransformation:modelTransformation], @"");
+
+    NSArray *expectedSubModels = [NSArray arrayWithObjects:secondSubModel, firstSubModel, nil];
+    STAssertEqualObjects(controller.model.subModels, expectedSubModels, @"");
+
+    // make sure that the SubModelControllers were also reordered
+    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], [expectedSubModels objectAtIndex:0], @"");
+    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:1] model], [expectedSubModels objectAtIndex:1], @"");
+}
+
 - (void)testPerformingIndexedTransformation {
     TestSubModel *subModel = [[TestSubModel alloc] init];
     TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
@@ -172,6 +197,12 @@
 
 @implementation TestSubModel
 @synthesize name = m_name;
+
+- (id)initWithName:(NSString *)name {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObject:name forKey:PROKeyForObject(self, name)];
+    return [self initWithDictionary:dictionary];
+}
+
 @end
 
 @implementation TestSubModelController
