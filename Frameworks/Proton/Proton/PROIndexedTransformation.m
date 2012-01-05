@@ -112,6 +112,13 @@
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);
 
+    /*
+     * An indexed transformation usually means that we're starting to get to
+     * a nested model (e.g., model.submodels[index]), so we need to descend into
+     * the specific model controller associated with that nested model (e.g.,
+     * modelControllers[index]).
+     */
+
     if (!modelKeyPath)
         return;
 
@@ -138,6 +145,11 @@
     [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
 
     [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
+        /*
+         * For each sub-transformation, update the nested model controller with
+         * that transformation's result.
+         */
+
         NSUInteger index = indexes[setIndex];
         id object = [result objectAtIndex:index];
 
