@@ -110,6 +110,22 @@
     STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
 }
 
+- (void)testPerformingInsertionTransformation {
+    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+
+    PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
+    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertEqualObjects(controller.model.subModels, [NSArray arrayWithObject:subModel], @"");
+
+    // make sure that a SubModelController exists for the new SubModel
+    STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
+    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
+}
+
 @end
 
 @implementation TestSubModel
@@ -121,6 +137,20 @@
 
 @implementation TestSuperModel
 @synthesize subModels = m_subModels;
+
+- (id)initWithDictionary:(NSDictionary *)dictionary {
+    self = [super initWithDictionary:dictionary];
+    if (!self)
+        return nil;
+
+    if (!m_subModels) {
+        // create an empty array so that we can easily insert into it with our
+        // tests
+        m_subModels = [[NSArray alloc] init];
+    }
+
+    return self;
+}
 @end
 
 @implementation TestSuperModelController
