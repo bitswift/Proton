@@ -84,7 +84,7 @@
 
     NSAssert([self.outputValue isKindOfClass:[NSArray class]], @"Model controller %@ key path \"%@\" doesn't make any sense without an array at model key path \"%@\"", modelController, ownedModelControllersKeyPath, modelKeyPath);
 
-    Class ownedModelControllerClass = [modelController modelControllerClassForModelKeyPath:modelKeyPath];
+    Class ownedModelControllerClass = [modelController modelControllerClassAtKeyPath:ownedModelControllersKeyPath];
 
     NSArray *newControllers = [self.outputValue mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
         return [[ownedModelControllerClass alloc] initWithModel:model];

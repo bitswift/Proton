@@ -150,6 +150,12 @@
 		D084679114A40DEF00E2856F /* SDQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D084679014A40DEF00E2856F /* SDQueueTests.m */; };
 		D084679214A40DEF00E2856F /* SDQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D084679014A40DEF00E2856F /* SDQueueTests.m */; };
 		D09186741492EC3E001DEBC8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07AF71492E76200A1E816 /* Foundation.framework */; };
+		D0A0E5DC14B5788E00E278CA /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5DA14B5788E00E278CA /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5DA14B5788E00E278CA /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
+		D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
+		D0A0E5F614B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		D0A0E5F714B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		D0B07AD01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
 		D0B07ADD1492E72800A1E816 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0B07AE01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
@@ -302,6 +308,9 @@
 		D084678A14A40DE800E2856F /* SDQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueue.m; path = ../SafeDispatch/Framework/SafeDispatch/SafeDispatch/SDQueue.m; sourceTree = "<group>"; };
 		D084678F14A40DEF00E2856F /* SDQueueTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDQueueTests.h; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.h; sourceTree = "<group>"; };
 		D084679014A40DEF00E2856F /* SDQueueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SDQueueTests.m; path = ../../SafeDispatch/Framework/SafeDispatch/SafeDispatchTests/SDQueueTests.m; sourceTree = "<group>"; };
+		D0A0E5DA14B5788E00E278CA /* PROModelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelController.h; sourceTree = "<group>"; };
+		D0A0E5DB14B5788E00E278CA /* PROModelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelController.m; sourceTree = "<group>"; };
+		D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelControllerPrivate.h; sourceTree = "<group>"; };
 		D0B07ACE1492E72800A1E816 /* libProton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libProton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -499,7 +508,7 @@
 			children = (
 				D080D58114A5DF2C00FABAA2 /* Futures */,
 				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
-				D0C42D5F14984CD100A08989 /* Model */,
+				D0C42D5F14984CD100A08989 /* Model Framework */,
 				D0477F5514970DDC00B0DAB0 /* Transformation */,
 				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
 			);
@@ -574,13 +583,16 @@
 			name = SafeDispatch;
 			sourceTree = "<group>";
 		};
-		D0C42D5F14984CD100A08989 /* Model */ = {
+		D0C42D5F14984CD100A08989 /* Model Framework */ = {
 			isa = PBXGroup;
 			children = (
 				D0C42D6114984CE100A08989 /* PROModel.h */,
 				D0C42D6214984CE100A08989 /* PROModel.m */,
+				D0A0E5DA14B5788E00E278CA /* PROModelController.h */,
+				D0A0E5DB14B5788E00E278CA /* PROModelController.m */,
+				D0A0E5F514B59ADE00E278CA /* PROModelControllerPrivate.h */,
 			);
-			name = Model;
+			name = "Model Framework";
 			sourceTree = "<group>";
 		};
 		D0D7A1A51492EE020057F90D /* libextobjc */ = {
@@ -798,6 +810,8 @@
 				D013816A14AD491C008E7942 /* DDFileLogger.h in Headers */,
 				D013816E14AD491C008E7942 /* DDLog.h in Headers */,
 				D013817214AD491C008E7942 /* DDTTYLogger.h in Headers */,
+				D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */,
+				D0A0E5F714B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -840,6 +854,8 @@
 				D013816914AD491C008E7942 /* DDFileLogger.h in Headers */,
 				D013816D14AD491C008E7942 /* DDLog.h in Headers */,
 				D013817114AD491C008E7942 /* DDTTYLogger.h in Headers */,
+				D0A0E5DC14B5788E00E278CA /* PROModelController.h in Headers */,
+				D0A0E5F614B59ADE00E278CA /* PROModelControllerPrivate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1040,6 +1056,7 @@
 				D013817014AD491C008E7942 /* DDLog.m in Sources */,
 				D013817414AD491C008E7942 /* DDTTYLogger.m in Sources */,
 				D013817714AD4AB8008E7942 /* Proton.m in Sources */,
+				D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1108,6 +1125,7 @@
 				D013816F14AD491C008E7942 /* DDLog.m in Sources */,
 				D013817314AD491C008E7942 /* DDTTYLogger.m in Sources */,
 				D013817614AD4AB8008E7942 /* Proton.m in Sources */,
+				D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

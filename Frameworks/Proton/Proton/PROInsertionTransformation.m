@@ -92,7 +92,7 @@
     if (!ownedModelControllersKeyPath)
         return;
 
-    Class ownedModelControllerClass = [modelController modelControllerClassForModelKeyPath:modelKeyPath];
+    Class ownedModelControllerClass = [modelController modelControllerClassAtKeyPath:ownedModelControllersKeyPath];
 
     NSArray *newControllers = [self.objects mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
         return [[ownedModelControllerClass alloc] initWithModel:model];
