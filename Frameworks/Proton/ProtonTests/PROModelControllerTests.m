@@ -190,7 +190,7 @@
     STAssertEqualObjects([[controller.subModelControllers objectAtIndex:1] model], [expectedSubModels objectAtIndex:1], @"");
 }
 
-- (void)testPerformingIndexedTransformation {
+- (void)testPerformingIndexedKeyedTransformation {
     TestSubModel *subModel = [[TestSubModel alloc] init];
     TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
 
@@ -200,6 +200,32 @@
     STAssertEqualObjects(subController.model, subModel, @"");
 
     PROTransformation *subModelTransformation = [subModel transformationForKey:PROKeyForObject(subModel, name) value:@"foobar"];
+    PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
+
+    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+    STAssertTrue([controller performTransformation:modelTransformation], @"");
+
+    // make sure the SubModelController changed
+    //
+    // in a real app, the SuperModelController should change too, but that
+    // requires the application to implement KVO
+    STAssertEqualObjects([subController.model name], @"foobar", @"");
+    STAssertFalse([subController.model isEqual:subModel], @"");
+}
+
+- (void)testPerformingIndexedUniqueTransformation {
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+    TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
+
+    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
+
+    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+    STAssertEqualObjects(subController.model, subModel, @"");
+
+    TestSubModel *newSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
+    PROTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:subModel outputValue:newSubModel];
+
     PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
 
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
