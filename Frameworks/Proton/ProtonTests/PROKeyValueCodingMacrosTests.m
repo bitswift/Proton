@@ -11,10 +11,12 @@
 
 @interface PROKeyValueCodingMacrosTests ()
 @property (nonatomic, strong) NSString *someProperty;
+@property (nonatomic, assign) NSRange range;
 @end
 
 @implementation PROKeyValueCodingMacrosTests
 @synthesize someProperty = m_someProperty;
+@synthesize range = m_range;
 
 - (void)testKeyForObject {
     NSString *propertyName = PROKeyForObject(self, someProperty);
@@ -24,6 +26,11 @@
 - (void)testKeyForObjectUsingKeyPath {
     NSString *propertyName = PROKeyForObject(self, someProperty.length);
     STAssertEqualObjects(propertyName, @"someProperty.length", @"");
+}
+
+- (void)testKeyForObjectWithStruct {
+    NSString *propertyName = PROKeyForObject(self, range);
+    STAssertEqualObjects(propertyName, @"range", @"");
 }
 
 @end
