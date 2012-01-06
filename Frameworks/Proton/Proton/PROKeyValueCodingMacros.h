@@ -23,4 +23,4 @@
  * beginning with `@`) are not supported.
  */
 #define PROKeyForObject(OBJECT, KEY) \
-    ((void)(NO && OBJECT.KEY), @ # KEY )
+    ((void)(NO && ((void)OBJECT.KEY, NO)), @ # KEY )
