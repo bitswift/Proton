@@ -49,6 +49,24 @@
 - (id)initWithTransformation:(PROTransformation *)transformation forKey:(NSString *)key;
 
 /**
+ * Initializes the receiver to perform the given transformation upon the value
+ * associated with the given key path.
+ *
+ * This method will create as many nested keyed transformations as necessary in
+ * order to correctly access the given key path.
+ *
+ * @param transformation A <PROTransformation> to apply to the value associated
+ * with `keyPath`.
+ * @param keyPath The key path on the input object containing the value to
+ * transform.
+ *
+ * @warning **Important:** Because this will deconstruct the key path and may
+ * create additional transformations to match, <valueTransformations> may not
+ * contain the given transformation object after initialization.
+ */
+- (id)initWithTransformation:(PROTransformation *)transformation forKeyPath:(NSString *)keyPath;
+
+/**
  * @name Transformation
  */
 

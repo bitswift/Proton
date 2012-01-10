@@ -9,6 +9,11 @@
 #import "PROKeyValueCodingMacrosTests.h"
 #import <Proton/Proton.h>
 
+@interface OtherClass : NSObject
+@property (nonatomic, strong) NSString *otherClassProperty;
+@property (nonatomic, assign) NSRange range;
+@end
+
 @interface PROKeyValueCodingMacrosTests ()
 @property (nonatomic, strong) NSString *someProperty;
 @property (nonatomic, assign) NSRange range;
@@ -30,6 +35,21 @@
 
 - (void)testKeyForObjectWithStruct {
     NSString *propertyName = PROKeyForObject(self, range);
+    STAssertEqualObjects(propertyName, @"range", @"");
+}
+
+- (void)testKeyForClass {
+    NSString *propertyName = PROKeyForClass(OtherClass, otherClassProperty);
+    STAssertEqualObjects(propertyName, @"otherClassProperty", @"");
+}
+
+- (void)testKeyForClassUsingKeyPath {
+    NSString *propertyName = PROKeyForClass(OtherClass, otherClassProperty.length);
+    STAssertEqualObjects(propertyName, @"otherClassProperty.length", @"");
+}
+
+- (void)testKeyForClassWithStruct {
+    NSString *propertyName = PROKeyForClass(OtherClass, range);
     STAssertEqualObjects(propertyName, @"range", @"");
 }
 
