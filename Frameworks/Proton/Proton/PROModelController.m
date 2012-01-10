@@ -202,7 +202,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     NSAssert([modelKeyPath length] > 0, @"Should be at least one character in model key path");
 
     Class controllerClass = [[self modelControllerClassesByKey] objectForKey:key];
-    NSAssert(!controllerClass, @"Model controller class should not be nil for key \"%@\"", key);
+    NSAssert(controllerClass, @"Model controller class should not be nil for key \"%@\"", key);
 
     NSMutableString *capitalizedKey = [[NSMutableString alloc] init];
     [capitalizedKey appendString:[[key substringToIndex:1] uppercaseString]];
