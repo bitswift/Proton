@@ -282,51 +282,30 @@
 
 @implementation TestSuperModelController
 @dynamic model;
-
-@synthesize subModelControllers = m_subModelControllers;
-
-- (void)setModel:(TestSuperModel *)model {
-    [self.dispatchQueue runSynchronously:^{
-        [super setModel:model];
-
-        [m_subModelControllers removeAllObjects];
-
-        [model.subModels enumerateObjectsUsingBlock:^(TestSubModel *subModel, NSUInteger index, BOOL *stop){
-            TestSubModelController *controller = [[TestSubModelController alloc] initWithModel:subModel];
-            [m_subModelControllers addObject:controller];
-        }];
-    }];
-}
+@dynamic subModelControllers;
 
 - (id)init {
     self = [super init];
     if (!self)
         return nil;
 
-    m_subModelControllers = [[NSMutableArray alloc] init];
-
     // set up a default model for the purposes of this test
     self.model = [[TestSuperModel alloc] init];
     return self;
 }
 
-- (Class)modelControllerClassAtKeyPath:(NSString *)modelControllersKeyPath; {
-    return [TestSubModelController class];
++ (NSDictionary *)modelControllerClassesByKey; {
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        [TestSubModelController class], PROKeyForClass(TestSuperModelController, subModelControllers),
+        nil
+    ];
 }
 
-- (NSString *)modelControllersKeyPathForModelKeyPath:(NSString *)modelsKeyPath; {
-    if ([modelsKeyPath isEqualToString:PROKeyForObject(self.model, subModels)])
-        return PROKeyForObject(self, subModelControllers);
-
-    return nil;
-}
-
-- (void)insertObject:(TestSubModelController *)controller inSubModelControllersAtIndex:(NSUInteger)index; {
-    [m_subModelControllers insertObject:controller atIndex:index];
-}
-
-- (void)removeObjectFromSubModelControllersAtIndex:(NSUInteger)index; {
-    [m_subModelControllers removeObjectAtIndex:index];
++ (NSDictionary *)modelControllerKeysByModelKeyPath; {
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        PROKeyForClass(TestSuperModelController, subModelControllers), PROKeyForClass(TestSuperModel, subModels),
+        nil
+    ];
 }
 
 @end

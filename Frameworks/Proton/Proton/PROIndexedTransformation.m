@@ -122,12 +122,12 @@
     if (!modelKeyPath)
         return NO;
 
-    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
-    if (!ownedModelControllersKeyPath)
+    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
+    if (!ownedModelControllersKey)
         return NO;
 
-    NSArray *associatedControllers = [modelController valueForKey:ownedModelControllersKeyPath];
-    NSAssert([associatedControllers count] == [result count], @"Should be exactly as many model controllers at key path \"%@\" from %@ as models at key path \"%@\": %@", ownedModelControllersKeyPath, modelController, modelKeyPath, result);
+    NSArray *associatedControllers = [modelController valueForKey:ownedModelControllersKey];
+    NSAssert([associatedControllers count] == [result count], @"Should be exactly as many model controllers at key path \"%@\" from %@ as models at key path \"%@\": %@", ownedModelControllersKey, modelController, modelKeyPath, result);
 
     NSUInteger indexCount = [self.indexes count];
     
