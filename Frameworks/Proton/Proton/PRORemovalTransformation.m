@@ -100,11 +100,11 @@
     if (!modelKeyPath)
         return NO;
 
-    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
-    if (!ownedModelControllersKeyPath)
+    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
+    if (!ownedModelControllersKey)
         return NO;
 
-    NSMutableArray *associatedControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    NSMutableArray *associatedControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
     [associatedControllers removeObjectsAtIndexes:self.removalIndexes];
 
     return YES;
