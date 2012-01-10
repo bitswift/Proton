@@ -345,15 +345,15 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             id controller = [controllers objectAtIndex:index];
 
             // find and tear down the observer first
-            NSUInteger index = [self.modelControllerObservers
+            NSUInteger observerIndex = [self.modelControllerObservers
                 indexOfObjectWithOptions:NSEnumerationConcurrent
                 passingTest:^ BOOL (PROKeyValueObserver *observer, NSUInteger index, BOOL *stop){
                     return observer.target == controller;
                 }
             ];
 
-            if (index != NSNotFound)
-                [self.modelControllerObservers removeObjectAtIndex:index];
+            if (observerIndex != NSNotFound)
+                [self.modelControllerObservers removeObjectAtIndex:observerIndex];
 
             [controllers removeObjectAtIndex:index];
         }];
