@@ -62,6 +62,40 @@
     return [self initWithValueTransformations:dict];
 }
 
+- (id)initWithTransformation:(PROTransformation *)transformation forKeyPath:(NSString *)keyPath; {
+    if (!transformation && !keyPath) {
+        // pass everything through
+        return [self init];
+    }
+
+    // break down the key path into individual keys, which we'll use to
+    // construct multiple keyed transformations
+    NSArray *keyPathComponents = [keyPath componentsSeparatedByString:@"."];
+
+    __block PROTransformation *nestedTransformation = transformation;
+    [keyPathComponents enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(NSString *key, NSUInteger index, BOOL *stop){
+        if (index == 0) {
+            // this is the key with which we'll initialize 'self'
+            *stop = YES;
+            return;
+        }
+
+        PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:nestedTransformation forKey:key];
+        nestedTransformation = keyedTransformation;
+
+        if (!nestedTransformation) {
+            *stop = YES;
+            return;
+        }
+    }];
+
+    if (!nestedTransformation)
+        return nil;
+
+    NSString *firstKey = [keyPathComponents objectAtIndex:0];
+    return [self initWithTransformation:nestedTransformation forKey:firstKey];
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj; {

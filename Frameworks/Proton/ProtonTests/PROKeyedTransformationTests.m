@@ -83,6 +83,22 @@
     STAssertEqualObjects(transformation.transformations, [transformation.valueTransformations allValues], @"");
 }
 
+- (void)testInitializationWithKeyPath {
+    NSDictionary *nestedStartValue = [NSDictionary dictionaryWithObject:@"bar" forKey:@"foo"];
+    NSDictionary *nestedEndValue = [NSDictionary dictionaryWithObject:@"foo" forKey:@"foo"];
+
+    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"bar" outputValue:@"foo"];
+
+    NSDictionary *startValue = [NSDictionary dictionaryWithObject:nestedStartValue forKey:@"fizzbuzz"];
+    NSDictionary *endValue = [NSDictionary dictionaryWithObject:nestedEndValue forKey:@"fizzbuzz"];
+
+    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:uniqueTransformation forKeyPath:@"fizzbuzz.foo"];
+    STAssertNotNil(keyedTransformation, @"");
+
+    PROKeyedTransformation *expectedNestedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:uniqueTransformation forKey:@"foo"];
+    STAssertEqualObjects([keyedTransformation.valueTransformations objectForKey:@"fizzbuzz"], expectedNestedTransformation, @"");
+}
+
 - (void)testMultipleTransformations {
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
 
