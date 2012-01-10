@@ -28,19 +28,7 @@
  */
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
-@interface PROModelController () {
-    /*
-     * Contains <PROKeyValueObserver> objects observing each model controller
-     * managed by the receiver (in no particular order).
-     *
-     * Notifications from these observers will be posted synchronously.
-     *
-     * Mutation of this array must be synchronized using `self.dispatchQueue`.
-     */
-    // TODO: pull this out into a property
-    NSMutableArray *m_modelControllerObservers;
-}
-
+@interface PROModelController ()
 /*
  * Automatically implements the appropriate KVC-compliant model controller
  * methods on the receiver for the given model controller key.
@@ -62,6 +50,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * assumed to be updated elsewhere, and will not be modified.
  */
 - (void)setModel:(PROModel *)model replacingModelControllers:(BOOL)replacing;
+
+/*
+ * Contains <PROKeyValueObserver> objects observing each model controller
+ * managed by the receiver (in no particular order).
+ *
+ * Notifications from these observers will be posted synchronously.
+ *
+ * @warning **Important:** Mutation of this array must be synchronized using the
+ * receiver's <dispatchQueue>.
+ */
+@property (nonatomic, strong) NSMutableArray *modelControllerObservers;
 
 /*
  * Whether <performTransformation:> is currently being executed on the
@@ -101,6 +100,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
 @synthesize dispatchQueue = m_dispatchQueue;
 @synthesize model = m_model;
+@synthesize modelControllerObservers = m_modelControllerObservers;
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 
 - (id)model {
@@ -192,7 +192,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
 - (void)dealloc {
     // make sure to tear down model controller observers first thing
-    m_modelControllerObservers = nil;
+    self.modelControllerObservers = nil;
 }
 
 #pragma mark Model controllers
@@ -318,8 +318,11 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         [self.dispatchQueue runSynchronously:^{
             [modelControllersArray(self) insertObject:controller atIndex:index];
 
+            if (!self.modelControllerObservers)
+                self.modelControllerObservers = [[NSMutableArray alloc] init];
+
             // this array is unordered
-            [self->m_modelControllerObservers addObject:observer];
+            [self.modelControllerObservers addObject:observer];
         }];
     };
 
@@ -342,14 +345,16 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             id controller = [controllers objectAtIndex:index];
 
             // find and tear down the observer first
-            NSUInteger index = [self->m_modelControllerObservers
+            NSUInteger index = [self.modelControllerObservers
                 indexOfObjectWithOptions:NSEnumerationConcurrent
                 passingTest:^ BOOL (PROKeyValueObserver *observer, NSUInteger index, BOOL *stop){
                     return observer.target == controller;
                 }
             ];
 
-            [self->m_modelControllerObservers removeObjectAtIndex:index];
+            if (index != NSNotFound)
+                [self.modelControllerObservers removeObjectAtIndex:index];
+
             [controllers removeObjectAtIndex:index];
         }];
     };
