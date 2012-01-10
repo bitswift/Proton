@@ -37,6 +37,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
      *
      * Mutation of this array must be synchronized using `self.dispatchQueue`.
      */
+    // TODO: pull this out into a property
     NSMutableArray *m_modelControllerObservers;
 }
 
@@ -50,6 +51,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * objects managed by this array of model controllers are.
  */
 + (void)implementModelControllerMethodsForKey:(NSString *)key modelKeyPath:(NSString *)modelKeyPath;
+
+/*
+ * Replaces the <model>, optionally updating other model controllers on the
+ * receiver to match.
+ *
+ * @param model The new model object to set on the receiver.
+ * @param replacing If `YES`, all existing model controllers will be destroyed
+ * and recreated from the models in `model`. If `NO`, model controllers are
+ * assumed to be updated elsewhere, and will not be modified.
+ */
+- (void)setModel:(PROModel *)model replacingModelControllers:(BOOL)replacing;
 
 /*
  * Whether <performTransformation:> is currently being executed on the
@@ -102,6 +114,10 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)setModel:(id)newModel {
+    [self setModel:newModel replacingModelControllers:YES];
+}
+
+- (void)setModel:(PROModel *)newModel replacingModelControllers:(BOOL)replacing; {
     NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
@@ -109,9 +125,38 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         // observers can perform operations that will be atomic with this method
         [self willChangeValueForKey:PROKeyForObject(self, model)];
 
+        @onExit {
+            [self didChangeValueForKey:PROKeyForObject(self, model)];
+        };
+
         m_model = [newModel copy];
-        
-        [self didChangeValueForKey:PROKeyForObject(self, model)];
+
+        if (replacing) {
+            // figure out where the model controllers are, and replace them all
+            NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
+            if (![modelControllerKeys count])
+                return;
+
+            NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
+
+            for (NSString *modelKeyPath in modelControllerKeys) {
+                NSString *modelControllerKey = [modelControllerKeys objectForKey:modelKeyPath];
+                Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
+
+                NSArray *models = [m_model valueForKeyPath:modelKeyPath];
+                if (!models)
+                    continue;
+
+                NSAssert([models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
+
+                NSArray *newModelControllers = [models mapWithOptions:NSEnumerationConcurrent usingBlock:^(PROModel *model){
+                    return [[modelControllerClass alloc] initWithModel:model];
+                }];
+
+                NSMutableArray *modelControllers = [self mutableArrayValueForKey:modelControllerKey];
+                [modelControllers replaceObjectsInRange:NSMakeRange(0, modelControllers.count) withObjectsFromArray:newModelControllers];
+            }
+        }
     }];
 }
 
@@ -260,8 +305,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                         DDLogError(@"Could not create new model object from %@ with transformation %@", weakSelf.model, modelTransformation);
                     }
 
-                    // TODO: prevent automatic model controller replacement
-                    self.model = newModel;
+                    // the model controllers are already up-to-date; we just
+                    // want to drop in the new model object
+                    [self setModel:newModel replacingModelControllers:NO];
                 }];
             }
         ];
@@ -358,13 +404,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         } else {
             // for any other kind of transformation, we don't necessarily want
             // to replace all of the model controllers
-            [self willChangeValueForKey:PROKeyForObject(self, model)];
-
-            // TODO: changing this as an ivar sucks!
-            m_model = model;
+            [self setModel:model replacingModelControllers:NO];
             [transformation updateModelController:self transformationResult:model forModelKeyPath:nil];
-
-            [self didChangeValueForKey:PROKeyForObject(self, model)];
         }
 
         success = YES;
