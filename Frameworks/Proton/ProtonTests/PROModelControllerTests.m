@@ -240,6 +240,42 @@
     STAssertFalse([subController.model isEqual:subModel], @"");
 }
 
+- (void)testPerformingInsertionTransformationFollowedByRemovalTransformation {
+    NSArray *subModels = [NSArray arrayWithObjects:
+        [[TestSubModel alloc] init],
+        [[TestSubModel alloc] initWithName:@"foobar"],
+        nil
+    ];
+
+    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:[NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(model, subModels)]];
+    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
+
+    TestSubModel *newModel = [[TestSubModel alloc] initWithName:@"fizzbuzz"];
+
+    {
+        PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
+        PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+        STAssertTrue([controller performTransformation:modelTransformation], @"");
+        STAssertEquals([controller.subModelControllers count], (NSUInteger)3, @"");
+    }
+
+    {
+        NSIndexSet *indexSet = [[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, 2)];
+        NSArray *removedObjects = [controller.model.subModels objectsAtIndexes:indexSet];
+
+        PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexSet expectedObjects:removedObjects];
+        PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+        STAssertTrue([controller performTransformation:modelTransformation], @"");
+        STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
+
+        // make sure the remaining model object is the one we expect
+        STAssertEqualObjects([controller.model.subModels objectAtIndex:0], newModel, @"");
+        STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], newModel, @"");
+    }
+}
+
 @end
 
 @implementation TestSubModel
