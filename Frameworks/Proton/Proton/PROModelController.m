@@ -98,12 +98,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
 #pragma mark Model controllers
 
-- (Class)modelControllerClassAtKeyPath:(NSString *)modelControllersKeyPath; {
-    NSAssert(NO, @"%s must be implemented if -modelControllersKeyPathForModelKeyPath: returns non-nil", __func__);
++ (NSDictionary *)modelControllerClassesByKey; {
+    NSAssert(NO, @"%s must be implemented if +modelControllerKeysByModelKeyPath returns non-nil", __func__);
     return nil;
 }
 
-- (NSString *)modelControllersKeyPathForModelKeyPath:(NSString *)modelsKeyPath; {
++ (NSDictionary *)modelControllerKeysByModelKeyPath; {
     return nil;
 }
 

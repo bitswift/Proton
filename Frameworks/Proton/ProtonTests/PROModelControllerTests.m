@@ -310,15 +310,18 @@
     return self;
 }
 
-- (Class)modelControllerClassAtKeyPath:(NSString *)modelControllersKeyPath; {
-    return [TestSubModelController class];
++ (NSDictionary *)modelControllerClassesByKey; {
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        [TestSubModelController class], PROKeyForClass(TestSuperModelController, subModelControllers),
+        nil
+    ];
 }
 
-- (NSString *)modelControllersKeyPathForModelKeyPath:(NSString *)modelsKeyPath; {
-    if ([modelsKeyPath isEqualToString:PROKeyForObject(self.model, subModels)])
-        return PROKeyForObject(self, subModelControllers);
-
-    return nil;
++ (NSDictionary *)modelControllerKeysByModelKeyPath; {
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        PROKeyForClass(TestSuperModelController, subModelControllers), PROKeyForClass(TestSuperModel, subModels),
+        nil
+    ];
 }
 
 - (void)insertObject:(TestSubModelController *)controller inSubModelControllersAtIndex:(NSUInteger)index; {

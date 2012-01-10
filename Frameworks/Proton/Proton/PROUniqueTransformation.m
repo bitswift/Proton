@@ -93,19 +93,19 @@
         return YES;
     }
 
-    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
-    if (!ownedModelControllersKeyPath)
+    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
+    if (!ownedModelControllersKey)
         return NO;
 
-    NSAssert([self.outputValue isKindOfClass:[NSArray class]], @"Model controller %@ key path \"%@\" doesn't make any sense without an array at model key path \"%@\"", modelController, ownedModelControllersKeyPath, modelKeyPath);
+    NSAssert([self.outputValue isKindOfClass:[NSArray class]], @"Model controller %@ key \"%@\" doesn't make any sense without an array at model key path \"%@\"", modelController, ownedModelControllersKey, modelKeyPath);
 
-    Class ownedModelControllerClass = [modelController modelControllerClassAtKeyPath:ownedModelControllersKeyPath];
+    Class ownedModelControllerClass = [[[modelController class] modelControllerClassesByKey] objectForKey:ownedModelControllersKey];
 
     NSArray *newControllers = [self.outputValue mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
         return [[ownedModelControllerClass alloc] initWithModel:model];
     }];
 
-    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
     NSUInteger count = [mutableControllers count];
 
     // replace the controllers outright, since we replaced the associated models

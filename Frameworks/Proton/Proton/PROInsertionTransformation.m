@@ -94,17 +94,17 @@
     if (!modelKeyPath)
         return NO;
 
-    NSString *ownedModelControllersKeyPath = [modelController modelControllersKeyPathForModelKeyPath:modelKeyPath];
-    if (!ownedModelControllersKeyPath)
+    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
+    if (!ownedModelControllersKey)
         return NO;
 
-    Class ownedModelControllerClass = [modelController modelControllerClassAtKeyPath:ownedModelControllersKeyPath];
+    Class ownedModelControllerClass = [[[modelController class] modelControllerClassesByKey] objectForKey:ownedModelControllersKey];
 
     NSArray *newControllers = [self.objects mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
         return [[ownedModelControllerClass alloc] initWithModel:model];
     }];
 
-    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKeyPath:ownedModelControllersKeyPath];
+    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
     [mutableControllers insertObjects:newControllers atIndexes:self.insertionIndexes];
 
     return YES;

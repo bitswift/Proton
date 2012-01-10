@@ -72,56 +72,55 @@
  */
 
 /**
- * Implemented by subclasses to return the class of <PROModelController> that is
- * stored at a given key path.
+ * Implemented by subclasses to return a dictionary indicating the classes of
+ * model controllers managed on the receiver.
  *
- * This method may be queried after <modelControllersKeyPathForModelKeyPath:> to
- * determine the class of controller that should exist in the array at that key
- * path.
+ * The dictionary should have a single `Class` object (which must be a subclass
+ * of <PROModelController>) for each key at which a model controller exists on
+ * the receiver. The keys in the returned dictionary should contain all of the
+ * values returned from <modelControllerKeysByModelKeyPath>.
  *
- * The returned class should be a subclass of <PROModelController>.
- *
- * @param modelControllersKeyPath A key path, relative to the receiver, returned
- * by <modelControllersKeyPathForModelKeyPath:> indicating where an array of
- * model controllers exists.
+ * This method may be queried after <modelControllerKeysByModelKeyPath> to
+ * determine the class of controller that should exist in an array at a given
+ * key.
  *
  * @warning **Important:** This method **must** be implemented if
- * <modelControllersKeyPathForModelKeyPath:> returns a valid key path. This
- * method must never return `nil`.
+ * <modelControllerKeysByModelKeyPath> returns valid keys.
  */
-- (Class)modelControllerClassAtKeyPath:(NSString *)modelControllersKeyPath;
++ (NSDictionary *)modelControllerClassesByKey;
 
 /**
- * Implemented by subclasses to return the key path, relative to the receiver,
- * where the model controllers for an array of models can be found.
+ * Implemented by subclasses to return a dictionary indicating where model
+ * controllers associated with certain models can be found.
  *
- * If the <model> of the receiving class has one or more arrays of other
- * <PROModel> instances, and the receiver is responsible for managing
- * the associated <PROModelController> instances, this method should return the
- * key path, relative to the receiver, at which an array of those
- * <PROModelController> instances can be found. This information is used to
- * correctly update model controllers when <performTransformation:> affects the
- * corresponding models.
+ * If the <model> type of the receiving class has one or more arrays of other
+ * <PROModel> instances, and the receiver is responsible for managing the
+ * associated <PROModelController> instances, this method should return
+ * a dictionary containing:
  *
- * This method should return `nil` if no model controllers exist for the models
- * at the given key path.
+ *  - Keys, which are the key paths to the arrays of other <PROModel> instances,
+ *  relative to the <model> object.
+ *  - Values, which are the _keys_ (key paths are not allowed) to the associated
+ *  <PROModelController> arrays, relative to the receiver, for each <PROModel>
+ *  array.
+ *
+ * This information is used to correctly update model controllers when
+ * <performTransformation:> affects the corresponding models.
+ *
+ * This method should return `nil` if no model controllers are managed by the
+ * receiver.
  *
  * The default implementation returns `nil`.
  *
- * @param modelsKeyPath A key path, relative to the receiver's <model>, where
- * additional <PROModel> instances _may_ be located. Any key path may be
- * specified here -- it is the responsibility of the implementation to validate
- * the object at that path if necessary.
+ * @warning **Important:** The key paths returned as values in the dictionary
+ * must implement the minimum key-value coding methods required for a mutable
+ * indexed to-many relationship. The value at the key path must never be `nil`
+ * -- use an empty mutable array instead.
  *
- * @warning **Important:** The key path returned (if not `nil`) must implement
- * the minimum key-value coding methods required for a mutable indexed to-many
- * relationship. The value at the key path must never be `nil` -- use an empty
- * mutable array instead.
- *
- * You **must** implement <modelControllerClassAtKeyPath:> along with this
+ * You **must** implement <modelControllerClassesByKey> along with this
  * method.
  */
-- (NSString *)modelControllersKeyPathForModelKeyPath:(NSString *)modelsKeyPath;
++ (NSDictionary *)modelControllerKeysByModelKeyPath;
 
 /**
  * @name Performing Transformations
