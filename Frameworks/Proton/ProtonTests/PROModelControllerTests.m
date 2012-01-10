@@ -250,9 +250,8 @@
     TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:[NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(model, subModels)]];
     TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
 
-    TestSubModel *newModel = [[TestSubModel alloc] initWithName:@"fizzbuzz"];
-
     {
+        TestSubModel *newModel = [[TestSubModel alloc] initWithName:@"fizzbuzz"];
         PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
         PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
@@ -271,8 +270,8 @@
         STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
 
         // make sure the remaining model object is the one we expect
-        STAssertEqualObjects([controller.model.subModels objectAtIndex:0], newModel, @"");
-        STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], newModel, @"");
+        STAssertEqualObjects([controller.model.subModels objectAtIndex:0], [subModels objectAtIndex:1], @"");
+        STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], [subModels objectAtIndex:1], @"");
     }
 }
 
