@@ -112,13 +112,14 @@
  *
  * The default implementation returns `nil`.
  *
- * @warning **Important:** The key paths returned as values in the dictionary
- * must implement the minimum key-value coding methods required for a mutable
- * indexed to-many relationship. The value at the key path must never be `nil`
- * -- use an empty mutable array instead.
+ * If no instance method is implemented on the receiver with selector `<key>`,
+ * `PROModelController` will automatically provide an appropriate
+ * implementation, based on the class returned in <modelControllerClassesByKey>.
+ * Instances of the receiver will be set up to observe the <model> properties of
+ * the created model controllers for changes, and update themselves accordingly.
  *
- * You **must** implement <modelControllerClassesByKey> along with this
- * method.
+ * @warning **Important:** You **must** implement <modelControllerClassesByKey>
+ * along with this method.
  */
 + (NSDictionary *)modelControllerKeysByModelKeyPath;
 

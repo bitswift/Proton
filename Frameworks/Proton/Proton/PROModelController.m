@@ -8,11 +8,17 @@
 
 #import <Proton/PROModelController.h>
 #import <Proton/EXTScope.h>
+#import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROModel.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
 #import <Proton/SDQueue.h>
+#import <objc/runtime.h>
+
+// to get logging functions
+// TODO: this probably means logging should be moved out of the framework header
+#import <Proton/Proton.h>
 
 /*
  * A key into the thread dictionary, associated with an `NSNumber` indicating
@@ -22,7 +28,29 @@
  */
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
-@interface PROModelController ()
+@interface PROModelController () {
+    /*
+     * Contains <PROKeyValueObserver> objects observing each model controller
+     * managed by the receiver (in no particular order).
+     *
+     * Notifications from these observers will be posted synchronously.
+     *
+     * Mutation of this array must be synchronized using `self.dispatchQueue`.
+     */
+    NSMutableArray *m_modelControllerObservers;
+}
+
+/*
+ * Automatically implements the appropriate KVC-compliant model controller
+ * methods on the receiver for the given model controller key.
+ *
+ * @param key A key present in <modelControllerClassesByKey>, indicating the
+ * name of the model controller array property.
+ * @param modelKeyPath The key path, relative to the <model>, where the model
+ * objects managed by this array of model controllers are.
+ */
++ (void)implementModelControllerMethodsForKey:(NSString *)key modelKeyPath:(NSString *)modelKeyPath;
+
 /*
  * Whether <performTransformation:> is currently being executed on the
  * <dispatchQueue>.
@@ -35,6 +63,27 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @end
 
 @implementation PROModelController
+
+#pragma mark Class initialization
+
++ (void)initialize {
+    // automatically set up model controller properties for subclasses
+    NSDictionary *modelControllerKeys = [self modelControllerKeysByModelKeyPath];
+    if (![modelControllerKeys count])
+        return;
+
+    for (NSString *modelKeyPath in modelControllerKeys) {
+        NSString *modelControllerKey = [modelControllerKeys objectForKey:modelKeyPath];
+
+        SEL getterSelector = NSSelectorFromString(modelControllerKey);
+        if ([self instancesRespondToSelector:getterSelector]) {
+            // this property is implemented already
+            continue;
+        }
+
+        [self implementModelControllerMethodsForKey:modelControllerKey modelKeyPath:modelKeyPath];
+    }
+}
 
 #pragma mark Properties
 
@@ -96,7 +145,178 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return self;
 }
 
+- (void)dealloc {
+    // make sure to tear down model controller observers first thing
+    m_modelControllerObservers = nil;
+}
+
 #pragma mark Model controllers
+
++ (void)implementModelControllerMethodsForKey:(NSString *)key modelKeyPath:(NSString *)modelKeyPath; {
+    NSAssert([key length] > 0, @"Should be at least one character in model controller key");
+    NSAssert([modelKeyPath length] > 0, @"Should be at least one character in model key path");
+
+    Class controllerClass = [[self modelControllerClassesByKey] objectForKey:key];
+    NSAssert(!controllerClass, @"Model controller class should not be nil for key \"%@\"", key);
+
+    NSMutableString *capitalizedKey = [[NSMutableString alloc] init];
+    [capitalizedKey appendString:[[key substringToIndex:1] uppercaseString]];
+    [capitalizedKey appendString:[key substringFromIndex:1]];
+
+    SEL getterSelector = NSSelectorFromString(key);
+    SEL insertControllerSelector = NSSelectorFromString([NSString stringWithFormat:@"insertObject:in%@AtIndex:", capitalizedKey]);
+
+    // TODO: should this implement the (presumably faster) plural form?
+    SEL removeControllerSelector = NSSelectorFromString([NSString stringWithFormat:@"removeObjectFrom%@AtIndex:", capitalizedKey]);
+
+    void (^installBlockMethod)(SEL, id, NSString *) = ^(SEL selector, id block, NSString *typeEncoding){
+        // purposely leaks (since methods, by their nature, are never really "released")
+        IMP methodIMP = imp_implementationWithBlock((__bridge_retained void *)block);
+
+        if (!class_addMethod(self, selector, methodIMP, [typeEncoding UTF8String])) {
+            DDLogError(@"Could not add method %s to %@ -- perhaps it already exists?", selector, self);
+        }
+    };
+
+    /*
+     * Returns the mutable array for model controllers of this class, creating
+     * it first if necessary.
+     *
+     * Use of this block should be synchronized with the <dispatchQueue> of the
+     * instance.
+     *
+     * @warning **Important:** This is not actually a public method -- just an
+     * internal helper block.
+     */
+    NSMutableArray *(^modelControllersArray)(PROModelController *) = ^(PROModelController *self){
+        NSMutableArray *array = objc_getAssociatedObject(self, getterSelector);
+        if (!array) {
+            array = [[NSMutableArray alloc] init];
+
+            objc_setAssociatedObject(self, getterSelector, array, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+
+        return array;
+    };
+
+    /*
+     * Public getter for the model controllers.
+     */
+    id getter = ^(PROModelController *self){
+        __block NSArray *controllers;
+
+        [self.dispatchQueue runSynchronously:^{
+            controllers = [modelControllersArray(self) copy];
+        }];
+
+        return controllers;
+    };
+
+    installBlockMethod(getterSelector, getter, [NSString stringWithFormat:
+        // NSArray * (*)(PROModelController *self, SEL _cmd)
+        @"%s%s%s",
+        @encode(NSArray *),
+        @encode(PROModelController *),
+        @encode(SEL)
+    ]);
+
+    /*
+     * KVC-compliant method for adding a new model controller to an instance.
+     */
+    id insertController = ^(PROModelController *self, PROModelController *controller, NSUInteger index){
+        __weak PROModelController *weakSelf = self;
+
+        // observe the model property of the controller
+        PROKeyValueObserver *observer = [[PROKeyValueObserver alloc]
+            initWithTarget:controller
+            keyPath:PROKeyForObject(controller, model)
+            options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
+            block:^(NSDictionary *changes){
+                if (weakSelf.performingTransformation) {
+                    // ignore changes that were instigated by ourselves in
+                    // -performTransformation:
+                    return;
+                }
+
+                PROModel *oldSubModel = [changes objectForKey:NSKeyValueChangeOldKey];
+                PROModel *newSubModel = [changes objectForKey:NSKeyValueChangeNewKey];
+
+                // synchronize our replacement of the model object
+                [weakSelf.dispatchQueue runSynchronously:^{
+                    NSArray *models = [weakSelf.model valueForKeyPath:modelKeyPath];
+                    NSUInteger index = [models indexOfObjectIdenticalTo:oldSubModel];
+
+                    if (index == NSNotFound) {
+                        DDLogWarn(@"Could not find model object %@ to replace in array: %@", oldSubModel, models);
+                        return;
+                    }
+
+                    PROUniqueTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:oldSubModel outputValue:newSubModel];
+                    PROIndexedTransformation *modelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
+                    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:modelsTransformation forKeyPath:modelKeyPath];
+
+                    PROModel *newModel = [modelTransformation transform:weakSelf.model];
+                    if (!newModel) {
+                        DDLogError(@"Could not create new model object from %@ with transformation %@", weakSelf.model, modelTransformation);
+                    }
+
+                    // TODO: prevent automatic model controller replacement
+                    self.model = newModel;
+                }];
+            }
+        ];
+
+        // post synchronously
+        observer.queue = nil;
+
+        [self.dispatchQueue runSynchronously:^{
+            [modelControllersArray(self) insertObject:controller atIndex:index];
+
+            // this array is unordered
+            [self->m_modelControllerObservers addObject:observer];
+        }];
+    };
+
+    installBlockMethod(insertControllerSelector, insertController, [NSString stringWithFormat:
+        // void (*)(PROModelController *self, SEL _cmd, PROModelController *controller, NSUInteger index)
+        @"%s%s%s%s%s",
+        @encode(void),
+        @encode(PROModelController *),
+        @encode(SEL),
+        @encode(PROModelController *),
+        @encode(NSUInteger)
+    ]);
+
+    /*
+     * KVC-compliant method for removing a model controller from an instance.
+     */
+    id removeController = ^(PROModelController *self, NSUInteger index) {
+        [self.dispatchQueue runSynchronously:^{
+            NSMutableArray *controllers = modelControllersArray(self);
+            id controller = [controllers objectAtIndex:index];
+
+            // find and tear down the observer first
+            NSUInteger index = [self->m_modelControllerObservers
+                indexOfObjectWithOptions:NSEnumerationConcurrent
+                passingTest:^ BOOL (PROKeyValueObserver *observer, NSUInteger index, BOOL *stop){
+                    return observer.target == controller;
+                }
+            ];
+
+            [self->m_modelControllerObservers removeObjectAtIndex:index];
+            [controllers removeObjectAtIndex:index];
+        }];
+    };
+
+    installBlockMethod(removeControllerSelector, removeController, [NSString stringWithFormat:
+        // void (*)(PROModelController *self, SEL _cmd, NSUInteger index)
+        @"%s%s%s%s",
+        @encode(void),
+        @encode(PROModelController *),
+        @encode(SEL),
+        @encode(NSUInteger)
+    ]);
+}
 
 + (NSDictionary *)modelControllerClassesByKey; {
     NSAssert(NO, @"%s must be implemented if +modelControllerKeysByModelKeyPath returns non-nil", __func__);
