@@ -282,28 +282,12 @@
 
 @implementation TestSuperModelController
 @dynamic model;
-
-@synthesize subModelControllers = m_subModelControllers;
-
-- (void)setModel:(TestSuperModel *)model {
-    [self.dispatchQueue runSynchronously:^{
-        [super setModel:model];
-
-        [m_subModelControllers removeAllObjects];
-
-        [model.subModels enumerateObjectsUsingBlock:^(TestSubModel *subModel, NSUInteger index, BOOL *stop){
-            TestSubModelController *controller = [[TestSubModelController alloc] initWithModel:subModel];
-            [m_subModelControllers addObject:controller];
-        }];
-    }];
-}
+@dynamic subModelControllers;
 
 - (id)init {
     self = [super init];
     if (!self)
         return nil;
-
-    m_subModelControllers = [[NSMutableArray alloc] init];
 
     // set up a default model for the purposes of this test
     self.model = [[TestSuperModel alloc] init];
@@ -322,14 +306,6 @@
         PROKeyForClass(TestSuperModelController, subModelControllers), PROKeyForClass(TestSuperModel, subModels),
         nil
     ];
-}
-
-- (void)insertObject:(TestSubModelController *)controller inSubModelControllersAtIndex:(NSUInteger)index; {
-    [m_subModelControllers insertObject:controller atIndex:index];
-}
-
-- (void)removeObjectFromSubModelControllersAtIndex:(NSUInteger)index; {
-    [m_subModelControllers removeObjectAtIndex:index];
 }
 
 @end
