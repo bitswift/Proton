@@ -6,5 +6,5 @@
 
 PROJECT_NAME=`ls | grep -m 1 *.xc* | awk -F. '{ print $1 }'`
 
-appledoc -o Documentation --explicit-crossref --no-repeat-first-par --no-search-undocumented-doc --project-company "Emerald Lark" --project-name "$PROJECT_NAME" "$@"
+appledoc -o Documentation --explicit-crossref --no-repeat-first-par --no-search-undocumented-doc --project-company "Bitswift" --project-name "$PROJECT_NAME" "$@"
 exit 0

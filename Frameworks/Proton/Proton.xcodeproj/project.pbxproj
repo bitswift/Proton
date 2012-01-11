@@ -942,7 +942,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0420;
-				ORGANIZATIONNAME = "Emerald Lark";
+				ORGANIZATIONNAME = "Bitswift";
 			};
 			buildConfigurationList = D0DB5CBD1492DDD5005955FB /* Build configuration list for PBXProject "Proton" */;
 			compatibilityVersion = "Xcode 3.2";

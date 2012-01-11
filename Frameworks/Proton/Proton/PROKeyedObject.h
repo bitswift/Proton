@@ -3,7 +3,7 @@
 //  Proton
 //
 //  Created by Justin Spahr-Summers on 14.12.11.
-//  Copyright (c) 2011 Emerald Lark. All rights reserved.
+//  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

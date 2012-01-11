@@ -3,7 +3,7 @@
 //  Proton
 //
 //  Created by James Lawton on 12/6/11.
-//  Copyright (c) 2011 Emerald Lark. All rights reserved.
+//  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
 #import <Proton/NSObject+ComparisonAdditions.h>

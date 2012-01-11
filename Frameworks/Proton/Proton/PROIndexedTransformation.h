@@ -3,7 +3,7 @@
 //  Proton
 //
 //  Created by Josh Vera on 12/21/11.
-//  Copyright (c) 2011 Emerald Lark. All rights reserved.
+//  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
 #import <Proton/PROTransformation.h>
