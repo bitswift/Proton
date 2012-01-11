@@ -6,4 +6,4 @@
 	url = git://github.com/jspahrsummers/SafeDispatch.git
 [submodule "Frameworks/CocoaLumberjack"]
 	path = Frameworks/CocoaLumberjack
-	url = git@github.com:emeraldlark/CocoaLumberjack.git
+	url = git@github.com:bitswift/CocoaLumberjack.git
