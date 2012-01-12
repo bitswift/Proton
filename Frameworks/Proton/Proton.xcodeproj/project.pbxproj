@@ -201,6 +201,12 @@
 		D0E0F2F71497E4A80072FE2C /* EXTNil.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F31497E4A80072FE2C /* EXTNil.m */; };
 		D0E0F2FA1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
 		D0E0F2FB1497E4CD0072FE2C /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */; };
+		D0F5C04614BF913F00C66839 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0F5C04414BF913F00C66839 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0F5C04714BF913F00C66839 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0F5C04414BF913F00C66839 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0F5C04814BF913F00C66839 /* EXTConcreteProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F5C04514BF913F00C66839 /* EXTConcreteProtocol.m */; };
+		D0F5C04914BF913F00C66839 /* EXTConcreteProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F5C04514BF913F00C66839 /* EXTConcreteProtocol.m */; };
+		D0F5C04D14BF916300C66839 /* EXTConcreteProtocolTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F5C04C14BF916300C66839 /* EXTConcreteProtocolTest.m */; };
+		D0F5C04E14BF916300C66839 /* EXTConcreteProtocolTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F5C04C14BF916300C66839 /* EXTConcreteProtocolTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -363,6 +369,10 @@
 		D0E0F2F31497E4A80072FE2C /* EXTNil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNil.m; path = ../libextobjc/extobjc/Classes/EXTNil.m; sourceTree = "<group>"; };
 		D0E0F2F81497E4CD0072FE2C /* EXTNilTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTNilTest.h; path = ../../libextobjc/extobjc/Tests/EXTNilTest.h; sourceTree = "<group>"; };
 		D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTNilTest.m; path = ../../libextobjc/extobjc/Tests/EXTNilTest.m; sourceTree = "<group>"; };
+		D0F5C04414BF913F00C66839 /* EXTConcreteProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTConcreteProtocol.h; path = ../libextobjc/extobjc/Modules/EXTConcreteProtocol.h; sourceTree = "<group>"; };
+		D0F5C04514BF913F00C66839 /* EXTConcreteProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTConcreteProtocol.m; path = ../libextobjc/extobjc/Modules/EXTConcreteProtocol.m; sourceTree = "<group>"; };
+		D0F5C04B14BF916300C66839 /* EXTConcreteProtocolTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTConcreteProtocolTest.h; path = ../../libextobjc/extobjc/Tests/EXTConcreteProtocolTest.h; sourceTree = "<group>"; };
+		D0F5C04C14BF916300C66839 /* EXTConcreteProtocolTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTConcreteProtocolTest.m; path = ../../libextobjc/extobjc/Tests/EXTConcreteProtocolTest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -600,6 +610,8 @@
 		D0D7A1A51492EE020057F90D /* libextobjc */ = {
 			isa = PBXGroup;
 			children = (
+				D0F5C04414BF913F00C66839 /* EXTConcreteProtocol.h */,
+				D0F5C04514BF913F00C66839 /* EXTConcreteProtocol.m */,
 				D0E0F2F21497E4A80072FE2C /* EXTNil.h */,
 				D0E0F2F31497E4A80072FE2C /* EXTNil.m */,
 				D0D7A1A71492EE1B0057F90D /* EXTRuntimeExtensions.h */,
@@ -616,6 +628,8 @@
 		D0D7A1BC1492EE3F0057F90D /* libextobjc */ = {
 			isa = PBXGroup;
 			children = (
+				D0F5C04B14BF916300C66839 /* EXTConcreteProtocolTest.h */,
+				D0F5C04C14BF916300C66839 /* EXTConcreteProtocolTest.m */,
 				D0E0F2F81497E4CD0072FE2C /* EXTNilTest.h */,
 				D0E0F2F91497E4CD0072FE2C /* EXTNilTest.m */,
 				D0D7A1BD1492EE520057F90D /* EXTRuntimeExtensionsTest.h */,
@@ -813,6 +827,7 @@
 				D013816E14AD491C008E7942 /* DDLog.h in Headers */,
 				D013817214AD491C008E7942 /* DDTTYLogger.h in Headers */,
 				D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */,
+				D0F5C04714BF913F00C66839 /* EXTConcreteProtocol.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -856,6 +871,7 @@
 				D013816D14AD491C008E7942 /* DDLog.h in Headers */,
 				D013817114AD491C008E7942 /* DDTTYLogger.h in Headers */,
 				D0A0E5DC14B5788E00E278CA /* PROModelController.h in Headers */,
+				D0F5C04614BF913F00C66839 /* EXTConcreteProtocol.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -942,7 +958,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0420;
-				ORGANIZATIONNAME = "Bitswift";
+				ORGANIZATIONNAME = Bitswift;
 			};
 			buildConfigurationList = D0DB5CBD1492DDD5005955FB /* Build configuration list for PBXProject "Proton" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1057,6 +1073,7 @@
 				D013817414AD491C008E7942 /* DDTTYLogger.m in Sources */,
 				D013817714AD4AB8008E7942 /* Proton.m in Sources */,
 				D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */,
+				D0F5C04914BF913F00C66839 /* EXTConcreteProtocol.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1087,6 +1104,7 @@
 				D080E10014AA97AD00F6EABB /* PROInsertionTransformationTests.m in Sources */,
 				D080E10414AA97D700F6EABB /* PRORemovalTransformationTests.m in Sources */,
 				D00B494B14B624D500E17FDB /* PROModelControllerTests.m in Sources */,
+				D0F5C04E14BF916300C66839 /* EXTConcreteProtocolTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1127,6 +1145,7 @@
 				D013817314AD491C008E7942 /* DDTTYLogger.m in Sources */,
 				D013817614AD4AB8008E7942 /* Proton.m in Sources */,
 				D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */,
+				D0F5C04814BF913F00C66839 /* EXTConcreteProtocol.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1157,6 +1176,7 @@
 				D080E0FF14AA97AD00F6EABB /* PROInsertionTransformationTests.m in Sources */,
 				D080E10314AA97D700F6EABB /* PRORemovalTransformationTests.m in Sources */,
 				D00B494A14B624D500E17FDB /* PROModelControllerTests.m in Sources */,
+				D0F5C04D14BF916300C66839 /* EXTConcreteProtocolTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
