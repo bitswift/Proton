@@ -7,6 +7,7 @@
 //
 
 #import "PRORemovalTransformationTests.h"
+#import <Proton/EXTNil.h>
 #import <Proton/PROInsertionTransformation.h>
 #import <Proton/PRORemovalTransformation.h>
 
@@ -138,6 +139,14 @@
     STAssertNil([transformation transform:[NSNull null]], @"");
     STAssertNil([transformation transform:[NSArray array]], @"");
     STAssertNil([transformation transform:[NSOrderedSet orderedSet]], @"");
+}
+
+- (void)testTransformationResultingInEmptyArray {
+    NSArray *objects = [NSArray arrayWithObjects:@"foobar", [NSNumber numberWithInt:5], [NSNull null], nil];
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [objects count])];
+
+    PRORemovalTransformation *transformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexSet expectedObjects:objects];
+    STAssertEqualObjects([transformation transform:objects], [EXTNil null], @"");
 }
 
 - (void)testPassthroughTransformation {
