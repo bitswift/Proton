@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PRORemovalTransformation.h>
+#import <Proton/EXTNil.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROInsertionTransformation.h>
 #import <Proton/PROModelController.h>
@@ -81,6 +82,11 @@
     if (![objectsFromArray isEqualToArray:self.expectedObjects])
         return nil;
 
+    // if this index set is emptying out the whole array, return EXTNil
+    if ([self.removalIndexes containsIndexesInRange:NSMakeRange(0, [array count])]) {
+        return [EXTNil null];
+    }
+
     NSMutableArray *newArray = [array mutableCopy];
     [newArray removeObjectsAtIndexes:self.removalIndexes];
 
@@ -89,7 +95,6 @@
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
 
     /*
      * A removal transformation means that we're going to be removing objects

@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PROMultipleTransformation.h>
+#import <Proton/EXTNil.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROModelController.h>
@@ -66,7 +67,6 @@
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
 
     /*
      * Unfortunately, for a multiple transformation, we have to redo the
@@ -83,11 +83,21 @@
         fullModelKeyPath = [fullModelKeyPath stringByAppendingFormat:@".%@", modelKeyPath];
 
     id currentValue = [modelController valueForKeyPath:fullModelKeyPath];
+    if (!currentValue)
+        currentValue = [EXTNil null];
 
-    NSAssert([[self transform:currentValue] isEqual:result], @"Model at key path \"%@\" on %@ does not match the original value passed into %@", modelKeyPath, modelController, self);
+    #ifdef DEBUG
+    id originalResultValue = (result ?: [EXTNil null]);
+
+    NSAssert([[self transform:currentValue] isEqual:originalResultValue], @"Model at key path \"%@\" on %@ does not match the original value passed into %@", modelKeyPath, modelController, self);
+    #endif
 
     for (PROTransformation *transformation in self.transformations) {
         currentValue = [transformation transform:currentValue];
+
+        id subResult = currentValue;
+        if ([subResult isEqual:[EXTNil null]])
+            subResult = nil;
 
         if (![transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath]) {
             // some model propagation failed, so just set the top-level object

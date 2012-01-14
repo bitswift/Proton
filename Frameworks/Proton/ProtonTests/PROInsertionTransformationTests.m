@@ -7,6 +7,7 @@
 //
 
 #import "PROInsertionTransformationTests.h"
+#import <Proton/EXTNil.h>
 #import <Proton/PROInsertionTransformation.h>
 #import <Proton/PRORemovalTransformation.h>
 
@@ -115,6 +116,22 @@
     STAssertNil([transformation transform:[NSNull null]], @"");
     STAssertNil([transformation transform:[NSArray array]], @"");
     STAssertNil([transformation transform:[NSOrderedSet orderedSet]], @"");
+}
+
+- (void)testTransformationOnEmptyArray {
+    NSArray *objects = [NSArray arrayWithObjects:@"foobar", [NSNumber numberWithInt:5], [NSNull null], nil];
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [objects count])];
+
+    PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexSet objects:objects];
+    STAssertEqualObjects([transformation transform:[EXTNil null]], objects, @"");
+}
+
+- (void)testTransformationOnEmptyArrayOutOfBounds {
+    NSArray *objects = [NSArray arrayWithObjects:@"foobar", [NSNumber numberWithInt:5], [NSNull null], nil];
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(5000, [objects count])];
+
+    PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexSet objects:objects];
+    STAssertNil([transformation transform:[EXTNil null]], @"");
 }
 
 - (void)testPassthroughTransformation {

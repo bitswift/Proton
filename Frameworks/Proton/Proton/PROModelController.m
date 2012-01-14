@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PROModelController.h>
+#import <Proton/EXTNil.h>
 #import <Proton/EXTScope.h>
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROKeyValueCodingMacros.h>
@@ -118,7 +119,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)setModel:(PROModel *)newModel replacingModelControllers:(BOOL)replacing; {
-    NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
+    NSParameterAssert(!newModel || [newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
         // invoke KVO methods while on the dispatch queue, so synchronous
@@ -144,10 +145,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                 Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
 
                 NSArray *models = [m_model valueForKeyPath:modelKeyPath];
-                if (!models)
-                    continue;
 
-                NSAssert([models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
+                NSAssert(!models || [models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
 
                 NSArray *newModelControllers = [models mapWithOptions:NSEnumerationConcurrent usingBlock:^(PROModel *model){
                     return [[modelControllerClass alloc] initWithModel:model];
@@ -394,12 +393,18 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             self.performingTransformationOnDispatchQueue = NO;
         };
 
-        id model = [transformation transform:self.model];
+        id inputValue = self.model;
+        if (!inputValue)
+            inputValue = [EXTNil null];
+
+        id model = [transformation transform:inputValue];
 
         if (!model) {
             // fail immediately, before any side effects
             success = NO;
             return;
+        } else if ([model isEqual:[EXTNil null]]) {
+            model = nil;
         }
 
         if ([transformation isKindOfClass:[PROUniqueTransformation class]]) {
