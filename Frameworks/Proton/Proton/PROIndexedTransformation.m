@@ -110,7 +110,6 @@
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
 
     /*
      * An indexed transformation usually means that we're starting to get to

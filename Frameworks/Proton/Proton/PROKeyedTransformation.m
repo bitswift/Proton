@@ -162,7 +162,6 @@
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
 
     /*
      * A keyed transformation is simply a descent into the model, so we just
