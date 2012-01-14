@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PROKeyedTransformation.h>
+#import <Proton/EXTNil.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedObject.h>
 #import <Proton/PROModelController.h>
@@ -103,28 +104,34 @@
         return obj;
     }
 
-    if (![obj respondsToSelector:@selector(dictionaryValue)]) {
-        // doesn't conform to <PROKeyedObject>
-        return nil;
-    }
+    NSMutableDictionary *values;
 
-    // check with the class for this method, since runtime magic could
-    // (potentially) hide an init method after it's already initialized, or
-    // perhaps proxy this message to another object
-    if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
-        // doesn't conform to <PROKeyedObject>
-        return nil;
-    }
+    if ([obj isEqual:[EXTNil null]]) {
+        values = [[NSMutableDictionary alloc] init];
+    } else {
+        if (![obj respondsToSelector:@selector(dictionaryValue)]) {
+            // doesn't conform to <PROKeyedObject>
+            return nil;
+        }
 
-    NSMutableDictionary *values = [[obj dictionaryValue] mutableCopy];
+        // check with the class for this method, since runtime magic could
+        // (potentially) hide an init method after it's already initialized, or
+        // perhaps proxy this message to another object
+        if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
+            // doesn't conform to <PROKeyedObject>
+            return nil;
+        }
+
+        values = [[obj dictionaryValue] mutableCopy];
+    }
 
     for (NSString *key in self.valueTransformations) {
         NSAssert2([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
 
         id value = [values valueForKey:key];
         if (!value) {
-            // the key to transform does not exist -- consider it to be NSNull
-            value = [NSNull null];
+            // the key to transform does not exist -- consider it to be EXTNil
+            value = [EXTNil null];
         }
 
         PROTransformation *transformation = [self.valueTransformations objectForKey:key];
@@ -135,11 +142,17 @@
             return nil;
         }
 
-        [values setObject:value forKey:key];
+        if ([value isEqual:[EXTNil null]])
+            [values removeObjectForKey:key];
+        else
+            [values setObject:value forKey:key];
     }
 
+    if (![values count])
+        return [EXTNil null];
+
     // construct the object with its changed values and return it
-    if ([obj isKindOfClass:[NSDictionary class]]) {
+    if ([obj isEqual:[EXTNil null]] || [obj isKindOfClass:[NSDictionary class]]) {
         // special-case NSDictionary, since it's a class cluster
         return [values copy];
     } else {
@@ -149,7 +162,6 @@
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
 
     /*
      * A keyed transformation is simply a descent into the model, so we just

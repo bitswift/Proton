@@ -7,6 +7,7 @@
 //
 
 #import <Proton/PROInsertionTransformation.h>
+#import <Proton/EXTNil.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROModelController.h>
@@ -65,7 +66,9 @@
     if (!self.insertionIndexes)
         return array;
 
-    if (![array isKindOfClass:[NSArray class]])
+    BOOL isArray = [array isKindOfClass:[NSArray class]];
+
+    if (!(isArray || [array isEqual:[EXTNil null]]))
         return nil;
 
     NSUInteger count = [array count];
@@ -75,15 +78,18 @@
     if ([self.insertionIndexes lastIndex] >= count + [self.insertionIndexes count])
         return nil;
 
-    NSMutableArray *newArray = [array mutableCopy];
-    [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];
+    if (isArray) {
+        NSMutableArray *newArray = [array mutableCopy];
+        [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];
 
-    return [newArray copy];
+        return [newArray copy];
+    } else {
+        return self.objects;
+    }
 }
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
 
     /*
      * An insertion transformation means that we're going to be inserting
