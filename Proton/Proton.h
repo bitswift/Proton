@@ -6,9 +6,7 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/DDAbstractDatabaseLogger.h>
 #import <Proton/DDASLLogger.h>
-#import <Proton/DDFileLogger.h>
 #import <Proton/DDLog.h>
 #import <Proton/DDTTYLogger.h>
 
@@ -28,7 +26,6 @@ extern int ddLogLevel;
     #define LOG_ASYNC_ENABLED NO
 #endif
 
-#import <Proton/EXTConcreteProtocol.h>
 #import <Proton/EXTNil.h>
 #import <Proton/EXTRuntimeExtensions.h>
 #import <Proton/EXTSafeCategory.h>
