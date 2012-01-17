@@ -4,3 +4,6 @@
 [submodule "Frameworks/CocoaLumberjack"]
 	path = Frameworks/CocoaLumberjack
 	url = git@github.com:bitswift/CocoaLumberjack.git
+[submodule "Configuration"]
+	path = Configuration
+	url = git://github.com/jspahrsummers/xcconfigs.git
