@@ -15,6 +15,11 @@
 @property (nonatomic, copy, readonly) NSDictionary *endValue;
 @end
 
+@interface TestProModel : PROModel
+@property (nonatomic, strong) NSArray *array;
+@end
+
+
 @implementation PROKeyedTransformationTests
 
 - (NSDictionary *)startValue {
@@ -152,6 +157,18 @@
     STAssertEqualObjects([keyedTransformation transform:dictionary], [EXTNil null], @"");
 }
 
+- (void)testTransformationResultingInValidModel {
+    TestProModel *model = [[TestProModel alloc] init];
+    model.array = [NSArray arrayWithObject:@"foo"];
+
+    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.array outputValue:[EXTNil null]];
+    NSDictionary *transformations = [NSDictionary dictionaryWithObject:uniqueTransformation forKey:@"array"];
+
+    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
+
+    STAssertEqualObjects([keyedTransformation transform:model], [[TestProModel alloc] init], @"");
+}
+
 - (void)testEquality {
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
 
@@ -204,4 +221,8 @@
     STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
 }
 
+@end
+
+@implementation TestProModel
+@synthesize array = m_array;
 @end
