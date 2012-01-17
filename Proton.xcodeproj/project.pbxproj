@@ -348,21 +348,6 @@
 		D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		D0DB5CE51492DDD5005955FB /* ProtonTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ProtonTests-Info.plist"; sourceTree = "<group>"; };
 		D0DB5CE71492DDD5005955FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		D0DB5CF61492DDE9005955FB /* Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Common.xcconfig; sourceTree = "<group>"; };
-		D0DB5CF81492DDE9005955FB /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
-		D0DB5CF91492DDE9005955FB /* Profile.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Profile.xcconfig; sourceTree = "<group>"; };
-		D0DB5CFA1492DDE9005955FB /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
-		D0DB5CFC1492DDE9005955FB /* Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Application.xcconfig; sourceTree = "<group>"; };
-		D0DB5CFD1492DDE9005955FB /* StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = StaticLibrary.xcconfig; sourceTree = "<group>"; };
-		D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Application.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D001492DDE9005955FB /* iOS-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Base.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Application.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D041492DDE9005955FB /* Mac-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Base.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D051492DDE9005955FB /* Mac-DynamicLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-DynamicLibrary.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Framework.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D071492DDE9005955FB /* Mac-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
-		D0DB5D081492DDE9005955FB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		D0E0F2ED1497E4660072FE2C /* PROUniqueTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROUniqueTransformationTests.h; sourceTree = "<group>"; };
 		D0E0F2EE1497E4660072FE2C /* PROUniqueTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueTransformationTests.m; sourceTree = "<group>"; };
 		D0E0F2F21497E4A80072FE2C /* EXTNil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTNil.h; path = ../libextobjc/extobjc/Classes/EXTNil.h; sourceTree = "<group>"; };
@@ -373,6 +358,21 @@
 		D0F5C04514BF913F00C66839 /* EXTConcreteProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTConcreteProtocol.m; path = ../libextobjc/extobjc/Modules/EXTConcreteProtocol.m; sourceTree = "<group>"; };
 		D0F5C04B14BF916300C66839 /* EXTConcreteProtocolTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EXTConcreteProtocolTest.h; path = ../../libextobjc/extobjc/Tests/EXTConcreteProtocolTest.h; sourceTree = "<group>"; };
 		D0F5C04C14BF916300C66839 /* EXTConcreteProtocolTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EXTConcreteProtocolTest.m; path = ../../libextobjc/extobjc/Tests/EXTConcreteProtocolTest.m; sourceTree = "<group>"; };
+		D0F5CCF714C578BF00966B2D /* Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Common.xcconfig; sourceTree = "<group>"; };
+		D0F5CCF914C578BF00966B2D /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		D0F5CCFA14C578BF00966B2D /* Profile.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Profile.xcconfig; sourceTree = "<group>"; };
+		D0F5CCFB14C578BF00966B2D /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		D0F5CCFD14C578BF00966B2D /* Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Application.xcconfig; sourceTree = "<group>"; };
+		D0F5CCFE14C578BF00966B2D /* StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = StaticLibrary.xcconfig; sourceTree = "<group>"; };
+		D0F5CD0014C578BF00966B2D /* iOS-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Application.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0114C578BF00966B2D /* iOS-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Base.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0214C578BF00966B2D /* iOS-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0414C578BF00966B2D /* Mac-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Application.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0514C578BF00966B2D /* Mac-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Base.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0614C578BF00966B2D /* Mac-DynamicLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-DynamicLibrary.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0714C578BF00966B2D /* Mac-Framework.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Framework.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0814C578BF00966B2D /* Mac-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
+		D0F5CD0914C578BF00966B2D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -648,7 +648,7 @@
 				D0DB5CCD1492DDD5005955FB /* Proton */,
 				D0DB5CE31492DDD5005955FB /* ProtonTests */,
 				D0DB5CC61492DDD5005955FB /* Frameworks */,
-				D0DB5CF41492DDE9005955FB /* Configuration */,
+				D0F5CCF514C578BF00966B2D /* Configuration */,
 				D0DB5CC51492DDD5005955FB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -721,65 +721,64 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		D0DB5CF41492DDE9005955FB /* Configuration */ = {
+		D0F5CCF514C578BF00966B2D /* Configuration */ = {
 			isa = PBXGroup;
 			children = (
-				D0DB5CF51492DDE9005955FB /* Base */,
-				D0DB5CFE1492DDE9005955FB /* iOS */,
-				D0DB5D021492DDE9005955FB /* Mac OS X */,
-				D0DB5D081492DDE9005955FB /* README.md */,
+				D0F5CCF614C578BF00966B2D /* Base */,
+				D0F5CCFF14C578BF00966B2D /* iOS */,
+				D0F5CD0314C578BF00966B2D /* Mac OS X */,
+				D0F5CD0914C578BF00966B2D /* README.md */,
 			);
-			name = Configuration;
-			path = ../libextobjc/Configuration;
+			path = Configuration;
 			sourceTree = "<group>";
 		};
-		D0DB5CF51492DDE9005955FB /* Base */ = {
+		D0F5CCF614C578BF00966B2D /* Base */ = {
 			isa = PBXGroup;
 			children = (
-				D0DB5CF61492DDE9005955FB /* Common.xcconfig */,
-				D0DB5CF71492DDE9005955FB /* Configurations */,
-				D0DB5CFB1492DDE9005955FB /* Targets */,
+				D0F5CCF714C578BF00966B2D /* Common.xcconfig */,
+				D0F5CCF814C578BF00966B2D /* Configurations */,
+				D0F5CCFC14C578BF00966B2D /* Targets */,
 			);
 			path = Base;
 			sourceTree = "<group>";
 		};
-		D0DB5CF71492DDE9005955FB /* Configurations */ = {
+		D0F5CCF814C578BF00966B2D /* Configurations */ = {
 			isa = PBXGroup;
 			children = (
-				D0DB5CF81492DDE9005955FB /* Debug.xcconfig */,
-				D0DB5CF91492DDE9005955FB /* Profile.xcconfig */,
-				D0DB5CFA1492DDE9005955FB /* Release.xcconfig */,
+				D0F5CCF914C578BF00966B2D /* Debug.xcconfig */,
+				D0F5CCFA14C578BF00966B2D /* Profile.xcconfig */,
+				D0F5CCFB14C578BF00966B2D /* Release.xcconfig */,
 			);
 			path = Configurations;
 			sourceTree = "<group>";
 		};
-		D0DB5CFB1492DDE9005955FB /* Targets */ = {
+		D0F5CCFC14C578BF00966B2D /* Targets */ = {
 			isa = PBXGroup;
 			children = (
-				D0DB5CFC1492DDE9005955FB /* Application.xcconfig */,
-				D0DB5CFD1492DDE9005955FB /* StaticLibrary.xcconfig */,
+				D0F5CCFD14C578BF00966B2D /* Application.xcconfig */,
+				D0F5CCFE14C578BF00966B2D /* StaticLibrary.xcconfig */,
 			);
 			path = Targets;
 			sourceTree = "<group>";
 		};
-		D0DB5CFE1492DDE9005955FB /* iOS */ = {
+		D0F5CCFF14C578BF00966B2D /* iOS */ = {
 			isa = PBXGroup;
 			children = (
-				D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */,
-				D0DB5D001492DDE9005955FB /* iOS-Base.xcconfig */,
-				D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */,
+				D0F5CD0014C578BF00966B2D /* iOS-Application.xcconfig */,
+				D0F5CD0114C578BF00966B2D /* iOS-Base.xcconfig */,
+				D0F5CD0214C578BF00966B2D /* iOS-StaticLibrary.xcconfig */,
 			);
 			path = iOS;
 			sourceTree = "<group>";
 		};
-		D0DB5D021492DDE9005955FB /* Mac OS X */ = {
+		D0F5CD0314C578BF00966B2D /* Mac OS X */ = {
 			isa = PBXGroup;
 			children = (
-				D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */,
-				D0DB5D041492DDE9005955FB /* Mac-Base.xcconfig */,
-				D0DB5D051492DDE9005955FB /* Mac-DynamicLibrary.xcconfig */,
-				D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */,
-				D0DB5D071492DDE9005955FB /* Mac-StaticLibrary.xcconfig */,
+				D0F5CD0414C578BF00966B2D /* Mac-Application.xcconfig */,
+				D0F5CD0514C578BF00966B2D /* Mac-Base.xcconfig */,
+				D0F5CD0614C578BF00966B2D /* Mac-DynamicLibrary.xcconfig */,
+				D0F5CD0714C578BF00966B2D /* Mac-Framework.xcconfig */,
+				D0F5CD0814C578BF00966B2D /* Mac-StaticLibrary.xcconfig */,
 			);
 			path = "Mac OS X";
 			sourceTree = "<group>";
@@ -1217,7 +1216,7 @@
 /* Begin XCBuildConfiguration section */
 		D091862F1492EB9C001DEBC8 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5CF91492DDE9005955FB /* Profile.xcconfig */;
+			baseConfigurationReference = D0F5CCFA14C578BF00966B2D /* Profile.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
@@ -1229,7 +1228,7 @@
 		};
 		D09186301492EB9C001DEBC8 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */;
+			baseConfigurationReference = D0F5CD0714C578BF00966B2D /* Mac-Framework.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -1243,7 +1242,7 @@
 		};
 		D09186311492EB9C001DEBC8 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */;
+			baseConfigurationReference = D0F5CD0414C578BF00966B2D /* Mac-Application.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
@@ -1256,7 +1255,7 @@
 		};
 		D09186321492EB9C001DEBC8 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */;
+			baseConfigurationReference = D0F5CD0214C578BF00966B2D /* iOS-StaticLibrary.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				SDKROOT = iphoneos;
@@ -1265,7 +1264,7 @@
 		};
 		D09186331492EB9C001DEBC8 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */;
+			baseConfigurationReference = D0F5CD0014C578BF00966B2D /* iOS-Application.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1282,7 +1281,7 @@
 		};
 		D0B07AED1492E72800A1E816 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */;
+			baseConfigurationReference = D0F5CD0214C578BF00966B2D /* iOS-StaticLibrary.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				SDKROOT = iphoneos;
@@ -1291,7 +1290,7 @@
 		};
 		D0B07AEE1492E72800A1E816 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D011492DDE9005955FB /* iOS-StaticLibrary.xcconfig */;
+			baseConfigurationReference = D0F5CD0214C578BF00966B2D /* iOS-StaticLibrary.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				SDKROOT = iphoneos;
@@ -1300,7 +1299,7 @@
 		};
 		D0B07AEF1492E72800A1E816 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */;
+			baseConfigurationReference = D0F5CD0014C578BF00966B2D /* iOS-Application.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1317,7 +1316,7 @@
 		};
 		D0B07AF01492E72800A1E816 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5CFF1492DDE9005955FB /* iOS-Application.xcconfig */;
+			baseConfigurationReference = D0F5CD0014C578BF00966B2D /* iOS-Application.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1334,7 +1333,7 @@
 		};
 		D0DB5CEC1492DDD5005955FB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5CF81492DDE9005955FB /* Debug.xcconfig */;
+			baseConfigurationReference = D0F5CCF914C578BF00966B2D /* Debug.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
@@ -1346,7 +1345,7 @@
 		};
 		D0DB5CED1492DDD5005955FB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5CFA1492DDE9005955FB /* Release.xcconfig */;
+			baseConfigurationReference = D0F5CCFB14C578BF00966B2D /* Release.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
@@ -1358,7 +1357,7 @@
 		};
 		D0DB5CEF1492DDD5005955FB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */;
+			baseConfigurationReference = D0F5CD0714C578BF00966B2D /* Mac-Framework.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -1372,7 +1371,7 @@
 		};
 		D0DB5CF01492DDD5005955FB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D061492DDE9005955FB /* Mac-Framework.xcconfig */;
+			baseConfigurationReference = D0F5CD0714C578BF00966B2D /* Mac-Framework.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -1386,7 +1385,7 @@
 		};
 		D0DB5CF21492DDD5005955FB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */;
+			baseConfigurationReference = D0F5CD0414C578BF00966B2D /* Mac-Application.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
@@ -1399,7 +1398,7 @@
 		};
 		D0DB5CF31492DDD5005955FB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D0DB5D031492DDE9005955FB /* Mac-Application.xcconfig */;
+			baseConfigurationReference = D0F5CD0414C578BF00966B2D /* Mac-Application.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
