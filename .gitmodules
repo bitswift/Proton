@@ -1,6 +1,3 @@
-[submodule "Frameworks/SafeDispatch"]
-	path = Frameworks/SafeDispatch
-	url = git://github.com/jspahrsummers/SafeDispatch.git
 [submodule "Frameworks/CocoaLumberjack"]
 	path = Frameworks/CocoaLumberjack
 	url = git@github.com:bitswift/CocoaLumberjack.git
