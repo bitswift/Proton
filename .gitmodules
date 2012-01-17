@@ -1,9 +1,6 @@
-[submodule "Frameworks/libextobjc"]
-	path = Frameworks/libextobjc
-	url = git://github.com/jspahrsummers/libextobjc.git
-[submodule "Frameworks/SafeDispatch"]
-	path = Frameworks/SafeDispatch
-	url = git://github.com/jspahrsummers/SafeDispatch.git
-[submodule "Frameworks/CocoaLumberjack"]
-	path = Frameworks/CocoaLumberjack
+[submodule "Configuration"]
+	path = Configuration
+	url = git://github.com/jspahrsummers/xcconfigs.git
+[submodule "Libraries/CocoaLumberjack"]
+	path = Libraries/CocoaLumberjack
 	url = git@github.com:bitswift/CocoaLumberjack.git
