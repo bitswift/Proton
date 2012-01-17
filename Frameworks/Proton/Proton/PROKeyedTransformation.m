@@ -11,6 +11,7 @@
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedObject.h>
 #import <Proton/PROModelController.h>
+#import <Proton/PROModel.h>
 
 @implementation PROKeyedTransformation
 
@@ -148,8 +149,12 @@
             [values setObject:value forKey:key];
     }
 
-    if (![values count])
-        return [EXTNil null];
+    if (![values count]) {
+        if ([obj isKindOfClass:[PROModel class]])
+            return [[[obj class] alloc] init];
+        else
+            return [EXTNil null];
+    }
 
     // construct the object with its changed values and return it
     if ([obj isEqual:[EXTNil null]] || [obj isKindOfClass:[NSDictionary class]]) {
