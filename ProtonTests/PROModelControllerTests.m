@@ -275,6 +275,63 @@
     }
 }
 
+- (void)testNextTransformer {
+    PROModelController *controller = [[PROModelController alloc] init];
+    STAssertNil(controller.nextTransformer, @"");
+
+    @autoreleasepool {
+        __autoreleasing PROModelController *nextController = [[PROModelController alloc] init];
+
+        controller.nextTransformer = nextController;
+        STAssertEquals(controller.nextTransformer, nextController, @"");
+    }
+
+    // verify that it behaves like a weak property
+    STAssertNil(controller.nextTransformer, @"");
+}
+
+- (void)testUndoManagerFromNextTransformer {
+    PROModelController *nextController = [[PROModelController alloc] init];
+    nextController.undoManager = [[NSUndoManager alloc] init];
+    
+    PROModelController *controller = [[PROModelController alloc] init];
+    controller.nextTransformer = nextController;
+    
+    STAssertEquals(controller.undoManager, nextController.undoManager, @"");
+}
+
+- (void)testUndoingTransformations {
+    TestSubModelController *controller = [[TestSubModelController alloc] init];
+    STAssertNil(controller.undoManager, @"");
+
+    NSUndoManager *undoManager = [[NSUndoManager alloc] init];
+    undoManager.groupsByEvent = NO;
+
+    controller.undoManager = undoManager;
+    STAssertNotNil(controller.undoManager, @"");
+
+    TestSubModel *originalModel = [[TestSubModel alloc] init];
+    controller.model = originalModel;
+
+    PROTransformation *transformation = [originalModel transformationForKey:PROKeyForObject(originalModel, name) value:@"foobar"];
+    TestSubModel *newModel = [transformation transform:originalModel];
+
+    STAssertTrue([controller performTransformation:transformation], @"");
+    STAssertEqualObjects(controller.model, newModel, @"");
+
+    // the reverse transformation should now be on the undo stack
+    STAssertTrue(undoManager.canUndo, @"");
+
+    [undoManager undo];
+    STAssertEqualObjects(controller.model, originalModel, @"");
+
+    // we should now be able to redo as well
+    STAssertTrue(undoManager.canRedo, @"");
+
+    [undoManager redo];
+    STAssertEqualObjects(controller.model, newModel, @"");
+}
+
 @end
 
 @implementation TestSubModel
