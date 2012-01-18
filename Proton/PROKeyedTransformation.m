@@ -159,17 +159,18 @@
 
     // If some values were transformed into `null` values
     if ([nullValues count]) {
+        // Attempt to initialize an object
         id initializedObject = [nullValues
             foldEntriesWithValue:nil
             usingBlock:^(id attemptedObject, id key, id value) {
                 id currentValue = [obj valueForKey:key];
-                BOOL isCurrentValueACollection = (![currentValue isKindOfClass:[NSArray class]] &&
-                                                  ![currentValue isKindOfClass:[NSDictionary class]]);
+                BOOL isCurrentValueACollection = ([currentValue isKindOfClass:[NSArray class]] ||
+                                                  [currentValue isKindOfClass:[NSDictionary class]]);
 
                 // If `obj` is a PROModel and the key's value
-                // was transformed from a collection into an [EXTNil null]
+                // was transformed from a collection with items into an [EXTNil null]
                 // value, attempt to initialize the object.
-                if ([obj isKindOfClass:[PROModel class]] && isCurrentValueACollection)
+                if ([obj isKindOfClass:[PROModel class]] && isCurrentValueACollection && [currentValue count])
                     return [[[obj class] alloc] init];
                 else
                     return nil;
