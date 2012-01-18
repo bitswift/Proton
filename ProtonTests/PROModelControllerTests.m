@@ -293,20 +293,6 @@
 @implementation TestSuperModel
 @synthesize subModels = m_subModels;
 
-- (id)initWithDictionary:(NSDictionary *)dictionary {
-    self = [super initWithDictionary:dictionary];
-    if (!self)
-        return nil;
-
-    if (!m_subModels) {
-        // create an empty array so that we can easily insert into it with our
-        // tests
-        m_subModels = [[NSArray alloc] init];
-    }
-
-    return self;
-}
-
 - (id)initWithSubModel:(TestSubModel *)subModel; {
     NSArray *subModels = [NSArray arrayWithObject:subModel];
 
