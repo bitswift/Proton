@@ -225,15 +225,4 @@
 
 @implementation TestProModel
 @synthesize array = m_array;
-
-- (id)initWithDictionary:(NSDictionary *)dictionary {
-    self = [super initWithDictionary:dictionary];
-    if (!self)
-        return nil;
-    
-    if (!m_array)
-        m_array = [NSArray array];
-    return self;
-}
-
 @end
