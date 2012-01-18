@@ -7,7 +7,6 @@
 //
 
 #import <Proton/PROUniqueTransformation.h>
-#import <Proton/EXTNil.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROModelController.h>
@@ -41,7 +40,7 @@
         return nil;
 
     // if both are nil, leave them nil
-    // if one is nil, make it EXTNil
+    // if one is nil, make it NSNull
     // copy non-nil values
     if (inputValue) {
         m_inputValue = [inputValue copy];
@@ -49,10 +48,10 @@
         if (outputValue) {
             m_outputValue = [outputValue copy];
         } else {
-            m_outputValue = [EXTNil null];
+            m_outputValue = [NSNull null];
         }
     } else if (outputValue) {
-        m_inputValue = [EXTNil null];
+        m_inputValue = [NSNull null];
         m_outputValue = [outputValue copy];
     }
 

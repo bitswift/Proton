@@ -67,23 +67,23 @@
     STAssertFalse([mutableOutputValue isEqualToString:transformation.outputValue], @"");
 }
 
-- (void)testInitializationEXTNilConversion {
+- (void)testInitializationNSNullConversion {
     // providing nil for just the input value or just the output value should
-    // silently convert that one value to EXTNil
+    // silently convert that one value to NSNull
 
     {
         PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:nil];
         STAssertNotNil(transformation, @"");
 
         STAssertEqualObjects(transformation.inputValue, self.inputValue, @"");
-        STAssertEqualObjects(transformation.outputValue, [EXTNil null], @"");
+        STAssertEqualObjects(transformation.outputValue, [NSNull null], @"");
     }
 
     {
         PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:nil outputValue:self.outputValue];
         STAssertNotNil(transformation, @"");
 
-        STAssertEqualObjects(transformation.inputValue, [EXTNil null], @"");
+        STAssertEqualObjects(transformation.inputValue, [NSNull null], @"");
         STAssertEqualObjects(transformation.outputValue, self.outputValue, @"");
     }
 }
