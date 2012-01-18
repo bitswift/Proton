@@ -73,6 +73,7 @@
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
 
     /*
      * A unique transformation can mean one of two things:

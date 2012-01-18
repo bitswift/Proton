@@ -123,7 +123,7 @@
     NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [objects count])];
 
     PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexSet objects:objects];
-    STAssertEqualObjects([transformation transform:[EXTNil null]], objects, @"");
+    STAssertEqualObjects([transformation transform:[NSArray array]], objects, @"");
 }
 
 - (void)testTransformationOnEmptyArrayOutOfBounds {

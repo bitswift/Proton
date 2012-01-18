@@ -146,7 +146,7 @@
     NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [objects count])];
 
     PRORemovalTransformation *transformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexSet expectedObjects:objects];
-    STAssertEqualObjects([transformation transform:objects], [EXTNil null], @"");
+    STAssertEqualObjects([transformation transform:objects], [NSArray array], @"");
 }
 
 - (void)testPassthroughTransformation {

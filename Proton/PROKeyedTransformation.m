@@ -7,7 +7,6 @@
 //
 
 #import <Proton/PROKeyedTransformation.h>
-#import <Proton/EXTNil.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedObject.h>
 #import <Proton/PROModelController.h>
@@ -106,34 +105,28 @@
         return obj;
     }
 
-    NSMutableDictionary *values;
-
-    if ([obj isEqual:[EXTNil null]]) {
-        values = [[NSMutableDictionary alloc] init];
-    } else {
-        if (![obj respondsToSelector:@selector(dictionaryValue)]) {
-            // doesn't conform to <PROKeyedObject>
-            return nil;
-        }
-
-        // check with the class for this method, since runtime magic could
-        // (potentially) hide an init method after it's already initialized, or
-        // perhaps proxy this message to another object
-        if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
-            // doesn't conform to <PROKeyedObject>
-            return nil;
-        }
-
-        values = [[obj dictionaryValue] mutableCopy];
+    if (![obj respondsToSelector:@selector(dictionaryValue)]) {
+        // doesn't conform to <PROKeyedObject>
+        return nil;
     }
+
+    // check with the class for this method, since runtime magic could
+    // (potentially) hide an init method after it's already initialized, or
+    // perhaps proxy this message to another object
+    if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
+        // doesn't conform to <PROKeyedObject>
+        return nil;
+    }
+
+    NSMutableDictionary *values = [[obj dictionaryValue] mutableCopy];
 
     for (NSString *key in self.valueTransformations) {
         NSAssert2([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
 
-        id value = [values valueForKey:key];
+        id value = [values objectForKey:key];
         if (!value) {
-            // the key to transform does not exist -- consider it to be EXTNil
-            value = [EXTNil null];
+            // the key to transform does not exist -- consider it to be NSNull
+            value = [NSNull null];
         }
 
         PROTransformation *transformation = [self.valueTransformations objectForKey:key];
@@ -147,54 +140,18 @@
         [values setObject:value forKey:key];
     }
 
-    // Partition the transformed key/value pairs in `values`
-    // into `actualValues` and `nullValues`
-    NSDictionary *actualValues;
-    NSDictionary *nullValues = [values
-        filterEntriesWithFailedEntries:&actualValues
-        usingBlock:^(id key, id value) {
-            return [value isEqual:[EXTNil null]];
-        }
-    ];
-
-    // If some values were transformed into `null` values
-    if ([nullValues count]) {
-        // Attempt to initialize an object
-        id initializedObject = [nullValues
-            foldEntriesWithValue:nil
-            usingBlock:^(id attemptedObject, id key, id value) {
-                id currentValue = [obj valueForKey:key];
-                BOOL isCurrentValueACollection = ([currentValue isKindOfClass:[NSArray class]] ||
-                                                  [currentValue isKindOfClass:[NSDictionary class]]);
-
-                // If `obj` is a PROModel and the key's value
-                // was transformed from a collection with items into an [EXTNil null]
-                // value, attempt to initialize the object.
-                if ([obj isKindOfClass:[PROModel class]] && isCurrentValueACollection && [currentValue count])
-                    return [[[obj class] alloc] init];
-                else
-                    return nil;
-            }
-        ];
-
-        if (initializedObject)
-            return initializedObject;
-    }
-
-    if (![actualValues count])
-        return [EXTNil null];
-
     // construct the object with its changed values and return it
-    if ([obj isEqual:[EXTNil null]] || [obj isKindOfClass:[NSDictionary class]]) {
+    if ([obj isKindOfClass:[NSDictionary class]]) {
         // special-case NSDictionary, since it's a class cluster
-        return [actualValues copy];
+        return [values copy];
     } else {
-        return [[[obj class] alloc] initWithDictionary:actualValues];
+        return [[[obj class] alloc] initWithDictionary:values];
     }
 }
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
+    NSParameterAssert(result != nil);
 
     /*
      * A keyed transformation is simply a descent into the model, so we just

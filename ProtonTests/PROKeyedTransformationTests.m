@@ -126,37 +126,6 @@
     STAssertEqualObjects([transformation transform:[NSNumber numberWithInt:5]], [NSNumber numberWithInt:5], @"");
 }
 
-- (void)testTransformationOnEXTNil {
-    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:[EXTNil null] outputValue:@"foo"];
-    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:uniqueTransformation forKey:@"someKey"];
-
-    NSDictionary *expectedDictionary = [NSDictionary dictionaryWithObject:@"foo" forKey:@"someKey"];
-    STAssertEqualObjects([keyedTransformation transform:[EXTNil null]], expectedDictionary, @"");
-}
-
-- (void)testTransformationRemovingEXTNilResults {
-    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foo" outputValue:[EXTNil null]];
-    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:uniqueTransformation forKey:@"someKey"];
-
-    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-        @"foo", @"someKey",
-        [NSNumber numberWithInt:10], @"otherKey",
-        nil
-    ];
-
-    NSDictionary *expectedDictionary = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:10] forKey:@"otherKey"];
-
-    STAssertEqualObjects([keyedTransformation transform:dictionary], expectedDictionary, @"");
-}
-
-- (void)testTransformationResultingInEmptyDictionary {
-    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foo" outputValue:[EXTNil null]];
-    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:uniqueTransformation forKey:@"someKey"];
-
-    NSDictionary *dictionary = [NSDictionary dictionaryWithObject:@"foo" forKey:@"someKey"];
-    STAssertEqualObjects([keyedTransformation transform:dictionary], [EXTNil null], @"");
-}
-
 - (void)testTransformationResultingInValidModel {
     TestProModel *model = [[TestProModel alloc] init];
     model.array = [NSArray arrayWithObject:@"foo"];
