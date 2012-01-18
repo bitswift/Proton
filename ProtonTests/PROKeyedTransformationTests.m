@@ -161,7 +161,7 @@
     TestProModel *model = [[TestProModel alloc] init];
     model.array = [NSArray arrayWithObject:@"foo"];
 
-    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.array outputValue:[EXTNil null]];
+    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.array outputValue:[NSArray array]];
     NSDictionary *transformations = [NSDictionary dictionaryWithObject:uniqueTransformation forKey:@"array"];
 
     PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
@@ -225,4 +225,15 @@
 
 @implementation TestProModel
 @synthesize array = m_array;
+
+- (id)initWithDictionary:(NSDictionary *)dictionary {
+    self = [super initWithDictionary:dictionary];
+    if (!self)
+        return nil;
+    
+    if (!m_array)
+        m_array = [NSArray array];
+    return self;
+}
+
 @end
