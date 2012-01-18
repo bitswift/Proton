@@ -175,6 +175,11 @@
         }
 
         id value = [result valueForKey:key];
+        if (!value) {
+            // convert to NSNull, to match the -dictionaryValue method
+            value = [NSNull null];
+        }
+
         allModelUpdatesSuccessful &= [transformation updateModelController:modelController transformationResult:value forModelKeyPath:newKeyPath];
     }
 
