@@ -21,6 +21,13 @@
 + (TestModel *)testInstance;
 @end
 
+@interface CollectionTestModel : PROModel
+@property (nonatomic, copy) NSArray *array;
+@property (nonatomic, copy) NSDictionary *dictionary;
+@property (nonatomic, copy) NSOrderedSet *orderedSet;
+@property (nonatomic, copy) NSSet *set;
+@end
+
 @implementation PROModelTests
 
 - (void)testPropertyKeys {
@@ -42,10 +49,35 @@
     STAssertEqualObjects([TestModel propertyClassesByKey], classesByKey, @"");
 }
 
+- (void)testDefaultValuesForKeys {
+    STAssertNil([PROModel defaultValuesForKeys], @"");
+    STAssertNil([TestModel defaultValuesForKeys], @"");
+
+    NSDictionary *expectedDefaultValuesForCollectionTestModel = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSArray array], @"array",
+        [NSDictionary dictionary], @"dictionary",
+        [NSOrderedSet orderedSet], @"orderedSet",
+        [NSSet set], @"set",
+        nil
+    ];
+
+    STAssertEqualObjects([CollectionTestModel defaultValuesForKeys], expectedDefaultValuesForCollectionTestModel, @"");
+}
+
 - (void)testInitialization {
     PROModel *model = [[PROModel alloc] init];
     STAssertNotNil(model, @"");
     STAssertEqualObjects(model.dictionaryValue, [NSDictionary dictionary], @"");
+}
+
+- (void)testDefaultValueInitialization {
+    CollectionTestModel *model = [[CollectionTestModel alloc] init];
+    STAssertNotNil(model, @"");
+
+    STAssertEqualObjects(model.array, [NSArray array], @"");
+    STAssertEqualObjects(model.dictionary, [NSDictionary dictionary], @"");
+    STAssertEqualObjects(model.orderedSet, [NSOrderedSet orderedSet], @"");
+    STAssertEqualObjects(model.set, [NSSet set], @"");
 }
 
 - (void)testSubclassInitialization {
@@ -239,4 +271,11 @@
 
     return [[self alloc] initWithDictionary:dictionary];
 }
+@end
+
+@implementation CollectionTestModel
+@synthesize array = m_array;
+@synthesize dictionary = m_dictionary;
+@synthesize orderedSet = m_orderedSet;
+@synthesize set = m_set;
 @end

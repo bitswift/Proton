@@ -87,8 +87,25 @@
 + (NSDictionary *)propertyClassesByKey;
 
 /**
- * @name Reading Properties
+ * @name Property Values
  */
+
+/**
+ * Returns a dictionary containing the default values for any number of
+ * properties on the receiver. Any property not included in the dictionary will
+ * not be explicitly set on initialization.
+ *
+ * The default implementation of this method looks for any to-many properties on
+ * the receiver (by searching through <propertyClassesByKey> for `NSArray`,
+ * `NSDictionary`, `NSOrderedSet`, and `NSSet`) and creates an empty collection
+ * value for each one. This enables <PROInsertionTransformation>,
+ * <PRORemovalTransformation>, etc. to work even if a model object was not
+ * created with an explicit value for a to-many property.
+ *
+ * @warning **Important:** Default values do not go through key-value coding
+ * validation.
+ */
++ (NSDictionary *)defaultValuesForKeys;
 
 /**
  * Returns an immutable dictionary containing the properties of the receiver.

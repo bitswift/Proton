@@ -9,6 +9,7 @@
 #import <Proton/PROModel.h>
 #import <Proton/EXTRuntimeExtensions.h>
 #import <Proton/EXTScope.h>
+#import <Proton/NSDictionary+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
@@ -175,6 +176,35 @@
     }
     
     return transformation;
+}
+
+#pragma mark Default values
+
++ (NSDictionary *)defaultValuesForKeys; {
+    NSDictionary *defaultValues = [[self propertyClassesByKey] mapValuesUsingBlock:^(NSString *key, Class class){
+        // try to use the "autoreleasing" constructors, since they should be
+        // optimized to use a singleton empty collection (resulting in no memory
+        // allocation)
+
+        if ([class isSubclassOfClass:[NSArray class]])
+            return [class array];
+
+        if ([class isSubclassOfClass:[NSDictionary class]])
+            return [class dictionary];
+
+        if ([class isSubclassOfClass:[NSSet class]])
+            return [class set];
+
+        if ([class isSubclassOfClass:[NSOrderedSet class]])
+            return [class orderedSet];
+
+        return nil;
+    }];
+
+    if ([defaultValues count])
+        return defaultValues;
+    else
+        return nil;
 }
 
 #pragma mark PROKeyedObject
