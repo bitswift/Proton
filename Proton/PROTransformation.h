@@ -54,8 +54,7 @@
  * @param modelController The model controller to update. This should be the
  * controller responsible for `result`.
  * @param result A value previously returned from an invocation of <transform:>
- * on the receiver. If <transform:> returned `EXTNil`, this argument should be
- * `nil`.
+ * on the receiver.
  * @param modelKeyPath The key path, relative to the <model> property of the
  * model controller, at which to set to `result`. If `nil`, the result is
  * assumed to be a new value for <model> itself.

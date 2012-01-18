@@ -161,7 +161,7 @@
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
     STAssertTrue([controller performTransformation:modelTransformation], @"");
-    STAssertNil(controller.model.subModels, @"");
+    STAssertEqualObjects(controller.model.subModels, [NSArray array], @"");
 
     // make sure that no SubModelController exists
     STAssertEqualObjects(controller.subModelControllers, [NSArray array], @"");
