@@ -389,6 +389,10 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark Transformations
 
 - (BOOL)performTransformation:(PROTransformation *)transformation; {
+    return [self performTransformation:transformation sender:self];
+}
+
+- (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender {
     NSAssert(!self.performingTransformation, @"%s should not be invoked recursively", __func__);
 
     __block BOOL success = YES;
@@ -404,7 +408,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
                 // register the reverse transformation for undo upon success
                 [undoManager beginUndoGrouping];
-                [undoManager registerUndoWithTarget:self selector:_cmd object:transformation.reverseTransformation];
+                [undoManager registerUndoWithTarget:self selector:@selector(performTransformation:) object:transformation.reverseTransformation];
                 [undoManager endUndoGrouping];
             }
 

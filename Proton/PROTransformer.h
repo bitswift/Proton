@@ -26,12 +26,45 @@
 @required
 
     /**
+     * @name Transformer Chain
+     */
+
+    /**
      * The next transformer in the chain, or `nil` if this is the end of the
      * transformer chain.
      */
     @property (nonatomic, weak) id<PROTransformer> nextTransformer;
 
 @concrete
+    
+    /**
+     * @name Performing Transformations
+     */
+
+    /**
+     * Asks the receiver to perform the given transformation upon its model
+     * object. Returns whether the transformation succeeded.
+     *
+     * If the receiver needs to wrap the transformation in another compound
+     * transformation (for instance, to index into an array or dictionary), this
+     * method can be overridden to add to the given transformation, then invoke
+     * the method on the <nextTransformer>, passing the receiver as the new
+     * `sender`.
+     *
+     * The default implementation of this method simply calls through to the
+     * <nextTransformer>. `sender` is left unmodified.
+     *
+     * @param transformation The transformation to attempt to perform upon the
+     * model.
+     * @param sender The transformer that requested this transformation. For the
+     * initial call, this would typically be `self`. If any transformer modifies
+     * the transformation along the way, it should become the new sender.
+     */
+    - (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender;
+
+    /**
+     * @name Undo and Redo
+     */
 
     /**
      * The nearest shared undo manager in the transformer chain, or `nil` if
@@ -43,19 +76,5 @@
      * <nextTransformer>.
      */
     @property (nonatomic, strong, readonly) NSUndoManager *undoManager;
-
-    /**
-     * Asks the receiver to perform the given transformation upon its model
-     * object. Returns whether the transformation succeeded.
-     *
-     * If the receiver needs to wrap the transformation in another compound
-     * transformation (for instance, to index into an array or dictionary), this
-     * method can be overridden to add to the given transformation, then invoke
-     * the method on the <nextTransformer>.
-     *
-     * The default implementation of this method simply calls through to the
-     * <nextTransformer>.
-     */
-    - (BOOL)performTransformation:(PROTransformation *)transformation;
 
 @end

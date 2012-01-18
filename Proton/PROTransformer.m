@@ -28,8 +28,8 @@
 
 #pragma mark Transformation
 
-- (BOOL)performTransformation:(PROTransformation *)transformation; {
-    return [self.nextTransformer performTransformation:transformation];
+- (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender; {
+    return [self.nextTransformer performTransformation:transformation sender:sender];
 }
 
 @end
