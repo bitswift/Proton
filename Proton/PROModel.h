@@ -69,7 +69,7 @@
 
 /**
  * Returns an array containing the names of all of the properties on the
- * receiver's class, or `nil` if no properties have been declared.
+ * receiver, or `nil` if no properties have been declared.
  *
  * This will only include `@property` declarations (i.e., Objective-C 2.0
  * properties), not any methods that look like accessors.
@@ -77,8 +77,35 @@
 + (NSArray *)propertyKeys;
 
 /**
- * @name Reading Properties
+ * Returns a dictionary containing the classes of all of the properties on the
+ * receiver, keyed by property name.
+ *
+ * This will only include `@property` declarations that are of object type and
+ * explicitly specify a class. Properties of type `id` will not be included in
+ * the result.
  */
++ (NSDictionary *)propertyClassesByKey;
+
+/**
+ * @name Property Values
+ */
+
+/**
+ * Returns a dictionary containing the default values for any number of
+ * properties on the receiver. Any property not included in the dictionary will
+ * not be explicitly set on initialization.
+ *
+ * The default implementation of this method looks for any to-many properties on
+ * the receiver (by searching through <propertyClassesByKey> for `NSArray`,
+ * `NSDictionary`, `NSOrderedSet`, and `NSSet`) and creates an empty collection
+ * value for each one. This enables <PROInsertionTransformation>,
+ * <PRORemovalTransformation>, etc. to work even if a model object was not
+ * created with an explicit value for a to-many property.
+ *
+ * @warning **Important:** Default values do not go through key-value coding
+ * validation.
+ */
++ (NSDictionary *)defaultValuesForKeys;
 
 /**
  * Returns an immutable dictionary containing the properties of the receiver.
