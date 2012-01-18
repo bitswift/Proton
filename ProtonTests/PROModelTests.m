@@ -30,6 +30,18 @@
     STAssertEqualObjects([TestModel propertyKeys], keys, @"");
 }
 
+- (void)testPropertyClassesByKey {
+    STAssertNil([PROModel propertyClassesByKey], @"");
+
+    NSDictionary *classesByKey = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSString class], @"name",
+        [NSDate class], @"date",
+        nil
+    ];
+
+    STAssertEqualObjects([TestModel propertyClassesByKey], classesByKey, @"");
+}
+
 - (void)testInitialization {
     PROModel *model = [[PROModel alloc] init];
     STAssertNotNil(model, @"");

@@ -69,12 +69,22 @@
 
 /**
  * Returns an array containing the names of all of the properties on the
- * receiver's class, or `nil` if no properties have been declared.
+ * receiver, or `nil` if no properties have been declared.
  *
  * This will only include `@property` declarations (i.e., Objective-C 2.0
  * properties), not any methods that look like accessors.
  */
 + (NSArray *)propertyKeys;
+
+/**
+ * Returns a dictionary containing the classes of all of the properties on the
+ * receiver, keyed by property name.
+ *
+ * This will only include `@property` declarations that are of object type and
+ * explicitly specify a class. Properties of type `id` will not be included in
+ * the result.
+ */
++ (NSDictionary *)propertyClassesByKey;
 
 /**
  * @name Reading Properties

@@ -97,6 +97,32 @@
         return nil;
 }
 
++ (NSDictionary *)propertyClassesByKey; {
+    NSMutableDictionary *classesByKey = [[NSMutableDictionary alloc] init];
+
+    [self enumeratePropertiesUsingBlock:^(objc_property_t property){
+        ext_propertyAttributes *attributes = ext_copyPropertyAttributes(property);
+        if (!attributes)
+            return;
+
+        @onExit {
+            free(attributes);
+        };
+
+        Class objectClass = attributes->objectClass;
+        if (!objectClass)
+            return;
+
+        NSString *key = [[NSString alloc] initWithUTF8String:property_getName(property)];
+        [classesByKey setObject:objectClass forKey:key];
+    }];
+
+    if ([classesByKey count])
+        return classesByKey;
+    else
+        return nil;
+}
+
 #pragma mark Transformation
 
 - (id)transformValueForKey:(NSString *)key toValue:(id)value {
