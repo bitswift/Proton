@@ -52,6 +52,7 @@ extern int ddLogLevel;
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROOrderTransformation.h>
 #import <Proton/PRORemovalTransformation.h>
+#import <Proton/PROTransformer.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueIdentifier.h>
 #import <Proton/PROUniqueTransformation.h>
