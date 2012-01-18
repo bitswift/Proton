@@ -162,6 +162,6 @@
  * <performTransformation:>. Direct changes to the <model> or any model
  * controller properties will not automatically be registered for undo.
  */
-@property (nonatomic, strong) NSUndoManager *undoManager;
+@property (nonatomic, strong) NSUndoManager *transformationUndoManager;
 
 @end

@@ -98,6 +98,22 @@
     STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
 }
 
+- (void)testPerformTransformationWithSender {
+    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+
+    PROTransformation *transformation = [controller.model transformationForKey:PROKeyForObject(controller.model, subModels) value:[NSArray arrayWithObject:subModel]];
+    TestSuperModel *newModel = [transformation transform:controller.model];
+
+    STAssertTrue([controller performTransformation:transformation sender:nil], @"");
+    STAssertEqualObjects(controller.model, newModel, @"");
+
+    // make sure that a SubModelController exists for the new SubModel
+    STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
+    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
+}
+
 - (void)testPerformingKeyedTransformation {
     TestSuperModelController *controller = [[TestSuperModelController alloc] init];
 
@@ -292,23 +308,23 @@
 
 - (void)testUndoManagerFromNextTransformer {
     PROModelController *nextController = [[PROModelController alloc] init];
-    nextController.undoManager = [[NSUndoManager alloc] init];
+    nextController.transformationUndoManager = [[NSUndoManager alloc] init];
     
     PROModelController *controller = [[PROModelController alloc] init];
     controller.nextTransformer = nextController;
     
-    STAssertEquals(controller.undoManager, nextController.undoManager, @"");
+    STAssertEquals(controller.transformationUndoManager, nextController.transformationUndoManager, @"");
 }
 
 - (void)testUndoingTransformations {
     TestSubModelController *controller = [[TestSubModelController alloc] init];
-    STAssertNil(controller.undoManager, @"");
+    STAssertNil(controller.transformationUndoManager, @"");
 
     NSUndoManager *undoManager = [[NSUndoManager alloc] init];
     undoManager.groupsByEvent = NO;
 
-    controller.undoManager = undoManager;
-    STAssertNotNil(controller.undoManager, @"");
+    controller.transformationUndoManager = undoManager;
+    STAssertNotNil(controller.transformationUndoManager, @"");
 
     TestSubModel *originalModel = [[TestSubModel alloc] init];
     controller.model = originalModel;
