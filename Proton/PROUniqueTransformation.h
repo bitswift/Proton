@@ -31,7 +31,7 @@
  * If the `inputValue` and `outputValue` are _both_ `nil`, the transformer will
  * be initialized to pass all values through without modification. If either
  * argument is `nil` but the other is not, the `nil` argument is silently
- * converted to `EXTNil` to form a valid transformation.
+ * converted to `NSNull` to form a valid transformation.
  *
  * This is the designated initializer for this class.
  *
