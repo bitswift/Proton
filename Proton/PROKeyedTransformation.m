@@ -12,6 +12,7 @@
 #import <Proton/PROKeyedObject.h>
 #import <Proton/PROModelController.h>
 #import <Proton/PROModel.h>
+#import <Proton/NSDictionary+HigherOrderAdditions.h>
 
 @implementation PROKeyedTransformation
 
@@ -143,25 +144,51 @@
             return nil;
         }
 
-        if ([value isEqual:[EXTNil null]])
-            [values removeObjectForKey:key];
-        else
-            [values setObject:value forKey:key];
+        [values setObject:value forKey:key];
     }
 
-    if (![values count]) {
-        if ([obj isKindOfClass:[PROModel class]])
-            return [[[obj class] alloc] init];
-        else
-            return [EXTNil null];
+    // Partition the transformed key/value pairs in `values`
+    // into `actualValues` and `nullValues`
+    NSDictionary *actualValues;
+    NSDictionary *nullValues = [values
+        filterEntriesWithFailedEntries:&actualValues
+        usingBlock:^(id key, id value) {
+            return [value isEqual:[EXTNil null]];
+        }
+    ];
+
+    // If some values were transformed into `null` values
+    if ([nullValues count]) {
+        id initializedObject = [nullValues
+            foldEntriesWithValue:nil
+            usingBlock:^(id attemptedObject, id key, id value) {
+                id currentValue = [obj valueForKey:key];
+                BOOL isCurrentValueACollection = (![currentValue isKindOfClass:[NSArray class]] &&
+                                                  ![currentValue isKindOfClass:[NSDictionary class]]);
+
+                // If `obj` is a PROModel and the key's value
+                // was transformed from a collection into an [EXTNil null]
+                // value, attempt to initialize the object.
+                if ([obj isKindOfClass:[PROModel class]] && isCurrentValueACollection)
+                    return [[[obj class] alloc] init];
+                else
+                    return nil;
+            }
+        ];
+
+        if (initializedObject)
+            return initializedObject;
     }
+
+    if (![actualValues count])
+        return [EXTNil null];
 
     // construct the object with its changed values and return it
     if ([obj isEqual:[EXTNil null]] || [obj isKindOfClass:[NSDictionary class]]) {
         // special-case NSDictionary, since it's a class cluster
-        return [values copy];
+        return [actualValues copy];
     } else {
-        return [[[obj class] alloc] initWithDictionary:values];
+        return [[[obj class] alloc] initWithDictionary:actualValues];
     }
 }
 
