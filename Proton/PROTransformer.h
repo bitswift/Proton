@@ -62,19 +62,4 @@
      */
     - (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender;
 
-    /**
-     * @name Undo and Redo
-     */
-
-    /**
-     * The nearest shared undo manager in the transformer chain, or `nil` if
-     * there is no undo manager.
-     *
-     * This is typically used to make user-visible changes undoable.
-     *
-     * The default implementation of this property simply calls through to the
-     * <nextTransformer>.
-     */
-    @property (nonatomic, strong, readonly) NSUndoManager *transformationUndoManager;
-
 @end

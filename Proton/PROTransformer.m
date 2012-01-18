@@ -22,10 +22,6 @@
     NSAssert(NO, @"%@ must be implemented by classes conforming to <PROTransformer>", NSStringFromSelector(_cmd));
 }
 
-- (NSUndoManager *)transformationUndoManager; {
-    return self.nextTransformer.transformationUndoManager;
-}
-
 #pragma mark Transformation
 
 - (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender; {
