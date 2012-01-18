@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <Proton/PROTransformer.h>
 
 @class PROModel;
 @class PROTransformation;
@@ -16,7 +17,7 @@
  * A base class for controller objects that manage <PROModel> references over
  * time.
  */
-@interface PROModelController : NSObject
+@interface PROModelController : NSObject <PROTransformer>
 
 /**
  * @name Initialization
@@ -143,5 +144,24 @@
  * notifications that are received during the course of a transformation.
  */
 @property (assign, readonly, getter = isPerformingTransformation) BOOL performingTransformation;
+
+/**
+ * An undo manager with which to register undo and redo operations for
+ * transformations, or `nil` to disable undo support for changes on this model
+ * controller.
+ *
+ * If an undo manager is provided, or can be obtained from the <[PROTransformer
+ * nextTransformer]>, every successful invocation of <performTransformation:>
+ * will automatically register the reverse transformation on the undo stack,
+ * such that invoking the `-undo` method will reverse the transformation (if
+ * possible).
+ *
+ * The default value for this property is `nil`.
+ *
+ * @warning **Important:** This undo manager is used _only_ for
+ * <performTransformation:>. Direct changes to the <model> or any model
+ * controller properties will not automatically be registered for undo.
+ */
+@property (nonatomic, strong) NSUndoManager *undoManager;
 
 @end

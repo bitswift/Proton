@@ -26,6 +26,7 @@ extern int ddLogLevel;
     #define LOG_ASYNC_ENABLED NO
 #endif
 
+#import <Proton/EXTConcreteProtocol.h>
 #import <Proton/EXTNil.h>
 #import <Proton/EXTRuntimeExtensions.h>
 #import <Proton/EXTSafeCategory.h>
@@ -51,6 +52,7 @@ extern int ddLogLevel;
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROOrderTransformation.h>
 #import <Proton/PRORemovalTransformation.h>
+#import <Proton/PROTransformer.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueIdentifier.h>
 #import <Proton/PROUniqueTransformation.h>
