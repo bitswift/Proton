@@ -36,6 +36,10 @@
     if (!self)
         return nil;
 
+    NSDictionary *defaultValues = [[self class] defaultValuesForKeys];
+    if (defaultValues)
+        [self setValuesForKeysWithDictionary:defaultValues];
+
     for (NSString *key in dictionary) {
         // mark this as being autoreleased, because validateValue may return
         // a new object to be stored in this variable (and we don't want ARC to
