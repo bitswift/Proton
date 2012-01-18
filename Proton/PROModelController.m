@@ -381,7 +381,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 - (BOOL)performTransformation:(PROTransformation *)transformation; {
     NSAssert(!self.performingTransformation, @"%s should not be invoked recursively", __func__);
 
-    __block BOOL success = NO;
+    __block BOOL success = YES;
     
     // TODO: seems like this should synchronize with child model controllers as
     // well, to prevent deadlocks from jumping back and forth
@@ -392,9 +392,10 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             self.performingTransformationOnDispatchQueue = NO;
         };
 
-        id model = [transformation transform:self.model];
+        PROModel *oldModel = self.model;
+        PROModel *newModel = [transformation transform:oldModel];
 
-        if (!model) {
+        if (!newModel) {
             // fail immediately, before any side effects
             success = NO;
             return;
@@ -403,15 +404,23 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         if ([transformation isKindOfClass:[PROUniqueTransformation class]]) {
             // for a unique transformation, we want to use the proper setter for
             // 'model' to make sure that all model controllers are replaced
-            self.model = model;
+            self.model = newModel;
         } else {
             // for any other kind of transformation, we don't necessarily want
             // to replace all of the model controllers
-            [self setModel:model replacingModelControllers:NO];
-            [transformation updateModelController:self transformationResult:model forModelKeyPath:nil];
-        }
+            [self setModel:newModel replacingModelControllers:NO];
 
-        success = YES;
+            success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
+            if (!success) {
+                // this should never happen
+                DDLogError(@"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel);
+
+                // do our best to back out of that failure -- this probably
+                // won't be 100%, since model controllers may already have
+                // updated references
+                [self setModel:oldModel replacingModelControllers:NO];
+            }
+        }
     }];
 
     return success;
