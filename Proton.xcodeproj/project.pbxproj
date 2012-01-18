@@ -143,6 +143,12 @@
 		D0C42D6614984CE100A08989 /* PROModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D6214984CE100A08989 /* PROModel.m */; };
 		D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
 		D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
+		D0DA64C414C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0DA64C514C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0DA64C614C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */; };
+		D0DA64C714C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */; };
+		D0DA64CB14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DA64CA14C67E4E00B6A577 /* EXTConcreteProtocolTest.m */; };
+		D0DA64CC14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DA64CA14C67E4E00B6A577 /* EXTConcreteProtocolTest.m */; };
 		D0DB5CD21492DDD5005955FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0DB5CD01492DDD5005955FB /* InfoPlist.strings */; };
 		D0DB5CDE1492DDD5005955FB /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0DB5CE21492DDD5005955FB /* Proton.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CC41492DDD5005955FB /* Proton.framework */; };
@@ -298,6 +304,10 @@
 		D0C42D6214984CE100A08989 /* PROModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModel.m; sourceTree = "<group>"; };
 		D0C42D77149857CB00A08989 /* PROModelTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelTests.h; sourceTree = "<group>"; };
 		D0C42D78149857CB00A08989 /* PROModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelTests.m; sourceTree = "<group>"; };
+		D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocol.h; sourceTree = "<group>"; };
+		D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTConcreteProtocol.m; sourceTree = "<group>"; };
+		D0DA64C914C67E4E00B6A577 /* EXTConcreteProtocolTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocolTest.h; sourceTree = "<group>"; };
+		D0DA64CA14C67E4E00B6A577 /* EXTConcreteProtocolTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTConcreteProtocolTest.m; sourceTree = "<group>"; };
 		D0DB5CC41492DDD5005955FB /* Proton.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Proton.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0DB5CCF1492DDD5005955FB /* Proton-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Proton-Info.plist"; sourceTree = "<group>"; };
 		D0DB5CD11492DDD5005955FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -713,6 +723,8 @@
 		D0F5CD1314C5790D00966B2D /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */,
+				D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */,
 				D0F5CD1414C5790D00966B2D /* EXTRuntimeExtensions.h */,
 				D0F5CD1514C5790D00966B2D /* EXTRuntimeExtensions.m */,
 				D0F5CD1614C5790D00966B2D /* EXTSafeCategory.h */,
@@ -726,6 +738,8 @@
 		D0F5CD1A14C5790D00966B2D /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				D0DA64C914C67E4E00B6A577 /* EXTConcreteProtocolTest.h */,
+				D0DA64CA14C67E4E00B6A577 /* EXTConcreteProtocolTest.m */,
 				D0F5CD1B14C5790D00966B2D /* EXTNilTest.h */,
 				D0F5CD1C14C5790D00966B2D /* EXTNilTest.m */,
 				D0F5CD1D14C5790D00966B2D /* EXTRuntimeExtensionsTest.h */,
@@ -820,6 +834,7 @@
 				D0F5CD5414C5799C00966B2D /* DDASLLogger.h in Headers */,
 				D0F5CD5814C5799C00966B2D /* DDLog.h in Headers */,
 				D0F5CD5C14C5799C00966B2D /* DDTTYLogger.h in Headers */,
+				D0DA64C514C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -861,6 +876,7 @@
 				D0F5CD5314C5799C00966B2D /* DDASLLogger.h in Headers */,
 				D0F5CD5714C5799C00966B2D /* DDLog.h in Headers */,
 				D0F5CD5B14C5799C00966B2D /* DDTTYLogger.h in Headers */,
+				D0DA64C414C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1060,6 +1076,7 @@
 				D0F5CD5614C5799C00966B2D /* DDASLLogger.m in Sources */,
 				D0F5CD5A14C5799C00966B2D /* DDLog.m in Sources */,
 				D0F5CD5E14C5799C00966B2D /* DDTTYLogger.m in Sources */,
+				D0DA64C714C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1090,6 +1107,7 @@
 				D0F5CD3B14C5795800966B2D /* EXTSafeCategoryTest.m in Sources */,
 				D0F5CD3C14C5795800966B2D /* EXTScopeTest.m in Sources */,
 				D0F5CD4914C5796D00966B2D /* SDQueueTests.m in Sources */,
+				D0DA64CC14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1128,6 +1146,7 @@
 				D0F5CD5514C5799C00966B2D /* DDASLLogger.m in Sources */,
 				D0F5CD5914C5799C00966B2D /* DDLog.m in Sources */,
 				D0F5CD5D14C5799C00966B2D /* DDTTYLogger.m in Sources */,
+				D0DA64C614C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1158,6 +1177,7 @@
 				D0F5CD3714C5795800966B2D /* EXTSafeCategoryTest.m in Sources */,
 				D0F5CD3814C5795800966B2D /* EXTScopeTest.m in Sources */,
 				D0F5CD4814C5796C00966B2D /* SDQueueTests.m in Sources */,
+				D0DA64CB14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
