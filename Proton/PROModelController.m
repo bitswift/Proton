@@ -103,7 +103,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @synthesize modelControllerObservers = m_modelControllerObservers;
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 @synthesize nextTransformer = m_nextTransformer;
-@synthesize undoManager = m_undoManager;
+@synthesize transformationUndoManager = m_transformationUndoManager;
 
 - (id)model {
     __block id model;
@@ -170,12 +170,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return self.performingTransformationOnDispatchQueue;
 }
 
-- (NSUndoManager *)undoManager {
-    if (m_undoManager)
-        return m_undoManager;
+- (NSUndoManager *)transformationUndoManager {
+    if (m_transformationUndoManager)
+        return m_transformationUndoManager;
 
     // otherwise, traverse the transformer chain
-    return self.nextTransformer.undoManager;
+    return self.nextTransformer.transformationUndoManager;
 }
 
 #pragma mark Lifecycle
@@ -404,7 +404,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
         @onExit {
             if (success) {
-                NSUndoManager *undoManager = self.undoManager;
+                NSUndoManager *undoManager = self.transformationUndoManager;
 
                 // register the reverse transformation for undo upon success
                 [undoManager beginUndoGrouping];

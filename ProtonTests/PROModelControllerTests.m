@@ -308,23 +308,23 @@
 
 - (void)testUndoManagerFromNextTransformer {
     PROModelController *nextController = [[PROModelController alloc] init];
-    nextController.undoManager = [[NSUndoManager alloc] init];
+    nextController.transformationUndoManager = [[NSUndoManager alloc] init];
     
     PROModelController *controller = [[PROModelController alloc] init];
     controller.nextTransformer = nextController;
     
-    STAssertEquals(controller.undoManager, nextController.undoManager, @"");
+    STAssertEquals(controller.transformationUndoManager, nextController.transformationUndoManager, @"");
 }
 
 - (void)testUndoingTransformations {
     TestSubModelController *controller = [[TestSubModelController alloc] init];
-    STAssertNil(controller.undoManager, @"");
+    STAssertNil(controller.transformationUndoManager, @"");
 
     NSUndoManager *undoManager = [[NSUndoManager alloc] init];
     undoManager.groupsByEvent = NO;
 
-    controller.undoManager = undoManager;
-    STAssertNotNil(controller.undoManager, @"");
+    controller.transformationUndoManager = undoManager;
+    STAssertNotNil(controller.transformationUndoManager, @"");
 
     TestSubModel *originalModel = [[TestSubModel alloc] init];
     controller.model = originalModel;

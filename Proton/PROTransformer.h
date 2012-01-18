@@ -75,6 +75,6 @@
      * The default implementation of this property simply calls through to the
      * <nextTransformer>.
      */
-    @property (nonatomic, strong, readonly) NSUndoManager *undoManager;
+    @property (nonatomic, strong, readonly) NSUndoManager *transformationUndoManager;
 
 @end
