@@ -23,6 +23,17 @@
 @interface PROTransformation : NSObject <NSCoding, NSCopying>
 
 /**
+ * @name Error Handling
+ */
+
+/**
+ * Returns the error domain for all Proton transformations.
+ *
+ * You should not use this error domain for custom transformation subclasses.
+ */
++ (NSString *)errorDomain;
+
+/**
  * @name Transformation
  */
 
@@ -30,16 +41,21 @@
  * Attempts to transform the given object.
  *
  * If no transformation is possible, or the object is invalid, `nil` is
- * returned. To describe a transformation that should return `nil`, return
- * `EXTNil` or `NSNull` instead.
+ * returned, and `error` is filled in with the error that occurred. To describe
+ * a transformation that should return `nil`, return `EXTNil` or `NSNull`
+ * instead.
  *
  * @param obj The object to attempt to transform. This value should not be
  * `nil`.
+ * @param error If not `NULL`, and this method returns `nil`, this is set to the
+ * error that occurred if the receiver (or one of its <transformations>) failed.
+ * **This error should not be presented to the user**, as it is unlikely to
+ * contain useful information for them.
  *
  * @warning **Important:** This method must be implemented by subclasses. You
  * should not call the superclass implementation.
  */
-- (id)transform:(id)obj;
+- (id)transform:(id)obj error:(NSError **)error;
 
 /**
  * Attempts to update the given key path, relative to the given model
@@ -53,8 +69,8 @@
  *
  * @param modelController The model controller to update. This should be the
  * controller responsible for `result`.
- * @param result A value previously returned from an invocation of <transform:>
- * on the receiver.
+ * @param result A value previously returned from an invocation of
+ * <transform:error:> on the receiver.
  * @param modelKeyPath The key path, relative to the <model> property of the
  * model controller, at which to set to `result`. If `nil`, the result is
  * assumed to be a new value for <model> itself.
@@ -94,8 +110,9 @@
  *
  * The reverse transformation is defined such that
  *
- *  1. Invoking <transform:> on the receiver with an object `obj`
- *  2. Passing the result to the <transform:> method of the reverse transformation
+ *  1. Invoking <transform:error:> on the receiver with an object `obj`
+ *  2. Passing the result to the <transform:error:> method of the reverse
+ *  transformation
  * 
  * will return an object that compares equal to `obj`.
  *
