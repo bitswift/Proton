@@ -107,12 +107,10 @@
     PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:self.transformations];
 
     // giving the startValue should yield the endValue
-    STAssertEqualObjects([indexedTransformation transform:self.startValue], self.endValue, @"");
+    STAssertEqualObjects([indexedTransformation transform:self.startValue error:NULL], self.endValue, @"");
 
-    STAssertNil([indexedTransformation transform:self.endValue], @"");
-    STAssertNil([indexedTransformation transform:[NSNull null]], @"");
-    STAssertNil([indexedTransformation transform:[NSArray array]], @"");
-    STAssertNil([indexedTransformation transform:[NSOrderedSet orderedSet]], @"");
+    STAssertNil([indexedTransformation transform:self.endValue error:NULL], @"");
+    STAssertNil([indexedTransformation transform:[NSArray array] error:NULL], @"");
 }
 
 - (void)testTransformationOutOfBounds {
@@ -122,24 +120,26 @@
     PROIndexedTransformation *indexedTransformation = [[PROIndexedTransformation alloc] initWithIndexes:outOfBoundsSet transformations:transformations];
 
     // an out of bounds index should return nil
-    STAssertNil([indexedTransformation transform:self.startValue], @"");
+    NSError *error = nil;
+    STAssertNil([indexedTransformation transform:self.startValue error:&error], @"");
 
-    STAssertNil([indexedTransformation transform:self.endValue], @"");
-    STAssertNil([indexedTransformation transform:[NSNull null]], @"");
-    STAssertNil([indexedTransformation transform:[NSArray array]], @"");
-    STAssertNil([indexedTransformation transform:[NSOrderedSet orderedSet]], @"");
+    STAssertEquals(error.code, PROTransformationErrorIndexOutOfBounds, @"");
+    STAssertNotNil(error.localizedDescription, @"");
+
+    NSArray *failingTransformations = [[NSArray arrayWithObject:indexedTransformation] arrayByAddingObjectsFromArray:transformations];
+    STAssertEqualObjects([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey], failingTransformations, @"");
+
+    STAssertNil([indexedTransformation transform:self.endValue error:NULL], @"");
+    STAssertNil([indexedTransformation transform:[NSArray array] error:NULL], @"");
 }
 
 - (void)testPassthroughTransformation {
     PROIndexedTransformation *transformation = [[PROIndexedTransformation alloc] init];
 
     // giving any value should yield the same value
-    STAssertEqualObjects([transformation transform:self.startValue], self.startValue, @"");
-    STAssertEqualObjects([transformation transform:self.endValue], self.endValue, @"");
-    STAssertEqualObjects([transformation transform:[NSNull null]], [NSNull null], @"");
-    STAssertEqualObjects([transformation transform:[NSNumber numberWithInt:5]], [NSNumber numberWithInt:5], @"");
-    STAssertEqualObjects([transformation transform:[NSArray array]], [NSArray array], @"");
-    STAssertEqualObjects([transformation transform:[NSOrderedSet orderedSet]], [NSOrderedSet orderedSet], @"");
+    STAssertEqualObjects([transformation transform:self.startValue error:NULL], self.startValue, @"");
+    STAssertEqualObjects([transformation transform:self.endValue error:NULL], self.endValue, @"");
+    STAssertEqualObjects([transformation transform:[NSArray array] error:NULL], [NSArray array], @"");
 }
 
 - (void)testReverseTransformation {
@@ -159,14 +159,11 @@
 
     // for the reverse transformation, giving the endValue should yield the
     // startValue
-    STAssertEqualObjects([reverseTransformation transform:self.endValue], self.startValue, @"");
+    STAssertEqualObjects([reverseTransformation transform:self.endValue error:NULL], self.startValue, @"");
 
     // anything else should return nil
-    STAssertNil([reverseTransformation transform:self.startValue], @"");
-    STAssertNil([reverseTransformation transform:[NSNull null]], @"");
-    STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
-    STAssertNil([reverseTransformation transform:[NSArray array]], @"");
-    STAssertNil([reverseTransformation transform:[NSOrderedSet orderedSet]], @"");
+    STAssertNil([reverseTransformation transform:self.startValue error:NULL], @"");
+    STAssertNil([reverseTransformation transform:[NSArray array] error:NULL], @"");
 }
 
 - (void)testEquality {
