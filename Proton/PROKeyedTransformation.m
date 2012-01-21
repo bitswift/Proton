@@ -106,7 +106,9 @@
     }
 
     if (![obj respondsToSelector:@selector(dictionaryValue)]) {
-        // doesn't conform to <PROKeyedObject>
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ does not conform to <PROKeyedObject>", obj];
+
         return nil;
     }
 
@@ -114,14 +116,16 @@
     // (potentially) hide an init method after it's already initialized, or
     // perhaps proxy this message to another object
     if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
-        // doesn't conform to <PROKeyedObject>
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ does not conform to <PROKeyedObject>", obj];
+
         return nil;
     }
 
     NSMutableDictionary *values = [[obj dictionaryValue] mutableCopy];
 
     for (NSString *key in self.valueTransformations) {
-        NSAssert2([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
+        NSAssert([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
 
         id value = [values objectForKey:key];
         if (!value) {
@@ -133,6 +137,11 @@
 
         value = [transformation transform:value error:error];
         if (!value) {
+            if (error) {
+                NSString *path = [NSString stringWithFormat:@"%@.", key];
+                *error = [self prependTransformationPath:path toError:*error];
+            }
+
             // invalid transformation
             return nil;
         }
