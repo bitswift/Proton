@@ -131,11 +131,11 @@
 #pragma mark Transformation
 
 - (id)transformValueForKey:(NSString *)key toValue:(id)value {
-    return [[self transformationForKey:key value:value] transform:self];
+    return [[self transformationForKey:key value:value] transform:self error:NULL];
 }
 
 - (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary {
-    return [[self transformationForKeysWithDictionary:dictionary] transform:self];   
+    return [[self transformationForKeysWithDictionary:dictionary] transform:self error:NULL];   
 }
 
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value; {
@@ -174,7 +174,7 @@
     // set up a key-based transformation for self
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
     
-    if (![transformation transform:self]) {
+    if (![transformation transform:self error:NULL]) {
         // this transformation cannot be validly applied to 'self'
         return nil;
     }

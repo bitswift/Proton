@@ -10,6 +10,7 @@
 #import <Proton/EXTScope.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
+#import <Proton/PROAssert.h>
 #import <Proton/PROModelController.h>
 
 @implementation PROIndexedTransformation
@@ -59,26 +60,34 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)array; {
+- (id)transform:(NSArray *)array error:(NSError **)error; {
     // Return the unmodified object if indexes is nil
     if (!self.indexes)
         return array;
 
-    if (![array isKindOfClass:[NSArray class]])
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
         return nil;
+    }
 
     NSUInteger arrayCount = [array count];
 
     // if the index set goes out of bounds, return nil
-    if (self.indexes.lastIndex >= arrayCount)
+    if (self.indexes.lastIndex >= arrayCount) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.indexes.lastIndex, array];
+
         return nil;
+    }
 
     NSUInteger indexCount = [self.indexes count];
 
     // we have to copy the indexes into a C array, since there's no way to
     // retrieve values from it one-by-one
     NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
-    if (!indexes) {
+    if (!PROAssert(indexes, @"Could not allocate memory for %lu indexes", (unsigned long)indexCount)) {
         return nil;
     }
 
@@ -94,11 +103,16 @@
         NSUInteger index = indexes[setIndex];
         id inputValue = [array objectAtIndex:index];
 
-        id result = [transformation transform:inputValue];
+        id result = [transformation transform:inputValue error:error];
         if (!result) {
             newArray = nil;
-
             *stop = YES;
+
+            if (error) {
+                NSString *path = [NSString stringWithFormat:@"[%lu]", (unsigned long)setIndex];
+                *error = [self prependTransformationPath:path toError:*error];
+            }
+
             return;
         }
 

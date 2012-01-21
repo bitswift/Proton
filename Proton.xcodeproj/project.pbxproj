@@ -443,7 +443,7 @@
 			name = "Key-Value Observing";
 			sourceTree = "<group>";
 		};
-		D0477F5514970DDC00B0DAB0 /* Transformation */ = {
+		D0477F5514970DDC00B0DAB0 /* Transformations */ = {
 			isa = PBXGroup;
 			children = (
 				1EA5FB0114A2C16100E3B764 /* PROIndexedTransformation.h */,
@@ -463,7 +463,7 @@
 				D0477F5D1497460000B0DAB0 /* PROUniqueTransformation.h */,
 				D0477F5E1497460000B0DAB0 /* PROUniqueTransformation.m */,
 			);
-			name = Transformation;
+			name = Transformations;
 			sourceTree = "<group>";
 		};
 		D04D284514A5626F00197AB9 /* Key-Value Coding */ = {
@@ -585,7 +585,7 @@
 				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
 				D0A3DD7014CAB85000754143 /* Logging */,
 				D0C42D5F14984CD100A08989 /* Model Framework */,
-				D0477F5514970DDC00B0DAB0 /* Transformation */,
+				D0477F5514970DDC00B0DAB0 /* Transformations */,
 				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
 			);
 			name = Modules;

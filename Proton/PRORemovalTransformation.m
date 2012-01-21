@@ -63,23 +63,35 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)array; {
+- (id)transform:(NSArray *)array error:(NSError **)error; {
     if (!self.removalIndexes)
         return array;
 
-    if (![array isKindOfClass:[NSArray class]])
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
         return nil;
+    }
 
     NSUInteger count = [array count];
 
     // if the index set goes out of bounds, return nil
-    if ([self.removalIndexes lastIndex] >= count)
+    if ([self.removalIndexes lastIndex] >= count) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.removalIndexes.lastIndex, array];
+
         return nil;
+    }
 
     // if one or more objects doesn't match, return nil
     NSArray *objectsFromArray = [array objectsAtIndexes:self.removalIndexes];
-    if (![objectsFromArray isEqualToArray:self.expectedObjects])
+    if (![objectsFromArray isEqualToArray:self.expectedObjects]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorMismatchedInput format:@"Array %@ does not have the expected objects at the indexes to be removed", array];
+
         return nil;
+    }
 
     NSMutableArray *newArray = [array mutableCopy];
     [newArray removeObjectsAtIndexes:self.removalIndexes];

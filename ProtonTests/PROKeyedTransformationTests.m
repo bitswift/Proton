@@ -108,22 +108,18 @@
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:self.transformations];
 
     // giving the startValue should yield the endValue
-    STAssertEqualObjects([transformation transform:self.startValue], self.endValue, @"");
+    STAssertEqualObjects([transformation transform:self.startValue error:NULL], self.endValue, @"");
 
     // anything else should return nil
-    STAssertNil([transformation transform:self.endValue], @"");
-    STAssertNil([transformation transform:[NSNull null]], @"");
-    STAssertNil([transformation transform:[NSNumber numberWithInt:5]], @"");
+    STAssertNil([transformation transform:self.endValue error:NULL], @"");
 }
 
 - (void)testPassthroughTransformation {
     PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] init];
 
     // giving any value should yield the same value
-    STAssertEqualObjects([transformation transform:self.startValue], self.startValue, @"");
-    STAssertEqualObjects([transformation transform:self.endValue], self.endValue, @"");
-    STAssertEqualObjects([transformation transform:[NSNull null]], [NSNull null], @"");
-    STAssertEqualObjects([transformation transform:[NSNumber numberWithInt:5]], [NSNumber numberWithInt:5], @"");
+    STAssertEqualObjects([transformation transform:self.startValue error:NULL], self.startValue, @"");
+    STAssertEqualObjects([transformation transform:self.endValue error:NULL], self.endValue, @"");
 }
 
 - (void)testTransformationResultingInValidModel {
@@ -135,7 +131,7 @@
 
     PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
 
-    STAssertEqualObjects([keyedTransformation transform:model], [[TestProModel alloc] init], @"");
+    STAssertEqualObjects([keyedTransformation transform:model error:NULL], [[TestProModel alloc] init], @"");
 }
 
 - (void)testEquality {
@@ -182,12 +178,10 @@
 
     // for the reverse transformation, giving the endValue should yield the
     // startValue
-    STAssertEqualObjects([reverseTransformation transform:self.endValue], self.startValue, @"");
+    STAssertEqualObjects([reverseTransformation transform:self.endValue error:NULL], self.startValue, @"");
 
     // anything else should return nil
-    STAssertNil([reverseTransformation transform:self.startValue], @"");
-    STAssertNil([reverseTransformation transform:[NSNull null]], @"");
-    STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
+    STAssertNil([reverseTransformation transform:self.startValue error:NULL], @"");
 }
 
 @end

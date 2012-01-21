@@ -60,20 +60,28 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)array; {
+- (id)transform:(NSArray *)array error:(NSError **)error; {
     // if we don't have indexes, pass all objects through
     if (!self.insertionIndexes)
         return array;
 
-    if (![array isKindOfClass:[NSArray class]])
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
         return nil;
+    }
 
     NSUInteger count = [array count];
 
     // if the index set goes out of bounds (including empty slots at the end
     // for insertion), return nil
-    if ([self.insertionIndexes lastIndex] >= count + [self.insertionIndexes count])
+    if ([self.insertionIndexes lastIndex] >= count + [self.insertionIndexes count]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.insertionIndexes.lastIndex, array];
+
         return nil;
+    }
 
     NSMutableArray *newArray = [array mutableCopy];
     [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];

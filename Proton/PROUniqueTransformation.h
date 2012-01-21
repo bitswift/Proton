@@ -70,11 +70,14 @@
  * Attempts to transform the given object.
  *
  * If the given object compares equal to the <inputValue>, returns the
- * <outputValue>. Otherwise, returns `nil`.
+ * <outputValue>. Otherwise, returns `nil` and sets `error` to
+ * `PROTransformationErrorMismatchedInput`.
  *
  * @param obj The object to attempt to transform. This value should not be
  * `nil`.
+ * @param error If not `NULL`, this is set to any error that occurred if the
+ * transformation failed. This is only set if `nil` is returned.
  */
-- (id)transform:(id)obj;
+- (id)transform:(id)obj error:(NSError **)error;
 
 @end
