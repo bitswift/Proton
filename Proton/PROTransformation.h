@@ -77,6 +77,34 @@ extern NSInteger PROTransformationErrorUnsupportedInputType;
 + (NSString *)errorDomain;
 
 /**
+ * Convenience method to assist subclasses in creating `NSError` objects.
+ *
+ * @param code The error code.
+ * @param format The format for the description of the error.
+ * @param ... Any arguments to the format string.
+ */
+- (NSError *)errorWithCode:(NSInteger)code format:(NSString *)format, ...;
+
+/**
+ * Convenience method to assist subclasses in filling in the
+ * `PROTransformationFailingTransformationsErrorKey` and
+ * `PROTransformationFailingTransformationPathErrorKey` keys of an `NSError`
+ * user info dictionary.
+ *
+ * Given an `NSError` returned from a <PROTransformation>, this will prepend the
+ * receiver to the array associated with
+ * `PROTransformationFailingTransformationsErrorKey`, and prepend the given path
+ * to the string associated with
+ * `PROTransformationFailingTransformationPathErrorKey`. Returns `nil` if
+ * `error` is `nil`.
+ *
+ * @param transformationPath The path component(s) to prepend to any existing
+ * path.
+ * @param error An error to update.
+ */
+- (NSError *)prependTransformationPath:(NSString *)transformationPath toError:(NSError *)error;
+
+/**
  * @name Transformation
  */
 

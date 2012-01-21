@@ -48,6 +48,47 @@ NSInteger PROTransformationErrorUnsupportedInputType = 3;
     return @"PROTransformationErrorDomain";
 }
 
+- (NSError *)errorWithCode:(NSInteger)code format:(NSString *)format, ...; {
+    NSParameterAssert(format != nil);
+
+    va_list args;
+    va_start(args, format);
+
+    NSString *description = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+
+    NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        description, NSLocalizedDescriptionKey,
+        [NSArray arrayWithObject:self], PROTransformationFailingTransformationsErrorKey,
+        @"", PROTransformationFailingTransformationPathErrorKey,
+        nil
+    ];
+
+    return [NSError
+        errorWithDomain:[[self class] errorDomain]
+        code:code
+        userInfo:userInfo
+    ];
+}
+
+- (NSError *)prependTransformationPath:(NSString *)transformationPath toError:(NSError *)error; {
+    NSParameterAssert(transformationPath != nil);
+
+    if (!error)
+        return nil;
+
+    NSMutableDictionary *userInfo = [error.userInfo mutableCopy];
+
+    NSMutableArray *transformations = [[userInfo objectForKey:PROTransformationFailingTransformationsErrorKey] mutableCopy];
+    [transformations insertObject:self atIndex:0];
+    [userInfo setObject:transformations forKey:PROTransformationFailingTransformationsErrorKey];
+
+    NSString *path = [transformationPath stringByAppendingString:[userInfo objectForKey:PROTransformationFailingTransformationPathErrorKey]];
+    [userInfo setObject:path forKey:PROTransformationFailingTransformationPathErrorKey];
+
+    return [NSError errorWithDomain:error.domain code:error.code userInfo:userInfo];
+}
+
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
