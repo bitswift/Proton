@@ -113,22 +113,24 @@
     STAssertNil(transformation.transformations, @"");
 }
 
-- (void)testReturningNil {
+- (void)testMovementOutOfBounds {
     PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndexes:self.singleStartIndexSet endIndexes:self.singleEndIndexSet];
+    
+    // an out of bounds index should return nil
+    NSError *error = nil;
+    STAssertNil([transformation transform:[NSArray array] error:&error], @"");
 
-    // anything not an array should return 'nil'
-    STAssertNil([transformation transform:[NSNull null]], @"");
-    STAssertNil([transformation transform:[NSNumber numberWithInt:5]], @"");
-    STAssertNil([transformation transform:[NSSet set]], @"");
+    STAssertEquals(error.code, PROTransformationErrorIndexOutOfBounds, @"");
+    STAssertNotNil(error.localizedDescription, @"");
 
-    // an array that's too small should return 'nil'
-    STAssertNil([transformation transform:[NSArray array]], @"");
+    NSArray *failingTransformations = [NSArray arrayWithObject:transformation];
+    STAssertEqualObjects([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey], failingTransformations, @"");
 }
 
 - (void)testSingleMovement {
     PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndexes:self.singleStartIndexSet endIndexes:self.singleEndIndexSet];
 
-    STAssertEqualObjects([transformation transform:self.singleMovementStartValue], self.singleMovementEndValue, @"");
+    STAssertEqualObjects([transformation transform:self.singleMovementStartValue error:NULL], self.singleMovementEndValue, @"");
 }
 
 - (void)testSingleIndexMovement {
@@ -136,7 +138,7 @@
     NSUInteger endIndex = [self.singleEndIndexSet firstIndex];
 
     PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndex:startIndex endIndex:endIndex];
-    STAssertEqualObjects([transformation transform:self.singleMovementStartValue], self.singleMovementEndValue, @"");
+    STAssertEqualObjects([transformation transform:self.singleMovementStartValue error:NULL], self.singleMovementEndValue, @"");
 }
 
 - (void)testSingleMovementReverseTransformation {
@@ -144,13 +146,13 @@
     PROTransformation *reverseTransformation = transformation.reverseTransformation;
 
     // giving the end value should should yield the start value
-    STAssertEqualObjects([reverseTransformation transform:self.singleMovementEndValue], self.singleMovementStartValue, @"");
+    STAssertEqualObjects([reverseTransformation transform:self.singleMovementEndValue error:NULL], self.singleMovementStartValue, @"");
 }
 
 - (void)testMultipleMovement {
     PROOrderTransformation *transformation = [[PROOrderTransformation alloc] initWithStartIndexes:self.multipleStartIndexSet endIndexes:self.multipleEndIndexSet];
 
-    STAssertEqualObjects([transformation transform:self.multipleMovementStartValue], self.multipleMovementEndValue, @"");
+    STAssertEqualObjects([transformation transform:self.multipleMovementStartValue error:NULL], self.multipleMovementEndValue, @"");
 }
 
 - (void)testMultipleMovementReverseTransformation {
@@ -158,7 +160,7 @@
     PROTransformation *reverseTransformation = transformation.reverseTransformation;
 
     // giving the end value should should yield the start value
-    STAssertEqualObjects([reverseTransformation transform:self.multipleMovementEndValue], self.multipleMovementStartValue, @"");
+    STAssertEqualObjects([reverseTransformation transform:self.multipleMovementEndValue error:NULL], self.multipleMovementStartValue, @"");
 }
 
 - (void)testEquality {

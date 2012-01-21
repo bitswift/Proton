@@ -8,6 +8,8 @@
 
 #import <Proton/PROTransformation.h>
 
+@protocol PROKeyedObject;
+
 /**
  * Describes transformations to be applied atomically to the values associated
  * with different keys of an object.
@@ -79,8 +81,7 @@
 @property (nonatomic, copy, readonly) NSDictionary *valueTransformations;
 
 /**
- * Attempts to transform the given object. If the object is not
- * a <PROKeyedObject>, `nil` is returned.
+ * Attempts to transform the given object.
  *
  * This method does the following:
  *
@@ -101,7 +102,10 @@
  *
  * @param obj The object to attempt to transform. This value should not be
  * `nil`, and should be an object conforming to <PROKeyedObject>.
+ * @param error If not `NULL`, this is set to any error that occurred if the
+ * transformation (or one of its <valueTransformations>) failed. This is only
+ * set if `nil` is returned.
  */
-- (id)transform:(id)obj;
+- (id)transform:(id<PROKeyedObject>)obj error:(NSError **)error;
 
 @end

@@ -74,14 +74,20 @@
 /**
  * Attempts to transform the given array.
  *
- * If the <removalIndexes> are out of bounds for the given array, or any index
- * does not match the associated object in <expectedObjects>, `nil` is returned.
+ * If the <removalIndexes> are out of bounds for the given array, `nil` is
+ * returned and `error` is set to `PROTransformationErrorIndexOutOfBounds`.
+ *
+ * If any index in `array` taken from <removalIndexes> does not match the
+ * associated object in <expectedObjects>, `nil` is returned and `error` is set
+ * to `PROTransformationErrorMismatchedInput`.
  *
  * Removal is done according to the semantics of `-[NSMutableArray
  * removeObjectsAtIndexes:]`.
  *
  * @param array The array from which to remove <expectedObjects>.
+ * @param error If not `NULL`, this is set to any error that occurred if the
+ * transformation failed. This is only set if `nil` is returned.
  */
-- (id)transform:(id)array;
+- (id)transform:(NSArray *)array error:(NSError **)error;
 
 @end

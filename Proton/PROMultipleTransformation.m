@@ -52,14 +52,21 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
-    id currentValue = obj;
+- (id)transform:(id)obj error:(NSError **)error; {
+    __block id currentValue = obj;
 
-    for (PROTransformation *transformation in self.transformations) {
-        currentValue = [transformation transform:currentValue];
-        if (!currentValue)
-            return nil;
-    }
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger index, BOOL *stop){
+        currentValue = [transformation transform:currentValue error:error];
+        if (!currentValue) {
+            if (error) {
+                NSString *path = [NSString stringWithFormat:@"multipleTransformation(%lu).", (unsigned long)index];
+                *error = [self prependTransformationPath:path toError:*error];
+            }
+
+            *stop = YES;
+            return;
+        }
+    }];
 
     return currentValue;
 }
@@ -86,10 +93,10 @@
     if (!currentValue)
         return NO;
 
-    NSAssert([[self transform:currentValue] isEqual:result], @"Value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
+    NSAssert([[self transform:currentValue error:NULL] isEqual:result], @"Value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
 
     for (PROTransformation *transformation in self.transformations) {
-        currentValue = [transformation transform:currentValue];
+        currentValue = [transformation transform:currentValue error:NULL];
 
         NSAssert(currentValue != nil, @"Transformation %@ should not have failed on %@ on the way to original result %@", transformation, currentValue, result);
 

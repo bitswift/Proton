@@ -57,7 +57,10 @@
  *
  * @param obj The object to attempt to transform. This value should not be
  * `nil`.
+ * @param error If not `NULL`, this is set to any error that occurred if the
+ * transformation (or one of its <transformations>) failed. This is only set if
+ * `nil` is returned.
  */
-- (id)transform:(id)obj;
+- (id)transform:(id)obj error:(NSError **)error;
 
 @end
