@@ -66,24 +66,24 @@
 
     // giving the startValue should yield the endValue (converting through the
     // middleValue)
-    STAssertEqualObjects([transformation transform:self.startValue], self.endValue, @"");
+    STAssertEqualObjects([transformation transform:self.startValue error:NULL], self.endValue, @"");
 
     // anything else should return nil
-    STAssertNil([transformation transform:self.middleValue], @"");
-    STAssertNil([transformation transform:self.endValue], @"");
-    STAssertNil([transformation transform:[NSNull null]], @"");
-    STAssertNil([transformation transform:[NSNumber numberWithInt:5]], @"");
+    STAssertNil([transformation transform:self.middleValue error:NULL], @"");
+    STAssertNil([transformation transform:self.endValue error:NULL], @"");
+    STAssertNil([transformation transform:[NSNull null] error:NULL], @"");
+    STAssertNil([transformation transform:[NSNumber numberWithInt:5] error:NULL], @"");
 }
 
 - (void)testPassthroughTransformation {
     PROMultipleTransformation *transformation = [[PROMultipleTransformation alloc] init];
 
     // giving any value should yield the same value
-    STAssertEqualObjects([transformation transform:self.startValue], self.startValue, @"");
-    STAssertEqualObjects([transformation transform:self.middleValue], self.middleValue, @"");
-    STAssertEqualObjects([transformation transform:self.endValue], self.endValue, @"");
-    STAssertEqualObjects([transformation transform:[NSNull null]], [NSNull null], @"");
-    STAssertEqualObjects([transformation transform:[NSNumber numberWithInt:5]], [NSNumber numberWithInt:5], @"");
+    STAssertEqualObjects([transformation transform:self.startValue error:NULL], self.startValue, @"");
+    STAssertEqualObjects([transformation transform:self.middleValue error:NULL], self.middleValue, @"");
+    STAssertEqualObjects([transformation transform:self.endValue error:NULL], self.endValue, @"");
+    STAssertEqualObjects([transformation transform:[NSNull null] error:NULL], [NSNull null], @"");
+    STAssertEqualObjects([transformation transform:[NSNumber numberWithInt:5] error:NULL], [NSNumber numberWithInt:5], @"");
 }
 
 - (void)testEquality {
@@ -130,13 +130,13 @@
     
     // for the reverse transformation, giving the endValue should yield the
     // startValue
-    STAssertEqualObjects([reverseTransformation transform:self.endValue], self.startValue, @"");
+    STAssertEqualObjects([reverseTransformation transform:self.endValue error:NULL], self.startValue, @"");
 
     // anything else should return nil
-    STAssertNil([reverseTransformation transform:self.startValue], @"");
-    STAssertNil([reverseTransformation transform:self.middleValue], @"");
-    STAssertNil([reverseTransformation transform:[NSNull null]], @"");
-    STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
+    STAssertNil([reverseTransformation transform:self.startValue error:NULL], @"");
+    STAssertNil([reverseTransformation transform:self.middleValue error:NULL], @"");
+    STAssertNil([reverseTransformation transform:[NSNull null] error:NULL], @"");
+    STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5] error:NULL], @"");
 }
 
 @end
