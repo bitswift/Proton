@@ -96,11 +96,9 @@
     PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:self.indexes objects:self.objects];
 
     // giving the startValue should yield the endValue
-    STAssertEqualObjects([transformation transform:self.startValue], self.endValue, @"");
+    STAssertEqualObjects([transformation transform:self.startValue error:NULL], self.endValue, @"");
 
-    STAssertNil([transformation transform:[NSNull null]], @"");
-    STAssertNil([transformation transform:[NSArray array]], @"");
-    STAssertNil([transformation transform:[NSOrderedSet orderedSet]], @"");
+    STAssertNil([transformation transform:[NSArray array] error:NULL], @"");
 }
 
 - (void)testTransformationOutOfBounds {
@@ -110,12 +108,17 @@
     PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:outOfBoundsSet objects:objects];
 
     // an out of bounds index should return nil
-    STAssertNil([transformation transform:self.startValue], @"");
+    NSError *error = nil;
+    STAssertNil([transformation transform:self.startValue error:&error], @"");
 
-    STAssertNil([transformation transform:self.endValue], @"");
-    STAssertNil([transformation transform:[NSNull null]], @"");
-    STAssertNil([transformation transform:[NSArray array]], @"");
-    STAssertNil([transformation transform:[NSOrderedSet orderedSet]], @"");
+    STAssertEquals(error.code, PROTransformationErrorIndexOutOfBounds, @"");
+    STAssertNotNil(error.localizedDescription, @"");
+
+    NSArray *failingTransformations = [NSArray arrayWithObject:transformation];
+    STAssertEqualObjects([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey], failingTransformations, @"");
+
+    STAssertNil([transformation transform:self.endValue error:NULL], @"");
+    STAssertNil([transformation transform:[NSArray array] error:NULL], @"");
 }
 
 - (void)testTransformationOnEmptyArray {
@@ -123,7 +126,7 @@
     NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [objects count])];
 
     PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexSet objects:objects];
-    STAssertEqualObjects([transformation transform:[NSArray array]], objects, @"");
+    STAssertEqualObjects([transformation transform:[NSArray array] error:NULL], objects, @"");
 }
 
 - (void)testTransformationOnEmptyArrayOutOfBounds {
@@ -131,19 +134,16 @@
     NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(5000, [objects count])];
 
     PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexSet objects:objects];
-    STAssertNil([transformation transform:[EXTNil null]], @"");
+    STAssertNil([transformation transform:[NSArray array] error:NULL], @"");
 }
 
 - (void)testPassthroughTransformation {
     PROInsertionTransformation *transformation = [[PROInsertionTransformation alloc] init];
 
     // giving any value should yield the same value
-    STAssertEqualObjects([transformation transform:self.startValue], self.startValue, @"");
-    STAssertEqualObjects([transformation transform:self.endValue], self.endValue, @"");
-    STAssertEqualObjects([transformation transform:[NSNull null]], [NSNull null], @"");
-    STAssertEqualObjects([transformation transform:[NSNumber numberWithInt:5]], [NSNumber numberWithInt:5], @"");
-    STAssertEqualObjects([transformation transform:[NSArray array]], [NSArray array], @"");
-    STAssertEqualObjects([transformation transform:[NSOrderedSet orderedSet]], [NSOrderedSet orderedSet], @"");
+    STAssertEqualObjects([transformation transform:self.startValue error:NULL], self.startValue, @"");
+    STAssertEqualObjects([transformation transform:self.endValue error:NULL], self.endValue, @"");
+    STAssertEqualObjects([transformation transform:[NSArray array] error:NULL], [NSArray array], @"");
 }
 
 - (void)testReverseTransformation {
@@ -161,14 +161,11 @@
 
     // for the reverse transformation, giving the endValue should yield the
     // startValue
-    STAssertEqualObjects([reverseTransformation transform:self.endValue], self.startValue, @"");
+    STAssertEqualObjects([reverseTransformation transform:self.endValue error:NULL], self.startValue, @"");
 
     // anything else should return nil
-    STAssertNil([reverseTransformation transform:self.startValue], @"");
-    STAssertNil([reverseTransformation transform:[NSNull null]], @"");
-    STAssertNil([reverseTransformation transform:[NSNumber numberWithInt:5]], @"");
-    STAssertNil([reverseTransformation transform:[NSArray array]], @"");
-    STAssertNil([reverseTransformation transform:[NSOrderedSet orderedSet]], @"");
+    STAssertNil([reverseTransformation transform:self.startValue error:NULL], @"");
+    STAssertNil([reverseTransformation transform:[NSArray array] error:NULL], @"");
 }
 
 - (void)testEquality {

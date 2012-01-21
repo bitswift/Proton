@@ -73,13 +73,16 @@
 
 /**
  * Attempts to transform the given array. If the <insertionIndexes> are out of
- * bounds for the given array, `nil` is returned.
+ * bounds for the given array, `nil` is returned and `error` is set to
+ * `PROTransformationErrorIndexOutOfBounds`.
  *
  * Insertion is done according to the semantics of `-[NSMutableArray
  * insertObjects:atIndexes:]`.
  *
  * @param array The array in which to insert objects.
+ * @param error If not `NULL`, this is set to any error that occurred if the
+ * transformation failed. This is only set if `nil` is returned.
  */
-- (id)transform:(id)array;
+- (id)transform:(NSArray *)array error:(NSError **)error;
 
 @end
