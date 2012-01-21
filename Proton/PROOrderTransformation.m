@@ -62,13 +62,28 @@
     if (!self.startIndexes)
         return array;
 
-    if (![array isKindOfClass:[NSArray class]])
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
         return nil;
+    }
 
     // if either index set goes out of bounds, return nil
     NSUInteger count = [array count];
-    if ([self.startIndexes lastIndex] >= count || [self.endIndexes lastIndex] >= count)
+    if ([self.startIndexes lastIndex] >= count) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.startIndexes.lastIndex, array];
+
         return nil;
+    }
+
+    if ([self.endIndexes lastIndex] >= count) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.endIndexes.lastIndex, array];
+
+        return nil;
+    }
 
     NSMutableArray *newArray = [[NSMutableArray alloc] initWithCapacity:count];
 
