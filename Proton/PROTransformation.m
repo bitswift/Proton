@@ -9,6 +9,13 @@
 #import <Proton/PROTransformation.h>
 #import <Proton/PROModelController.h>
 
+NSString * const PROTransformationFailingTransformationsErrorKey = @"FailingTransformations";
+NSString * const PROTransformationFailingTransformationPathErrorKey = @"FailingTransformationPath";
+
+NSInteger PROTransformationErrorIndexOutOfBounds = 1;
+NSInteger PROTransformationErrorMismatchedInput = 2;
+NSInteger PROTransformationErrorUnsupportedInputType = 3;
+
 @implementation PROTransformation
 
 #pragma mark Properties

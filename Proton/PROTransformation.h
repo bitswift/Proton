@@ -12,6 +12,49 @@
 @class PROTransformation;
 
 /**
+ * `NSError` user info key that is associated with an `NSArray` containing the
+ * "chain" of transformations that failed.
+ *
+ * The transformation that actually failed (i.e., the leaf) will be at the end
+ * of the array, and the first transformation that was attempted (i.e., the one
+ * upon which <[PROTransformation transform:error:]> was invoked) will be at the
+ * beginning of the array.
+ *
+ * The associated array is guaranteed to always have at least one object.
+ */
+extern NSString * const PROTransformationFailingTransformationsErrorKey;
+
+/**
+ * `NSError` user info key that is associated with an `NSString` describing the
+ * "location" of the specific transformation that failed.
+ *
+ * The form of this string will appear somewhat like a key path, similar to
+ * `model.array[5].key`.
+ *
+ * This string should not be interpreted programmatically. It is meant for
+ * debugging purposes only.
+ */
+extern NSString * const PROTransformationFailingTransformationPathErrorKey;
+
+/**
+ * The error code returned when a transformation applies to one or more indexes
+ * that are out of bounds for the input array.
+ */
+extern NSInteger PROTransformationErrorIndexOutOfBounds;
+
+/**
+ * The error code returned when the input to a transformation does not match the
+ * input that is expected.
+ */
+extern NSInteger PROTransformationErrorMismatchedInput;
+
+/**
+ * The error code returned when a transformation is passed an input value that
+ * is not of the expected type.
+ */
+extern NSInteger PROTransformationErrorUnsupportedInputType;
+
+/**
  * An abstract class describing the transformation of an object.
  *
  * The transformations implemented with this class should be pure (i.e., they
