@@ -53,13 +53,20 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj error:(NSError **)error; {
-    id currentValue = obj;
+    __block id currentValue = obj;
 
-    for (PROTransformation *transformation in self.transformations) {
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger index, BOOL *stop){
         currentValue = [transformation transform:currentValue error:error];
-        if (!currentValue)
-            return nil;
-    }
+        if (!currentValue) {
+            if (error) {
+                NSString *path = [NSString stringWithFormat:@"multipleTransformation(%lu).", (unsigned long)index];
+                *error = [self prependTransformationPath:path toError:*error];
+            }
+
+            *stop = YES;
+            return;
+        }
+    }];
 
     return currentValue;
 }
