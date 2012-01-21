@@ -64,8 +64,12 @@
     if (!self.inputValue)
         return obj;
 
-    if (![self.inputValue isEqual:obj])
+    if (![self.inputValue isEqual:obj]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorMismatchedInput format:@"Input value %@ is not equal to expected value", obj];
+
         return nil;
+    }
 
     return self.outputValue;
 }
