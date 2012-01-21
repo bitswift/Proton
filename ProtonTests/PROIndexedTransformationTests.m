@@ -126,7 +126,7 @@
     STAssertEquals(error.code, PROTransformationErrorIndexOutOfBounds, @"");
     STAssertNotNil(error.localizedDescription, @"");
 
-    NSArray *failingTransformations = [[NSArray arrayWithObject:indexedTransformation] arrayByAddingObjectsFromArray:transformations];
+    NSArray *failingTransformations = [NSArray arrayWithObject:indexedTransformation];
     STAssertEqualObjects([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey], failingTransformations, @"");
 
     STAssertNil([indexedTransformation transform:self.endValue error:NULL], @"");
