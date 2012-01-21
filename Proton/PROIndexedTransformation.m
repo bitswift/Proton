@@ -64,14 +64,39 @@
     if (!self.indexes)
         return array;
 
-    if (![array isKindOfClass:[NSArray class]])
+    if (![array isKindOfClass:[NSArray class]]) {
         return nil;
+    }
 
     NSUInteger arrayCount = [array count];
 
     // if the index set goes out of bounds, return nil
-    if (self.indexes.lastIndex >= arrayCount)
+    if (self.indexes.lastIndex >= arrayCount) {
+        if (error) {
+            // no need to localize this, because it shouldn't ever be shown to
+            // the user
+            NSString *description = [NSString stringWithFormat:
+                @"Index %lu is out of bounds for array %@",
+                (unsigned long)self.indexes.lastIndex,
+                array
+            ];
+
+            NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                description, NSLocalizedDescriptionKey,
+                [NSArray arrayWithObject:self], PROTransformationFailingTransformationsErrorKey,
+                @"", PROTransformationFailingTransformationPathErrorKey,
+                nil
+            ];
+
+            *error = [NSError
+                errorWithDomain:[[self class] errorDomain]
+                code:PROTransformationErrorIndexOutOfBounds
+                userInfo:userInfo
+            ];
+        }
+
         return nil;
+    }
 
     NSUInteger indexCount = [self.indexes count];
 
