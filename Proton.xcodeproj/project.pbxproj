@@ -25,8 +25,6 @@
 		D00B494B14B624D500E17FDB /* PROModelControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D00B494914B624D500E17FDB /* PROModelControllerTests.m */; };
 		D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
 		D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
-		D013817614AD4AB8008E7942 /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D013817514AD4AB8008E7942 /* Proton.m */; };
-		D013817714AD4AB8008E7942 /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D013817514AD4AB8008E7942 /* Proton.m */; };
 		D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A63514981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -130,6 +128,10 @@
 		D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5DA14B5788E00E278CA /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
 		D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
+		D0A3DD7314CAB86100754143 /* PROLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A3DD7214CAB86100754143 /* PROLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0A3DD7414CAB86100754143 /* PROLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A3DD7214CAB86100754143 /* PROLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0A3DD7614CAB8D300754143 /* PROLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A3DD7514CAB8D300754143 /* PROLogging.m */; };
+		D0A3DD7714CAB8D300754143 /* PROLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A3DD7514CAB8D300754143 /* PROLogging.m */; };
 		D0B07AD01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
 		D0B07ADD1492E72800A1E816 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0B07AE01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
@@ -244,7 +246,6 @@
 		D00B494914B624D500E17FDB /* PROModelControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelControllerTests.m; sourceTree = "<group>"; };
 		D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformationTests.h; sourceTree = "<group>"; };
 		D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformationTests.m; sourceTree = "<group>"; };
-		D013817514AD4AB8008E7942 /* Proton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Proton.m; sourceTree = "<group>"; };
 		D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformationTests.h; sourceTree = "<group>"; };
 		D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformationTests.m; sourceTree = "<group>"; };
 		D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+PROKeyedObjectAdditions.h"; sourceTree = "<group>"; };
@@ -308,6 +309,8 @@
 		D080E10214AA97D700F6EABB /* PRORemovalTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRORemovalTransformationTests.m; sourceTree = "<group>"; };
 		D0A0E5DA14B5788E00E278CA /* PROModelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelController.h; sourceTree = "<group>"; };
 		D0A0E5DB14B5788E00E278CA /* PROModelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelController.m; sourceTree = "<group>"; };
+		D0A3DD7214CAB86100754143 /* PROLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROLogging.h; sourceTree = "<group>"; };
+		D0A3DD7514CAB8D300754143 /* PROLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROLogging.m; sourceTree = "<group>"; };
 		D0B07ACE1492E72800A1E816 /* libProton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libProton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -550,6 +553,15 @@
 			name = Futures;
 			sourceTree = "<group>";
 		};
+		D0A3DD7014CAB85000754143 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				D0A3DD7214CAB86100754143 /* PROLogging.h */,
+				D0A3DD7514CAB8D300754143 /* PROLogging.m */,
+			);
+			name = Logging;
+			sourceTree = "<group>";
+		};
 		D0C42D5F14984CD100A08989 /* Model Framework */ = {
 			isa = PBXGroup;
 			children = (
@@ -571,6 +583,7 @@
 				D080D58114A5DF2C00FABAA2 /* Futures */,
 				D04D284514A5626F00197AB9 /* Key-Value Coding */,
 				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
+				D0A3DD7014CAB85000754143 /* Logging */,
 				D0C42D5F14984CD100A08989 /* Model Framework */,
 				D0477F5514970DDC00B0DAB0 /* Transformation */,
 				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
@@ -627,7 +640,6 @@
 			isa = PBXGroup;
 			children = (
 				D0DB5CD41492DDD5005955FB /* Proton.h */,
-				D013817514AD4AB8008E7942 /* Proton.m */,
 				D0D2E70A14CAABCD009E641B /* Modules */,
 				D06AA4321494A19600F0F94B /* Extensions */,
 				D0DB5CCE1492DDD5005955FB /* Supporting Files */,
@@ -864,6 +876,7 @@
 				D0DA64DA14C681D100B6A577 /* PROTransformer.h in Headers */,
 				D0D2E70814CAAA37009E641B /* PROAssert.h in Headers */,
 				D0D2E71514CAAC54009E641B /* PROBacktraceFunctions.h in Headers */,
+				D0A3DD7414CAB86100754143 /* PROLogging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -909,6 +922,7 @@
 				D0DA64D914C681D100B6A577 /* PROTransformer.h in Headers */,
 				D0D2E70714CAAA37009E641B /* PROAssert.h in Headers */,
 				D0D2E71414CAAC54009E641B /* PROBacktraceFunctions.h in Headers */,
+				D0A3DD7314CAB86100754143 /* PROLogging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1098,7 +1112,6 @@
 				D04460EE14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
 				D080E0F514AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 				D080E0FC14AA976500F6EABB /* PRORemovalTransformation.m in Sources */,
-				D013817714AD4AB8008E7942 /* Proton.m in Sources */,
 				D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */,
 				D0F5CD2814C5793400966B2D /* EXTNil.m in Sources */,
 				D0F5CD2C14C5793F00966B2D /* EXTRuntimeExtensions.m in Sources */,
@@ -1111,6 +1124,7 @@
 				D0DA64C714C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */,
 				D0DA64DC14C681D100B6A577 /* PROTransformer.m in Sources */,
 				D0D2E71714CAAC54009E641B /* PROBacktraceFunctions.m in Sources */,
+				D0A3DD7714CAB8D300754143 /* PROLogging.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1171,7 +1185,6 @@
 				D04460ED14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
 				D080E0F414AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 				D080E0FB14AA976500F6EABB /* PRORemovalTransformation.m in Sources */,
-				D013817614AD4AB8008E7942 /* Proton.m in Sources */,
 				D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */,
 				D0F5CD2714C5793300966B2D /* EXTNil.m in Sources */,
 				D0F5CD2B14C5793F00966B2D /* EXTRuntimeExtensions.m in Sources */,
@@ -1184,6 +1197,7 @@
 				D0DA64C614C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */,
 				D0DA64DB14C681D100B6A577 /* PROTransformer.m in Sources */,
 				D0D2E71614CAAC54009E641B /* PROBacktraceFunctions.m in Sources */,
+				D0A3DD7614CAB8D300754143 /* PROLogging.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1259,6 +1273,7 @@
 			baseConfigurationReference = D0F5CCFA14C578BF00966B2D /* Profile.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "PROTON_LOGGING_LEVEL=LOG_LEVEL_OFF";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = Proton;
@@ -1376,6 +1391,7 @@
 			baseConfigurationReference = D0F5CCF914C578BF00966B2D /* Debug.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "PROTON_LOGGING_LEVEL=LOG_LEVEL_WARN";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = Proton;
@@ -1388,6 +1404,7 @@
 			baseConfigurationReference = D0F5CCFB14C578BF00966B2D /* Release.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "PROTON_LOGGING_LEVEL=LOG_LEVEL_ERROR";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = Proton;
