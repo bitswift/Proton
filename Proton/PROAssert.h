@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <Proton/PROBacktraceFunctions.h>
+#import <Proton/PROLogging.h>
 
 /**
  * Documents an assumption that `COND` is true, non-zero, or non-nil, returning
