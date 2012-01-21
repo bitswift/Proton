@@ -298,7 +298,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                     PROIndexedTransformation *modelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
                     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:modelsTransformation forKeyPath:modelKeyPath];
 
-                    PROModel *newModel = [modelTransformation transform:weakSelf.model];
+                    PROModel *newModel = [modelTransformation transform:weakSelf.model error:NULL];
                     if (!newModel) {
                         DDLogError(@"Could not create new model object from %@ with transformation %@", weakSelf.model, modelTransformation);
                     }
@@ -393,7 +393,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         };
 
         PROModel *oldModel = self.model;
-        PROModel *newModel = [transformation transform:oldModel];
+        PROModel *newModel = [transformation transform:oldModel error:NULL];
 
         if (!newModel) {
             // fail immediately, before any side effects
