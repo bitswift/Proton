@@ -8,17 +8,17 @@
 
 #import <Proton/PROModelController.h>
 #import <Proton/EXTScope.h>
+#import <Proton/NSArray+HigherOrderAdditions.h>
+#import <Proton/PROIndexedTransformation.h>
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROKeyValueCodingMacros.h>
+#import <Proton/PROKeyValueObserver.h>
+#import <Proton/PROLogging.h>
 #import <Proton/PROModel.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
 #import <Proton/SDQueue.h>
 #import <objc/runtime.h>
-
-// to get logging functions
-// TODO: this probably means logging should be moved out of the framework header
-#import <Proton/Proton.h>
 
 /*
  * A key into the thread dictionary, associated with an `NSNumber` indicating

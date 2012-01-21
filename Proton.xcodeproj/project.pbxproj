@@ -25,8 +25,6 @@
 		D00B494B14B624D500E17FDB /* PROModelControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D00B494914B624D500E17FDB /* PROModelControllerTests.m */; };
 		D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
 		D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */; };
-		D013817614AD4AB8008E7942 /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D013817514AD4AB8008E7942 /* Proton.m */; };
-		D013817714AD4AB8008E7942 /* Proton.m in Sources */ = {isa = PBXBuildFile; fileRef = D013817514AD4AB8008E7942 /* Proton.m */; };
 		D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */; };
 		D030A63514981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -130,6 +128,10 @@
 		D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5DA14B5788E00E278CA /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
 		D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
+		D0A3DD7314CAB86100754143 /* PROLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A3DD7214CAB86100754143 /* PROLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0A3DD7414CAB86100754143 /* PROLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A3DD7214CAB86100754143 /* PROLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0A3DD7614CAB8D300754143 /* PROLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A3DD7514CAB8D300754143 /* PROLogging.m */; };
+		D0A3DD7714CAB8D300754143 /* PROLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A3DD7514CAB8D300754143 /* PROLogging.m */; };
 		D0B07AD01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
 		D0B07ADD1492E72800A1E816 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0B07AE01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
@@ -143,6 +145,14 @@
 		D0C42D6614984CE100A08989 /* PROModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D6214984CE100A08989 /* PROModel.m */; };
 		D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
 		D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
+		D0D2E70714CAAA37009E641B /* PROAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D2E70614CAAA37009E641B /* PROAssert.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D2E70814CAAA37009E641B /* PROAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D2E70614CAAA37009E641B /* PROAssert.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D2E71414CAAC54009E641B /* PROBacktraceFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D2E71214CAAC54009E641B /* PROBacktraceFunctions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D2E71514CAAC54009E641B /* PROBacktraceFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D2E71214CAAC54009E641B /* PROBacktraceFunctions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D2E71614CAAC54009E641B /* PROBacktraceFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D2E71314CAAC54009E641B /* PROBacktraceFunctions.m */; };
+		D0D2E71714CAAC54009E641B /* PROBacktraceFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D2E71314CAAC54009E641B /* PROBacktraceFunctions.m */; };
+		D0D2E71E14CAB26C009E641B /* PROAssertTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D2E71D14CAB26C009E641B /* PROAssertTests.m */; };
+		D0D2E71F14CAB26C009E641B /* PROAssertTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D2E71D14CAB26C009E641B /* PROAssertTests.m */; };
 		D0DA64C414C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0DA64C514C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0DA64C614C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */; };
@@ -236,7 +246,6 @@
 		D00B494914B624D500E17FDB /* PROModelControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelControllerTests.m; sourceTree = "<group>"; };
 		D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformationTests.h; sourceTree = "<group>"; };
 		D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformationTests.m; sourceTree = "<group>"; };
-		D013817514AD4AB8008E7942 /* Proton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Proton.m; sourceTree = "<group>"; };
 		D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMultipleTransformationTests.h; sourceTree = "<group>"; };
 		D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMultipleTransformationTests.m; sourceTree = "<group>"; };
 		D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+PROKeyedObjectAdditions.h"; sourceTree = "<group>"; };
@@ -300,6 +309,8 @@
 		D080E10214AA97D700F6EABB /* PRORemovalTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRORemovalTransformationTests.m; sourceTree = "<group>"; };
 		D0A0E5DA14B5788E00E278CA /* PROModelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelController.h; sourceTree = "<group>"; };
 		D0A0E5DB14B5788E00E278CA /* PROModelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelController.m; sourceTree = "<group>"; };
+		D0A3DD7214CAB86100754143 /* PROLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROLogging.h; sourceTree = "<group>"; };
+		D0A3DD7514CAB8D300754143 /* PROLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROLogging.m; sourceTree = "<group>"; };
 		D0B07ACE1492E72800A1E816 /* libProton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libProton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -308,6 +319,11 @@
 		D0C42D6214984CE100A08989 /* PROModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModel.m; sourceTree = "<group>"; };
 		D0C42D77149857CB00A08989 /* PROModelTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelTests.h; sourceTree = "<group>"; };
 		D0C42D78149857CB00A08989 /* PROModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelTests.m; sourceTree = "<group>"; };
+		D0D2E70614CAAA37009E641B /* PROAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROAssert.h; sourceTree = "<group>"; };
+		D0D2E71214CAAC54009E641B /* PROBacktraceFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROBacktraceFunctions.h; sourceTree = "<group>"; };
+		D0D2E71314CAAC54009E641B /* PROBacktraceFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROBacktraceFunctions.m; sourceTree = "<group>"; };
+		D0D2E71C14CAB26C009E641B /* PROAssertTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROAssertTests.h; sourceTree = "<group>"; };
+		D0D2E71D14CAB26C009E641B /* PROAssertTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROAssertTests.m; sourceTree = "<group>"; };
 		D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocol.h; sourceTree = "<group>"; };
 		D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTConcreteProtocol.m; sourceTree = "<group>"; };
 		D0DA64C914C67E4E00B6A577 /* EXTConcreteProtocolTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocolTest.h; sourceTree = "<group>"; };
@@ -418,16 +434,6 @@
 			name = "Unique Identifier";
 			sourceTree = "<group>";
 		};
-		D00A490A1499450400EEBD92 /* Protocols */ = {
-			isa = PBXGroup;
-			children = (
-				D00A490C1499451400EEBD92 /* PROKeyedObject.h */,
-				D0DA64D714C681D100B6A577 /* PROTransformer.h */,
-				D0DA64D814C681D100B6A577 /* PROTransformer.m */,
-			);
-			name = Protocols;
-			sourceTree = "<group>";
-		};
 		D031BA8C14A53B4000A38526 /* Key-Value Observing */ = {
 			isa = PBXGroup;
 			children = (
@@ -460,12 +466,12 @@
 			name = Transformation;
 			sourceTree = "<group>";
 		};
-		D04D284514A5626F00197AB9 /* Macros */ = {
+		D04D284514A5626F00197AB9 /* Key-Value Coding */ = {
 			isa = PBXGroup;
 			children = (
 				D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */,
 			);
-			name = Macros;
+			name = "Key-Value Coding";
 			sourceTree = "<group>";
 		};
 		D06AA4321494A19600F0F94B /* Extensions */ = {
@@ -493,21 +499,11 @@
 			name = Extensions;
 			sourceTree = "<group>";
 		};
-		D06AA43F1494A1B400F0F94B /* Classes */ = {
-			isa = PBXGroup;
-			children = (
-				D080D58114A5DF2C00FABAA2 /* Futures */,
-				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
-				D0C42D5F14984CD100A08989 /* Model Framework */,
-				D0477F5514970DDC00B0DAB0 /* Transformation */,
-				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
-			);
-			name = Classes;
-			sourceTree = "<group>";
-		};
 		D06AA45C1494A22600F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				D0D2E71C14CAB26C009E641B /* PROAssertTests.h */,
+				D0D2E71D14CAB26C009E641B /* PROAssertTests.m */,
 				D080D58914A5E4B200FABAA2 /* PROFutureTests.h */,
 				D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */,
 				1EA5FB1914A2C9FE00E3B764 /* PROIndexedTransformationTests.h */,
@@ -520,10 +516,10 @@
 				D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */,
 				D031BA9314A53F4600A38526 /* PROKeyValueObserverTests.h */,
 				D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */,
-				D0C42D77149857CB00A08989 /* PROModelTests.h */,
-				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D00B494814B624D500E17FDB /* PROModelControllerTests.h */,
 				D00B494914B624D500E17FDB /* PROModelControllerTests.m */,
+				D0C42D77149857CB00A08989 /* PROModelTests.h */,
+				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */,
 				D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */,
 				D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */,
@@ -557,15 +553,52 @@
 			name = Futures;
 			sourceTree = "<group>";
 		};
+		D0A3DD7014CAB85000754143 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				D0A3DD7214CAB86100754143 /* PROLogging.h */,
+				D0A3DD7514CAB8D300754143 /* PROLogging.m */,
+			);
+			name = Logging;
+			sourceTree = "<group>";
+		};
 		D0C42D5F14984CD100A08989 /* Model Framework */ = {
 			isa = PBXGroup;
 			children = (
+				D00A490C1499451400EEBD92 /* PROKeyedObject.h */,
 				D0C42D6114984CE100A08989 /* PROModel.h */,
 				D0C42D6214984CE100A08989 /* PROModel.m */,
 				D0A0E5DA14B5788E00E278CA /* PROModelController.h */,
 				D0A0E5DB14B5788E00E278CA /* PROModelController.m */,
+				D0DA64D714C681D100B6A577 /* PROTransformer.h */,
+				D0DA64D814C681D100B6A577 /* PROTransformer.m */,
 			);
 			name = "Model Framework";
+			sourceTree = "<group>";
+		};
+		D0D2E70A14CAABCD009E641B /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				D0D2E70B14CAABE2009E641B /* Error Handling */,
+				D080D58114A5DF2C00FABAA2 /* Futures */,
+				D04D284514A5626F00197AB9 /* Key-Value Coding */,
+				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
+				D0A3DD7014CAB85000754143 /* Logging */,
+				D0C42D5F14984CD100A08989 /* Model Framework */,
+				D0477F5514970DDC00B0DAB0 /* Transformation */,
+				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
+			);
+			name = Modules;
+			sourceTree = "<group>";
+		};
+		D0D2E70B14CAABE2009E641B /* Error Handling */ = {
+			isa = PBXGroup;
+			children = (
+				D0D2E70614CAAA37009E641B /* PROAssert.h */,
+				D0D2E71214CAAC54009E641B /* PROBacktraceFunctions.h */,
+				D0D2E71314CAAC54009E641B /* PROBacktraceFunctions.m */,
+			);
+			name = "Error Handling";
 			sourceTree = "<group>";
 		};
 		D0DB5CB81492DDD5005955FB = {
@@ -607,11 +640,8 @@
 			isa = PBXGroup;
 			children = (
 				D0DB5CD41492DDD5005955FB /* Proton.h */,
-				D013817514AD4AB8008E7942 /* Proton.m */,
-				D06AA43F1494A1B400F0F94B /* Classes */,
+				D0D2E70A14CAABCD009E641B /* Modules */,
 				D06AA4321494A19600F0F94B /* Extensions */,
-				D04D284514A5626F00197AB9 /* Macros */,
-				D00A490A1499450400EEBD92 /* Protocols */,
 				D0DB5CCE1492DDD5005955FB /* Supporting Files */,
 			);
 			path = Proton;
@@ -844,6 +874,9 @@
 				D0F5CD5C14C5799C00966B2D /* DDTTYLogger.h in Headers */,
 				D0DA64C514C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */,
 				D0DA64DA14C681D100B6A577 /* PROTransformer.h in Headers */,
+				D0D2E70814CAAA37009E641B /* PROAssert.h in Headers */,
+				D0D2E71514CAAC54009E641B /* PROBacktraceFunctions.h in Headers */,
+				D0A3DD7414CAB86100754143 /* PROLogging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -887,6 +920,9 @@
 				D0F5CD5B14C5799C00966B2D /* DDTTYLogger.h in Headers */,
 				D0DA64C414C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */,
 				D0DA64D914C681D100B6A577 /* PROTransformer.h in Headers */,
+				D0D2E70714CAAA37009E641B /* PROAssert.h in Headers */,
+				D0D2E71414CAAC54009E641B /* PROBacktraceFunctions.h in Headers */,
+				D0A3DD7314CAB86100754143 /* PROLogging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1076,7 +1112,6 @@
 				D04460EE14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
 				D080E0F514AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 				D080E0FC14AA976500F6EABB /* PRORemovalTransformation.m in Sources */,
-				D013817714AD4AB8008E7942 /* Proton.m in Sources */,
 				D0A0E5DF14B5788E00E278CA /* PROModelController.m in Sources */,
 				D0F5CD2814C5793400966B2D /* EXTNil.m in Sources */,
 				D0F5CD2C14C5793F00966B2D /* EXTRuntimeExtensions.m in Sources */,
@@ -1088,6 +1123,8 @@
 				D0F5CD5E14C5799C00966B2D /* DDTTYLogger.m in Sources */,
 				D0DA64C714C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */,
 				D0DA64DC14C681D100B6A577 /* PROTransformer.m in Sources */,
+				D0D2E71714CAAC54009E641B /* PROBacktraceFunctions.m in Sources */,
+				D0A3DD7714CAB8D300754143 /* PROLogging.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1119,6 +1156,7 @@
 				D0F5CD3C14C5795800966B2D /* EXTScopeTest.m in Sources */,
 				D0F5CD4914C5796D00966B2D /* SDQueueTests.m in Sources */,
 				D0DA64CC14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
+				D0D2E71F14CAB26C009E641B /* PROAssertTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1147,7 +1185,6 @@
 				D04460ED14A6828D000053C9 /* PROOrderTransformation.m in Sources */,
 				D080E0F414AA971000F6EABB /* PROInsertionTransformation.m in Sources */,
 				D080E0FB14AA976500F6EABB /* PRORemovalTransformation.m in Sources */,
-				D013817614AD4AB8008E7942 /* Proton.m in Sources */,
 				D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */,
 				D0F5CD2714C5793300966B2D /* EXTNil.m in Sources */,
 				D0F5CD2B14C5793F00966B2D /* EXTRuntimeExtensions.m in Sources */,
@@ -1159,6 +1196,8 @@
 				D0F5CD5D14C5799C00966B2D /* DDTTYLogger.m in Sources */,
 				D0DA64C614C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */,
 				D0DA64DB14C681D100B6A577 /* PROTransformer.m in Sources */,
+				D0D2E71614CAAC54009E641B /* PROBacktraceFunctions.m in Sources */,
+				D0A3DD7614CAB8D300754143 /* PROLogging.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1190,6 +1229,7 @@
 				D0F5CD3814C5795800966B2D /* EXTScopeTest.m in Sources */,
 				D0F5CD4814C5796C00966B2D /* SDQueueTests.m in Sources */,
 				D0DA64CB14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
+				D0D2E71E14CAB26C009E641B /* PROAssertTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1233,6 +1273,7 @@
 			baseConfigurationReference = D0F5CCFA14C578BF00966B2D /* Profile.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "PROTON_LOGGING_LEVEL=LOG_LEVEL_OFF";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = Proton;
@@ -1350,6 +1391,7 @@
 			baseConfigurationReference = D0F5CCF914C578BF00966B2D /* Debug.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "PROTON_LOGGING_LEVEL=LOG_LEVEL_WARN";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = Proton;
@@ -1362,6 +1404,7 @@
 			baseConfigurationReference = D0F5CCFB14C578BF00966B2D /* Release.xcconfig */;
 			buildSettings = {
 				GCC_PREFIX_HEADER = "Proton/Proton-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "PROTON_LOGGING_LEVEL=LOG_LEVEL_ERROR";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = Proton;

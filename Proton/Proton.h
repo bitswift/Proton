@@ -6,26 +6,6 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/DDASLLogger.h>
-#import <Proton/DDLog.h>
-#import <Proton/DDTTYLogger.h>
-
-/**
- * The default logging level for Proton and projects linking to it.
- *
- * This logging level is based on the configuration with which Proton was built.
- *
- * Individual files can declare a `static int ddLogLevel` variable, which will
- * override this one.
- */
-extern int ddLogLevel;
-
-// disable asynchronous logging in Debug builds by default
-#ifdef DEBUG
-    #undef LOG_ASYNC_ENABLED
-    #define LOG_ASYNC_ENABLED NO
-#endif
-
 #import <Proton/EXTConcreteProtocol.h>
 #import <Proton/EXTNil.h>
 #import <Proton/EXTRuntimeExtensions.h>
@@ -40,6 +20,8 @@ extern int ddLogLevel;
 #import <Proton/NSObject+PROKeyValueObserverAdditions.h>
 #import <Proton/NSOrderedSet+HigherOrderAdditions.h>
 #import <Proton/NSSet+HigherOrderAdditions.h>
+#import <Proton/PROAssert.h>
+#import <Proton/PROBacktraceFunctions.h>
 #import <Proton/PROFuture.h>
 #import <Proton/PROIndexedTransformation.h>
 #import <Proton/PROInsertionTransformation.h>
@@ -47,6 +29,7 @@ extern int ddLogLevel;
 #import <Proton/PROKeyValueObserver.h>
 #import <Proton/PROKeyedObject.h>
 #import <Proton/PROKeyedTransformation.h>
+#import <Proton/PROLogging.h>
 #import <Proton/PROModel.h>
 #import <Proton/PROModelController.h>
 #import <Proton/PROMultipleTransformation.h>
