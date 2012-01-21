@@ -8,10 +8,7 @@
 
 #import "PROBacktraceFunctions.h"
 #import <execinfo.h>
-
-// for logging
-// TODO: move logging elsewhere
-#import <Proton/Proton.h>
+#import <Proton/PROLogging.h>
 
 /*
  * The maximum number of functions/methods included in generated backtraces.
