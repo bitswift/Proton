@@ -1,14 +1,12 @@
 //
-//  Proton.m
+//  PROLogging.m
 //  Proton
 //
-//  Created by Justin Spahr-Summers on 29.12.11.
-//  Copyright (c) 2011 Bitswift. All rights reserved.
+//  Created by Justin Spahr-Summers on 21.01.12.
+//  Copyright (c) 2012 Bitswift. All rights reserved.
 //
 
-#import <Proton/DDLog.h>
-#import <Proton/DDASLLogger.h>
-#import <Proton/DDTTYLogger.h>
+#import "PROLogging.h"
 
 #ifdef DEBUG
     int ddLogLevel = LOG_LEVEL_INFO;
