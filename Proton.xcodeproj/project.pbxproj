@@ -421,16 +421,6 @@
 			name = "Unique Identifier";
 			sourceTree = "<group>";
 		};
-		D00A490A1499450400EEBD92 /* Protocols */ = {
-			isa = PBXGroup;
-			children = (
-				D00A490C1499451400EEBD92 /* PROKeyedObject.h */,
-				D0DA64D714C681D100B6A577 /* PROTransformer.h */,
-				D0DA64D814C681D100B6A577 /* PROTransformer.m */,
-			);
-			name = Protocols;
-			sourceTree = "<group>";
-		};
 		D031BA8C14A53B4000A38526 /* Key-Value Observing */ = {
 			isa = PBXGroup;
 			children = (
@@ -463,13 +453,12 @@
 			name = Transformation;
 			sourceTree = "<group>";
 		};
-		D04D284514A5626F00197AB9 /* Macros */ = {
+		D04D284514A5626F00197AB9 /* Key-Value Coding */ = {
 			isa = PBXGroup;
 			children = (
-				D0D2E70614CAAA37009E641B /* PROAssert.h */,
 				D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */,
 			);
-			name = Macros;
+			name = "Key-Value Coding";
 			sourceTree = "<group>";
 		};
 		D06AA4321494A19600F0F94B /* Extensions */ = {
@@ -495,18 +484,6 @@
 				D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */,
 			);
 			name = Extensions;
-			sourceTree = "<group>";
-		};
-		D06AA43F1494A1B400F0F94B /* Classes */ = {
-			isa = PBXGroup;
-			children = (
-				D080D58114A5DF2C00FABAA2 /* Futures */,
-				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
-				D0C42D5F14984CD100A08989 /* Model Framework */,
-				D0477F5514970DDC00B0DAB0 /* Transformation */,
-				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
-			);
-			name = Classes;
 			sourceTree = "<group>";
 		};
 		D06AA45C1494A22600F0F94B /* Classes */ = {
@@ -564,12 +541,37 @@
 		D0C42D5F14984CD100A08989 /* Model Framework */ = {
 			isa = PBXGroup;
 			children = (
+				D00A490C1499451400EEBD92 /* PROKeyedObject.h */,
 				D0C42D6114984CE100A08989 /* PROModel.h */,
 				D0C42D6214984CE100A08989 /* PROModel.m */,
 				D0A0E5DA14B5788E00E278CA /* PROModelController.h */,
 				D0A0E5DB14B5788E00E278CA /* PROModelController.m */,
+				D0DA64D714C681D100B6A577 /* PROTransformer.h */,
+				D0DA64D814C681D100B6A577 /* PROTransformer.m */,
 			);
 			name = "Model Framework";
+			sourceTree = "<group>";
+		};
+		D0D2E70A14CAABCD009E641B /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				D0D2E70B14CAABE2009E641B /* Error Handling */,
+				D080D58114A5DF2C00FABAA2 /* Futures */,
+				D04D284514A5626F00197AB9 /* Key-Value Coding */,
+				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
+				D0C42D5F14984CD100A08989 /* Model Framework */,
+				D0477F5514970DDC00B0DAB0 /* Transformation */,
+				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
+			);
+			name = Modules;
+			sourceTree = "<group>";
+		};
+		D0D2E70B14CAABE2009E641B /* Error Handling */ = {
+			isa = PBXGroup;
+			children = (
+				D0D2E70614CAAA37009E641B /* PROAssert.h */,
+			);
+			name = "Error Handling";
 			sourceTree = "<group>";
 		};
 		D0DB5CB81492DDD5005955FB = {
@@ -612,10 +614,8 @@
 			children = (
 				D0DB5CD41492DDD5005955FB /* Proton.h */,
 				D013817514AD4AB8008E7942 /* Proton.m */,
-				D06AA43F1494A1B400F0F94B /* Classes */,
+				D0D2E70A14CAABCD009E641B /* Modules */,
 				D06AA4321494A19600F0F94B /* Extensions */,
-				D04D284514A5626F00197AB9 /* Macros */,
-				D00A490A1499450400EEBD92 /* Protocols */,
 				D0DB5CCE1492DDD5005955FB /* Supporting Files */,
 			);
 			path = Proton;
