@@ -60,7 +60,7 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)array; {
+- (id)transform:(NSArray *)array error:(NSError **)error; {
     // if we don't have indexes, pass all objects through
     if (!self.insertionIndexes)
         return array;

@@ -59,7 +59,7 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)array; {
+- (id)transform:(NSArray *)array error:(NSError **)error; {
     // Return the unmodified object if indexes is nil
     if (!self.indexes)
         return array;
@@ -94,7 +94,7 @@
         NSUInteger index = indexes[setIndex];
         id inputValue = [array objectAtIndex:index];
 
-        id result = [transformation transform:inputValue];
+        id result = [transformation transform:inputValue error:error];
         if (!result) {
             newArray = nil;
 

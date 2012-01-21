@@ -56,7 +56,7 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)array; {
+- (id)transform:(NSArray *)array error:(NSError **)error; {
     // if our index sets are nil (both are or neither are), pass all objects
     // through
     if (!self.startIndexes)

@@ -52,11 +52,11 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
+- (id)transform:(id)obj error:(NSError **)error; {
     id currentValue = obj;
 
     for (PROTransformation *transformation in self.transformations) {
-        currentValue = [transformation transform:currentValue];
+        currentValue = [transformation transform:currentValue error:error];
         if (!currentValue)
             return nil;
     }
@@ -86,10 +86,10 @@
     if (!currentValue)
         return NO;
 
-    NSAssert([[self transform:currentValue] isEqual:result], @"Value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
+    NSAssert([[self transform:currentValue error:NULL] isEqual:result], @"Value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
 
     for (PROTransformation *transformation in self.transformations) {
-        currentValue = [transformation transform:currentValue];
+        currentValue = [transformation transform:currentValue error:NULL];
 
         NSAssert(currentValue != nil, @"Transformation %@ should not have failed on %@ on the way to original result %@", transformation, currentValue, result);
 

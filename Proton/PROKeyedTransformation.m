@@ -100,7 +100,7 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
+- (id)transform:(id<PROKeyedObject>)obj error:(NSError **)error; {
     if (!self.valueTransformations) {
         return obj;
     }
@@ -131,7 +131,7 @@
 
         PROTransformation *transformation = [self.valueTransformations objectForKey:key];
 
-        value = [transformation transform:value];
+        value = [transformation transform:value error:error];
         if (!value) {
             // invalid transformation
             return nil;

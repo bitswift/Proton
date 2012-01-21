@@ -63,7 +63,7 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)array; {
+- (id)transform:(NSArray *)array error:(NSError **)error; {
     if (!self.removalIndexes)
         return array;
 

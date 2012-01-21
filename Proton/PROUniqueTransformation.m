@@ -60,7 +60,7 @@
 
 #pragma mark Transformation
 
-- (id)transform:(id)obj; {
+- (id)transform:(id)obj error:(NSError **)error; {
     if (!self.inputValue)
         return obj;
 
