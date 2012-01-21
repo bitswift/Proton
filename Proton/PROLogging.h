@@ -10,15 +10,9 @@
 #import <Proton/DDLog.h>
 #import <Proton/DDTTYLogger.h>
 
-/**
- * The default logging level for Proton and projects linking to it.
- *
- * This logging level is based on the configuration with which Proton was built.
- *
- * Individual files can declare a `static int ddLogLevel` variable, which will
- * override this one.
- */
-extern int ddLogLevel;
+#ifdef PROTON_LOGGING_LEVEL
+    static int ddLogLevel = PROTON_LOGGING_LEVEL;
+#endif
 
 // disable asynchronous logging in Debug builds by default
 #ifdef DEBUG

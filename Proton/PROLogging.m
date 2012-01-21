@@ -8,12 +8,6 @@
 
 #import "PROLogging.h"
 
-#ifdef DEBUG
-    int ddLogLevel = LOG_LEVEL_INFO;
-#else
-    int ddLogLevel = LOG_LEVEL_ERROR;
-#endif
-
 /*
  * Formats TTY (Xcode console) logs with the caller's function name and line
  * number.
