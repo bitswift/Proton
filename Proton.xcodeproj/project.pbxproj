@@ -143,6 +143,8 @@
 		D0C42D6614984CE100A08989 /* PROModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D6214984CE100A08989 /* PROModel.m */; };
 		D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
 		D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D78149857CB00A08989 /* PROModelTests.m */; };
+		D0D2E70714CAAA37009E641B /* PROAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D2E70614CAAA37009E641B /* PROAssert.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0D2E70814CAAA37009E641B /* PROAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = D0D2E70614CAAA37009E641B /* PROAssert.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0DA64C414C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0DA64C514C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0DA64C614C67E3D00B6A577 /* EXTConcreteProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */; };
@@ -308,6 +310,7 @@
 		D0C42D6214984CE100A08989 /* PROModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModel.m; sourceTree = "<group>"; };
 		D0C42D77149857CB00A08989 /* PROModelTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelTests.h; sourceTree = "<group>"; };
 		D0C42D78149857CB00A08989 /* PROModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelTests.m; sourceTree = "<group>"; };
+		D0D2E70614CAAA37009E641B /* PROAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROAssert.h; sourceTree = "<group>"; };
 		D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocol.h; sourceTree = "<group>"; };
 		D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTConcreteProtocol.m; sourceTree = "<group>"; };
 		D0DA64C914C67E4E00B6A577 /* EXTConcreteProtocolTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocolTest.h; sourceTree = "<group>"; };
@@ -463,6 +466,7 @@
 		D04D284514A5626F00197AB9 /* Macros */ = {
 			isa = PBXGroup;
 			children = (
+				D0D2E70614CAAA37009E641B /* PROAssert.h */,
 				D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */,
 			);
 			name = Macros;
@@ -844,6 +848,7 @@
 				D0F5CD5C14C5799C00966B2D /* DDTTYLogger.h in Headers */,
 				D0DA64C514C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */,
 				D0DA64DA14C681D100B6A577 /* PROTransformer.h in Headers */,
+				D0D2E70814CAAA37009E641B /* PROAssert.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -887,6 +892,7 @@
 				D0F5CD5B14C5799C00966B2D /* DDTTYLogger.h in Headers */,
 				D0DA64C414C67E3D00B6A577 /* EXTConcreteProtocol.h in Headers */,
 				D0DA64D914C681D100B6A577 /* PROTransformer.h in Headers */,
+				D0D2E70714CAAA37009E641B /* PROAssert.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

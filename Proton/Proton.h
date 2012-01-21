@@ -40,6 +40,7 @@ extern int ddLogLevel;
 #import <Proton/NSObject+PROKeyValueObserverAdditions.h>
 #import <Proton/NSOrderedSet+HigherOrderAdditions.h>
 #import <Proton/NSSet+HigherOrderAdditions.h>
+#import <Proton/PROAssert.h>
 #import <Proton/PROFuture.h>
 #import <Proton/PROIndexedTransformation.h>
 #import <Proton/PROInsertionTransformation.h>
