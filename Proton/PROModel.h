@@ -48,20 +48,15 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  *  1. Declare and synthesize any properties desired. Properties should be
  *  `readwrite` (even if exposed as `readonly`) so that their values can be set
  *  with key-value coding.
- *  2. Implement key-value coding validation methods
- *  (per the semantics of `validateValue:forKey:error:`) as desired. These
- *  validation methods will be automatically invoked by <initWithDictionary:>.
- *  3. Override <initWithDictionary:> if you need to verify object consistency
- *  after it has been initialized.
+ *  2. Implement key-value coding validation methods (per the semantics of
+ *  `validateValue:forKey:error:`) as desired. These validation methods will be
+ *  automatically invoked by <initWithDictionary:error:>.
+ *  3. Override <initWithDictionary:error:> if you need to verify object
+ *  consistency after it has been initialized.
  *
  * Subclasses do not need to implement `<NSCoding>`, `<NSCopying>`, `-hash`, or
  * `isEqual:`. The implementations of all of these methods are based on the
- * <initWithDictionary:> and <dictionaryValue> behaviors of the class.
- *
- * @warning **Important:** Subclasses of this class are expected to be
- * immutable. To preserve the contract of immutability, but still allow
- * convenient usage, `PROModel` will disable any `@property` setters outside of
- * <initWithDictionary:>.
+ * <initWithDictionary:error:> and <dictionaryValue> behaviors of the class.
  */
 @interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
 
@@ -70,17 +65,20 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  */
 
 /**
- * Invokes <initWithDictionary:> with a `nil` dictionary.
+ * Invokes <initWithDictionary:error:> with a `nil` dictionary and `NULL` error
+ * argument.
  */
 - (id)init;
 
 /**
  * Initializes the properties of the receiver using the keys and values of
- * a dictionary.
+ * a dictionary. Sets `error` and returns `nil` if any error occurs.
  *
  * The keys in the given dictionary must all exist as properties on the
  * receiver. All entries are automatically validated with key-value coding
- * validation methods.
+ * validation methods. If a validation method fails, this method will return
+ * `nil`, and `error` will be set to the error returned by the validation
+ * method.
  *
  * This method can be overridden by subclasses to perform additional validation
  * on the completed object after calling the superclass implementation.
@@ -88,9 +86,12 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  * This is the designated initializer for this class.
  *
  * @param dictionary The property keys and values to set on the receiver. This
- * argument can be `nil`.
+ * argument can be `nil` to use the object's default values.
+ * @param error If this argument is not `NULL`, it will be set to any error that
+ * occurs during initialization. This argument will only be set if the method
+ * returns `nil`.
  */
-- (id)initWithDictionary:(NSDictionary *)dictionary;
+- (id)initWithDictionary:(NSDictionary *)dictionary error:(NSError **)error;
 
 /**
  * @name Reflection
