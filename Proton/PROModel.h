@@ -149,52 +149,35 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 - (NSDictionary *)dictionaryValue;
 
 /**
- * @name Transforming Properties
+ * @name Creating Transformations
  */
 
 /**
- * Returns a copy of the receiver which has the given key set to the given
- * value.
- *
- * *This method does not mutate the receiver.*
+ * Returns a keyed transformation to transform the value for `key` from its
+ * current value on the receiver to `value`. Returns `nil` if the given key is
+ * already equal to the given value.
  *
  * @param key The key to transform.
- * @param value The new value for `key`.
- */
-- (id)transformValueForKey:(NSString *)key toValue:(id)value;
-
-/**
- * Returns a copy of the receiver which has the given keys set to the given
- * values.
- *
- * *This method does not mutate the receiver.*
- *
- * @param dictionary The keys to transform, and the new values to set for those
- * keys.
- */
-- (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary;
-
-/**
- * Returns a keyed transformation which will transform the value for `key` from
- * its current value on the receiver to `value`. Returns `nil` if the transformation
- * would not be valid.
- *
- * @param key The key to transform. The returned transformation will only be
- * valid for the current value of this key.
  * @param value The value for `key` that will be set by the transformation.
+ *
+ * @warning **Important:** This method does not check to see if the returned
+ * transformation would be valid.
  */
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value;
 
 /**
- * Returns a keyed transformation which will transform the values for the given
- * keys from their current values on the receiver. Returns `nil` if the
- * transformation would not be valid.
+ * Returns a keyed transformation to transform the values for the given keys
+ * from their current values on the receiver. Returns `nil` if all of the keys
+ * are already equal to the given values.
  *
  * This will retrieve the current value on the receiver of every key in
  * `dictionary` and create a transformation for each one to convert it to the
  * value in the dictionary.
  *
  * @param dictionary The keys to transform, along with the new values to set.
+ *
+ * @warning **Important:** This method does not check to see if the returned
+ * transformation would be valid.
  */
 - (PROKeyedTransformation *)transformationForKeysWithDictionary:(NSDictionary *)dictionary;
 

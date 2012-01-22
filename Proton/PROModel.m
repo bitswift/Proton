@@ -199,14 +199,6 @@ const NSInteger PROModelErrorValidationFailed = 2;
 
 #pragma mark Transformation
 
-- (id)transformValueForKey:(NSString *)key toValue:(id)value {
-    return [[self transformationForKey:key value:value] transform:self error:NULL];
-}
-
-- (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary {
-    return [[self transformationForKeysWithDictionary:dictionary] transform:self error:NULL];   
-}
-
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value; {
     if (!value) {
         value = [NSNull null];
@@ -226,12 +218,12 @@ const NSInteger PROModelErrorValidationFailed = 2;
         id originalValue = [self valueForKey:key];
 
         if (!originalValue) {
-            // 'nil' needs to be represented as NSNull for PROUniqueTransformation
+            // 'nil' needs to be represented as NSNull for PROKeyedTransformation
             originalValue = [NSNull null];
         }
 
         if (NSEqualObjects(value, originalValue)) {
-            // nothing to do
+            // nothing to do for this key
             continue;
         }
 
@@ -239,16 +231,14 @@ const NSInteger PROModelErrorValidationFailed = 2;
         PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:originalValue outputValue:value];
         [transformations setObject:transformation forKey:key];
     }
-    
-    // set up a key-based transformation for self
-    PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
-    
-    if (![transformation transform:self error:NULL]) {
-        // this transformation cannot be validly applied to 'self'
+
+    if (![transformations count]) {
+        // nothing to do for any of the keys
         return nil;
     }
     
-    return transformation;
+    // set up a key-based transformation for self
+    return [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
 }
 
 #pragma mark Default values

@@ -112,38 +112,6 @@
     STAssertEqualObjects(model.dictionaryValue, expectedDictionaryValue, @"");
 }
 
-- (void)testTransformValueForKey {
-    TestModel *model = [[TestModel alloc] init];
-
-    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
-        @"foobar", @"name",
-        [NSNull null], @"date",
-        [NSNumber numberWithBool:NO], @"enabled",
-        nil
-    ];
-
-    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue error:NULL];
-
-    id result = [model transformValueForKey:@"name" toValue:@"foobar"];
-    STAssertEqualObjects(result, expectedObject, @"");
-}
-
-- (void)testTransformValuesForKeysWithDictionary {
-    TestModel *model = [[TestModel alloc] init];
-
-    NSDictionary *newDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-        @"foobar", @"name",
-        [NSDate date], @"date",
-        [NSNumber numberWithBool:YES], @"enabled",
-        nil
-    ];
-
-    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary error:NULL];
-
-    id result = [model transformValuesForKeysWithDictionary:newDictionary];
-    STAssertEqualObjects(result, expectedObject, @"");
-}
-
 - (void)testTransformationForKey {
     TestModel *model = [TestModel testInstance];
 
@@ -200,24 +168,22 @@
     }
 }
 
-- (void)testInvalidTransformationForKey {
+- (void)testAlreadyDoneTransformationForKey {
     TestModel *model = [TestModel testInstance];
 
-    // an empty name won't pass TestModel's validation method
-    PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:@""];
+    PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:model.name];
     STAssertNil(transformation, @"");
 }
 
-- (void)testInvalidTransformationForKeysWithDictionary {
+- (void)testAlreadyDoneTransformationForKeysWithDictionary {
     TestModel *model = [TestModel testInstance];
 
     NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
-        @"", @"name",
-        [NSDate date], @"date",
+        model.name, @"name",
+        model.date, @"date",
         nil
     ];
 
-    // an empty name won't pass TestModel's validation method
     PROKeyedTransformation *transformation = [model transformationForKeysWithDictionary:changes];
     STAssertNil(transformation, @"");
 }

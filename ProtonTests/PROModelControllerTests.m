@@ -86,7 +86,7 @@
     TestSuperModelController *controller = [[TestSuperModelController alloc] init];
 
     TestSubModel *subModel = [[TestSubModel alloc] init];
-    TestSuperModel *newModel = [controller.model transformValueForKey:PROKeyForObject(controller.model, subModels) toValue:[NSArray arrayWithObject:subModel]];
+    TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:subModel];
 
     PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:controller.model outputValue:newModel];
 
