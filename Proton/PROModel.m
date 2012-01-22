@@ -100,8 +100,10 @@ const NSInteger PROModelErrorValidationFailed = 2;
             if (error) {
                 NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
 
-                if (validationError)
+                if (validationError) {
                     [userInfo addEntriesFromDictionary:validationError.userInfo];
+                    [userInfo setObject:validationError forKey:NSUnderlyingErrorKey];
+                }
 
                 [userInfo setObject:key forKey:PROModelPropertyKeyErrorKey];
 
