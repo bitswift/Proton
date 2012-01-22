@@ -12,6 +12,35 @@
 @class PROKeyedTransformation;
 
 /**
+ * An error code in <[PROModel errorDomain]> indicating that an attempt was made
+ * to get or set an undefined key.
+ *
+ * Errors of this type will always contain <PROModelPropertyKeyErrorKey> in the
+ * user info dictionary.
+ */
+extern const NSInteger PROModelErrorUndefinedKey;
+
+/**
+ * An error code in <[PROModel errorDomain]> indicating that key-value
+ * validation failed.
+ *
+ * The localized strings for this type of error will be those from the `NSError`
+ * returned by the key-value validation method, if any. Any such `NSError`
+ * object will be associated with `NSUnderlyingErrorKey` in the user info
+ * dictionary.
+ *
+ * Errors of this type will always contain <PROModelPropertyKeyErrorKey> in the
+ * user info dictionary.
+ */
+extern const NSInteger PROModelErrorValidationFailed;
+
+/**
+ * `NSError` user info key that is associated with an `NSString` that represents
+ * the property key which caused the error.
+ */
+extern NSString * const PROModelPropertyKeyErrorKey;
+
+/**
  * A base class for immutable model objects.
  *
  * To create a subclass:
@@ -19,20 +48,15 @@
  *  1. Declare and synthesize any properties desired. Properties should be
  *  `readwrite` (even if exposed as `readonly`) so that their values can be set
  *  with key-value coding.
- *  2. Implement key-value coding validation methods
- *  (per the semantics of `validateValue:forKey:error:`) as desired. These
- *  validation methods will be automatically invoked by <initWithDictionary:>.
- *  3. Override <initWithDictionary:> if you need to verify object consistency
- *  after it has been initialized.
+ *  2. Implement key-value coding validation methods (per the semantics of
+ *  `validateValue:forKey:error:`) as desired. These validation methods will be
+ *  automatically invoked by <initWithDictionary:error:>.
+ *  3. Override <initWithDictionary:error:> if you need to verify object
+ *  consistency after it has been initialized.
  *
  * Subclasses do not need to implement `<NSCoding>`, `<NSCopying>`, `-hash`, or
  * `isEqual:`. The implementations of all of these methods are based on the
- * <initWithDictionary:> and <dictionaryValue> behaviors of the class.
- *
- * @warning **Important:** Subclasses of this class are expected to be
- * immutable. To preserve the contract of immutability, but still allow
- * convenient usage, `PROModel` will disable any `@property` setters outside of
- * <initWithDictionary:>.
+ * <initWithDictionary:error:> and <dictionaryValue> behaviors of the class.
  */
 @interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
 
@@ -41,17 +65,20 @@
  */
 
 /**
- * Invokes <initWithDictionary:> with a `nil` dictionary.
+ * Invokes <initWithDictionary:error:> with a `nil` dictionary and `NULL` error
+ * argument.
  */
 - (id)init;
 
 /**
  * Initializes the properties of the receiver using the keys and values of
- * a dictionary.
+ * a dictionary. Sets `error` and returns `nil` if any error occurs.
  *
  * The keys in the given dictionary must all exist as properties on the
  * receiver. All entries are automatically validated with key-value coding
- * validation methods.
+ * validation methods. If a validation method fails, this method will return
+ * `nil`, and `error` will be set to the error returned by the validation
+ * method.
  *
  * This method can be overridden by subclasses to perform additional validation
  * on the completed object after calling the superclass implementation.
@@ -59,9 +86,12 @@
  * This is the designated initializer for this class.
  *
  * @param dictionary The property keys and values to set on the receiver. This
- * argument can be `nil`.
+ * argument can be `nil` to use the object's default values.
+ * @param error If this argument is not `NULL`, it will be set to any error that
+ * occurs during initialization. This argument will only be set if the method
+ * returns `nil`.
  */
-- (id)initWithDictionary:(NSDictionary *)dictionary;
+- (id)initWithDictionary:(NSDictionary *)dictionary error:(NSError **)error;
 
 /**
  * @name Reflection
@@ -119,53 +149,48 @@
 - (NSDictionary *)dictionaryValue;
 
 /**
- * @name Transforming Properties
+ * @name Creating Transformations
  */
 
 /**
- * Returns a copy of the receiver which has the given key set to the given
- * value.
- *
- * *This method does not mutate the receiver.*
+ * Returns a keyed transformation to transform the value for `key` from its
+ * current value on the receiver to `value`. Returns `nil` if the given key is
+ * already equal to the given value.
  *
  * @param key The key to transform.
- * @param value The new value for `key`.
- */
-- (id)transformValueForKey:(NSString *)key toValue:(id)value;
-
-/**
- * Returns a copy of the receiver which has the given keys set to the given
- * values.
- *
- * *This method does not mutate the receiver.*
- *
- * @param dictionary The keys to transform, and the new values to set for those
- * keys.
- */
-- (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary;
-
-/**
- * Returns a keyed transformation which will transform the value for `key` from
- * its current value on the receiver to `value`. Returns `nil` if the transformation
- * would not be valid.
- *
- * @param key The key to transform. The returned transformation will only be
- * valid for the current value of this key.
  * @param value The value for `key` that will be set by the transformation.
+ *
+ * @warning **Important:** This method does not check to see if the returned
+ * transformation would be valid.
  */
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value;
 
 /**
- * Returns a keyed transformation which will transform the values for the given
- * keys from their current values on the receiver. Returns `nil` if the
- * transformation would not be valid.
+ * Returns a keyed transformation to transform the values for the given keys
+ * from their current values on the receiver. Returns `nil` if all of the keys
+ * are already equal to the given values.
  *
  * This will retrieve the current value on the receiver of every key in
  * `dictionary` and create a transformation for each one to convert it to the
  * value in the dictionary.
  *
  * @param dictionary The keys to transform, along with the new values to set.
+ *
+ * @warning **Important:** This method does not check to see if the returned
+ * transformation would be valid.
  */
 - (PROKeyedTransformation *)transformationForKeysWithDictionary:(NSDictionary *)dictionary;
+
+/**
+ * @name Error Handling
+ */
+
+/**
+ * Returns the error domain for the receiving class.
+ *
+ * <PROModel> subclasses may override this if they create custom errors within
+ * their own domain.
+ */
++ (NSString *)errorDomain;
 
 @end

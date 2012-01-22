@@ -105,17 +105,7 @@
         return obj;
     }
 
-    if (![obj respondsToSelector:@selector(dictionaryValue)]) {
-        if (error)
-            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ does not conform to <PROKeyedObject>", obj];
-
-        return nil;
-    }
-
-    // check with the class for this method, since runtime magic could
-    // (potentially) hide an init method after it's already initialized, or
-    // perhaps proxy this message to another object
-    if (![[obj class] instancesRespondToSelector:@selector(initWithDictionary:)]) {
+    if (![obj conformsToProtocol:@protocol(PROKeyedObject)]) {
         if (error)
             *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ does not conform to <PROKeyedObject>", obj];
 
@@ -154,7 +144,7 @@
         // special-case NSDictionary, since it's a class cluster
         return [values copy];
     } else {
-        return [[[obj class] alloc] initWithDictionary:values];
+        return [[[obj class] alloc] initWithDictionary:values error:error];
     }
 }
 

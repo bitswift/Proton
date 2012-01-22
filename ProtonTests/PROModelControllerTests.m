@@ -86,7 +86,7 @@
     TestSuperModelController *controller = [[TestSuperModelController alloc] init];
 
     TestSubModel *subModel = [[TestSubModel alloc] init];
-    TestSuperModel *newModel = [controller.model transformValueForKey:PROKeyForObject(controller.model, subModels) toValue:[NSArray arrayWithObject:subModel]];
+    TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:subModel];
 
     PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:controller.model outputValue:newModel];
 
@@ -173,7 +173,7 @@
     NSArray *subModels = [NSArray arrayWithObjects:firstSubModel, secondSubModel, nil];
 
     NSDictionary *modelDictionary = [NSDictionary dictionaryWithObject:subModels forKey:@"subModels"];
-    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:modelDictionary];
+    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:modelDictionary error:NULL];
 
     TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
 
@@ -247,7 +247,7 @@
         nil
     ];
 
-    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:[NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(model, subModels)]];
+    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:[NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(model, subModels)] error:NULL];
     TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
 
     {
@@ -282,7 +282,7 @@
 
 - (id)initWithName:(NSString *)name {
     NSDictionary *dictionary = [NSDictionary dictionaryWithObject:name forKey:PROKeyForObject(self, name)];
-    return [self initWithDictionary:dictionary];
+    return [self initWithDictionary:dictionary error:NULL];
 }
 
 @end
@@ -297,7 +297,7 @@
     NSArray *subModels = [NSArray arrayWithObject:subModel];
 
     NSDictionary *dictionary = [NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(self, subModels)];
-    return [self initWithDictionary:dictionary];
+    return [self initWithDictionary:dictionary error:NULL];
 }
 @end
 

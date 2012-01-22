@@ -12,6 +12,40 @@
 @class PROTransformation;
 
 /**
+ * An error code in <[PROTransformation errorDomain]> returned when
+ * a transformation applies to one or more indexes that are out of bounds for
+ * the input array.
+ *
+ * Errors of this type will always contain the following user info keys:
+ *
+ *  - <PROTransformationFailingTransformationsErrorKey>
+ *  - <PROTransformationFailingTransformationPathErrorKey>
+ */
+extern const NSInteger PROTransformationErrorIndexOutOfBounds;
+
+/**
+ * An error code in <[PROTransformation errorDomain]> returned when the input to
+ * a transformation does not match the input that is expected.
+ *
+ * Errors of this type will always contain the following user info keys:
+ *
+ *  - <PROTransformationFailingTransformationsErrorKey>
+ *  - <PROTransformationFailingTransformationPathErrorKey>
+ */
+extern const NSInteger PROTransformationErrorMismatchedInput;
+
+/**
+ * An error code in <[PROTransformation errorDomain]> returned when
+ * a transformation is passed an input value that is not of the expected type.
+ *
+ * Errors of this type will always contain the following user info keys:
+ *
+ *  - <PROTransformationFailingTransformationsErrorKey>
+ *  - <PROTransformationFailingTransformationPathErrorKey>
+ */
+extern const NSInteger PROTransformationErrorUnsupportedInputType;
+
+/**
  * `NSError` user info key that is associated with an `NSArray` containing the
  * "chain" of transformations that failed.
  *
@@ -35,24 +69,6 @@ extern NSString * const PROTransformationFailingTransformationsErrorKey;
  * debugging purposes only.
  */
 extern NSString * const PROTransformationFailingTransformationPathErrorKey;
-
-/**
- * The error code returned when a transformation applies to one or more indexes
- * that are out of bounds for the input array.
- */
-extern NSInteger PROTransformationErrorIndexOutOfBounds;
-
-/**
- * The error code returned when the input to a transformation does not match the
- * input that is expected.
- */
-extern NSInteger PROTransformationErrorMismatchedInput;
-
-/**
- * The error code returned when a transformation is passed an input value that
- * is not of the expected type.
- */
-extern NSInteger PROTransformationErrorUnsupportedInputType;
 
 /**
  * An abstract class describing the transformation of an object.

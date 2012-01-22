@@ -419,4 +419,11 @@
     [self testKeyOfEntryPassingTestWithOptions:NSEnumerationReverse];
 }
 
+- (void)testPROKeyedObjectConformance {
+    STAssertTrue([NSDictionary conformsToProtocol:@protocol(PROKeyedObject)], @"");
+
+    NSDictionary *dict = [[NSDictionary alloc] init];
+    STAssertTrue([dict conformsToProtocol:@protocol(PROKeyedObject)], @"");
+}
+
 @end
