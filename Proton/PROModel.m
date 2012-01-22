@@ -15,6 +15,11 @@
 #import <Proton/PROUniqueTransformation.h>
 #import <objc/runtime.h>
 
+NSString * const PROModelPropertyKeyErrorKey = @"PROModelPropertyKey";
+
+const NSInteger PROModelErrorUndefinedKey = 1;
+const NSInteger PROModelErrorValidationFailed = 2;
+
 @interface PROModel ()
 /*
  * Enumerates all the properties of the receiver and any superclasses, up until

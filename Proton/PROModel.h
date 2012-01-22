@@ -12,6 +12,35 @@
 @class PROKeyedTransformation;
 
 /**
+ * An error code in <[PROModel errorDomain]> indicating that an attempt was made
+ * to get or set an undefined key.
+ *
+ * Errors of this type will always contain <PROModelPropertyKeyErrorKey> in the
+ * user info dictionary.
+ */
+extern const NSInteger PROModelErrorUndefinedKey;
+
+/**
+ * An error code in <[PROModel errorDomain]> indicating that key-value
+ * validation failed.
+ *
+ * The localized strings for this type of error will be those from the `NSError`
+ * returned by the key-value validation method, if any. Any such `NSError`
+ * object will be associated with `NSUnderlyingErrorKey` in the user info
+ * dictionary.
+ *
+ * Errors of this type will always contain <PROModelPropertyKeyErrorKey> in the
+ * user info dictionary.
+ */
+extern const NSInteger PROModelErrorValidationFailed;
+
+/**
+ * `NSError` user info key that is associated with an `NSString` that represents
+ * the property key which caused the error.
+ */
+extern NSString * const PROModelPropertyKeyErrorKey;
+
+/**
  * A base class for immutable model objects.
  *
  * To create a subclass:
@@ -167,5 +196,17 @@
  * @param dictionary The keys to transform, along with the new values to set.
  */
 - (PROKeyedTransformation *)transformationForKeysWithDictionary:(NSDictionary *)dictionary;
+
+/**
+ * @name Error Handling
+ */
+
+/**
+ * Returns the error domain for the receiving class.
+ *
+ * <PROModel> subclasses may override this if they create custom errors within
+ * their own domain.
+ */
++ (NSString *)errorDomain;
 
 @end
