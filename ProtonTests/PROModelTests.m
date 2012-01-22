@@ -97,7 +97,7 @@
 - (void)testSubclassInitializationWithDictionary {
     NSDictionary *startingDict = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
 
-    TestModel *model = [[TestModel alloc] initWithDictionary:startingDict];
+    TestModel *model = [[TestModel alloc] initWithDictionary:startingDict error:NULL];
     STAssertNotNil(model, @"");
 
     STAssertEqualObjects([model valueForKey:@"name"], @"foobar", @"");
@@ -122,7 +122,7 @@
         nil
     ];
 
-    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue];
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:expectedDictionaryValue error:NULL];
 
     id result = [model transformValueForKey:@"name" toValue:@"foobar"];
     STAssertEqualObjects(result, expectedObject, @"");
@@ -138,7 +138,7 @@
         nil
     ];
 
-    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary];
+    TestModel *expectedObject = [[TestModel alloc] initWithDictionary:newDictionary error:NULL];
 
     id result = [model transformValuesForKeysWithDictionary:newDictionary];
     STAssertEqualObjects(result, expectedObject, @"");
@@ -269,7 +269,7 @@
         nil
     ];
 
-    return [[self alloc] initWithDictionary:dictionary];
+    return [[self alloc] initWithDictionary:dictionary error:NULL];
 }
 @end
 
