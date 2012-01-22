@@ -6,8 +6,9 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/NSObject+ErrorAdditions.h>
-#import <Proton/EXTSafeCategory.h>
+#import "NSObject+ErrorAdditions.h"
+#import "EXTSafeCategory.h"
+#import "PROAssert.h"
 
 @interface NSObject (DummyMethods)
 /*
@@ -21,7 +22,9 @@
 
 - (NSError *)errorWithCode:(NSInteger)code description:(NSString *)description recoverySuggestion:(NSString *)recoverySuggestion {
 
-    NSAssert([[self class] respondsToSelector:@selector(errorDomain)], @"Receiver's class (%@) must respond to errorDomain", NSStringFromClass([self class]));
+    if (!PROAssert([[self class] respondsToSelector:@selector(errorDomain)], @"Receiver's class (%@) must respond to errorDomain", NSStringFromClass([self class]))) {
+        return nil;
+    }
 
     NSString *errorDomain = @"PRODefaultErrorDomain";
     if ([[self class] respondsToSelector:@selector(errorDomain)]) {
