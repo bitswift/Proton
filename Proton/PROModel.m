@@ -64,10 +64,6 @@
     return self;
 }
 
-- (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
 #pragma mark Reflection
 
 + (void)enumeratePropertiesUsingBlock:(void (^)(objc_property_t property))block; {
