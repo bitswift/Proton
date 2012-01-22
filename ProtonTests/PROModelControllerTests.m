@@ -275,6 +275,22 @@
     }
 }
 
+- (void)testInvalidTransformation {
+    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+    TestSuperModel *originalModel = controller.model;
+
+    TestSubModel *subModel = [[TestSubModel alloc] init];
+    TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:subModel];
+
+    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:newModel outputValue:originalModel];
+
+    NSError *error = nil;
+    STAssertFalse([controller performTransformation:transformation error:&error], @"");
+
+    STAssertNotNil(error, @"");
+    STAssertEqualObjects(controller.model, originalModel, @"");
+}
+
 @end
 
 @implementation TestSubModel
