@@ -90,7 +90,7 @@
 
     PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:controller.model outputValue:newModel];
 
-    STAssertTrue([controller performTransformation:transformation], @"");
+    STAssertTrue([controller performTransformation:transformation error:NULL], @"");
     STAssertEqualObjects(controller.model, newModel, @"");
 
     // make sure that a SubModelController exists for the new SubModel
@@ -107,7 +107,7 @@
     // this will create a transformation keyed on 'subModels'
     PROTransformation *transformation = [controller.model transformationForKey:PROKeyForObject(controller.model, subModels) value:subModels];
 
-    STAssertTrue([controller performTransformation:transformation], @"");
+    STAssertTrue([controller performTransformation:transformation error:NULL], @"");
     STAssertEqualObjects(controller.model.subModels, subModels, @"");
 
     // make sure that a SubModelController exists for the new SubModel
@@ -123,7 +123,7 @@
     PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
     STAssertEqualObjects(controller.model.subModels, [NSArray arrayWithObject:subModel], @"");
 
     // make sure that a SubModelController exists for the new SubModel
@@ -140,7 +140,7 @@
     PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
     STAssertEqualObjects(controller.model.subModels, [NSArray array], @"");
 
     // make sure that the SubModelController was removed
@@ -160,7 +160,7 @@
 
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
     STAssertEqualObjects(controller.model.subModels, [NSArray array], @"");
 
     // make sure that no SubModelController exists
@@ -180,7 +180,7 @@
     PROOrderTransformation *subModelsTransformation = [[PROOrderTransformation alloc] initWithStartIndex:0 endIndex:1];
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
 
     NSArray *expectedSubModels = [NSArray arrayWithObjects:secondSubModel, firstSubModel, nil];
     STAssertEqualObjects(controller.model.subModels, expectedSubModels, @"");
@@ -204,7 +204,7 @@
 
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
 
     // make sure the SubModelController changed
     //
@@ -230,7 +230,7 @@
 
     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-    STAssertTrue([controller performTransformation:modelTransformation], @"");
+    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
 
     // make sure the SubModelController changed
     //
@@ -255,7 +255,7 @@
         PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
         PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-        STAssertTrue([controller performTransformation:modelTransformation], @"");
+        STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
         STAssertEquals([controller.subModelControllers count], (NSUInteger)3, @"");
     }
 
@@ -266,7 +266,7 @@
         PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexSet expectedObjects:removedObjects];
         PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-        STAssertTrue([controller performTransformation:modelTransformation], @"");
+        STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
         STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
 
         // make sure the remaining model object is the one we expect
