@@ -1512,6 +1512,10 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				HEADER_SEARCH_PATHS = (
+					Libraries/Expecta/src,
+					Libraries/Specta/src,
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1536,6 +1540,10 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = (
+					Libraries/Expecta/src,
+					Libraries/Specta/src,
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
@@ -1572,6 +1580,10 @@
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
+				HEADER_SEARCH_PATHS = (
+					Libraries/Expecta/src,
+					Libraries/Specta/src,
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1588,6 +1600,10 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = (
+					Libraries/Expecta/src,
+					Libraries/Specta/src,
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
@@ -1657,6 +1673,10 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				HEADER_SEARCH_PATHS = (
+					Libraries/Expecta/src,
+					Libraries/Specta/src,
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1670,6 +1690,10 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				HEADER_SEARCH_PATHS = (
+					Libraries/Expecta/src,
+					Libraries/Specta/src,
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
