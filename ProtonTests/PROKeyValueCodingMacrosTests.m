@@ -6,51 +6,69 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import "PROKeyValueCodingMacrosTests.h"
-#import <Proton/Proton.h>
+#import <Proton/PROKeyValueCodingMacros.h>
 
-@interface OtherClass : NSObject
-@property (nonatomic, strong) NSString *otherClassProperty;
-@property (nonatomic, assign) NSRange range;
-@end
-
-@interface PROKeyValueCodingMacrosTests ()
+@interface KVCTestClass : NSObject
 @property (nonatomic, strong) NSString *someProperty;
 @property (nonatomic, assign) NSRange range;
 @end
 
-@implementation PROKeyValueCodingMacrosTests
+SpecBegin(PROKeyValueCodingMacros)
+    
+    describe(@"PROKeyForObject", ^{
+        KVCTestClass *obj = [[KVCTestClass alloc] init];
+
+        __block NSString *key = nil;
+
+        after(^{
+            expect(key).not.toBeNil();
+
+            // make sure looking up this key path doesn't throw an exception
+            [obj valueForKeyPath:key];
+        });
+
+        it(@"should return a valid string for object key", ^{
+            key = PROKeyForObject(obj, someProperty);
+        });
+
+        it(@"should return a valid string for object key path", ^{
+            key = PROKeyForObject(obj, someProperty.length);
+        });
+
+        it(@"should return a valid string for struct key", ^{
+            key = PROKeyForObject(obj, range);
+        });
+    });
+
+    describe(@"PROKeyForClass", ^{
+        __block NSString *key = nil;
+
+        after(^{
+            expect(key).not.toBeNil();
+
+            KVCTestClass *obj = [[KVCTestClass alloc] init];
+            
+            // make sure looking up this key path doesn't throw an exception
+            [obj valueForKeyPath:key];
+        });
+
+        it(@"should return a valid string for object key", ^{
+            key = PROKeyForClass(KVCTestClass, someProperty);
+        });
+
+        it(@"should return a valid string for object key path", ^{
+            key = PROKeyForClass(KVCTestClass, someProperty.length);
+        });
+
+        it(@"should return a valid string for struct key", ^{
+            key = PROKeyForClass(KVCTestClass, range);
+        });
+    });
+
+SpecEnd
+
+@implementation KVCTestClass
 @synthesize someProperty = m_someProperty;
 @synthesize range = m_range;
-
-- (void)testKeyForObject {
-    NSString *propertyName = PROKeyForObject(self, someProperty);
-    STAssertEqualObjects(propertyName, @"someProperty", @"");
-}
-
-- (void)testKeyForObjectUsingKeyPath {
-    NSString *propertyName = PROKeyForObject(self, someProperty.length);
-    STAssertEqualObjects(propertyName, @"someProperty.length", @"");
-}
-
-- (void)testKeyForObjectWithStruct {
-    NSString *propertyName = PROKeyForObject(self, range);
-    STAssertEqualObjects(propertyName, @"range", @"");
-}
-
-- (void)testKeyForClass {
-    NSString *propertyName = PROKeyForClass(OtherClass, otherClassProperty);
-    STAssertEqualObjects(propertyName, @"otherClassProperty", @"");
-}
-
-- (void)testKeyForClassUsingKeyPath {
-    NSString *propertyName = PROKeyForClass(OtherClass, otherClassProperty.length);
-    STAssertEqualObjects(propertyName, @"otherClassProperty.length", @"");
-}
-
-- (void)testKeyForClassWithStruct {
-    NSString *propertyName = PROKeyForClass(OtherClass, range);
-    STAssertEqualObjects(propertyName, @"range", @"");
-}
-
 @end
+
