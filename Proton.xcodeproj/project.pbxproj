@@ -388,7 +388,6 @@
 		D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSOrderedSetAdditionsTests.m; sourceTree = "<group>"; };
 		D080D58314A5DF3800FABAA2 /* PROFuture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROFuture.h; sourceTree = "<group>"; };
 		D080D58414A5DF3800FABAA2 /* PROFuture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFuture.m; sourceTree = "<group>"; };
-		D080D58914A5E4B200FABAA2 /* PROFutureTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROFutureTests.h; sourceTree = "<group>"; };
 		D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFutureTests.m; sourceTree = "<group>"; };
 		D080E0F014AA971000F6EABB /* PROInsertionTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROInsertionTransformation.h; sourceTree = "<group>"; };
 		D080E0F114AA971000F6EABB /* PROInsertionTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROInsertionTransformation.m; sourceTree = "<group>"; };
@@ -619,7 +618,6 @@
 			isa = PBXGroup;
 			children = (
 				D0D2E71D14CAB26C009E641B /* PROAssertTests.m */,
-				D080D58914A5E4B200FABAA2 /* PROFutureTests.h */,
 				D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */,
 				1EA5FB1914A2C9FE00E3B764 /* PROIndexedTransformationTests.h */,
 				1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */,

@@ -6,135 +6,129 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import "PROFutureTests.h"
 #import <Proton/EXTNil.h>
 #import <Proton/PROFuture.h>
 
-@implementation PROFutureTests
+SpecBegin(PROFuture)
+    __block id future = nil;
+    
+    describe(@"future returning nil", ^{
+        before(^{
+            future = [PROFuture futureWithBlock:^ id {
+                return nil;
+            }];
 
-- (void)testInitialization {
-    PROFuture *future = [PROFuture futureWithBlock:^ id {
-        return nil;
-    }];
+            expect(future).not.toBeNil();
+        });
 
-    STAssertNotNil(future, @"");
-}
+        after(^{
+            expect(future).toEqual([EXTNil null]);
+        });
 
-- (void)testForcing {
-    NSString *str = @"foobar";
+        it(@"should resolve synchronously", ^{
+            [PROFuture resolveFuture:future];
+        });
 
-    id obj = [PROFuture futureWithBlock:^{
-        return str;
-    }];
+        it(@"should resolve implicitly", ^{
+            NSString *newString = [future stringByAppendingString:@"buzz"];
 
-    [PROFuture resolveFuture:obj];
-
-    STAssertEqualObjects(obj, str, @"");
-}
-
-- (void)testForcingNil {
-    id obj = [PROFuture futureWithBlock:^ id {
-        return nil;
-    }];
-
-    [PROFuture resolveFuture:obj];
-
-    STAssertEqualObjects(obj, [EXTNil null], @"");
-}
-
-- (void)testImplicitResolution {
-    NSString *originalString = @"foobar";
-
-    NSString *str = [PROFuture futureWithBlock:^{
-        return originalString;
-    }];
-
-    NSString *newString = [str stringByAppendingString:@"buzz"];
-
-    STAssertEqualObjects(str, originalString, @"");
-    STAssertEqualObjects(newString, @"foobarbuzz", @"");
-}
-
-- (void)testImplicitResolutionOfNil {
-    NSString *str = [PROFuture futureWithBlock:^ id {
-        return nil;
-    }];
-
-    NSString *newString = [str stringByAppendingString:@"buzz"];
-    STAssertNil(newString, @"");
-}
-
-- (void)testOnlyResolvesOnce {
-    __block BOOL resolved = NO;
-
-    NSString *str = [PROFuture futureWithBlock:^{
-        STAssertFalse(resolved, @"");
-        resolved = YES;
-
-        return @"foobar";
-    }];
-
-    [str stringByAppendingString:@"buzz"];
-
-    STAssertTrue(resolved, @"");
-
-    [str stringByAppendingString:@"buzz"];
-}
-
-- (void)testOnlyResolvesOnceWithForcing {
-    __block BOOL resolved = NO;
-
-    id str = [PROFuture futureWithBlock:^{
-        STAssertFalse(resolved, @"");
-        resolved = YES;
-
-        return @"foobar";
-    }];
-
-    [PROFuture resolveFuture:str];
-
-    STAssertTrue(resolved, @"");
-
-    [PROFuture resolveFuture:str];
-}
-
-- (void)testMultithreading {
-    NSString *str = [PROFuture futureWithBlock:^{
-        return @"thread ";
-    }];
-
-    dispatch_apply(10, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i){
-        STAssertEqualObjects(str, @"thread ", @"");
-
-        NSString *threadString = [str stringByAppendingFormat:@"%zu", i];
-        NSString *expectedString = [NSString stringWithFormat:@"thread %zu", i];
-
-        STAssertEqualObjects(threadString, expectedString, @"");
+            expect(newString).toBeNil();
+        });
     });
 
-    STAssertEqualObjects(str, @"thread ", @"");
-}
+    describe(@"future returning string", ^{
+        before(^{
+            future = [PROFuture futureWithBlock:^ id {
+                return @"foobar";
+            }];
 
-- (void)testMemoryManagement {
-    __weak NSObject *weakObject = nil;
+            expect(future).not.toBeNil();
+        });
 
-    @autoreleasepool {
-        NSObject *object = [[NSObject alloc] init];
-        STAssertNotNil(object, @"");
+        after(^{
+            expect(future).toEqual(@"foobar");
+        });
 
-        weakObject = object;
+        it(@"should resolve synchronously", ^{
+            [PROFuture resolveFuture:future];
+        });
 
-        PROFuture *future = [PROFuture futureWithBlock:^{
-            return object;
+        it(@"should resolve implicitly", ^{
+            NSString *newString = [future stringByAppendingString:@"buzz"];
+
+            expect(newString).toEqual(@"foobarbuzz");
+        });
+    });
+
+    describe(@"futures should only resolve once", ^{
+        __block BOOL resolved;
+
+        before(^{
+            resolved = NO;
+
+            future = [PROFuture futureWithBlock:^{
+                expect(resolved).toBeFalsy();
+
+                resolved = YES;
+                return @"foobar";
+            }];
+        });
+
+        it(@"implicitly", ^{
+            [future stringByAppendingString:@"buzz"];
+
+            expect(resolved).toBeTruthy();
+
+            [future stringByAppendingString:@"buzz"];
+        });
+
+        it(@"explicitly", ^{
+            [PROFuture resolveFuture:future];
+
+            expect(resolved).toBeTruthy();
+
+            [PROFuture resolveFuture:future];
+        });
+    });
+
+    it(@"should be thread-safe", ^{
+        future = [PROFuture futureWithBlock:^{
+            return @"thread ";
         }];
 
-        [PROFuture resolveFuture:future];
-    }
+        dispatch_apply(10, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i){
+            NSString *threadString = [future stringByAppendingFormat:@"%zu", i];
+            NSString *expectedString = [NSString stringWithFormat:@"thread %zu", i];
 
-    // the autorelease pool should've destroyed the future and the object it
-    // resolved
-    STAssertNil(weakObject, @"");
-}
+            expect(threadString).toEqual(expectedString);
+        });
 
-@end
+        expect(future).toEqual(@"thread ");
+    });
+
+    it(@"should release its resolved object upon destruction", ^{
+        __weak NSObject *weakObject = nil;
+
+        @autoreleasepool {
+            __autoreleasing NSObject *object = [[NSObject alloc] init];
+            expect(object).not.toBeNil();
+
+            weakObject = object;
+
+            __autoreleasing PROFuture *localFuture = [PROFuture futureWithBlock:^{
+                return weakObject;
+            }];
+
+            [PROFuture resolveFuture:localFuture];
+        }
+
+        // destroying the future should've released the object it resolved
+        expect(weakObject).toBeNil();
+    });
+
+    after(^{
+        future = nil;
+    });
+
+SpecEnd
 
