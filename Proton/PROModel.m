@@ -15,6 +15,11 @@
 #import <Proton/PROUniqueTransformation.h>
 #import <objc/runtime.h>
 
+NSString * const PROModelPropertyKeyErrorKey = @"PROModelPropertyKey";
+
+const NSInteger PROModelErrorUndefinedKey = 1;
+const NSInteger PROModelErrorValidationFailed = 2;
+
 @interface PROModel ()
 /*
  * Enumerates all the properties of the receiver and any superclasses, up until
@@ -28,17 +33,56 @@
 #pragma mark Lifecycle
 
 - (id)init {
-    return [self initWithDictionary:nil];
+    return [self initWithDictionary:nil error:NULL];
 }
 
-- (id)initWithDictionary:(NSDictionary *)dictionary {
+- (id)initWithDictionary:(NSDictionary *)dictionary error:(NSError **)error {
     self = [super init];
     if (!self)
         return nil;
 
+    void (^setErrorFromUndefinedKeyException)(NSDictionary *, NSException *) = ^(NSDictionary *attemptedValues, NSException *exception){
+        if (!error)
+            return;
+
+        NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+
+        // no idea why this is not defined as a constant
+        NSString *failingKey = [exception.userInfo objectForKey:@"NSUnknownUserInfoKey"];
+
+        if (failingKey) {
+            [userInfo setObject:failingKey forKey:PROModelPropertyKeyErrorKey];
+
+            // does not need to be localized, as it should never be displayed to
+            // the user
+            NSString *description = [NSString stringWithFormat:@"Property key \"%@\" does not exist on %@", failingKey, [self class]];
+            [userInfo setObject:description forKey:NSLocalizedDescriptionKey];
+        } else {
+            // does not need to be localized, as it should never be displayed to
+            // the user
+            NSString *description = [NSString stringWithFormat:@"Dictionary contained a property key which does not exist on %@: %@", [self class], attemptedValues];
+            [userInfo setObject:description forKey:NSLocalizedDescriptionKey];
+        }
+
+        *error = [NSError
+            errorWithDomain:[PROModel errorDomain]
+            code:PROModelErrorUndefinedKey
+            userInfo:userInfo
+        ];
+    };
+
     NSDictionary *defaultValues = [[self class] defaultValuesForKeys];
-    if (defaultValues)
-        [self setValuesForKeysWithDictionary:defaultValues];
+    if (defaultValues) {
+        @try {
+            [self setValuesForKeysWithDictionary:defaultValues];
+        } @catch (NSException *ex) {
+            if (![ex.name isEqualToString:NSUndefinedKeyException])
+                @throw;
+
+            setErrorFromUndefinedKeyException(defaultValues, ex);
+            return nil;
+        }
+    }
 
     for (NSString *key in dictionary) {
         // mark this as being autoreleased, because validateValue may return
@@ -51,21 +95,46 @@
             value = nil;
         }
         
-        if (![self validateValue:&value forKey:key error:NULL]) {
-            // validation failed
-            // TODO: logging?
+        NSError *validationError = nil;
+        if (![self validateValue:&value forKey:key error:(error ? &validationError : NULL)]) {
+            if (error) {
+                NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+
+                if (validationError)
+                    [userInfo addEntriesFromDictionary:validationError.userInfo];
+
+                [userInfo setObject:key forKey:PROModelPropertyKeyErrorKey];
+
+                *error = [NSError
+                    errorWithDomain:[PROModel errorDomain]
+                    code:PROModelErrorValidationFailed
+                    userInfo:userInfo
+                ];
+            }
+
             return nil;
         }
 
-        if (value)
-            [self setValue:value forKey:key];
+        if (value) {
+            @try {
+                [self setValue:value forKey:key];
+            } @catch (NSException *ex) {
+                if (![ex.name isEqualToString:NSUndefinedKeyException])
+                    @throw;
+
+                setErrorFromUndefinedKeyException(defaultValues, ex);
+                return nil;
+            }
+        }
     }
     
     return self;
 }
 
-- (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+#pragma mark Error handling
+
++ (NSString *)errorDomain {
+    return @"com.bitswift.Proton.PROModelErrorDomain";
 }
 
 #pragma mark Reflection
@@ -130,14 +199,6 @@
 
 #pragma mark Transformation
 
-- (id)transformValueForKey:(NSString *)key toValue:(id)value {
-    return [[self transformationForKey:key value:value] transform:self error:NULL];
-}
-
-- (id)transformValuesForKeysWithDictionary:(NSDictionary *)dictionary {
-    return [[self transformationForKeysWithDictionary:dictionary] transform:self error:NULL];   
-}
-
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value; {
     if (!value) {
         value = [NSNull null];
@@ -157,12 +218,12 @@
         id originalValue = [self valueForKey:key];
 
         if (!originalValue) {
-            // 'nil' needs to be represented as NSNull for PROUniqueTransformation
+            // 'nil' needs to be represented as NSNull for PROKeyedTransformation
             originalValue = [NSNull null];
         }
 
         if (NSEqualObjects(value, originalValue)) {
-            // nothing to do
+            // nothing to do for this key
             continue;
         }
 
@@ -170,16 +231,14 @@
         PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:originalValue outputValue:value];
         [transformations setObject:transformation forKey:key];
     }
-    
-    // set up a key-based transformation for self
-    PROKeyedTransformation *transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
-    
-    if (![transformation transform:self error:NULL]) {
-        // this transformation cannot be validly applied to 'self'
+
+    if (![transformations count]) {
+        // nothing to do for any of the keys
         return nil;
     }
     
-    return transformation;
+    // set up a key-based transformation for self
+    return [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
 }
 
 #pragma mark Default values
@@ -221,7 +280,7 @@
 
 - (id)initWithCoder:(NSCoder *)coder {
     NSDictionary *dictionaryValue = [coder decodeObjectForKey:@"dictionaryValue"];
-    return [self initWithDictionary:dictionaryValue];
+    return [self initWithDictionary:dictionaryValue error:NULL];
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {

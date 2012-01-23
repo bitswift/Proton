@@ -9,12 +9,12 @@
 #import <Proton/PROTransformation.h>
 #import <Proton/PROModelController.h>
 
-NSString * const PROTransformationFailingTransformationsErrorKey = @"FailingTransformations";
-NSString * const PROTransformationFailingTransformationPathErrorKey = @"FailingTransformationPath";
+NSString * const PROTransformationFailingTransformationsErrorKey = @"PROTransformationFailingTransformations";
+NSString * const PROTransformationFailingTransformationPathErrorKey = @"PROTransformationFailingTransformationPath";
 
-NSInteger PROTransformationErrorIndexOutOfBounds = 1;
-NSInteger PROTransformationErrorMismatchedInput = 2;
-NSInteger PROTransformationErrorUnsupportedInputType = 3;
+const NSInteger PROTransformationErrorIndexOutOfBounds = 1;
+const NSInteger PROTransformationErrorMismatchedInput = 2;
+const NSInteger PROTransformationErrorUnsupportedInputType = 3;
 
 @implementation PROTransformation
 
@@ -45,7 +45,7 @@ NSInteger PROTransformationErrorUnsupportedInputType = 3;
 #pragma mark Error Handling
 
 + (NSString *)errorDomain {
-    return @"PROTransformationErrorDomain";
+    return @"com.bitswift.Proton.PROTransformationErrorDomain";
 }
 
 - (NSError *)errorWithCode:(NSInteger)code format:(NSString *)format, ...; {
