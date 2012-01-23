@@ -413,7 +413,6 @@
 		D0D2E70614CAAA37009E641B /* PROAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROAssert.h; sourceTree = "<group>"; };
 		D0D2E71214CAAC54009E641B /* PROBacktraceFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROBacktraceFunctions.h; sourceTree = "<group>"; };
 		D0D2E71314CAAC54009E641B /* PROBacktraceFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROBacktraceFunctions.m; sourceTree = "<group>"; };
-		D0D2E71C14CAB26C009E641B /* PROAssertTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROAssertTests.h; sourceTree = "<group>"; };
 		D0D2E71D14CAB26C009E641B /* PROAssertTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROAssertTests.m; sourceTree = "<group>"; };
 		D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocol.h; sourceTree = "<group>"; };
 		D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTConcreteProtocol.m; sourceTree = "<group>"; };
@@ -619,7 +618,6 @@
 		D06AA45C1494A22600F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				D0D2E71C14CAB26C009E641B /* PROAssertTests.h */,
 				D0D2E71D14CAB26C009E641B /* PROAssertTests.m */,
 				D080D58914A5E4B200FABAA2 /* PROFutureTests.h */,
 				D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */,

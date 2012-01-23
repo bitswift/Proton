@@ -138,9 +138,3 @@
 
 @end
 
-SpecBegin(PROFuture)
-    it(@"should initialize", ^{
-        //expect([PROFuture futureWithBlock:^ id { return [NSNull null]; }]).not.toBeNil();
-    });
-SpecEnd
-
