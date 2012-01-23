@@ -12,7 +12,8 @@
 @class PROTransformation;
 
 /**
- * Represents an object that can apply a <PROTransformation> "in-place."
+ * A concrete protocol representing an object that can apply
+ * a <PROTransformation> "in-place."
  *
  * Implementors of this protocol do not need to actually apply the
  * <PROTransformation> themselves. Typically, views and view controllers will
@@ -43,7 +44,9 @@
 
     /**
      * Asks the receiver to perform the given transformation upon its model
-     * object. Returns whether the transformation succeeded.
+     * object. Returns `YES` if the transformation succeeded. If the
+     * transformation failed, `NO` is returned and `error` is set to the error
+     * that occurred.
      *
      * If the receiver needs to wrap the transformation in another compound
      * transformation (for instance, to index into an array or dictionary), this
@@ -59,7 +62,9 @@
      * @param sender The transformer that requested this transformation. For the
      * initial call, this would typically be `self`. If any transformer modifies
      * the transformation along the way, it should become the new sender.
+     * @param error If not `NULL`, and this method returns `NO`, this should be
+     * set to any error that occurred.
      */
-    - (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender;
+    - (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender error:(NSError **)error;
 
 @end
