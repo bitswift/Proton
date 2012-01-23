@@ -1520,6 +1520,7 @@
 					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = octest;
@@ -1685,6 +1686,7 @@
 					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = octest;
@@ -1703,6 +1705,7 @@
 					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = octest;
