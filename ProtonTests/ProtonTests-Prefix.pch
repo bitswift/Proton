@@ -12,4 +12,7 @@
 
     #define EXP_SHORTHAND
     #import "Expecta.h"
+
+    // Expecta doesn't define 'not' because it's a C++ keyword, but screw C++
+    #define not Not
 #endif
