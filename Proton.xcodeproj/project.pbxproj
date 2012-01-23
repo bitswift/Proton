@@ -1516,8 +1516,8 @@
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
 				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					Libraries/Expecta/src,
-					Libraries/Specta/src,
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1546,8 +1546,8 @@
 				);
 				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					Libraries/Expecta/src,
-					Libraries/Specta/src,
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
@@ -1586,8 +1586,8 @@
 				);
 				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					Libraries/Expecta/src,
-					Libraries/Specta/src,
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
@@ -1608,8 +1608,8 @@
 				);
 				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					Libraries/Expecta/src,
-					Libraries/Specta/src,
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
@@ -1681,8 +1681,8 @@
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
 				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					Libraries/Expecta/src,
-					Libraries/Specta/src,
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1699,8 +1699,8 @@
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
 				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					Libraries/Expecta/src,
-					Libraries/Specta/src,
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
