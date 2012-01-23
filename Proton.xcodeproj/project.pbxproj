@@ -331,6 +331,7 @@
 		1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROIndexedTransformationTests.m; sourceTree = "<group>"; };
 		D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Specta.xcodeproj; path = Libraries/Specta/Specta.xcodeproj; sourceTree = "<group>"; };
 		D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Expecta.xcodeproj; path = Libraries/Expecta/Expecta.xcodeproj; sourceTree = "<group>"; };
+		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
 		D00A490C1499451400EEBD92 /* PROKeyedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedObject.h; sourceTree = "<group>"; };
 		D00B494814B624D500E17FDB /* PROModelControllerTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelControllerTests.h; sourceTree = "<group>"; };
 		D00B494914B624D500E17FDB /* PROModelControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelControllerTests.m; sourceTree = "<group>"; };
@@ -789,6 +790,7 @@
 			children = (
 				D0DB5CE51492DDD5005955FB /* ProtonTests-Info.plist */,
 				D0DB5CE61492DDD5005955FB /* InfoPlist.strings */,
+				D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -1512,6 +1514,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					Libraries/Expecta/src,
 					Libraries/Specta/src,
@@ -1541,6 +1544,7 @@
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					Libraries/Expecta/src,
 					Libraries/Specta/src,
@@ -1580,6 +1584,7 @@
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					Libraries/Expecta/src,
 					Libraries/Specta/src,
@@ -1601,6 +1606,7 @@
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					Libraries/Expecta/src,
 					Libraries/Specta/src,
@@ -1673,6 +1679,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					Libraries/Expecta/src,
 					Libraries/Specta/src,
@@ -1690,6 +1697,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					Libraries/Expecta/src,
 					Libraries/Specta/src,
