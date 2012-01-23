@@ -9,6 +9,7 @@
 #import <Proton/PROModelController.h>
 #import <Proton/EXTScope.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
+#import <Proton/PROAssert.h>
 #import <Proton/PROIndexedTransformation.h>
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROKeyValueCodingMacros.h>
@@ -63,7 +64,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @property (nonatomic, strong) NSMutableArray *modelControllerObservers;
 
 /*
- * Whether <performTransformation:> is currently being executed on the
+ * Whether <performTransformation:error:> is currently being executed on the
  * <dispatchQueue>.
  *
  * @warning **Important:** This should only be read or written while already
@@ -277,7 +278,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             block:^(NSDictionary *changes){
                 if (weakSelf.performingTransformation) {
                     // ignore changes that were instigated by ourselves in
-                    // -performTransformation:
+                    // -performTransformation:error:
                     return;
                 }
 
@@ -378,7 +379,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
 #pragma mark Transformations
 
-- (BOOL)performTransformation:(PROTransformation *)transformation; {
+- (BOOL)performTransformation:(PROTransformation *)transformation error:(NSError **)error; {
     NSAssert(!self.performingTransformation, @"%s should not be invoked recursively", __func__);
 
     __block BOOL success = YES;
@@ -393,7 +394,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         };
 
         PROModel *oldModel = self.model;
-        PROModel *newModel = [transformation transform:oldModel error:NULL];
+        PROModel *newModel = [transformation transform:oldModel error:error];
 
         if (!newModel) {
             // fail immediately, before any side effects
@@ -411,10 +412,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             [self setModel:newModel replacingModelControllers:NO];
 
             success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
-            if (!success) {
-                // this should never happen
-                DDLogError(@"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel);
-
+            if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
                 // do our best to back out of that failure -- this probably
                 // won't be 100%, since model controllers may already have
                 // updated references

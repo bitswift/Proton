@@ -60,7 +60,7 @@
  * synchronize itself.
  *
  * In particular, this is used by the <model> property and
- * <performTransformation:> method to guarantee thread-safety.
+ * <performTransformation:error:> method to guarantee thread-safety.
  *
  * This queue is exposed so that subclasses may also use it for any additional
  * synchronization they require.
@@ -105,7 +105,7 @@
  *  array.
  *
  * This information is used to correctly update model controllers when
- * <performTransformation:> affects the corresponding models.
+ * <performTransformation:error:> affects the corresponding models.
  *
  * This method should return `nil` if no model controllers are managed by the
  * receiver.
@@ -128,16 +128,19 @@
  */
 
 /**
- * Asks the controller to perform the given transformation upon its <model>.
- * Returns whether the transformation succeeded.
+ * Asks the controller to perform the given transformation upon its <model>,
+ * returning `YES` upon success. If the transformation fails, `NO` is returned
+ * and `error` is set to the error that occurred.
  *
  * @param transformation The transformation to attempt to perform.
+ * @param error If not `NULL`, this is set to any error that occurs. This
+ * argument will only be set if the method returns `NO`.
  */
-- (BOOL)performTransformation:(PROTransformation *)transformation;
+- (BOOL)performTransformation:(PROTransformation *)transformation error:(NSError **)error;
 
 /**
  * Whether the _current thread_ is performing a transformation (i.e., executing
- * the <performTransformation:> method).
+ * the <performTransformation:error:> method).
  *
  * This information can be used, for example, to ignore synchronous KVO
  * notifications that are received during the course of a transformation.
