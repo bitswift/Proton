@@ -24,8 +24,8 @@
 
 #pragma mark Transformation
 
-- (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender; {
-    return [self.nextTransformer performTransformation:transformation sender:sender];
+- (BOOL)performTransformation:(PROTransformation *)transformation sender:(id<PROTransformer>)sender error:(NSError **)error; {
+    return [self.nextTransformer performTransformation:transformation sender:sender error:error];
 }
 
 @end
