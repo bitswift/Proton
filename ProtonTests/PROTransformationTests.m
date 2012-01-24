@@ -112,6 +112,77 @@ SpecBegin(PROTransformation)
         });
     });
 
+    describe(@"multiple transformation", ^{
+        NSString *multipleStartValue = @"startValue";
+        NSString *multipleMiddleValue = @"middleValue";
+        NSString *multipleEndValue = @"endValue";
+
+        it(@"initializes without transformations", ^{
+            transformation = [[PROMultipleTransformation alloc] init];
+            expect(transformation).not.toBeNil();
+
+            expect([transformation transformations]).toEqual([NSArray array]);
+
+            // values should just pass through
+            __block NSError *error = nil;
+            expect([transformation transform:multipleStartValue error:&error]).toEqual(multipleStartValue);
+            expect(error).toBeNil();
+        });
+
+        describe(@"with transformations", ^{
+            __block NSArray *transformations = nil;
+
+            before(^{
+                transformations = [NSArray arrayWithObjects:
+                    // start -> middle
+                    [[PROUniqueTransformation alloc] initWithInputValue:multipleStartValue outputValue:multipleMiddleValue],
+                    
+                    // middle -> end
+                    [[PROUniqueTransformation alloc] initWithInputValue:multipleMiddleValue outputValue:multipleEndValue],
+
+                    nil
+                ];
+
+                transformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
+                expect(transformation).not.toBeNil();
+            });
+
+            it(@"should match transformations given at initialization", ^{
+                expect([transformation transformations]).toEqual(transformations);
+            });
+
+            it(@"should be equal to another transformation initialized with same values", ^{
+                PROTransformation *equalTransformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
+                expect(equalTransformation).toEqual(transformation);
+            });
+
+            it(@"transforms the input value to the output value", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:multipleStartValue error:&error]).toEqual(multipleEndValue);
+                expect(error).toBeNil();
+            });
+
+            it(@"doesn't transform another value to the output value", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:multipleMiddleValue error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+
+                NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+            });
+
+            it(@"should return a reverse transformation which does the opposite", ^{
+                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+
+                __block NSError *error = nil;
+                expect([reverseTransformation transform:multipleEndValue error:&error]).toEqual(multipleStartValue);
+                expect(error).toBeNil();
+            });
+        });
+    });
+
     after(^{
         it(@"should not be equal to a generic transformation", ^{
             PROTransformation *inequalTransformation = [[PROTransformation alloc] init];
