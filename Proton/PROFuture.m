@@ -162,18 +162,10 @@
 }
 
 - (BOOL)isKindOfClass:(Class)class {
-    // some values can be handled without having to resolve the future
-    if ([PROFuture isKindOfClass:class])
-        return YES;
-
     return [[PROFuture resolveFuture:self] isKindOfClass:class];
 }
 
 - (BOOL)isMemberOfClass:(Class)class {
-    // some values can be handled without having to resolve the future
-    if ([PROFuture isMemberOfClass:class])
-        return YES;
-
     return [[PROFuture resolveFuture:self] isMemberOfClass:class];
 }
 

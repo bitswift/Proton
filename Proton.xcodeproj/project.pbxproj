@@ -19,6 +19,10 @@
 		1EA5FB0614A2C17400E3B764 /* PROIndexedTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1EA5FB0114A2C16100E3B764 /* PROIndexedTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1EA5FB1B14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */; };
 		1EA5FB1C14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */; };
+		D002AEBA14CDFF340062AEFC /* libExpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AEAF14CDFF240062AEFC /* libExpecta.a */; };
+		D002AEBB14CDFF340062AEFC /* libSpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9C14CDFF1F0062AEFC /* libSpecta.a */; };
+		D002AEC014CDFF570062AEFC /* libExpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AEB114CDFF240062AEFC /* libExpecta-iOS.a */; };
+		D002AEC114CDFF570062AEFC /* libSpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9E14CDFF1F0062AEFC /* libSpecta-iOS.a */; };
 		D00A490D1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D00A490E1499451400EEBD92 /* PROKeyedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D00A490C1499451400EEBD92 /* PROKeyedObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D00B494A14B624D500E17FDB /* PROModelControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D00B494914B624D500E17FDB /* PROModelControllerTests.m */; };
@@ -87,8 +91,6 @@
 		D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4541494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
 		D06AA4551494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
-		D06AA45A1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */; };
-		D06AA45B1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */; };
 		D07D6E8E1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E8F1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E901499DF7300192DED /* NSSet+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */; };
@@ -101,10 +103,6 @@
 		D07D6E9C1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E991499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E9D1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */; };
 		D07D6E9E1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */; };
-		D07D6EB21499E22600192DED /* PRONSSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */; };
-		D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */; };
-		D07D6EC01499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
-		D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
 		D080D58514A5DF3800FABAA2 /* PROFuture.h in Headers */ = {isa = PBXBuildFile; fileRef = D080D58314A5DF3800FABAA2 /* PROFuture.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D080D58614A5DF3800FABAA2 /* PROFuture.h in Headers */ = {isa = PBXBuildFile; fileRef = D080D58314A5DF3800FABAA2 /* PROFuture.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D080D58714A5DF3800FABAA2 /* PROFuture.m in Sources */ = {isa = PBXBuildFile; fileRef = D080D58414A5DF3800FABAA2 /* PROFuture.m */; };
@@ -139,6 +137,8 @@
 		D0B07AF51492E75200A1E816 /* Proton.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DB5CD41492DDD5005955FB /* Proton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0B07AF61492E75700A1E816 /* Proton.h in Headers */ = {isa = PBXBuildFile; fileRef = D0DB5CD41492DDD5005955FB /* Proton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0B07AF81492E76200A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07AF71492E76200A1E816 /* Foundation.framework */; };
+		D0B6D0E514CE433D00769330 /* PROHigherOrderAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */; };
+		D0B6D0E614CE433D00769330 /* PROHigherOrderAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */; };
 		D0C42D6314984CE100A08989 /* PROModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D0C42D6114984CE100A08989 /* PROModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0C42D6414984CE100A08989 /* PROModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D0C42D6114984CE100A08989 /* PROModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0C42D6514984CE100A08989 /* PROModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D0C42D6214984CE100A08989 /* PROModel.m */; };
@@ -216,6 +216,90 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		D002AE9B14CDFF1F0062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9D96A2614B6B8AB007D9521;
+			remoteInfo = Specta;
+		};
+		D002AE9D14CDFF1F0062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9B777A414BA294B00D8DC76;
+			remoteInfo = "Specta-iOS";
+		};
+		D002AE9F14CDFF1F0062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9D96A3A14B6B8AB007D9521;
+			remoteInfo = SpectaTests;
+		};
+		D002AEA114CDFF1F0062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9B777B314BA294C00D8DC76;
+			remoteInfo = "Specta-iOSTests";
+		};
+		D002AEAE14CDFF240062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9ACDF0C13B2DD520010F4D7;
+			remoteInfo = Expecta;
+		};
+		D002AEB014CDFF240062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E93067CE13B2E6D100EA26FF;
+			remoteInfo = "Expecta-iOS";
+		};
+		D002AEB214CDFF240062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9ACDF1D13B2DD520010F4D7;
+			remoteInfo = ExpectaTests;
+		};
+		D002AEB414CDFF240062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E93067DA13B2E6D100EA26FF;
+			remoteInfo = "Expecta-iOSTests";
+		};
+		D002AEB614CDFF2F0062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9ACDF0B13B2DD520010F4D7;
+			remoteInfo = Expecta;
+		};
+		D002AEB814CDFF2F0062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9D96A2514B6B8AB007D9521;
+			remoteInfo = Specta;
+		};
+		D002AEBC14CDFF530062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E93067CD13B2E6D100EA26FF;
+			remoteInfo = "Expecta-iOS";
+		};
+		D002AEBE14CDFF530062AEFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9B777A314BA294B00D8DC76;
+			remoteInfo = "Specta-iOS";
+		};
 		D0B07AE11492E72800A1E816 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D0DB5CBA1492DDD5005955FB /* Project object */;
@@ -235,12 +319,14 @@
 /* Begin PBXFileReference section */
 		1A225920149C9887004B7BF2 /* PROUniqueIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROUniqueIdentifier.h; sourceTree = "<group>"; };
 		1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueIdentifier.m; sourceTree = "<group>"; };
-		1A225927149C9D28004B7BF2 /* PROUniqueIdentifierTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROUniqueIdentifierTests.h; sourceTree = "<group>"; };
 		1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueIdentifierTests.m; sourceTree = "<group>"; };
 		1EA5FB0114A2C16100E3B764 /* PROIndexedTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROIndexedTransformation.h; sourceTree = "<group>"; };
 		1EA5FB0214A2C16100E3B764 /* PROIndexedTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROIndexedTransformation.m; sourceTree = "<group>"; };
 		1EA5FB1914A2C9FE00E3B764 /* PROIndexedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROIndexedTransformationTests.h; sourceTree = "<group>"; };
 		1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROIndexedTransformationTests.m; sourceTree = "<group>"; };
+		D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Specta.xcodeproj; path = Libraries/Specta/Specta.xcodeproj; sourceTree = "<group>"; };
+		D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Expecta.xcodeproj; path = Libraries/Expecta/Expecta.xcodeproj; sourceTree = "<group>"; };
+		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
 		D00A490C1499451400EEBD92 /* PROKeyedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedObject.h; sourceTree = "<group>"; };
 		D00B494814B624D500E17FDB /* PROModelControllerTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelControllerTests.h; sourceTree = "<group>"; };
 		D00B494914B624D500E17FDB /* PROModelControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelControllerTests.m; sourceTree = "<group>"; };
@@ -254,7 +340,6 @@
 		D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSDictionaryAdditionsTests.m; sourceTree = "<group>"; };
 		D031BA8D14A53B5000A38526 /* PROKeyValueObserver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueObserver.h; sourceTree = "<group>"; };
 		D031BA8E14A53B5000A38526 /* PROKeyValueObserver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueObserver.m; sourceTree = "<group>"; };
-		D031BA9314A53F4600A38526 /* PROKeyValueObserverTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueObserverTests.h; sourceTree = "<group>"; };
 		D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueObserverTests.m; sourceTree = "<group>"; };
 		D031BA9D14A543E900A38526 /* NSObject+PROKeyValueObserverAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+PROKeyValueObserverAdditions.h"; sourceTree = "<group>"; };
 		D031BA9E14A543E900A38526 /* NSObject+PROKeyValueObserverAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+PROKeyValueObserverAdditions.m"; sourceTree = "<group>"; };
@@ -279,25 +364,17 @@
 		D0477F69149746BD00B0DAB0 /* PROKeyedTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedTransformation.h; sourceTree = "<group>"; };
 		D0477F6A149746BD00B0DAB0 /* PROKeyedTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyedTransformation.m; sourceTree = "<group>"; };
 		D04D284714A5628B00197AB9 /* PROKeyValueCodingMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueCodingMacros.h; sourceTree = "<group>"; };
-		D04D284A14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueCodingMacrosTests.h; sourceTree = "<group>"; };
 		D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueCodingMacrosTests.m; sourceTree = "<group>"; };
 		D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+HigherOrderAdditions.m"; sourceTree = "<group>"; };
-		D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSArrayAdditionsTests.h; sourceTree = "<group>"; };
-		D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSArrayAdditionsTests.m; sourceTree = "<group>"; };
 		D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSSet+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSSet+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D07D6E931499DFE900192DED /* NSDictionary+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D07D6E941499DFE900192DED /* NSDictionary+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D07D6E991499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOrderedSet+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSOrderedSet+HigherOrderAdditions.m"; sourceTree = "<group>"; };
-		D07D6EB01499E22600192DED /* PRONSSetAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSSetAdditionsTests.h; sourceTree = "<group>"; };
-		D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSSetAdditionsTests.m; sourceTree = "<group>"; };
-		D07D6EBE1499E47C00192DED /* PRONSOrderedSetAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSOrderedSetAdditionsTests.h; sourceTree = "<group>"; };
-		D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSOrderedSetAdditionsTests.m; sourceTree = "<group>"; };
 		D080D58314A5DF3800FABAA2 /* PROFuture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROFuture.h; sourceTree = "<group>"; };
 		D080D58414A5DF3800FABAA2 /* PROFuture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFuture.m; sourceTree = "<group>"; };
-		D080D58914A5E4B200FABAA2 /* PROFutureTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROFutureTests.h; sourceTree = "<group>"; };
 		D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFutureTests.m; sourceTree = "<group>"; };
 		D080E0F014AA971000F6EABB /* PROInsertionTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROInsertionTransformation.h; sourceTree = "<group>"; };
 		D080E0F114AA971000F6EABB /* PROInsertionTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROInsertionTransformation.m; sourceTree = "<group>"; };
@@ -315,14 +392,13 @@
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07AF71492E76200A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = SDKs/MacOSX10.7.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROHigherOrderAdditionsTests.m; sourceTree = "<group>"; };
 		D0C42D6114984CE100A08989 /* PROModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModel.h; sourceTree = "<group>"; };
 		D0C42D6214984CE100A08989 /* PROModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModel.m; sourceTree = "<group>"; };
-		D0C42D77149857CB00A08989 /* PROModelTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelTests.h; sourceTree = "<group>"; };
 		D0C42D78149857CB00A08989 /* PROModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelTests.m; sourceTree = "<group>"; };
 		D0D2E70614CAAA37009E641B /* PROAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROAssert.h; sourceTree = "<group>"; };
 		D0D2E71214CAAC54009E641B /* PROBacktraceFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROBacktraceFunctions.h; sourceTree = "<group>"; };
 		D0D2E71314CAAC54009E641B /* PROBacktraceFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROBacktraceFunctions.m; sourceTree = "<group>"; };
-		D0D2E71C14CAB26C009E641B /* PROAssertTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROAssertTests.h; sourceTree = "<group>"; };
 		D0D2E71D14CAB26C009E641B /* PROAssertTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROAssertTests.m; sourceTree = "<group>"; };
 		D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTConcreteProtocol.h; sourceTree = "<group>"; };
 		D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTConcreteProtocol.m; sourceTree = "<group>"; };
@@ -398,6 +474,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D002AEC014CDFF570062AEFC /* libExpecta-iOS.a in Frameworks */,
+				D002AEC114CDFF570062AEFC /* libSpecta-iOS.a in Frameworks */,
 				D0B07ADD1492E72800A1E816 /* SenTestingKit.framework in Frameworks */,
 				D0B07AE01492E72800A1E816 /* Foundation.framework in Frameworks */,
 				D0B07AE31492E72800A1E816 /* libProton.a in Frameworks */,
@@ -416,6 +494,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D002AEBA14CDFF340062AEFC /* libExpecta.a in Frameworks */,
+				D002AEBB14CDFF340062AEFC /* libSpecta.a in Frameworks */,
 				D0DB5CDE1492DDD5005955FB /* SenTestingKit.framework in Frameworks */,
 				D0DB5CE21492DDD5005955FB /* Proton.framework in Frameworks */,
 				D09186741492EC3E001DEBC8 /* Foundation.framework in Frameworks */,
@@ -432,6 +512,28 @@
 				1A225921149C9887004B7BF2 /* PROUniqueIdentifier.m */,
 			);
 			name = "Unique Identifier";
+			sourceTree = "<group>";
+		};
+		D002AE9214CDFF1F0062AEFC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D002AE9C14CDFF1F0062AEFC /* libSpecta.a */,
+				D002AE9E14CDFF1F0062AEFC /* libSpecta-iOS.a */,
+				D002AEA014CDFF1F0062AEFC /* SpectaTests.octest */,
+				D002AEA214CDFF1F0062AEFC /* Specta-iOSTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D002AEA514CDFF230062AEFC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D002AEAF14CDFF240062AEFC /* libExpecta.a */,
+				D002AEB114CDFF240062AEFC /* libExpecta-iOS.a */,
+				D002AEB314CDFF240062AEFC /* ExpectaTests.octest */,
+				D002AEB514CDFF240062AEFC /* Expecta-iOSTests.octest */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		D031BA8C14A53B4000A38526 /* Key-Value Observing */ = {
@@ -502,41 +604,30 @@
 		D06AA45C1494A22600F0F94B /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				D0D2E71C14CAB26C009E641B /* PROAssertTests.h */,
 				D0D2E71D14CAB26C009E641B /* PROAssertTests.m */,
-				D080D58914A5E4B200FABAA2 /* PROFutureTests.h */,
 				D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */,
+				D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */,
 				1EA5FB1914A2C9FE00E3B764 /* PROIndexedTransformationTests.h */,
 				1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */,
 				D080E0FD14AA97AD00F6EABB /* PROInsertionTransformationTests.h */,
 				D080E0FE14AA97AD00F6EABB /* PROInsertionTransformationTests.m */,
 				D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */,
 				D010F0B41498361800D0D1E5 /* PROKeyedTransformationTests.m */,
-				D04D284A14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.h */,
 				D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */,
-				D031BA9314A53F4600A38526 /* PROKeyValueObserverTests.h */,
 				D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */,
 				D00B494814B624D500E17FDB /* PROModelControllerTests.h */,
 				D00B494914B624D500E17FDB /* PROModelControllerTests.m */,
-				D0C42D77149857CB00A08989 /* PROModelTests.h */,
 				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */,
 				D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */,
-				D06AA4581494A22300F0F94B /* PRONSArrayAdditionsTests.h */,
-				D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */,
 				D030A63A14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.h */,
 				D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */,
 				D04703391494A728004CB93A /* PRONSObjectAdditionsTests.h */,
 				D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */,
-				D07D6EBE1499E47C00192DED /* PRONSOrderedSetAdditionsTests.h */,
-				D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */,
-				D07D6EB01499E22600192DED /* PRONSSetAdditionsTests.h */,
-				D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */,
 				D04460F414A6850A000053C9 /* PROOrderTransformationTests.h */,
 				D04460F514A6850A000053C9 /* PROOrderTransformationTests.m */,
 				D080E10114AA97D700F6EABB /* PRORemovalTransformationTests.h */,
 				D080E10214AA97D700F6EABB /* PRORemovalTransformationTests.m */,
-				1A225927149C9D28004B7BF2 /* PROUniqueIdentifierTests.h */,
 				1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */,
 				D0E0F2ED1497E4660072FE2C /* PROUniqueTransformationTests.h */,
 				D0E0F2EE1497E4660072FE2C /* PROUniqueTransformationTests.m */,
@@ -629,6 +720,8 @@
 				D0F5CD4C14C5798B00966B2D /* CocoaLumberjack */,
 				D0F5CD0E14C5790D00966B2D /* libextobjc */,
 				D0F5CD3D14C5796800966B2D /* SafeDispatch */,
+				D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */,
+				D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */,
 				D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */,
 				D0B07AF71492E76200A1E816 /* Foundation.framework */,
 				D0B07ACF1492E72800A1E816 /* Foundation.framework */,
@@ -671,6 +764,7 @@
 			children = (
 				D0DB5CE51492DDD5005955FB /* ProtonTests-Info.plist */,
 				D0DB5CE61492DDD5005955FB /* InfoPlist.strings */,
+				D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -958,6 +1052,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				D002AEBD14CDFF530062AEFC /* PBXTargetDependency */,
+				D002AEBF14CDFF530062AEFC /* PBXTargetDependency */,
 				D0B07AE21492E72800A1E816 /* PBXTargetDependency */,
 			);
 			name = "Proton iOS Tests";
@@ -995,6 +1091,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				D002AEB714CDFF2F0062AEFC /* PBXTargetDependency */,
+				D002AEB914CDFF2F0062AEFC /* PBXTargetDependency */,
 				D0DB5CE11492DDD5005955FB /* PBXTargetDependency */,
 			);
 			name = "Proton Mac Tests";
@@ -1021,6 +1119,16 @@
 			mainGroup = D0DB5CB81492DDD5005955FB;
 			productRefGroup = D0DB5CC51492DDD5005955FB /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = D002AEA514CDFF230062AEFC /* Products */;
+					ProjectRef = D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */;
+				},
+				{
+					ProductGroup = D002AE9214CDFF1F0062AEFC /* Products */;
+					ProjectRef = D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				D0DB5CC31492DDD5005955FB /* Proton Mac */,
@@ -1030,6 +1138,65 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		D002AE9C14CDFF1F0062AEFC /* libSpecta.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSpecta.a;
+			remoteRef = D002AE9B14CDFF1F0062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D002AE9E14CDFF1F0062AEFC /* libSpecta-iOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libSpecta-iOS.a";
+			remoteRef = D002AE9D14CDFF1F0062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D002AEA014CDFF1F0062AEFC /* SpectaTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SpectaTests.octest;
+			remoteRef = D002AE9F14CDFF1F0062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D002AEA214CDFF1F0062AEFC /* Specta-iOSTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Specta-iOSTests.octest";
+			remoteRef = D002AEA114CDFF1F0062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D002AEAF14CDFF240062AEFC /* libExpecta.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExpecta.a;
+			remoteRef = D002AEAE14CDFF240062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D002AEB114CDFF240062AEFC /* libExpecta-iOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExpecta-iOS.a";
+			remoteRef = D002AEB014CDFF240062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D002AEB314CDFF240062AEFC /* ExpectaTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = ExpectaTests.octest;
+			remoteRef = D002AEB214CDFF240062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D002AEB514CDFF240062AEFC /* Expecta-iOSTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Expecta-iOSTests.octest";
+			remoteRef = D002AEB414CDFF240062AEFC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		D0B07AD91492E72800A1E816 /* Resources */ = {
@@ -1132,10 +1299,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D06AA45B1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */,
 				D047033C1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
-				D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */,
-				D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */,
 				D0E0F2F01497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */,
 				D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
 				D030A63D14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
@@ -1157,6 +1321,7 @@
 				D0F5CD4914C5796D00966B2D /* SDQueueTests.m in Sources */,
 				D0DA64CC14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
 				D0D2E71F14CAB26C009E641B /* PROAssertTests.m in Sources */,
+				D0B6D0E614CE433D00769330 /* PROHigherOrderAdditionsTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1205,10 +1370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D06AA45A1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */,
 				D047033B1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
-				D07D6EB21499E22600192DED /* PRONSSetAdditionsTests.m in Sources */,
-				D07D6EC01499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */,
 				D0E0F2EF1497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */,
 				D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
 				D030A63C14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
@@ -1230,12 +1392,33 @@
 				D0F5CD4814C5796C00966B2D /* SDQueueTests.m in Sources */,
 				D0DA64CB14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
 				D0D2E71E14CAB26C009E641B /* PROAssertTests.m in Sources */,
+				D0B6D0E514CE433D00769330 /* PROHigherOrderAdditionsTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D002AEB714CDFF2F0062AEFC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Expecta;
+			targetProxy = D002AEB614CDFF2F0062AEFC /* PBXContainerItemProxy */;
+		};
+		D002AEB914CDFF2F0062AEFC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Specta;
+			targetProxy = D002AEB814CDFF2F0062AEFC /* PBXContainerItemProxy */;
+		};
+		D002AEBD14CDFF530062AEFC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Expecta-iOS";
+			targetProxy = D002AEBC14CDFF530062AEFC /* PBXContainerItemProxy */;
+		};
+		D002AEBF14CDFF530062AEFC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Specta-iOS";
+			targetProxy = D002AEBE14CDFF530062AEFC /* PBXContainerItemProxy */;
+		};
 		D0B07AE21492E72800A1E816 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D0B07ACD1492E72800A1E816 /* Proton iOS */;
@@ -1301,7 +1484,13 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = octest;
@@ -1325,6 +1514,11 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
@@ -1361,6 +1555,11 @@
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
 				);
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1377,6 +1576,11 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
 				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
 				OTHER_LDFLAGS = "-all_load";
@@ -1446,7 +1650,13 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = octest;
@@ -1459,7 +1669,13 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_PREFIX_HEADER = "ProtonTests/ProtonTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"Libraries/Expecta/src/**",
+					"Libraries/Specta/src/**",
+				);
 				INFOPLIST_FILE = "ProtonTests/ProtonTests-Info.plist";
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = octest;

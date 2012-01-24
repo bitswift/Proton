@@ -6,57 +6,63 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import "PROUniqueIdentifierTests.h"
-#import "PROUniqueIdentifier.h"
+#import <Proton/PROUniqueIdentifier.h>
 
-@implementation PROUniqueIdentifierTests
+SpecBegin(PROUniqueIdentifier)
+    
+    __block PROUniqueIdentifier *identifier = nil;
 
-- (void)testInitialization {
-    PROUniqueIdentifier *uid = [[PROUniqueIdentifier alloc] init];
-    STAssertNotNil(uid, @"");
-}
+    after(^{
+        identifier = nil;
+    });
 
-- (void)testInitializationWithString {
-    NSString *uuidString = @"49DDFC35-8DB7-424D-8BD3-1D7FD8508A58";
-    PROUniqueIdentifier *uid = [[PROUniqueIdentifier alloc] initWithString:uuidString];
+    it(@"initializes with a string", ^{
+        NSString *uuidString = @"49DDFC35-8DB7-424D-8BD3-1D7FD8508A58";
 
-    STAssertEqualObjects(uid.stringValue, uuidString, @"");
-}
+        identifier = [[PROUniqueIdentifier alloc] initWithString:uuidString];
+        expect(identifier).not.toBeNil();
+    });
 
-- (void)testCoding {
-    PROUniqueIdentifier *uid = [[PROUniqueIdentifier alloc] init];
+    before(^{
+        identifier = [[PROUniqueIdentifier alloc] init];
+        expect(identifier).not.toBeNil();
+    });
 
-    NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:uid];
-    PROUniqueIdentifier *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+    it(@"implements <NSCoding>", ^{
+        expect(identifier).toConformTo(@protocol(NSCoding));
 
-    STAssertEqualObjects(uid, decoded, @"");
-}
+        NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:identifier];
+        expect(encoded).not.toBeNil();
 
-- (void)testCopying {
-    PROUniqueIdentifier *uid1 = [[PROUniqueIdentifier alloc] init];
-    PROUniqueIdentifier *uid2 = [uid1 copy];
-    STAssertEqualObjects(uid1, uid2, @"");
-}
+        PROUniqueIdentifier *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+        expect(decoded).toEqual(identifier);
+    });
 
-- (void)testUniqueness {
-    PROUniqueIdentifier *uid1 = [[PROUniqueIdentifier alloc] init];
-    PROUniqueIdentifier *uid2 = [[PROUniqueIdentifier alloc] init];
-    STAssertFalse([uid1 isEqual:uid2], @"");
-}
+    it(@"implements <NSCopying>", ^{
+        expect(identifier).toConformTo(@protocol(NSCopying));
 
-- (void)testStringValue {
-    PROUniqueIdentifier *uid1 = [[PROUniqueIdentifier alloc] init];
-    NSString *str = [uid1 stringValue];
-    STAssertNotNil(str, @"");
+        PROUniqueIdentifier *copied = [identifier copy];
+        expect(copied).toEqual(identifier);
+    });
 
-    PROUniqueIdentifier *uid2 = [[PROUniqueIdentifier alloc] initWithString:str];
-    STAssertEqualObjects(uid1, uid2, @"");
-}
+    it(@"is unique", ^{
+        PROUniqueIdentifier *anotherIdentifier = [[PROUniqueIdentifier alloc] init];
+        expect(identifier).not.toEqual(anotherIdentifier);
+    });
 
-- (void)testHash {
-    PROUniqueIdentifier *uid = [[PROUniqueIdentifier alloc] init];
-    PROUniqueIdentifier *uidFromString = [[PROUniqueIdentifier alloc] initWithString:uid.stringValue];
-    STAssertEquals(uid.hash, uidFromString.hash, @"");
-}
+    describe(@"string value", ^{
+        __block NSString *stringValue = nil;
 
-@end
+        before(^{
+            stringValue = identifier.stringValue;
+            expect(stringValue).not.toBeNil();
+        });
+
+        it(@"results in an equivalent identifier", ^{
+            PROUniqueIdentifier *anotherIdentifier = [[PROUniqueIdentifier alloc] initWithString:stringValue];
+            expect(anotherIdentifier).toEqual(identifier);
+            expect(anotherIdentifier.hash).toEqual(identifier.hash);
+        });
+    });
+
+SpecEnd
