@@ -201,6 +201,18 @@ SpecBegin(PROModel)
             expect(error.code).toEqual(PROModelErrorValidationFailed);
             expect([error.userInfo objectForKey:PROModelPropertyKeyErrorKey]).toEqual(@"name");
         });
+
+        it(@"fails to initialize with invalid key", ^{
+            NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObject:@"blah" forKey:@"invalidKey"];
+
+            NSError *error = nil;
+            TestModel *model = [[TestModel alloc] initWithDictionary:initializationDictionary error:&error];
+            expect(model).toBeNil();
+
+            expect(error.domain).toEqual([PROModel errorDomain]);
+            expect(error.code).toEqual(PROModelErrorUndefinedKey);
+            expect([error.userInfo objectForKey:PROModelPropertyKeyErrorKey]).toEqual(@"invalidKey");
+        });
     });
 
     describe(@"CollectionTestModel subclass", ^{
