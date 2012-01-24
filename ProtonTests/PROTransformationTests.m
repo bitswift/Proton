@@ -345,6 +345,21 @@ SpecBegin(PROTransformation)
                 expect(error).toBeNil();
             });
         });
+
+        it(@"should transform custom class", ^{
+            NSArray *endArray = [NSArray arrayWithObject:@"foobar"];
+            PROUniqueTransformation *arrayTransformation = [[PROUniqueTransformation alloc] initWithInputValue:[NSArray array] outputValue:endArray];
+
+            TransformationTestModel *model = [[TransformationTestModel alloc] init];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:PROKeyForObject(model, array)];
+
+            TransformationTestModel *expectedModel = [[TransformationTestModel alloc] init];
+            expectedModel.array = endArray;
+
+            __block NSError *error = nil;
+            expect([transformation transform:model error:&error]).toEqual(expectedModel);
+            expect(error).toBeNil();
+        });
     });
 
     describe(@"multiple transformation", ^{
