@@ -98,19 +98,20 @@
     [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
 
     __block NSMutableArray *newArray = [array mutableCopy];
+    __block NSError *strongError = nil;
 
     [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
         NSUInteger index = indexes[setIndex];
         id inputValue = [array objectAtIndex:index];
 
-        id result = [transformation transform:inputValue error:error];
+        id result = [transformation transform:inputValue error:&strongError];
         if (!result) {
             newArray = nil;
             *stop = YES;
 
-            if (error) {
+            if (strongError) {
                 NSString *path = [NSString stringWithFormat:@"[%lu]", (unsigned long)setIndex];
-                *error = [self prependTransformationPath:path toError:*error];
+                strongError = [self prependTransformationPath:path toError:strongError];
             }
 
             return;
@@ -118,6 +119,10 @@
 
         [newArray replaceObjectAtIndex:index withObject:result];
     }];
+
+    if (error && strongError) {
+        *error = strongError;
+    }
 
     return [newArray copy];
 }
