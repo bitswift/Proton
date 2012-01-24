@@ -54,19 +54,24 @@
 
 - (id)transform:(id)obj error:(NSError **)error; {
     __block id currentValue = obj;
+    __block NSError *strongError = nil;
 
     [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger index, BOOL *stop){
-        currentValue = [transformation transform:currentValue error:error];
+        currentValue = [transformation transform:currentValue error:&strongError];
         if (!currentValue) {
             if (error) {
                 NSString *path = [NSString stringWithFormat:@"multipleTransformation(%lu).", (unsigned long)index];
-                *error = [self prependTransformationPath:path toError:*error];
+                strongError = [self prependTransformationPath:path toError:strongError];
             }
 
             *stop = YES;
             return;
         }
     }];
+
+    if (strongError && error) {
+        *error = strongError;
+    }
 
     return currentValue;
 }
