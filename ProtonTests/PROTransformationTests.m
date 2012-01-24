@@ -229,6 +229,113 @@ SpecBegin(PROTransformation)
         });
     });
 
+    describe(@"insertion transformation", ^{
+        NSArray *startArray = [NSArray arrayWithObjects:
+            [NSNull null],
+            [NSNumber numberWithInt:5],
+            @"foo",
+            nil
+        ];
+
+        NSArray *endArray = [NSArray arrayWithObjects:
+            [NSNull null],
+            [NSNumber numberWithBool:NO],
+            @"bar",
+            [NSNumber numberWithInt:5],
+            @"foo",
+            nil
+        ];
+
+        it(@"initializes without objects", ^{
+            transformation = [[PROInsertionTransformation alloc] init];
+            expect(transformation).not.toBeNil();
+            expect([transformation transformations]).toBeNil();
+
+            expect([transformation insertionIndexes]).toBeNil();
+            expect([transformation objects]).toBeNil();
+
+            // values should just pass through
+            __block NSError *error = nil;
+            expect([transformation transform:startArray error:&error]).toEqual(startArray);
+            expect(error).toBeNil();
+        });
+
+        it(@"initializes with a single index", ^{
+            transformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:3 object:@"foobar"];
+            expect(transformation).not.toBeNil();
+            expect([transformation transformations]).toBeNil();
+
+            expect([transformation insertionIndexes]).toEqual([NSIndexSet indexSetWithIndex:3]);
+            expect([transformation objects]).toEqual([NSArray arrayWithObject:@"foobar"]);
+        });
+
+        it(@"should insert into empty array", ^{
+            transformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:@"foobar"];
+
+            __block NSError *error = nil;
+            expect([transformation transform:[NSArray array] error:&error]).toEqual([NSArray arrayWithObject:@"foobar"]);
+            expect(error).toBeNil();
+        });
+
+        describe(@"with objects", ^{
+            NSArray *objects = [NSArray arrayWithObjects:
+                [NSNumber numberWithBool:NO],
+                @"bar",
+                nil
+            ];
+
+            __block NSIndexSet *indexes;
+
+            before(^{
+                NSMutableIndexSet *mutableIndexes = [[NSMutableIndexSet alloc] init];
+
+                // insert(array[1], NO)
+                [mutableIndexes addIndex:1];
+
+                // insert(array[2], "bar")
+                [mutableIndexes addIndex:2];
+
+                indexes = mutableIndexes;
+
+                transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexes objects:objects];
+                expect(transformation).not.toBeNil();
+            });
+
+            it(@"should match indexes and objects given at initialization", ^{
+                expect([transformation insertionIndexes]).toEqual(indexes);
+                expect([transformation objects]).toEqual(objects);
+            });
+
+            it(@"should be equal to another transformation initialized with same objects", ^{
+                PROTransformation *equalTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexes objects:objects];
+                expect(equalTransformation).toEqual(transformation);
+            });
+
+            it(@"transforms the input value to the output value", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                expect(error).toBeNil();
+            });
+
+            it(@"doesn't transform out of bounds indexes", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should return a reverse transformation which does the opposite", ^{
+                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+
+                __block NSError *error = nil;
+                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            });
+        });
+    });
+
     describe(@"keyed transformation", ^{
         NSDictionary *startDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
             @"bar", @"foo",
