@@ -6,7 +6,6 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import "PROModelTests.h"
 #import <Proton/EXTScope.h>
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROModel.h>
@@ -17,8 +16,6 @@
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, copy) NSDate *date;
 @property (nonatomic, getter = isEnabled) BOOL enabled;
-
-+ (TestModel *)testInstance;
 @end
 
 @interface CollectionTestModel : PROModel
@@ -28,193 +25,231 @@
 @property (nonatomic, copy) NSSet *set;
 @end
 
-@implementation PROModelTests
+SpecBegin(PROModel)
 
-- (void)testPropertyKeys {
-    STAssertNil([PROModel propertyKeys], @"");
+    describe(@"base class", ^{
+        it(@"has no propertyKeys", ^{
+            expect([PROModel propertyKeys]).toBeNil();
+        });
 
-    NSArray *keys = [NSArray arrayWithObjects:@"name", @"date", @"enabled", nil];
-    STAssertEqualObjects([TestModel propertyKeys], keys, @"");
-}
+        it(@"has no propertyClassesByKey", ^{
+            expect([PROModel propertyClassesByKey]).toBeNil();
+        });
 
-- (void)testPropertyClassesByKey {
-    STAssertNil([PROModel propertyClassesByKey], @"");
+        it(@"has no defaultValuesForKeys", ^{
+            expect([PROModel defaultValuesForKeys]).toBeNil();
+        });
+    });
 
-    NSDictionary *classesByKey = [NSDictionary dictionaryWithObjectsAndKeys:
-        [NSString class], @"name",
-        [NSDate class], @"date",
-        nil
-    ];
+    describe(@"TestModel subclass", ^{
+        it(@"has propertyKeys", ^{
+            expect([TestModel propertyKeys]).toContain(@"name");
+            expect([TestModel propertyKeys]).toContain(@"date");
+            expect([TestModel propertyKeys]).toContain(@"enabled");
 
-    STAssertEqualObjects([TestModel propertyClassesByKey], classesByKey, @"");
-}
+            expect([TestModel propertyKeys]).not.toContain(@"array");
+        });
 
-- (void)testDefaultValuesForKeys {
-    STAssertNil([PROModel defaultValuesForKeys], @"");
-    STAssertNil([TestModel defaultValuesForKeys], @"");
+        it(@"has propertyClassesByKey", ^{
+            expect([[TestModel propertyClassesByKey] objectForKey:@"name"]).toEqual([NSString class]);
+            expect([[TestModel propertyClassesByKey] objectForKey:@"date"]).toEqual([NSDate class]);
+            expect([[TestModel propertyClassesByKey] objectForKey:@"enabled"]).toBeNil();
+        });
 
-    NSDictionary *expectedDefaultValuesForCollectionTestModel = [NSDictionary dictionaryWithObjectsAndKeys:
-        [NSArray array], @"array",
-        [NSDictionary dictionary], @"dictionary",
-        [NSOrderedSet orderedSet], @"orderedSet",
-        [NSSet set], @"set",
-        nil
-    ];
+        it(@"has no defaultValuesForKeys", ^{
+            expect([TestModel defaultValuesForKeys]).toBeNil();
+        });
 
-    STAssertEqualObjects([CollectionTestModel defaultValuesForKeys], expectedDefaultValuesForCollectionTestModel, @"");
-}
+        it(@"initializes", ^{
+            TestModel *model = [[TestModel alloc] init];
+            expect(model).not.toBeNil();
 
-- (void)testInitialization {
-    PROModel *model = [[PROModel alloc] init];
-    STAssertNotNil(model, @"");
-    STAssertEqualObjects(model.dictionaryValue, [NSDictionary dictionary], @"");
-}
+            expect(model.name).toBeNil();
+            expect(model.date).toBeNil();
+            expect(model.enabled).toBeFalsy();
 
-- (void)testDefaultValueInitialization {
-    CollectionTestModel *model = [[CollectionTestModel alloc] init];
-    STAssertNotNil(model, @"");
+            expect([model.dictionaryValue objectForKey:@"name"]).toEqual([NSNull null]);
+            expect([model.dictionaryValue objectForKey:@"date"]).toEqual([NSNull null]);
+            expect([[model.dictionaryValue objectForKey:@"enabled"] boolValue]).toBeFalsy();
+        });
 
-    STAssertEqualObjects(model.array, [NSArray array], @"");
-    STAssertEqualObjects(model.dictionary, [NSDictionary dictionary], @"");
-    STAssertEqualObjects(model.orderedSet, [NSOrderedSet orderedSet], @"");
-    STAssertEqualObjects(model.set, [NSSet set], @"");
-}
+        describe(@"initialized with dictionary", ^{
+            NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
 
-- (void)testSubclassInitialization {
-    TestModel *model = [[TestModel alloc] init];
-    STAssertNotNil(model, @"");
+            __block TestModel *model = nil;
 
-    NSDictionary *emptyDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-        [NSNull null], @"name",
-        [NSNull null], @"date",
-        [NSNumber numberWithBool:NO], @"enabled",
-        nil
-    ];
+            before(^{
+                NSError *error = nil;
+                model = [[TestModel alloc] initWithDictionary:initializationDictionary error:&error];
 
-    STAssertEqualObjects(model.dictionaryValue, emptyDictionary, @"");
-}
+                expect(model).not.toBeNil();
+                expect(error).toBeNil();
 
-- (void)testSubclassInitializationWithDictionary {
-    NSDictionary *startingDict = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
+                expect([model valueForKey:@"name"]).toEqual(@"foobar");
+            });
 
-    TestModel *model = [[TestModel alloc] initWithDictionary:startingDict error:NULL];
-    STAssertNotNil(model, @"");
+            it(@"has correct dictionary value", ^{
+                NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
+                    @"foobar", @"name",
+                    [NSNull null], @"date",
+                    [NSNumber numberWithBool:NO], @"enabled",
+                    nil
+                ];
 
-    STAssertEqualObjects([model valueForKey:@"name"], @"foobar", @"");
+                expect(model.dictionaryValue).toEqual(expectedDictionaryValue);
+            });
 
-    NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
-        @"foobar", @"name",
-        [NSNull null], @"date",
-        [NSNumber numberWithBool:NO], @"enabled",
-        nil
-    ];
+            it(@"is equal to same model data", ^{
+                TestModel *otherModel = [[TestModel alloc] initWithDictionary:initializationDictionary error:NULL];
+                expect(model).toEqual(otherModel);
+            });
 
-    STAssertEqualObjects(model.dictionaryValue, expectedDictionaryValue, @"");
-}
+            it(@"is not equal to a different model", ^{
+                TestModel *otherModel = [[TestModel alloc] init];
+                expect(model).not.toEqual(otherModel);
+            });
 
-- (void)testTransformationForKey {
-    TestModel *model = [TestModel testInstance];
+            it(@"implements <NSCoding>", ^{
+                expect(model).toConformTo(@protocol(NSCoding));
 
-    PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:@"fizzbuzz"];
-    STAssertNotNil(transformation, @"");
-    STAssertTrue([transformation isKindOfClass:[PROKeyedTransformation class]], @"");
+                NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:model];
+                expect(encoded).not.toBeNil();
 
-    // should be just the one transformation we specified
-    STAssertTrue([transformation.valueTransformations count] == 1, @"");
+                PROModel *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+                expect(decoded).toEqual(model);
+            });
 
-    // the only transformation should be a unique transformation from 'foobar'
-    // to 'fizzbuzz'
-    PROUniqueTransformation *uniqueTransformation = [transformation.valueTransformations objectForKey:@"name"];
-    STAssertTrue([uniqueTransformation isKindOfClass:[PROUniqueTransformation class]], @"");
+            it(@"implements <NSCopying>", ^{
+                expect(model).toConformTo(@protocol(NSCopying));
 
-    STAssertEqualObjects(uniqueTransformation.inputValue, model.name, @"");
-    STAssertEqualObjects(uniqueTransformation.outputValue, @"fizzbuzz", @"");
-}
+                PROModel *copied = [model copy];
+                expect(model).toEqual(copied);
+            });
+            
+            it(@"has transformation for valid key", ^{
+                PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:@"fizzbuzz"];
+                expect(transformation).toBeKindOf([PROKeyedTransformation class]);
+                
+                // should be just the one transformation we specified
+                expect(transformation.valueTransformations.count).toEqual(1);
 
-- (void)testTransformationForKeysWithDictionary {
-    TestModel *model = [TestModel testInstance];
+                // the only transformation should be a unique transformation from 'foobar'
+                // to 'fizzbuzz'
+                PROUniqueTransformation *uniqueTransformation = [transformation.valueTransformations objectForKey:@"name"];
+                expect(uniqueTransformation).toBeKindOf([PROUniqueTransformation class]);
 
-    NSDate *now = [[NSDate alloc] init];
+                expect(uniqueTransformation.inputValue).toEqual(model.name);
+                expect(uniqueTransformation.outputValue).toEqual(@"fizzbuzz");
+            });
 
-    NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
-        @"fizzbuzz", @"name",
-        now, @"date",
-        nil
-    ];
+            it(@"doesn't have transformation to key already transformed", ^{
+                PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:model.name];
+                expect(transformation).toBeNil();
+            });
 
-    PROKeyedTransformation *transformation = [model transformationForKeysWithDictionary:changes];
-    STAssertNotNil(transformation, @"");
-    STAssertTrue([transformation isKindOfClass:[PROKeyedTransformation class]], @"");
+            describe(@"has transformation for keys with dictionary", ^{
+                NSDate *now = [[NSDate alloc] init];
 
-    // should be just the two transformations we specified
-    STAssertTrue([transformation.valueTransformations count] == 2, @"");
+                __block PROKeyedTransformation *transformation;
+                
+                before(^{
+                    NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                        @"fizzbuzz", @"name",
+                        now, @"date",
+                        nil
+                    ];
 
-    {
-        // we should have a unique transformation from 'foobar' to 'fizzbuzz'
-        PROUniqueTransformation *uniqueTransformation = [transformation.valueTransformations objectForKey:@"name"];
-        STAssertTrue([uniqueTransformation isKindOfClass:[PROUniqueTransformation class]], @"");
+                    transformation = [model transformationForKeysWithDictionary:changes];
+                    expect(transformation).toBeKindOf([PROKeyedTransformation class]);
+                    
+                    // should be just the two transformations we specified
+                    expect(transformation.valueTransformations.count).toEqual(2);
+                });
 
-        STAssertEqualObjects(uniqueTransformation.inputValue, model.name, @"");
-        STAssertEqualObjects(uniqueTransformation.outputValue, @"fizzbuzz", @"");
-    }
+                it(@"including a unique transformation from 'foobar' to 'fizzbuzz'", ^{
+                    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.name outputValue:@"fizzbuzz"];
+                    expect([transformation.valueTransformations objectForKey:@"name"]).toEqual(uniqueTransformation);
+                });
 
-    {
-        // we should have a unique transformation from the default date to now
-        PROUniqueTransformation *uniqueTransformation = [transformation.valueTransformations objectForKey:@"date"];
-        STAssertTrue([uniqueTransformation isKindOfClass:[PROUniqueTransformation class]], @"");
+                it(@"including a unique transformation from the default date to now", ^{
+                    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.date outputValue:now];
+                    expect([transformation.valueTransformations objectForKey:@"date"]).toEqual(uniqueTransformation);
+                });
+            });
 
-        STAssertEqualObjects(uniqueTransformation.inputValue, model.date, @"");
-        STAssertEqualObjects(uniqueTransformation.outputValue, now, @"");
-    }
-}
+            it(@"doesn't have transformation to keys already transformed", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    model.name, @"name",
+                    model.date, @"date",
+                    nil
+                ];
 
-- (void)testAlreadyDoneTransformationForKey {
-    TestModel *model = [TestModel testInstance];
+                PROKeyedTransformation *transformation = [model transformationForKeysWithDictionary:changes];
+                expect(transformation).toBeNil();
+            });
+        });
 
-    PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:model.name];
-    STAssertNil(transformation, @"");
-}
+        it(@"fails to initialize with invalid value", ^{
+            // this name is too short to pass the validation method
+            NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObject:@"blah" forKey:@"name"];
 
-- (void)testAlreadyDoneTransformationForKeysWithDictionary {
-    TestModel *model = [TestModel testInstance];
+            NSError *error = nil;
+            TestModel *model = [[TestModel alloc] initWithDictionary:initializationDictionary error:&error];
+            expect(model).toBeNil();
 
-    NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
-        model.name, @"name",
-        model.date, @"date",
-        nil
-    ];
+            expect(error.domain).toEqual([PROModel errorDomain]);
+            expect(error.code).toEqual(PROModelErrorValidationFailed);
+            expect([error.userInfo objectForKey:PROModelPropertyKeyErrorKey]).toEqual(@"name");
+        });
 
-    PROKeyedTransformation *transformation = [model transformationForKeysWithDictionary:changes];
-    STAssertNil(transformation, @"");
-}
+        it(@"fails to initialize with invalid key", ^{
+            NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObject:@"blah" forKey:@"invalidKey"];
 
-- (void)testEquality {
-    PROModel *model = [TestModel testInstance];
+            NSError *error = nil;
+            TestModel *model = [[TestModel alloc] initWithDictionary:initializationDictionary error:&error];
+            expect(model).toBeNil();
 
-    PROModel *equalModel = [TestModel testInstance];
-    STAssertEqualObjects(model, equalModel, @"");
+            expect(error.domain).toEqual([PROModel errorDomain]);
+            expect(error.code).toEqual(PROModelErrorUndefinedKey);
+            expect([error.userInfo objectForKey:PROModelPropertyKeyErrorKey]).toEqual(@"invalidKey");
+        });
+    });
 
-    PROModel *inequalModel = [[TestModel alloc] init];
-    STAssertFalse([model isEqual:inequalModel], @"");
-}
+    describe(@"CollectionTestModel subclass", ^{
+        it(@"has propertyKeys", ^{
+            expect([CollectionTestModel propertyKeys]).toContain(@"array");
+            expect([CollectionTestModel propertyKeys]).toContain(@"dictionary");
+            expect([CollectionTestModel propertyKeys]).toContain(@"orderedSet");
+            expect([CollectionTestModel propertyKeys]).toContain(@"set");
 
-- (void)testCoding {
-    PROModel *model = [TestModel testInstance];
+            expect([CollectionTestModel propertyKeys]).not.toContain(@"name");
+        });
 
-    NSData *encodedModel = [NSKeyedArchiver archivedDataWithRootObject:model];
-    PROModel *decodedModel = [NSKeyedUnarchiver unarchiveObjectWithData:encodedModel];
+        it(@"has propertyClassesByKey", ^{
+            expect([[CollectionTestModel propertyClassesByKey] objectForKey:@"array"]).toEqual([NSArray class]);
+            expect([[CollectionTestModel propertyClassesByKey] objectForKey:@"dictionary"]).toEqual([NSDictionary class]);
+            expect([[CollectionTestModel propertyClassesByKey] objectForKey:@"orderedSet"]).toEqual([NSOrderedSet class]);
+            expect([[CollectionTestModel propertyClassesByKey] objectForKey:@"set"]).toEqual([NSSet class]);
+        });
 
-    STAssertEqualObjects(model, decodedModel, @"");
-}
+        it(@"has defaultValuesForKeys", ^{
+            expect([[CollectionTestModel defaultValuesForKeys] objectForKey:@"array"]).toEqual([NSArray array]);
+            expect([[CollectionTestModel defaultValuesForKeys] objectForKey:@"dictionary"]).toEqual([NSDictionary dictionary]);
+            expect([[CollectionTestModel defaultValuesForKeys] objectForKey:@"orderedSet"]).toEqual([NSOrderedSet orderedSet]);
+            expect([[CollectionTestModel defaultValuesForKeys] objectForKey:@"set"]).toEqual([NSSet set]);
+        });
 
-- (void)testCopying {
-    PROModel *modelA = [TestModel testInstance];
-    PROModel *modelB = [modelA copy];
+        it(@"initializes with default values", ^{
+            CollectionTestModel *model = [[CollectionTestModel alloc] init];
+            expect(model).not.toBeNil();
+            expect(model.dictionaryValue).toEqual([CollectionTestModel defaultValuesForKeys]);
 
-    STAssertEqualObjects(modelA, modelB, @"");
-}
+            NSArray *keys = [[CollectionTestModel defaultValuesForKeys] allKeys];
+            expect([model dictionaryWithValuesForKeys:keys]).toEqual([CollectionTestModel defaultValuesForKeys]);
+        });
+    });
 
-@end
+SpecEnd
 
 @implementation TestModel
 @synthesize name = m_name;
@@ -227,16 +262,6 @@
     return (*name == nil) || [*name length] >= 5;
 }
 
-+ (TestModel *)testInstance; {
-    NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-        @"foobar", @"name",
-        [NSDate dateWithTimeIntervalSinceReferenceDate:1000], @"date",
-        [NSNumber numberWithBool:NO], @"enabled",
-        nil
-    ];
-
-    return [[self alloc] initWithDictionary:dictionary error:NULL];
-}
 @end
 
 @implementation CollectionTestModel

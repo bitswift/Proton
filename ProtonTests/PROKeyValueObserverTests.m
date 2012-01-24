@@ -6,329 +6,275 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import "PROKeyValueObserverTests.h"
 #import <Proton/PROKeyValueObserver.h>
 #import <Proton/SDQueue.h>
-
-@interface PROKeyValueObserverTests ()
-@property (nonatomic, strong) id observedObject;
-@property (nonatomic, strong) PROKeyValueObserver *executingObserver;
-@property (nonatomic, strong) PROKeyValueObserver *finishedObserver;
-@end
 
 @interface KVOTestObject : NSObject
 @property (nonatomic, strong) NSString *foobar;
 @end
 
-@implementation PROKeyValueObserverTests
-@synthesize observedObject = m_observedObject;
-@synthesize executingObserver = m_executingObserver;
-@synthesize finishedObserver = m_finishedObserver;
+SpecBegin(PROKeyValueObserver)
 
-- (void)tearDown {
-    // tear down the observers BEFORE the observed object
-    self.executingObserver = nil;
-    self.finishedObserver = nil;
+    __block id observedObject = nil;
 
-    self.observedObject = nil;
-}
+    __block PROKeyValueObserver *observer = nil;
+    __block BOOL observerInvoked;
 
-- (void)testInitialization {
-    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
+    __block NSString *keyPath;
+    __block NSKeyValueObservingOptions options;
+    __block SDQueue *queue;
+    __block PROKeyValueObserverBlock block;
 
-    NSString *keyPath = @"isExecuting";
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){} copy];
+    before(^{
+        observerInvoked = NO;
 
-    self.executingObserver = [[PROKeyValueObserver alloc]
-        initWithTarget:self.observedObject
-        keyPath:keyPath
-        block:block
-    ];
+        keyPath = nil;
+        options = 0;
+        queue = [SDQueue currentQueue];
+        block = nil;
+    });
 
-    STAssertNotNil(self.executingObserver, @"");
+    after(^{
+        // tear down observers before the observed object
+        observer = nil;
+        observedObject = nil;
+    });
 
-    // make sure the properties were set up correctly
-    STAssertEquals(self.executingObserver.target, self.observedObject, @"");
-    STAssertEqualObjects(self.executingObserver.keyPath, @"isExecuting", @"");
-    STAssertEquals(self.executingObserver.options, (NSKeyValueObservingOptions)0, @"");
-    STAssertEqualObjects(self.executingObserver.block, block, @"");
-    STAssertEqualObjects(self.executingObserver.queue, [SDQueue currentQueue], @"");
-}
+    void (^verifyObserverInitialization)(void) = ^{
+        expect(observer).not.toBeNil();
 
-- (void)testInitializationWithOptions {
-    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
+        expect(observer.target).toEqual(observedObject);
+        expect(observer.keyPath).toEqual(keyPath);
+        expect(observer.options).toEqual(options);
+        expect(observer.block).toEqual(block);
+        expect(observer.queue).toEqual(queue);
+    };
 
-    NSString *keyPath = @"isExecuting";
-    NSKeyValueObservingOptions options = NSKeyValueObservingOptionNew;
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){} copy];
+    PROKeyValueObserverBlock blockWithoutOptions = ^(NSDictionary *changes){
+        observerInvoked = YES;
 
-    self.executingObserver = [[PROKeyValueObserver alloc]
-        initWithTarget:self.observedObject
-        keyPath:keyPath
-        options:options
-        block:block
-    ];
-
-    STAssertNotNil(self.executingObserver, @"");
-
-    // make sure the properties were set up correctly
-    STAssertEquals(self.executingObserver.target, self.observedObject, @"");
-    STAssertEqualObjects(self.executingObserver.keyPath, @"isExecuting", @"");
-    STAssertEquals(self.executingObserver.options, options, @"");
-    STAssertEqualObjects(self.executingObserver.block, block, @"");
-    STAssertEqualObjects(self.executingObserver.queue, [SDQueue currentQueue], @"");
-}
-
-- (void)testObservation {
-    __block BOOL operationCompleted = NO;
-
-    // we can observe the status flags of NSBlockOperation
-    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{
-        operationCompleted = YES;
-    }];
-
-    void (^callbackBlock)(NSDictionary *) = ^(NSDictionary *changes){
         // make sure the change dictionary matches the structure we expect
-        STAssertNotNil(changes, @"");
-        STAssertNotNil([changes objectForKey:NSKeyValueChangeKindKey], @"");
-        STAssertNil([changes objectForKey:NSKeyValueChangeIndexesKey], @"");
+        expect(changes).not.toBeNil();
+        expect([changes objectForKey:NSKeyValueChangeKindKey]).not.toBeNil();
+        expect([changes objectForKey:NSKeyValueChangeIndexesKey]).toBeNil();
 
         // the change dictionary shouldn't contain any optional keys (since we
         // didn't pass in any options)
-        STAssertNil([changes objectForKey:NSKeyValueChangeOldKey], @"");
-        STAssertNil([changes objectForKey:NSKeyValueChangeNewKey], @"");
-        STAssertNil([changes objectForKey:NSKeyValueChangeIndexesKey], @"");
+        expect([changes objectForKey:NSKeyValueChangeOldKey]).toBeNil();
+        expect([changes objectForKey:NSKeyValueChangeNewKey]).toBeNil();
+        expect([changes objectForKey:NSKeyValueChangeIndexesKey]).toBeNil();
         
         // this should be not present or NO (because we're not observing with
         // the "prior" option)
-        STAssertFalse([[changes objectForKey:NSKeyValueChangeNotificationIsPriorKey] boolValue], @"");
+        expect([[changes objectForKey:NSKeyValueChangeNotificationIsPriorKey] boolValue]).toBeFalsy();
     };
 
-    // don't check for mutual exclusion between these two, since the self.observedObject
-    // may change either or both of them multiple times in an unknown order
-    __block BOOL observerInvokedForExecuting = NO;
-    __block BOOL observerInvokedForFinished = NO;
+    describe(@"observers on NSOperation", ^{
+        __block BOOL operationCompleted;
 
-    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" block:^(NSDictionary *changes){
-        callbackBlock(changes);
-        observerInvokedForExecuting = YES;
-    }];
+        before(^{
+            keyPath = @"isFinished";
 
-    self.finishedObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isFinished" block:^(NSDictionary *changes){
-        callbackBlock(changes);
-        observerInvokedForFinished = YES;
-    }];
-    
-    // neither observer should've been triggered yet
-    STAssertFalse(observerInvokedForExecuting, @"");
-    STAssertFalse(observerInvokedForFinished, @"");
+            operationCompleted = NO;
+            observedObject = [NSBlockOperation blockOperationWithBlock:^{
+                operationCompleted = YES;
+            }];
+        });
 
-    // start the self.observedObject and make sure the observer on -isExecuting is
-    // triggered
-    [self.observedObject start];
-    STAssertTrue(observerInvokedForExecuting, @"");
+        after(^{
+            expect(operationCompleted).toBeTruthy();
+        });
 
-    // wait for the self.observedObject to finish and make sure the observer on
-    // -isFinished is triggered
-    [self.observedObject waitUntilFinished];
+        describe(@"without options", ^{
+            before(^{
+                block = blockWithoutOptions;
 
-    STAssertTrue(operationCompleted, @"");
-    STAssertTrue(observerInvokedForFinished, @"");
-}
+                observer = [[PROKeyValueObserver alloc]
+                    initWithTarget:observedObject
+                    keyPath:keyPath
+                    block:block
+                ];
 
-- (void)testObservationWithOptions {
-    __block BOOL operationCompleted = NO;
+                verifyObserverInitialization();
+            });
 
-    // we can observe the status flags of NSBlockOperation
-    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{
-        operationCompleted = YES;
-    }];
+            it(@"should trigger block", ^{
+                // run the operation and make sure the observer is triggered
+                [observedObject start];
+                [observedObject waitUntilFinished];
 
-    void (^callbackBlock)(NSDictionary *) = ^(NSDictionary *changes){
-        // make sure the change dictionary matches the structure we expect
-        STAssertNotNil(changes, @"");
-        STAssertNotNil([changes objectForKey:NSKeyValueChangeKindKey], @"");
-        STAssertNil([changes objectForKey:NSKeyValueChangeIndexesKey], @"");
-        
-        // this should be not present or NO (because we're not observing with
-        // the "prior" option)
-        STAssertFalse([[changes objectForKey:NSKeyValueChangeNotificationIsPriorKey] boolValue], @"");
-    };
+                expect(observerInvoked).toBeTruthy();
+            });
 
-    // don't check for mutual exclusion between these two, since the self.observedObject
-    // may change either or both of them multiple times in an unknown order
-    __block BOOL observerInvokedForExecuting = NO;
-    __block BOOL observerInvokedForFinished = NO;
+            it(@"should not trigger block after being removed", ^{
+                observer = nil;
+                
+                // run the operation and make sure the observer is not triggered
+                [observedObject start];
+                [observedObject waitUntilFinished];
 
-    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" options:NSKeyValueObservingOptionNew block:^(NSDictionary *changes){
-        callbackBlock(changes);
+                expect(observerInvoked).toBeFalsy();
+            });
+        });
 
-        // the change dictionary should contain the new value (as a boolean
-        // NSNumber) and not the old value
-        STAssertNil([changes objectForKey:NSKeyValueChangeOldKey], @"");
-        STAssertTrue([[changes objectForKey:NSKeyValueChangeNewKey] isKindOfClass:[NSNumber class]], @"");
+        describe(@"on background queue", ^{
+            before(^{
+                block = blockWithoutOptions;
+                queue = [[SDQueue alloc] init];
 
-        observerInvokedForExecuting = YES;
-    }];
+                observer = [[PROKeyValueObserver alloc]
+                    initWithTarget:observedObject
+                    keyPath:keyPath
+                    block:block
+                ];
 
-    self.finishedObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isFinished" options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionInitial block:^(NSDictionary *changes){
-        callbackBlock(changes);
+                observer.queue = queue;
 
-        // the change dictionary should not contain the new value
-        //
-        // we don't check for the old value because using the "initial" option
-        // will generate an initial notification with a previous value of nil
-        STAssertNil([changes objectForKey:NSKeyValueChangeNewKey], @"");
+                verifyObserverInitialization();
+            });
 
-        observerInvokedForFinished = YES;
-    }];
+            it(@"should trigger block", ^{
+                // run the operation and make sure the observer is triggered
+                [observedObject start];
+                [observedObject waitUntilFinished];
 
-    // the -isFinished observer should've already been triggered, since we asked
-    // for an initial observation
-    STAssertFalse(observerInvokedForExecuting, @"");
-    STAssertTrue(observerInvokedForFinished, @"");
+                expect(observerInvoked).isGoing.toBeTruthy();
+            });
+        });
 
-    // reset it to test the actual change below
-    observerInvokedForFinished = NO;
+        describe(@"on nil queue", ^{
+            before(^{
+                block = blockWithoutOptions;
+                queue = nil;
 
-    // start the self.observedObject and make sure the observer on -isExecuting is
-    // triggered
-    [self.observedObject start];
-    STAssertTrue(observerInvokedForExecuting, @"");
+                observer = [[PROKeyValueObserver alloc]
+                    initWithTarget:observedObject
+                    keyPath:keyPath
+                    block:block
+                ];
 
-    // wait for the self.observedObject to finish and make sure the observer on
-    // -isFinished is triggered
-    [self.observedObject waitUntilFinished];
+                observer.queue = queue;
 
-    STAssertTrue(operationCompleted, @"");
-    STAssertTrue(observerInvokedForFinished, @"");
-}
+                verifyObserverInitialization();
+            });
 
-- (void)testRemovingObserver {
-    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
+            it(@"should trigger block", ^{
+                // run the operation and make sure the observer is triggered
+                [observedObject start];
+                [observedObject waitUntilFinished];
 
-    // create and destroy the observer before any change occurs
-    @autoreleasepool {
-        self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" block:^(NSDictionary *changes){
-            // we'll remove this block before changing the status of the self.observedObject
-            STFail(@"Observer block should not be called after being removed");
-        }];
+                expect(observerInvoked).toBeTruthy();
+            });
+        });
 
-        self.executingObserver = nil;
-    }
+        describe(@"with options", ^{
+            before(^{
+                options = NSKeyValueObservingOptionNew;
+                block = ^(NSDictionary *changes){
+                    observerInvoked = YES;
 
-    // start the self.observedObject and make sure the observer is not triggered
-    [self.observedObject start];
-    [self.observedObject waitUntilFinished];
-}
+                    // make sure the change dictionary matches the structure we expect
+                    expect(changes).not.toBeNil();
+                    expect([changes objectForKey:NSKeyValueChangeKindKey]).not.toBeNil();
+                    expect([changes objectForKey:NSKeyValueChangeIndexesKey]).toBeNil();
 
-- (void)testObservationOfCustomClass {
-    self.observedObject = [[KVOTestObject alloc] init];
+                    // the change dictionary should contain the new value (as a boolean
+                    // NSNumber) and not the old value
+                    expect([changes objectForKey:NSKeyValueChangeOldKey]).toBeNil();
+                    expect([changes objectForKey:NSKeyValueChangeNewKey]).toBeKindOf([NSNumber class]);
 
-    __block BOOL observerInvoked = NO;
+                    // this should be not present or NO (because we're not observing with
+                    // the "prior" option)
+                    expect([[changes objectForKey:NSKeyValueChangeNotificationIsPriorKey] boolValue]).toBeFalsy();
+                };
 
-    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"foobar" block:^(NSDictionary *changes){
-        observerInvoked = YES;
-    }];
+                observer = [[PROKeyValueObserver alloc]
+                    initWithTarget:observedObject
+                    keyPath:keyPath
+                    options:options
+                    block:block
+                ];
 
-    STAssertFalse(observerInvoked, @"");
+                verifyObserverInitialization();
+            });
 
-    [self.observedObject setValue:@"blah" forKey:@"foobar"];
-    STAssertTrue(observerInvoked, @"");
-}
+            it(@"should trigger block", ^{
+                // run the operation and make sure the observer is triggered
+                [observedObject start];
+                [observedObject waitUntilFinished];
 
-- (void)testObservationOfCustomClassRemovingObserver {
-    self.observedObject = [[KVOTestObject alloc] init];
+                expect(observerInvoked).toBeTruthy();
+            });
 
-    // create and destroy the observer before any change occurs
-    @autoreleasepool {
-        self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"foobar" block:^(NSDictionary *changes){
-            // we'll remove this block before changing the object
-            STFail(@"Observer block should not be called after being removed");
-        }];
+            it(@"should not trigger block after being removed", ^{
+                observer = nil;
+                
+                // run the operation and make sure the observer is not triggered
+                [observedObject start];
+                [observedObject waitUntilFinished];
 
-        self.executingObserver = nil;
-    }
+                expect(observerInvoked).toBeFalsy();
+            });
+        });
+    });
 
-    // change something and make sure the observer is not triggered
-    [self.observedObject setValue:@"blah" forKey:@"foobar"];
-}
+    describe(@"observers on custom class", ^{
+        before(^{
+            keyPath = @"foobar";
+            observedObject = [[KVOTestObject alloc] init];
+            block = blockWithoutOptions;
 
-- (void)testObservationOfClassCluster {
-    self.observedObject = [[NSMutableDictionary alloc] init];
+            observer = [[PROKeyValueObserver alloc]
+                initWithTarget:observedObject
+                keyPath:keyPath
+                block:block
+            ];
+            
+            verifyObserverInitialization();
+        });
 
-    __block BOOL observerInvoked = NO;
+        it(@"should trigger block", ^{
+            [observedObject setFoobar:@"blah"];
+            expect(observerInvoked).toBeTruthy();
+        });
 
-    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"foobar" block:^(NSDictionary *changes){
-        observerInvoked = YES;
-    }];
+        it(@"should not trigger block after being removed", ^{
+            observer = nil;
 
-    STAssertFalse(observerInvoked, @"");
+            [observedObject setFoobar:@"blah"];
+            expect(observerInvoked).toBeFalsy();
+        });
+    });
 
-    [self.observedObject setValue:@"blah" forKey:@"foobar"];
-    STAssertTrue(observerInvoked, @"");
-}
+    describe(@"observers on class cluster", ^{
+        before(^{
+            keyPath = @"foobar";
+            observedObject = [[NSMutableDictionary alloc] init];
+            block = blockWithoutOptions;
 
-- (void)testObservationOfClassClusterRemovingObserver {
-    self.observedObject = [[NSMutableDictionary alloc] init];
+            observer = [[PROKeyValueObserver alloc]
+                initWithTarget:observedObject
+                keyPath:keyPath
+                block:block
+            ];
+            
+            verifyObserverInitialization();
+        });
 
-    // create and destroy the observer before any change occurs
-    @autoreleasepool {
-        self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"foobar" block:^(NSDictionary *changes){
-            // we'll remove this block before changing the object
-            STFail(@"Observer block should not be called after being removed");
-        }];
+        it(@"should trigger block", ^{
+            [observedObject setValue:@"blah" forKey:@"foobar"];
+            expect(observerInvoked).toBeTruthy();
+        });
 
-        self.executingObserver = nil;
-    }
+        it(@"should not trigger block after being removed", ^{
+            observer = nil;
 
-    // change something and make sure the observer is not triggered
-    [self.observedObject setValue:@"blah" forKey:@"foobar"];
-}
+            [observedObject setValue:@"blah" forKey:@"foobar"];
+            expect(observerInvoked).toBeFalsy();
+        });
+    });
 
-- (void)testBackgroundQueue {
-    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
-
-    __block BOOL observerInvokedForExecuting = NO;
-
-    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" block:^(NSDictionary *changes){
-        observerInvokedForExecuting = YES;
-    }];
-
-    SDQueue *queue = [[SDQueue alloc] init];
-    self.executingObserver.queue = queue;
-    
-    STAssertFalse(observerInvokedForExecuting, @"");
-
-    // start the self.observedObject and make sure the observer on -isExecuting is
-    // triggered
-    [self.observedObject start];
-
-    [queue runSynchronously:^{
-        STAssertTrue(observerInvokedForExecuting, @"");
-    }];
-}
-
-- (void)testNilQueue {
-    self.observedObject = [NSBlockOperation blockOperationWithBlock:^{}];
-
-    __block BOOL observerInvokedForExecuting = NO;
-
-    self.executingObserver = [[PROKeyValueObserver alloc] initWithTarget:self.observedObject keyPath:@"isExecuting" block:^(NSDictionary *changes){
-        observerInvokedForExecuting = YES;
-    }];
-
-    self.executingObserver.queue = nil;
-    
-    STAssertFalse(observerInvokedForExecuting, @"");
-
-    // start the self.observedObject and make sure the observer on -isExecuting is
-    // triggered
-    [self.observedObject start];
-    STAssertTrue(observerInvokedForExecuting, @"");
-}
-
-@end
+SpecEnd
 
 @implementation KVOTestObject
 @synthesize foobar = m_foobar;

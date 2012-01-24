@@ -4,3 +4,9 @@
 [submodule "Libraries/CocoaLumberjack"]
 	path = Libraries/CocoaLumberjack
 	url = git@github.com:bitswift/CocoaLumberjack.git
+[submodule "Libraries/Expecta"]
+	path = Libraries/Expecta
+	url = git@github.com:bitswift/expecta.git
+[submodule "Libraries/Specta"]
+	path = Libraries/Specta
+	url = git@github.com:bitswift/specta.git
