@@ -17,8 +17,6 @@
 		1EA5FB0414A2C16100E3B764 /* PROIndexedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EA5FB0214A2C16100E3B764 /* PROIndexedTransformation.m */; };
 		1EA5FB0514A2C16B00E3B764 /* PROIndexedTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EA5FB0214A2C16100E3B764 /* PROIndexedTransformation.m */; };
 		1EA5FB0614A2C17400E3B764 /* PROIndexedTransformation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1EA5FB0114A2C16100E3B764 /* PROIndexedTransformation.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1EA5FB1B14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */; };
-		1EA5FB1C14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */; };
 		D002AEBA14CDFF340062AEFC /* libExpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AEAF14CDFF240062AEFC /* libExpecta.a */; };
 		D002AEBB14CDFF340062AEFC /* libSpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9C14CDFF1F0062AEFC /* libSpecta.a */; };
 		D002AEC014CDFF570062AEFC /* libExpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AEB114CDFF240062AEFC /* libExpecta-iOS.a */; };
@@ -318,8 +316,6 @@
 		1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueIdentifierTests.m; sourceTree = "<group>"; };
 		1EA5FB0114A2C16100E3B764 /* PROIndexedTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROIndexedTransformation.h; sourceTree = "<group>"; };
 		1EA5FB0214A2C16100E3B764 /* PROIndexedTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROIndexedTransformation.m; sourceTree = "<group>"; };
-		1EA5FB1914A2C9FE00E3B764 /* PROIndexedTransformationTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROIndexedTransformationTests.h; sourceTree = "<group>"; };
-		1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROIndexedTransformationTests.m; sourceTree = "<group>"; };
 		D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Specta.xcodeproj; path = Libraries/Specta/Specta.xcodeproj; sourceTree = "<group>"; };
 		D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Expecta.xcodeproj; path = Libraries/Expecta/Expecta.xcodeproj; sourceTree = "<group>"; };
 		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
@@ -598,8 +594,6 @@
 				D0D2E71D14CAB26C009E641B /* PROAssertTests.m */,
 				D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */,
 				D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */,
-				1EA5FB1914A2C9FE00E3B764 /* PROIndexedTransformationTests.h */,
-				1EA5FB1A14A2C9FE00E3B764 /* PROIndexedTransformationTests.m */,
 				D080E0FD14AA97AD00F6EABB /* PROInsertionTransformationTests.h */,
 				D080E0FE14AA97AD00F6EABB /* PROInsertionTransformationTests.m */,
 				D010F0B31498361800D0D1E5 /* PROKeyedTransformationTests.h */,
@@ -1290,7 +1284,6 @@
 				D010F0B61498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
 				D0C42D7A149857CB00A08989 /* PROModelTests.m in Sources */,
 				1A22592A149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
-				1EA5FB1C14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
 				D031BA9614A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */,
 				D04D284D14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m in Sources */,
 				D080D58C14A5E4B200FABAA2 /* PROFutureTests.m in Sources */,
@@ -1359,7 +1352,6 @@
 				D010F0B51498361800D0D1E5 /* PROKeyedTransformationTests.m in Sources */,
 				D0C42D79149857CB00A08989 /* PROModelTests.m in Sources */,
 				1A225929149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */,
-				1EA5FB1B14A2C9FE00E3B764 /* PROIndexedTransformationTests.m in Sources */,
 				D031BA9514A53F4600A38526 /* PROKeyValueObserverTests.m in Sources */,
 				D04D284C14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m in Sources */,
 				D080D58B14A5E4B200FABAA2 /* PROFutureTests.m in Sources */,

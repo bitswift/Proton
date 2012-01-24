@@ -112,6 +112,119 @@ SpecBegin(PROTransformation)
         });
     });
 
+    describe(@"indexed transformation", ^{
+        NSArray *startArray = [NSArray arrayWithObjects:
+            [NSNull null],
+            [NSNumber numberWithInt:5],
+            [NSNumber numberWithInt:5],
+            @"foo",
+            nil
+        ];
+
+        NSArray *endArray = [NSArray arrayWithObjects:
+            [NSNull null],
+            [NSNumber numberWithBool:NO],
+            [NSNumber numberWithInt:5],
+            @"bar",
+            nil
+        ];
+
+        it(@"initializes without transformations", ^{
+            transformation = [[PROIndexedTransformation alloc] init];
+            expect(transformation).not.toBeNil();
+
+            expect([transformation indexes]).toBeNil();
+            expect([transformation transformations]).toEqual([NSArray array]);
+
+            // values should just pass through
+            __block NSError *error = nil;
+            expect([transformation transform:startArray error:&error]).toEqual(startArray);
+            expect(error).toBeNil();
+        });
+
+        it(@"initializes with a single index", ^{
+            PROUniqueTransformation *transformationAtIndex = [[PROUniqueTransformation alloc] init];
+
+            transformation = [[PROIndexedTransformation alloc] initWithIndex:3 transformation:transformationAtIndex];
+            expect(transformation).not.toBeNil();
+
+            expect([transformation indexes]).toEqual([NSIndexSet indexSetWithIndex:3]);
+            expect([transformation transformations]).toEqual([NSArray arrayWithObject:transformationAtIndex]);
+        });
+
+        describe(@"with transformations", ^{
+            __block NSIndexSet *indexes;
+            __block NSArray *transformations;
+
+            before(^{
+                NSMutableIndexSet *mutableIndexes = [[NSMutableIndexSet alloc] init];
+                [mutableIndexes addIndex:1];
+                [mutableIndexes addIndex:3];
+                indexes = mutableIndexes;
+
+                NSMutableArray *mutableTransformations = [[NSMutableArray alloc] init];
+
+                {
+                    // array[1] = 5 -> NO
+
+                    id inputValue = [NSNumber numberWithInt:5];
+                    id outputValue = [NSNumber numberWithBool:NO];
+                    PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:inputValue outputValue:outputValue];
+
+                    [mutableTransformations addObject:transformation];
+                }
+
+                {
+                    // array[3] = "foo" -> "bar"
+
+                    id inputValue = @"foo";
+                    id outputValue = @"bar";
+                    PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:inputValue outputValue:outputValue];
+
+                    [mutableTransformations addObject:transformation];
+                }
+
+                transformations = mutableTransformations;
+
+                transformation = [[PROIndexedTransformation alloc] initWithIndexes:indexes transformations:transformations];
+                expect(transformation).not.toBeNil();
+            });
+
+            it(@"should match indexes and transformations given at initialization", ^{
+                expect([transformation indexes]).toEqual(indexes);
+                expect([transformation transformations]).toEqual(transformations);
+            });
+
+            it(@"should be equal to another transformation initialized with same transformations", ^{
+                PROTransformation *equalTransformation = [[PROIndexedTransformation alloc] initWithIndexes:indexes transformations:transformations];
+                expect(equalTransformation).toEqual(transformation);
+            });
+
+            it(@"transforms the input value to the output value", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                expect(error).toBeNil();
+            });
+
+            it(@"doesn't transform out of bounds indexes", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should return a reverse transformation which does the opposite", ^{
+                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+
+                __block NSError *error = nil;
+                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            });
+        });
+    });
+
     describe(@"multiple transformation", ^{
         NSString *multipleStartValue = @"startValue";
         NSString *multipleMiddleValue = @"middleValue";
