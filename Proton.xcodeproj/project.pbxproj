@@ -126,6 +126,8 @@
 		D097ADC114CF0A92009C452C /* PROMutableModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D097ADBE14CF0A92009C452C /* PROMutableModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D097ADC214CF0A92009C452C /* PROMutableModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D097ADBF14CF0A92009C452C /* PROMutableModel.m */; };
 		D097ADC314CF0A92009C452C /* PROMutableModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D097ADBF14CF0A92009C452C /* PROMutableModel.m */; };
+		D097ADC614CF0F69009C452C /* PROMutableModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D097ADC514CF0F69009C452C /* PROMutableModelTests.m */; };
+		D097ADC714CF0F69009C452C /* PROMutableModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D097ADC514CF0F69009C452C /* PROMutableModelTests.m */; };
 		D0A0E5DC14B5788E00E278CA /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5DA14B5788E00E278CA /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0A0E5DD14B5788E00E278CA /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A0E5DA14B5788E00E278CA /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0A0E5DE14B5788E00E278CA /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A0E5DB14B5788E00E278CA /* PROModelController.m */; };
@@ -390,6 +392,7 @@
 		D080E10214AA97D700F6EABB /* PRORemovalTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRORemovalTransformationTests.m; sourceTree = "<group>"; };
 		D097ADBE14CF0A92009C452C /* PROMutableModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMutableModel.h; sourceTree = "<group>"; };
 		D097ADBF14CF0A92009C452C /* PROMutableModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMutableModel.m; sourceTree = "<group>"; };
+		D097ADC514CF0F69009C452C /* PROMutableModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMutableModelTests.m; sourceTree = "<group>"; };
 		D0A0E5DA14B5788E00E278CA /* PROModelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelController.h; sourceTree = "<group>"; };
 		D0A0E5DB14B5788E00E278CA /* PROModelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelController.m; sourceTree = "<group>"; };
 		D0A3DD7214CAB86100754143 /* PROLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROLogging.h; sourceTree = "<group>"; };
@@ -626,6 +629,7 @@
 				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */,
 				D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */,
+				D097ADC514CF0F69009C452C /* PROMutableModelTests.m */,
 				D030A63A14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.h */,
 				D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */,
 				D04703391494A728004CB93A /* PRONSObjectAdditionsTests.h */,
@@ -1333,6 +1337,7 @@
 				D0DA64CC14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
 				D0D2E71F14CAB26C009E641B /* PROAssertTests.m in Sources */,
 				D0B6D0E614CE433D00769330 /* PROHigherOrderAdditionsTests.m in Sources */,
+				D097ADC714CF0F69009C452C /* PROMutableModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1405,6 +1410,7 @@
 				D0DA64CB14C67E4E00B6A577 /* EXTConcreteProtocolTest.m in Sources */,
 				D0D2E71E14CAB26C009E641B /* PROAssertTests.m in Sources */,
 				D0B6D0E514CE433D00769330 /* PROHigherOrderAdditionsTests.m in Sources */,
+				D097ADC614CF0F69009C452C /* PROMutableModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
