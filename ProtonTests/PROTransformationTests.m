@@ -8,6 +8,10 @@
 
 #import <Proton/Proton.h>
 
+@interface TransformationTestModel : PROModel
+@property (nonatomic, copy) NSArray *array;
+@end
+
 SpecBegin(PROTransformation)
     __block id transformation = nil;
 
@@ -225,6 +229,124 @@ SpecBegin(PROTransformation)
         });
     });
 
+    describe(@"keyed transformation", ^{
+        NSDictionary *startDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+            @"bar", @"foo",
+            [NSNull null], @"nil",
+            [NSNumber numberWithBool:YES], @"5",
+            nil
+        ];
+
+        NSDictionary *endDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+            @"bar", @"foo",
+            @"null", @"nil",
+            [NSNumber numberWithBool:NO], @"5",
+            nil
+        ];
+
+        it(@"initializes without transformations", ^{
+            transformation = [[PROKeyedTransformation alloc] init];
+            expect(transformation).not.toBeNil();
+
+            expect([transformation valueTransformations]).toBeNil();
+            expect([transformation transformations]).toEqual([NSArray array]);
+
+            // values should just pass through
+            __block NSError *error = nil;
+            expect([transformation transform:startDictionary error:&error]).toEqual(startDictionary);
+            expect(error).toBeNil();
+        });
+
+        it(@"initializes with a single transformation", ^{
+            PROUniqueTransformation *transformationForKey = [[PROUniqueTransformation alloc] init];
+
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:transformationForKey forKey:@"foobar"];
+            expect(transformation).not.toBeNil();
+
+            expect([[transformation valueTransformations] count]).toEqual(1);
+            expect([[transformation valueTransformations] objectForKey:@"foobar"]).toEqual(transformationForKey);
+            expect([transformation transformations]).toEqual([NSArray arrayWithObject:transformationForKey]);
+        });
+
+        it(@"initializes with a key path", ^{
+            PROUniqueTransformation *transformationForKey = [[PROUniqueTransformation alloc] init];
+
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:transformationForKey forKeyPath:@"foobar.something"];
+            expect(transformation).not.toBeNil();
+
+            // should have Keyed "foobar" -> Keyed "something" -> Unique
+            expect([[transformation valueTransformations] count]).toEqual(1);
+
+            PROKeyedTransformation *somethingTransformation = [[transformation valueTransformations] objectForKey:@"foobar"];
+            expect(somethingTransformation).not.toBeNil();
+
+            expect([[somethingTransformation valueTransformations] count]).toEqual(1);
+            expect([[somethingTransformation valueTransformations] objectForKey:@"something"]).toEqual(transformationForKey);
+        });
+
+        describe(@"with transformations", ^{
+            __block NSDictionary *valueTransformations;
+
+            before(^{
+                NSMutableDictionary *transformations = [[NSMutableDictionary alloc] init];
+
+                {
+                    // for key "nil": NSNull -> @"null"
+                    PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:[NSNull null] outputValue:@"null"];
+                    [transformations setObject:transformation forKey:@"nil"];
+                }
+
+                {
+                    // for key "5": YES -> NO
+                    PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:[NSNumber numberWithBool:YES] outputValue:[NSNumber numberWithBool:NO]];
+                    [transformations setObject:transformation forKey:@"5"];
+                }
+
+                // key "foo" is left unmodified
+
+                valueTransformations = transformations;
+
+                transformation = [[PROKeyedTransformation alloc] initWithValueTransformations:valueTransformations];
+                expect(transformation).not.toBeNil();
+            });
+
+            it(@"should match transformations given at initialization", ^{
+                expect([transformation valueTransformations]).toEqual(valueTransformations);
+                expect([transformation transformations]).toEqual(valueTransformations.allValues);
+            });
+
+            it(@"should be equal to another transformation initialized with same transformations", ^{
+                PROTransformation *equalTransformation = [[PROKeyedTransformation alloc] initWithValueTransformations:valueTransformations];
+                expect(equalTransformation).toEqual(transformation);
+            });
+
+            it(@"transforms the input value to the output value", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:startDictionary error:&error]).toEqual(endDictionary);
+                expect(error).toBeNil();
+            });
+
+            it(@"treats missing values as NSNull", ^{
+                NSMutableDictionary *modifiedStartDictionary = [startDictionary mutableCopy];
+
+                // remove the key associated with NSNull
+                [modifiedStartDictionary removeObjectForKey:@"nil"];
+
+                __block NSError *error = nil;
+                expect([transformation transform:modifiedStartDictionary error:&error]).toEqual(endDictionary);
+                expect(error).toBeNil();
+            });
+
+            it(@"should return a reverse transformation which does the opposite", ^{
+                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+
+                __block NSError *error = nil;
+                expect([reverseTransformation transform:endDictionary error:&error]).toEqual(startDictionary);
+                expect(error).toBeNil();
+            });
+        });
+    });
+
     describe(@"multiple transformation", ^{
         NSString *multipleStartValue = @"startValue";
         NSString *multipleMiddleValue = @"middleValue";
@@ -416,3 +538,7 @@ SpecBegin(PROTransformation)
     });
 
 SpecEnd
+
+@implementation TransformationTestModel
+@synthesize array = m_array;
+@end
