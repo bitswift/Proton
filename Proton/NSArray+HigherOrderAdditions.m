@@ -30,16 +30,36 @@
         return block(obj);
     }];
 
-    if (failedObjects) {
-        NSUInteger totalCount = self.count;
+    if (opts & NSEnumerationReverse) {
+        NSMutableArray *mutableSuccess = [[NSMutableArray alloc] initWithCapacity:[successIndexes count]];
 
-        NSMutableIndexSet *failedIndexes = [[NSMutableIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, totalCount)];
-        [failedIndexes removeIndexes:successIndexes];
+        NSMutableArray *mutableFailed = nil;
+        if (failedObjects)
+            mutableFailed = [[NSMutableArray alloc] initWithCapacity:[self count] - [successIndexes count] - 1];
 
-        *failedObjects = [self objectsAtIndexes:failedIndexes];
+        [self enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id obj, NSUInteger index, BOOL *stop){
+            if ([successIndexes containsIndex:index])
+                [mutableSuccess addObject:obj];
+            else
+                [mutableFailed addObject:obj];
+        }];
+
+        if (failedObjects)
+            *failedObjects = [mutableFailed copy];
+
+        return [mutableSuccess copy];
+    } else {
+        if (failedObjects) {
+            NSUInteger totalCount = self.count;
+
+            NSMutableIndexSet *failedIndexes = [[NSMutableIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, totalCount)];
+            [failedIndexes removeIndexes:successIndexes];
+
+            *failedObjects = [self objectsAtIndexes:failedIndexes];
+        }
+
+        return [self objectsAtIndexes:successIndexes];
     }
-
-    return [self objectsAtIndexes:successIndexes];
 }
 
 - (id)foldLeftWithValue:(id)startingValue usingBlock:(id (^)(id left, id right))block; {
