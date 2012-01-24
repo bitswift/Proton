@@ -183,6 +183,101 @@ SpecBegin(PROTransformation)
         });
     });
 
+    describe(@"order transformation", ^{
+        NSArray *startArray = [NSArray arrayWithObjects:
+            @"foomove",
+            @"bar",
+            @"bazmove",
+            @"buzz",
+            @"blah",
+            @"buzzmove",
+            nil
+        ];
+
+        NSArray *endArray = [NSArray arrayWithObjects:
+            @"bar",
+            @"buzz",
+            @"blah",
+            @"foomove",
+            @"bazmove",
+            @"buzzmove",
+            nil
+        ];
+
+        it(@"initializes without indexes", ^{
+            transformation = [[PROOrderTransformation alloc] init];
+            expect(transformation).not.toBeNil();
+
+            expect([transformation startIndexes]).toBeNil();
+            expect([transformation endIndexes]).toBeNil();
+            expect([transformation transformations]).toBeNil();
+
+            // values should just pass through
+            __block NSError *error = nil;
+            expect([transformation transform:startArray error:&error]).toEqual(startArray);
+            expect(error).toBeNil();
+        });
+
+        it(@"initializes with single indexes", ^{
+            transformation = [[PROOrderTransformation alloc] initWithStartIndex:2 endIndex:5];
+            expect(transformation).not.toBeNil();
+
+            expect([transformation startIndexes]).toEqual([NSIndexSet indexSetWithIndex:2]);
+            expect([transformation endIndexes]).toEqual([NSIndexSet indexSetWithIndex:5]);
+        });
+
+        describe(@"with index sets", ^{
+            __block NSIndexSet *startIndexes;
+            __block NSIndexSet *endIndexes;
+
+            before(^{
+                NSMutableIndexSet *indexSet = [[NSMutableIndexSet alloc] init];
+                [indexSet addIndex:0];
+                [indexSet addIndex:2];
+                [indexSet addIndex:5];
+                startIndexes = indexSet;
+
+                endIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(3, 3)];
+
+                transformation = [[PROOrderTransformation alloc] initWithStartIndexes:startIndexes endIndexes:endIndexes];
+                expect(transformation).not.toBeNil();
+            });
+
+            it(@"should match indexes given at initialization", ^{
+                expect([transformation startIndexes]).toEqual(startIndexes);
+                expect([transformation endIndexes]).toEqual(endIndexes);
+            });
+
+            it(@"should be equal to another transformation initialized with same indexes", ^{
+                PROTransformation *equalTransformation = [[PROOrderTransformation alloc] initWithStartIndexes:startIndexes endIndexes:endIndexes];
+                expect(equalTransformation).toEqual(transformation);
+            });
+
+            it(@"transforms the input value to the output value", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                expect(error).toBeNil();
+            });
+
+            it(@"doesn't transform out of bounds indexes", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should return a reverse transformation which does the opposite", ^{
+                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+
+                __block NSError *error = nil;
+                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            });
+        });
+    });
+
     after(^{
         it(@"should not be equal to a generic transformation", ^{
             PROTransformation *inequalTransformation = [[PROTransformation alloc] init];
