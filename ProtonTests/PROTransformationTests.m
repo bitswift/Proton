@@ -336,6 +336,128 @@ SpecBegin(PROTransformation)
         });
     });
 
+    describe(@"removal transformation", ^{
+        NSArray *startArray = [NSArray arrayWithObjects:
+            [NSNull null],
+            [NSNumber numberWithBool:NO],
+            [NSNumber numberWithInt:5],
+            @"foo",
+            @"bar",
+            nil
+        ];
+
+        NSArray *endArray = [NSArray arrayWithObjects:
+            [NSNumber numberWithInt:5],
+            @"foo",
+            nil
+        ];
+
+        it(@"initializes without objects", ^{
+            transformation = [[PRORemovalTransformation alloc] init];
+            expect(transformation).not.toBeNil();
+            expect([transformation transformations]).toBeNil();
+
+            expect([transformation removalIndexes]).toBeNil();
+            expect([transformation expectedObjects]).toBeNil();
+
+            // values should just pass through
+            __block NSError *error = nil;
+            expect([transformation transform:startArray error:&error]).toEqual(startArray);
+            expect(error).toBeNil();
+        });
+
+        it(@"initializes with a single index", ^{
+            transformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:3 expectedObject:@"foobar"];
+            expect(transformation).not.toBeNil();
+            expect([transformation transformations]).toBeNil();
+
+            expect([transformation removalIndexes]).toEqual([NSIndexSet indexSetWithIndex:3]);
+            expect([transformation expectedObjects]).toEqual([NSArray arrayWithObject:@"foobar"]);
+        });
+
+        it(@"should remove down to an empty array", ^{
+            transformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:@"foobar"];
+
+            __block NSError *error = nil;
+            expect([transformation transform:[NSArray arrayWithObject:@"foobar"] error:&error]).toEqual([NSArray array]);
+            expect(error).toBeNil();
+        });
+
+        describe(@"with objects", ^{
+            NSArray *expectedObjects = [NSArray arrayWithObjects:
+                [NSNull null],
+                [NSNumber numberWithBool:NO],
+                @"bar",
+                nil
+            ];
+
+            __block NSIndexSet *indexes;
+
+            before(^{
+                NSMutableIndexSet *mutableIndexes = [[NSMutableIndexSet alloc] init];
+
+                // remove(array[0], null)
+                [mutableIndexes addIndex:0];
+
+                // remove(array[1], NO)
+                [mutableIndexes addIndex:1];
+
+                // remove(array[4], "bar")
+                [mutableIndexes addIndex:4];
+
+                indexes = mutableIndexes;
+
+                transformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexes expectedObjects:expectedObjects];
+                expect(transformation).not.toBeNil();
+            });
+
+            it(@"should match indexes and objects given at initialization", ^{
+                expect([transformation removalIndexes]).toEqual(indexes);
+                expect([transformation expectedObjects]).toEqual(expectedObjects);
+            });
+
+            it(@"should be equal to another transformation initialized with same objects", ^{
+                PROTransformation *equalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexes expectedObjects:expectedObjects];
+                expect(equalTransformation).toEqual(transformation);
+            });
+
+            it(@"transforms the input value to the output value", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                expect(error).toBeNil();
+            });
+
+            it(@"doesn't transform out of bounds indexes", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"doesn't transform with mismatched objects", ^{
+                NSMutableArray *modifiedStartArray = [startArray mutableCopy];
+                [modifiedStartArray insertObject:@"fizzbuzz" atIndex:[indexes firstIndex]];
+
+                __block NSError *error = nil;
+                expect([transformation transform:modifiedStartArray error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should return a reverse transformation which does the opposite", ^{
+                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+
+                __block NSError *error = nil;
+                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            });
+        });
+    });
+
     describe(@"keyed transformation", ^{
         NSDictionary *startDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
             @"bar", @"foo",
