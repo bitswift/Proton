@@ -91,8 +91,6 @@
 		D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4541494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
 		D06AA4551494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
-		D06AA45A1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */; };
-		D06AA45B1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */; };
 		D07D6E8E1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E8F1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E901499DF7300192DED /* NSSet+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */; };
@@ -105,10 +103,6 @@
 		D07D6E9C1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E991499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E9D1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */; };
 		D07D6E9E1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */; };
-		D07D6EB21499E22600192DED /* PRONSSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */; };
-		D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */; };
-		D07D6EC01499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
-		D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */; };
 		D080D58514A5DF3800FABAA2 /* PROFuture.h in Headers */ = {isa = PBXBuildFile; fileRef = D080D58314A5DF3800FABAA2 /* PROFuture.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D080D58614A5DF3800FABAA2 /* PROFuture.h in Headers */ = {isa = PBXBuildFile; fileRef = D080D58314A5DF3800FABAA2 /* PROFuture.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D080D58714A5DF3800FABAA2 /* PROFuture.m in Sources */ = {isa = PBXBuildFile; fileRef = D080D58414A5DF3800FABAA2 /* PROFuture.m */; };
@@ -373,17 +367,12 @@
 		D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueCodingMacrosTests.m; sourceTree = "<group>"; };
 		D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+HigherOrderAdditions.m"; sourceTree = "<group>"; };
-		D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSArrayAdditionsTests.m; sourceTree = "<group>"; };
 		D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSSet+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSSet+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D07D6E931499DFE900192DED /* NSDictionary+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D07D6E941499DFE900192DED /* NSDictionary+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D07D6E991499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOrderedSet+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSOrderedSet+HigherOrderAdditions.m"; sourceTree = "<group>"; };
-		D07D6EB01499E22600192DED /* PRONSSetAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSSetAdditionsTests.h; sourceTree = "<group>"; };
-		D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSSetAdditionsTests.m; sourceTree = "<group>"; };
-		D07D6EBE1499E47C00192DED /* PRONSOrderedSetAdditionsTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRONSOrderedSetAdditionsTests.h; sourceTree = "<group>"; };
-		D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSOrderedSetAdditionsTests.m; sourceTree = "<group>"; };
 		D080D58314A5DF3800FABAA2 /* PROFuture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROFuture.h; sourceTree = "<group>"; };
 		D080D58414A5DF3800FABAA2 /* PROFuture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFuture.m; sourceTree = "<group>"; };
 		D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROFutureTests.m; sourceTree = "<group>"; };
@@ -631,15 +620,10 @@
 				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D030A61B149817F200D2B2A1 /* PROMultipleTransformationTests.h */,
 				D030A61C149817F200D2B2A1 /* PROMultipleTransformationTests.m */,
-				D06AA4591494A22300F0F94B /* PRONSArrayAdditionsTests.m */,
 				D030A63A14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.h */,
 				D030A63B14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m */,
 				D04703391494A728004CB93A /* PRONSObjectAdditionsTests.h */,
 				D047033A1494A728004CB93A /* PRONSObjectAdditionsTests.m */,
-				D07D6EBE1499E47C00192DED /* PRONSOrderedSetAdditionsTests.h */,
-				D07D6EBF1499E47C00192DED /* PRONSOrderedSetAdditionsTests.m */,
-				D07D6EB01499E22600192DED /* PRONSSetAdditionsTests.h */,
-				D07D6EB11499E22600192DED /* PRONSSetAdditionsTests.m */,
 				D04460F414A6850A000053C9 /* PROOrderTransformationTests.h */,
 				D04460F514A6850A000053C9 /* PROOrderTransformationTests.m */,
 				D080E10114AA97D700F6EABB /* PRORemovalTransformationTests.h */,
@@ -1315,10 +1299,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D06AA45B1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */,
 				D047033C1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
-				D07D6EB31499E22600192DED /* PRONSSetAdditionsTests.m in Sources */,
-				D07D6EC11499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */,
 				D0E0F2F01497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */,
 				D030A61E149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
 				D030A63D14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
@@ -1389,10 +1370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D06AA45A1494A22300F0F94B /* PRONSArrayAdditionsTests.m in Sources */,
 				D047033B1494A728004CB93A /* PRONSObjectAdditionsTests.m in Sources */,
-				D07D6EB21499E22600192DED /* PRONSSetAdditionsTests.m in Sources */,
-				D07D6EC01499E47C00192DED /* PRONSOrderedSetAdditionsTests.m in Sources */,
 				D0E0F2EF1497E4660072FE2C /* PROUniqueTransformationTests.m in Sources */,
 				D030A61D149817F200D2B2A1 /* PROMultipleTransformationTests.m in Sources */,
 				D030A63C14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.m in Sources */,
