@@ -314,7 +314,6 @@
 		D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Expecta.xcodeproj; path = Libraries/Expecta/Expecta.xcodeproj; sourceTree = "<group>"; };
 		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
 		D00A490C1499451400EEBD92 /* PROKeyedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyedObject.h; sourceTree = "<group>"; };
-		D00B494814B624D500E17FDB /* PROModelControllerTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelControllerTests.h; sourceTree = "<group>"; };
 		D00B494914B624D500E17FDB /* PROModelControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelControllerTests.m; sourceTree = "<group>"; };
 		D030A63314981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+PROKeyedObjectAdditions.h"; sourceTree = "<group>"; };
 		D030A63414981D8900D2B2A1 /* NSDictionary+PROKeyedObjectAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+PROKeyedObjectAdditions.m"; sourceTree = "<group>"; };
@@ -584,7 +583,6 @@
 				D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */,
 				D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */,
 				D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */,
-				D00B494814B624D500E17FDB /* PROModelControllerTests.h */,
 				D00B494914B624D500E17FDB /* PROModelControllerTests.m */,
 				D0C42D78149857CB00A08989 /* PROModelTests.m */,
 				D030A63A14981E1F00D2B2A1 /* PRONSDictionaryAdditionsTests.h */,
