@@ -6,7 +6,6 @@
 //  Copyright (c) 2012 Bitswift. All rights reserved.
 //
 
-#import "PROModelControllerTests.h"
 #import <Proton/Proton.h>
 
 @interface TestSubModel : PROModel
@@ -30,268 +29,229 @@
 @property (strong, readonly) NSMutableArray *subModelControllers;
 @end
 
-@implementation PROModelControllerTests
+SpecBegin(PROModelController)
+
+    it(@"initializes without a model", ^{
+        PROModelController *controller = [[PROModelController alloc] init];
+        expect(controller).not.toBeNil();
+
+        expect(controller.model).toBeNil();
+        expect(controller.dispatchQueue).not.toBeNil();
+        expect(controller.performingTransformation).toBeFalsy();
+    });
+
+    it(@"initializes without model", ^{
+        PROModel *model = [[PROModel alloc] init];
+
+        PROModelController *controller = [[PROModelController alloc] initWithModel:model];
+        expect(controller).not.toBeNil();
+
+        expect(controller.model).toEqual(model);
+        expect(controller.dispatchQueue).not.toBeNil();
+        expect(controller.performingTransformation).toBeFalsy();
+    });
+    
+    describe(@"model controller subclass", ^{
+        __block TestSuperModelController *controller = nil;
+        __block PROKeyValueObserver *observer = nil;
+        __block BOOL observerInvoked = NO;
 
-- (void)testInitialization {
-    PROModelController *controller = [[PROModelController alloc] init];
-    STAssertNotNil(controller, @"");
+        before(^{
+            observerInvoked = NO;
 
-    STAssertNil(controller.model, @"");
-    STAssertNotNil(controller.dispatchQueue, @"");
-    STAssertFalse(controller.performingTransformation, @"");
-}
+            controller = [[TestSuperModelController alloc] init];
+        });
 
-- (void)testInitializationWithModel {
-    PROModel *model = [[PROModel alloc] init];
+        after(^{
+            // make sure the observer is torn down before controller
+            observer = nil;
+            controller = nil;
+        });
+
+        it(@"should generate KVO notifications when replacing the model", ^{
+            TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+
+            observer = [[PROKeyValueObserver alloc]
+                initWithTarget:controller
+                keyPath:PROKeyForObject(controller, model)
+                options:NSKeyValueObservingOptionNew
+                block:^(NSDictionary *changes){
+                    STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
 
-    PROModelController *controller = [[PROModelController alloc] initWithModel:model];
-    STAssertNotNil(controller, @"");
+                    observerInvoked = YES;
+                }
+            ];
 
-    STAssertEqualObjects(controller.model, model, @"");
-    STAssertNotNil(controller.dispatchQueue, @"");
-    STAssertFalse(controller.performingTransformation, @"");
-}
+            controller.model = newModel;
 
-- (void)testModelKVONotifications {
-    PROModelController *controller = [[PROModelController alloc] init];
+            expect(controller.model).toEqual(newModel);
+            expect(observerInvoked).toBeTruthy();
+        });
 
-    __block BOOL notificationSent = NO;
+        // TODO: add KVO tests for the various operations on the
+        // modelControllers array
 
-    PROModel *newModel = [[PROModel alloc] init];
+        describe(@"successful transformations", ^{
+            __block PROTransformation *transformation;
 
-    {
-        // keep the KVO observer in its own scope, so that it's deallocated
-        // before the controller
-        id observer = [[PROKeyValueObserver alloc]
-            initWithTarget:controller
-            keyPath:PROKeyForObject(controller, model)
-            options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
-            block:^(NSDictionary *changes){
-                STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
-                STAssertEqualObjects([changes objectForKey:NSKeyValueChangeOldKey], [NSNull null], @"");
+            before(^{
+                transformation = nil;
+            });
 
-                notificationSent = YES;
-            }
-        ];
+            after(^{
+                TestSuperModel *originalModel = controller.model;
+                TestSuperModel *expectedModel = [transformation transform:originalModel error:NULL];
+                expect(expectedModel).not.toBeNil();
 
-        // shut up about not using 'observer'
-        [observer self];
+                __block NSError *error = nil;
+                expect([controller performTransformation:transformation error:&error]).toBeTruthy();
+                expect(error).toBeNil();
 
-        controller.model = newModel;
-        STAssertTrue(notificationSent, @"");
-    }
-}
+                expect(controller.model).toEqual(expectedModel);
+                expect(controller.subModelControllers.count).toEqual(expectedModel.subModels.count);
 
-- (void)testPerformingUniqueTransformation {
-    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+                // make sure that a SubModelController exists for each SubModel
+                [controller.model.subModels enumerateObjectsUsingBlock:^(TestSubModel *subModel, NSUInteger index, BOOL *stop){
+                    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:index];
+                    expect(subController.model).toEqual(subModel);
+                }];
+            });
 
-    TestSubModel *subModel = [[TestSubModel alloc] init];
-    TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:subModel];
+            it(@"should perform a unique transformation", ^{
+                TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
 
-    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:controller.model outputValue:newModel];
+                transformation = [[PROUniqueTransformation alloc] initWithInputValue:controller.model outputValue:newModel];
+            });
+            
+            it(@"should perform a keyed transformation", ^{
+                NSArray *subModels = [NSArray arrayWithObject:[[TestSubModel alloc] init]];
 
-    STAssertTrue([controller performTransformation:transformation error:NULL], @"");
-    STAssertEqualObjects(controller.model, newModel, @"");
+                transformation = [controller.model transformationForKey:PROKeyForObject(controller.model, subModels) value:subModels];
+            });
 
-    // make sure that a SubModelController exists for the new SubModel
-    STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
-    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
-}
+            it(@"should perform an insertion transformation", ^{
+                TestSubModel *subModel = [[TestSubModel alloc] init];
 
-- (void)testPerformingKeyedTransformation {
-    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+                PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            });
 
-    TestSubModel *subModel = [[TestSubModel alloc] init];
-    NSArray *subModels = [NSArray arrayWithObject:subModel];
+            it(@"should perform a removal transformation", ^{
+                TestSubModel *subModel = [[TestSubModel alloc] init];
 
-    // this will create a transformation keyed on 'subModels'
-    PROTransformation *transformation = [controller.model transformationForKey:PROKeyForObject(controller.model, subModels) value:subModels];
+                // set up the model with a SubModel that we can remove
+                controller.model = [[TestSuperModel alloc] initWithSubModel:subModel];
 
-    STAssertTrue([controller performTransformation:transformation error:NULL], @"");
-    STAssertEqualObjects(controller.model.subModels, subModels, @"");
+                PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            });
 
-    // make sure that a SubModelController exists for the new SubModel
-    STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
-    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
-}
+            it(@"should perform a multiple transformation", ^{
+                TestSubModel *subModel = [[TestSubModel alloc] init];
 
-- (void)testPerformingInsertionTransformation {
-    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+                PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
+                PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
 
-    TestSubModel *subModel = [[TestSubModel alloc] init];
+                NSArray *transformations = [NSArray arrayWithObjects:insertionTransformation, removalTransformation, nil];
+                PROMultipleTransformation *subModelsTransformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
 
-    PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
-    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            });
 
-    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
-    STAssertEqualObjects(controller.model.subModels, [NSArray arrayWithObject:subModel], @"");
+            it(@"should perform an order transformation", ^{
+                TestSubModel *firstSubModel = [[TestSubModel alloc] init];
+                TestSubModel *secondSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
+                NSArray *subModels = [NSArray arrayWithObjects:firstSubModel, secondSubModel, nil];
 
-    // make sure that a SubModelController exists for the new SubModel
-    STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
-    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], subModel, @"");
-}
+                NSDictionary *modelDictionary = [NSDictionary dictionaryWithObject:subModels forKey:@"subModels"];
+                
+                // set up the model with SubModels that we can reorder
+                controller.model = [[TestSuperModel alloc] initWithDictionary:modelDictionary error:NULL];
 
-- (void)testPerformingRemovalTransformation {
-    TestSubModel *subModel = [[TestSubModel alloc] init];
-    TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
+                PROOrderTransformation *subModelsTransformation = [[PROOrderTransformation alloc] initWithStartIndex:0 endIndex:1];
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            });
 
-    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
+            it(@"should perform a keyed + indexed transformation", ^{
+                TestSubModel *subModel = [[TestSubModel alloc] init];
+                TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
 
-    PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
-    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+                // set up the model with a SubModel that we can index to
+                controller.model = model;
 
-    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
-    STAssertEqualObjects(controller.model.subModels, [NSArray array], @"");
+                TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+                STAssertEqualObjects(subController.model, subModel, @"");
 
-    // make sure that the SubModelController was removed
-    STAssertEqualObjects(controller.subModelControllers, [NSArray array], @"");
-}
+                PROTransformation *subModelTransformation = [subModel transformationForKey:PROKeyForObject(subModel, name) value:@"foobar"];
+                PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
 
-- (void)testPerformingMultipleTransformation {
-    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            });
 
-    TestSubModel *subModel = [[TestSubModel alloc] init];
+            it(@"should perform a keyed + indexed + unique transformation", ^{
+                TestSubModel *subModel = [[TestSubModel alloc] init];
+                TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
 
-    PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
-    PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
+                // set up the model with a SubModel that we can index to
+                controller.model = model;
 
-    NSArray *transformations = [NSArray arrayWithObjects:insertionTransformation, removalTransformation, nil];
-    PROMultipleTransformation *subModelsTransformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
+                TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+                STAssertEqualObjects(subController.model, subModel, @"");
 
-    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+                TestSubModel *newSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
+                PROTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:subModel outputValue:newSubModel];
 
-    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
-    STAssertEqualObjects(controller.model.subModels, [NSArray array], @"");
+                PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
 
-    // make sure that no SubModelController exists
-    STAssertEqualObjects(controller.subModelControllers, [NSArray array], @"");
-}
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            });
 
-- (void)testPerformingOrderTransformation {
-    TestSubModel *firstSubModel = [[TestSubModel alloc] init];
-    TestSubModel *secondSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
-    NSArray *subModels = [NSArray arrayWithObjects:firstSubModel, secondSubModel, nil];
+            it(@"should perform an insertion transformation followed by a removal transformation", ^{
+                NSArray *subModels = [NSArray arrayWithObjects:
+                    [[TestSubModel alloc] init],
+                    [[TestSubModel alloc] initWithName:@"foobar"],
+                    nil
+                ];
 
-    NSDictionary *modelDictionary = [NSDictionary dictionaryWithObject:subModels forKey:@"subModels"];
-    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:modelDictionary error:NULL];
+                controller.model = [[TestSuperModel alloc] initWithDictionary:[NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(controller.model, subModels)] error:NULL];
 
-    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
+                // insertion
+                TestSubModel *newModel = [[TestSubModel alloc] initWithName:@"fizzbuzz"];
+                PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
+                PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:insertionTransformation forKey:PROKeyForObject(controller.model, subModels)];
 
-    PROOrderTransformation *subModelsTransformation = [[PROOrderTransformation alloc] initWithStartIndex:0 endIndex:1];
-    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+                __block NSError *error = nil;
+                expect([controller performTransformation:modelTransformation error:&error]).toBeTruthy();
+                expect(error).toBeNil();
 
-    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
+                expect([controller.subModelControllers count]).toEqual(3);
 
-    NSArray *expectedSubModels = [NSArray arrayWithObjects:secondSubModel, firstSubModel, nil];
-    STAssertEqualObjects(controller.model.subModels, expectedSubModels, @"");
+                // removal
+                NSIndexSet *indexSet = [[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, 2)];
+                NSArray *removedObjects = [controller.model.subModels objectsAtIndexes:indexSet];
 
-    // make sure that the SubModelControllers were also reordered
-    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], [expectedSubModels objectAtIndex:0], @"");
-    STAssertEqualObjects([[controller.subModelControllers objectAtIndex:1] model], [expectedSubModels objectAtIndex:1], @"");
-}
+                PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexSet expectedObjects:removedObjects];
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:removalTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            });
+        });
 
-- (void)testPerformingIndexedKeyedTransformation {
-    TestSubModel *subModel = [[TestSubModel alloc] init];
-    TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
+        it(@"should not perform an invalid transformation", ^{
+            TestSuperModel *originalModel = controller.model;
 
-    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
+            TestSubModel *subModel = [[TestSubModel alloc] init];
+            TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:subModel];
 
-    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
-    STAssertEqualObjects(subController.model, subModel, @"");
+            PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:newModel outputValue:originalModel];
 
-    PROTransformation *subModelTransformation = [subModel transformationForKey:PROKeyForObject(subModel, name) value:@"foobar"];
-    PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
+            __block NSError *error = nil;
+            expect([controller performTransformation:transformation error:&error]).toBeFalsy();
 
-    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+            expect(error.domain).toEqual([PROTransformation errorDomain]);
+            expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+        });
+    });
 
-    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
-
-    // make sure the SubModelController changed
-    //
-    // in a real app, the SuperModelController should change too, but that
-    // requires the application to implement KVO
-    STAssertEqualObjects([subController.model name], @"foobar", @"");
-    STAssertFalse([subController.model isEqual:subModel], @"");
-}
-
-- (void)testPerformingIndexedUniqueTransformation {
-    TestSubModel *subModel = [[TestSubModel alloc] init];
-    TestSuperModel *model = [[TestSuperModel alloc] initWithSubModel:subModel];
-
-    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
-
-    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
-    STAssertEqualObjects(subController.model, subModel, @"");
-
-    TestSubModel *newSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
-    PROTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:subModel outputValue:newSubModel];
-
-    PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
-
-    PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
-
-    STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
-
-    // make sure the SubModelController changed
-    //
-    // in a real app, the SuperModelController should change too, but that
-    // requires the application to implement KVO
-    STAssertEqualObjects([subController.model name], @"foobar", @"");
-    STAssertFalse([subController.model isEqual:subModel], @"");
-}
-
-- (void)testPerformingInsertionTransformationFollowedByRemovalTransformation {
-    NSArray *subModels = [NSArray arrayWithObjects:
-        [[TestSubModel alloc] init],
-        [[TestSubModel alloc] initWithName:@"foobar"],
-        nil
-    ];
-
-    TestSuperModel *model = [[TestSuperModel alloc] initWithDictionary:[NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(model, subModels)] error:NULL];
-    TestSuperModelController *controller = [[TestSuperModelController alloc] initWithModel:model];
-
-    {
-        TestSubModel *newModel = [[TestSubModel alloc] initWithName:@"fizzbuzz"];
-        PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
-        PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
-
-        STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
-        STAssertEquals([controller.subModelControllers count], (NSUInteger)3, @"");
-    }
-
-    {
-        NSIndexSet *indexSet = [[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, 2)];
-        NSArray *removedObjects = [controller.model.subModels objectsAtIndexes:indexSet];
-
-        PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexSet expectedObjects:removedObjects];
-        PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
-
-        STAssertTrue([controller performTransformation:modelTransformation error:NULL], @"");
-        STAssertEquals([controller.subModelControllers count], (NSUInteger)1, @"");
-
-        // make sure the remaining model object is the one we expect
-        STAssertEqualObjects([controller.model.subModels objectAtIndex:0], [subModels objectAtIndex:1], @"");
-        STAssertEqualObjects([[controller.subModelControllers objectAtIndex:0] model], [subModels objectAtIndex:1], @"");
-    }
-}
-
-- (void)testInvalidTransformation {
-    TestSuperModelController *controller = [[TestSuperModelController alloc] init];
-    TestSuperModel *originalModel = controller.model;
-
-    TestSubModel *subModel = [[TestSubModel alloc] init];
-    TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:subModel];
-
-    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:newModel outputValue:originalModel];
-
-    NSError *error = nil;
-    STAssertFalse([controller performTransformation:transformation error:&error], @"");
-
-    STAssertNotNil(error, @"");
-    STAssertEqualObjects(controller.model, originalModel, @"");
-}
-
-@end
+SpecEnd
 
 @implementation TestSubModel
 @synthesize name = m_name;
