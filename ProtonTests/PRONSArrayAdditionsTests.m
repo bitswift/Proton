@@ -6,26 +6,16 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import "PRONSArrayAdditionsTests.h"
 #import <Proton/NSArray+HigherOrderAdditions.h>
 
-@interface PRONSArrayAdditionsTests ()
+#if somethingundefined
+@interface PRONSArrayAdditionsTests : SenTestCase
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
 - (void)testPartitioningWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
 @end
 
 @implementation PRONSArrayAdditionsTests
-
-- (void)testFilter {
-    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
-
-    NSArray *filteredArray = [array filterUsingBlock:^(NSString *string) {
-        return [string isEqualToString:@"bar"];
-    }];
-
-    STAssertEqualObjects(filteredArray, [NSArray arrayWithObject:@"bar"], @"");
-}
 
 - (void)testFilteringEmptyArray {
     NSArray *array = [NSArray array];
@@ -45,28 +35,6 @@
     }];
 
     STAssertEqualObjects(filteredArray, [NSArray array], @"");
-}
-
-- (void)testFilteringConcurrently {
-    [self testFilteringWithOptions:NSEnumerationConcurrent];
-}
-
-- (void)testFilteringReverse {
-    [self testFilteringWithOptions:NSEnumerationReverse];
-}
-
-- (void)testFilteringWithOptions:(NSEnumerationOptions)opts {
-    NSArray *array = [NSArray arrayWithObjects:@"foo", @"bar", @"baz", nil];
-
-    NSArray *filteredArray = [array filterWithOptions:opts usingBlock:^(NSString *string) {
-        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
-            return YES;
-        else
-            return NO;
-    }];
-
-    NSArray *testArray = [NSArray arrayWithObjects:@"foo", @"bar", nil];
-    STAssertEqualObjects(filteredArray, testArray, @"");
 }
 
 - (void)testPartitioning; {
@@ -354,3 +322,4 @@
 }
 
 @end
+#endif

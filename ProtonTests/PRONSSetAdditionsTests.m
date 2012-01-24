@@ -9,6 +9,7 @@
 #import "PRONSSetAdditionsTests.h"
 #import <Proton/NSSet+HigherOrderAdditions.h>
 
+#if somethingundefined
 @interface PRONSSetAdditionsTests ()
 - (void)testFilteringWithOptions:(NSEnumerationOptions)opts;
 - (void)testMappingWithOptions:(NSEnumerationOptions)opts;
@@ -66,16 +67,6 @@
     [self testObjectPassingTestWithOptions:NSEnumerationReverse];
 }
 
-- (void)testFilter {
-    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
-
-    NSSet *filteredSet = [set filterUsingBlock:^(NSString *string) {
-        return [string isEqualToString:@"bar"];
-    }];
-
-    STAssertEqualObjects(filteredSet, [NSSet setWithObject:@"bar"], @"");
-}
-
 - (void)testFilteringEmptySet {
     NSSet *set = [NSSet set];
 
@@ -94,28 +85,6 @@
     }];
 
     STAssertEqualObjects(filteredSet, [NSSet set], @"");
-}
-
-- (void)testFilteringConcurrently {
-    [self testFilteringWithOptions:NSEnumerationConcurrent];
-}
-
-- (void)testFilteringReverse {
-    [self testFilteringWithOptions:NSEnumerationReverse];
-}
-
-- (void)testFilteringWithOptions:(NSEnumerationOptions)opts {
-    NSSet *set = [NSSet setWithObjects:@"foo", @"bar", @"baz", nil];
-
-    NSSet *filteredSet = [set filterWithOptions:opts usingBlock:^(NSString *string) {
-        if ([string isEqualToString:@"bar"] || [string isEqualToString:@"foo"])
-            return YES;
-        else
-            return NO;
-    }];
-
-    NSSet *testSet = [NSSet setWithObjects:@"foo", @"bar", nil];
-    STAssertEqualObjects(filteredSet, testSet, @"");
 }
 
 - (void)testPartitioning; {
@@ -317,3 +286,4 @@
 }
 
 @end
+#endif
