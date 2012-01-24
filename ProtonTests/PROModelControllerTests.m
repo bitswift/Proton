@@ -30,6 +30,34 @@
 @property (strong, readonly) NSMutableArray *subModelControllers;
 @end
 
+SpecBegin(PROModelController)
+    __block TestSuperModel *model = nil;
+    __block TestSuperModelController *controller = nil;
+
+    before(^{
+        model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+        controller = [[TestSuperModelController alloc] initWithModel:model];
+    });
+
+    it(@"should implement <NSCoding>", ^{
+        expect(controller).toConformTo(@protocol(NSCoding));
+
+        NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:controller];
+        expect(encoded).not.toBeNil();
+
+        TestSuperModelController *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+
+        // equality comparisons (rightfully) don't work on model controllers
+        expect(decoded.model).toEqual(controller.model);
+        expect(decoded.subModelControllers.count).toEqual(controller.subModelControllers.count);
+
+        // check the model of each sub-controller
+        [controller.subModelControllers enumerateObjectsUsingBlock:^(TestSubModelController *subController, NSUInteger index, BOOL *stop){
+            expect(subController.model).toEqual([[decoded.subModelControllers objectAtIndex:index] model]);
+        }];
+    });
+SpecEnd
+
 @implementation PROModelControllerTests
 
 - (void)testInitialization {
