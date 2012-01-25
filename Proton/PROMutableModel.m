@@ -16,6 +16,7 @@
 #import "PROModel.h"
 #import "PROModelController.h"
 #import "PROMultipleTransformation.h"
+#import "PROMutableModelPrivate.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
 
@@ -111,31 +112,27 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         // create superclasses along the way until we hit PROModel
         Class mutableSuperclass = [self mutableModelClassForModelClass:[modelClass superclass]];
 
-        mutableModelClass = objc_allocateClassPair(mutableSuperclass, [mutableModelClassName UTF8String], 0);
+        mutableModelClass = [self createClass:mutableModelClassName superclass:mutableSuperclass usingBlock:^(Class mutableModelClass){
+            // create setters for every property (but just on this subclass)
+            unsigned propertyCount = 0;
+            objc_property_t *properties = class_copyPropertyList(modelClass, &propertyCount);
+
+            if (!properties) {
+                // all done, I guess
+                return;
+            }
+
+            @onExit {
+                free(properties);
+            };
+
+            for (unsigned i = 0; i < propertyCount; ++i) {
+                [self synthesizeProperty:properties[i] forMutableModelClass:mutableModelClass modelClass:modelClass];
+            }
+        }];
+
         if (!PROAssert(mutableModelClass, @"Error creating mutable model class %@", mutableModelClassName)) {
             return;
-        }
-
-        @onExit {
-            // register the new class
-            objc_registerClassPair(mutableModelClass);
-        };
-
-        // create setters for every property (but just on this subclass)
-        unsigned propertyCount = 0;
-        objc_property_t *properties = class_copyPropertyList(modelClass, &propertyCount);
-
-        if (!properties) {
-            // all done, I guess
-            return;
-        }
-
-        @onExit {
-            free(properties);
-        };
-
-        for (unsigned i = 0; i < propertyCount; ++i) {
-            [self synthesizeProperty:properties[i] forMutableModelClass:mutableModelClass modelClass:modelClass];
         }
     }];
 
