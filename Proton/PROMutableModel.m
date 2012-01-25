@@ -17,6 +17,7 @@
 #import "PROModelController.h"
 #import "PROMultipleTransformation.h"
 #import "PROMutableModelPrivate.h"
+#import "PROUniqueTransformation.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
 
@@ -78,6 +79,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * @param attributes The attributes of the property.
  */
 + (IMP)synthesizedSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes;
+
+/**
+ * Attempts to transform the underlying <PROModel> object by transforming the
+ * given key.
+ *
+ * @param transformation The transformation to attempt.
+ * @param key The key upon which to apply the transformation.
+ */
+- (void)performTransformation:(PROTransformation *)transformation forKey:(NSString *)key;
 
 @end
 
@@ -402,6 +412,29 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return self;
 }
 
+#pragma mark Transformation
+
+- (void)performTransformation:(PROTransformation *)transformation forKey:(NSString *)key; {
+    NSParameterAssert(transformation != nil);
+    NSParameterAssert(key != nil);
+
+    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:key];
+
+    NSError *error = nil;
+    PROModel *newModel = [keyedTransformation transform:m_latestModel error:&error];
+    if (!PROAssert(newModel, @"Transformation %@ on key \"%@\" of %@ is invalid: %@", transformation, key, m_latestModel, error)) {
+        return;
+    }
+
+    [self willChangeValueForKey:key];
+    @onExit {
+        [self didChangeValueForKey:key];
+    };
+
+    [m_transformations addObject:keyedTransformation];
+    m_latestModel = [newModel copy];
+}
+
 #pragma mark Saving
 
 - (BOOL)save:(NSError **)error; {
@@ -491,25 +524,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 - (void)setValue:(id)value forKey:(NSString *)key {
-    PROKeyedTransformation *transformation = [m_latestModel transformationForKey:key value:value];
-    if (!transformation) {
-        // nothing to do
-        return;
-    }
+    id currentValue = [m_latestModel valueForKey:key];
+    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentValue outputValue:value];
 
-    NSError *error = nil;
-    PROModel *newModel = [transformation transform:m_latestModel error:&error];
-    if (!PROAssert(newModel, @"Changing \"%@\" on %@ to %@ is invalid: %@", key, m_latestModel, value, error)) {
-        return;
-    }
-
-    [self willChangeValueForKey:key];
-    @onExit {
-        [self didChangeValueForKey:key];
-    };
-
-    [m_transformations addObject:transformation];
-    m_latestModel = [newModel copy];
+    [self performTransformation:transformation forKey:key];
 }
 
 - (NSMutableArray *)mutableArrayValueForKey:(NSString *)key {
