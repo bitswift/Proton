@@ -74,8 +74,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * Creates, on `mutableModelClass`, the key-value coding methods necessary to
  * support a mutable, indexed to-many relationship for the given key.
  *
- * @param property The property for which to synthesize indexed accessor
- * methods.
+ * @param key The property for which to synthesize indexed accessor methods.
  * @param mutableModelClass The <PROMutableModel> subclass for which to
  * synthesize methods.
  */

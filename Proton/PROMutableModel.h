@@ -11,25 +11,49 @@
 @class PROModel;
 @class PROModelController;
 
+// the documentation below uses a different comment style so that code blocks
+// are properly included in the generated documentation
+
 /**
- * Proxies a <PROModel> and provides the illusion of mutability, to make certain
- * usage patterns easier.
- *
- * This class will automatically provide setters for any properties that exist
- * on the underlying <PROModel>, and will support key-value coding and key-value
- * observing on all of the model object's properties.
- *
- * Internally, a record of <PROTransformation> objects is kept that describes
- * the changes being made to the <PROModel>. When <save:> is invoked, it will
- * attempt to propagate those changes back to a <PROModelController>.
- *
- * If an instance of this class receives a message it does not understand, the
- * message is automatically forwarded to the underlying <PROModel> object.
- *
- * @warning **Important:** Properties containing other <PROModel> instances are
- * not automatically made mutable when using this class.
- *
- * This class is not thread-safe.
+
+Proxies a <PROModel> and provides the illusion of mutability, to make certain
+usage patterns easier.
+
+This class will automatically provide setters for any properties that exist
+on the underlying <PROModel>, and will support key-value coding and key-value
+observing on all of the model object's properties. Note that other <PROModel>
+instances are not automatically made mutable when using this class (though
+any collection containing them may be).
+
+Internally, a record of <PROTransformation> objects is kept that describes
+the changes being made to the <PROModel>. When <save:> is invoked, it will
+attempt to propagate those changes back to a <PROModelController>.
+
+If an instance of this class receives a message it does not understand, the
+message is automatically forwarded to the underlying <PROModel> object.
+
+You should not subclass this class. If you want to make access to setters
+more convenient, declare a category on <PROMutableModel> to expose them, but
+provide no implementation, like so:
+    
+    // MyModel.h
+    
+    @interface MyModel : PROModel
+    @property (nonatomic, copy, readonly) NSString *someString;
+    @end
+
+    @interface PROMutableModel (MyMutableModel)
+    @property (nonatomic, copy, readwrite) NSString *someString;
+    @end
+
+    // MyModel.m
+    
+    @implementation MyModel
+    @synthesize someString = m_someString;
+    @end
+
+@warning **Important:** This class is not thread-safe.
+
  */
 @interface PROMutableModel : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
@@ -76,12 +100,16 @@
 
 /**
  * Returns a <PROModel> object representing the current state of the receiver.
+ *
+ * @param zone Unused.
  */
 - (id)copyWithZone:(NSZone *)zone;
 
 /**
  * Returns a new <PROMutableModel>, initialized to the same state as the
  * receiver.
+ *
+ * @param zone Unused.
  */
 - (id)mutableCopyWithZone:(NSZone *)zone;
 
