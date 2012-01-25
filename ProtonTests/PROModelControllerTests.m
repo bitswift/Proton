@@ -30,6 +30,13 @@
 @end
 
 SpecBegin(PROModelController)
+    __block TestSuperModel *model = nil;
+    __block TestSuperModelController *controller = nil;
+
+    before(^{
+        model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+        controller = [[TestSuperModelController alloc] initWithModel:model];
+    });
 
     it(@"initializes without a model", ^{
         PROModelController *controller = [[PROModelController alloc] init];
@@ -66,6 +73,24 @@ SpecBegin(PROModelController)
             // make sure the observer is torn down before controller
             observer = nil;
             controller = nil;
+        });
+
+        it(@"should implement <NSCoding>", ^{
+            expect(controller).toConformTo(@protocol(NSCoding));
+
+            NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:controller];
+            expect(encoded).not.toBeNil();
+
+            TestSuperModelController *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+
+            // equality comparisons (rightfully) don't work on model controllers
+            expect(decoded.model).toEqual(controller.model);
+            expect(decoded.subModelControllers.count).toEqual(controller.subModelControllers.count);
+
+            // check the model of each sub-controller
+            [controller.subModelControllers enumerateObjectsUsingBlock:^(TestSubModelController *subController, NSUInteger index, BOOL *stop){
+                expect(subController.model).toEqual([[decoded.subModelControllers objectAtIndex:index] model]);
+            }];
         });
 
         it(@"should generate KVO notifications when replacing the model", ^{
