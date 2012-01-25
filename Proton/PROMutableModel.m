@@ -158,6 +158,14 @@
 
 #pragma mark NSKeyValueCoding
 
+#pragma mark NSKeyValueObserving
+
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key {
+    // implement all KVO manually (and also thus prevent KVO from creating
+    // dynamic subclasses of our dynamic subclasses)
+    return NO;
+}
+
 #pragma mark NSObject protocol
 
 - (NSUInteger)hash {
