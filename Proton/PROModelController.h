@@ -16,7 +16,7 @@
  * A base class for controller objects that manage <PROModel> references over
  * time.
  */
-@interface PROModelController : NSObject
+@interface PROModelController : NSObject <NSCoding>
 
 /**
  * @name Initialization

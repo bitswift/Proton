@@ -41,6 +41,16 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  */
 + (void)implementModelControllerMethodsForKey:(NSString *)key modelKeyPath:(NSString *)modelKeyPath;
 
+/**
+ * Replaces the model controllers responsible for managing the given key path.
+ *
+ * @param modelControllerKey The key, relative to the receiver, where the model
+ * controllers reside.
+ * @param modelKeyPath The key path, relative to the <model>, where the objects
+ * that should be managed by the controllers reside.
+ */
+- (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath;
+
 /*
  * Replaces the <model>, optionally updating other model controllers on the
  * receiver to match.
@@ -138,22 +148,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             if (![modelControllerKeys count])
                 return;
 
-            NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
-
             for (NSString *modelKeyPath in modelControllerKeys) {
                 NSString *modelControllerKey = [modelControllerKeys objectForKey:modelKeyPath];
-                Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
-
-                NSArray *models = [m_model valueForKeyPath:modelKeyPath];
-
-                NSAssert(!models || [models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
-
-                NSArray *newModelControllers = [models mapWithOptions:NSEnumerationConcurrent usingBlock:^(PROModel *model){
-                    return [[modelControllerClass alloc] initWithModel:model];
-                }];
-
-                NSMutableArray *modelControllers = [self mutableArrayValueForKey:modelControllerKey];
-                [modelControllers replaceObjectsInRange:NSMakeRange(0, modelControllers.count) withObjectsFromArray:newModelControllers];
+                [self replaceModelControllersAtKey:modelControllerKey forModelKeyPath:modelKeyPath];
             }
         }
     }];
@@ -200,8 +197,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     NSAssert([key length] > 0, @"Should be at least one character in model controller key");
     NSAssert([modelKeyPath length] > 0, @"Should be at least one character in model key path");
 
-    Class controllerClass = [[self modelControllerClassesByKey] objectForKey:key];
-    NSAssert(controllerClass, @"Model controller class should not be nil for key \"%@\"", key);
+    NSAssert([[self modelControllerClassesByKey] objectForKey:key], @"Model controller class should not be nil for key \"%@\"", key);
 
     NSMutableString *capitalizedKey = [[NSMutableString alloc] init];
     [capitalizedKey appendString:[[key substringToIndex:1] uppercaseString]];
@@ -377,6 +373,22 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return nil;
 }
 
+- (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath; {
+    NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
+    Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
+
+    NSArray *models = [m_model valueForKeyPath:modelKeyPath];
+
+    NSAssert(!models || [models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
+
+    NSArray *newModelControllers = [models mapWithOptions:NSEnumerationConcurrent usingBlock:^(PROModel *model){
+        return [[modelControllerClass alloc] initWithModel:model];
+    }];
+
+    NSMutableArray *modelControllers = [self mutableArrayValueForKey:modelControllerKey];
+    [modelControllers setArray:newModelControllers];
+}
+
 #pragma mark Transformations
 
 - (BOOL)performTransformation:(PROTransformation *)transformation error:(NSError **)error; {
@@ -422,6 +434,53 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     }];
 
     return success;
+}
+
+#pragma mark NSCoding
+
+- (id)initWithCoder:(NSCoder *)coder {
+    self = [self init];
+    if (!self)
+        return nil;
+
+    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
+
+    // we need to set up the model controllers manually anyways
+    [self setModel:model replacingModelControllers:NO];
+
+    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
+
+    for (NSString *modelKeyPath in modelControllerKeys) {
+        NSString *modelControllerKey = [modelControllerKeys objectForKey:modelKeyPath];
+        NSArray *decodedModelControllers = [coder decodeObjectForKey:modelControllerKey];
+
+        if (!decodedModelControllers) {
+            DDLogError(@"Could not decode model controllers at key \"%@\", reconstructing them manually", modelControllerKey);
+            [self replaceModelControllersAtKey:modelControllerKey forModelKeyPath:modelKeyPath];
+            continue;
+        }
+
+        NSMutableArray *modelControllers = [self mutableArrayValueForKey:modelControllerKey];
+        [modelControllers setArray:decodedModelControllers];
+    }
+
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)coder {
+    if (self.model)
+        [coder encodeObject:self.model forKey:PROKeyForObject(self, model)];
+
+    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
+
+    [modelControllerKeys enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+        NSArray *modelControllers = [self valueForKey:modelControllerKey];
+        if (!modelControllers) {
+            return;
+        }
+
+        [coder encodeObject:modelControllers forKey:modelControllerKey];
+    }];
 }
 
 #pragma mark NSKeyValueObserving

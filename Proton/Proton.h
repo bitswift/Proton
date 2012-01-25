@@ -33,6 +33,7 @@
 #import <Proton/PROModel.h>
 #import <Proton/PROModelController.h>
 #import <Proton/PROMultipleTransformation.h>
+#import <Proton/PROMutableModel.h>
 #import <Proton/PROOrderTransformation.h>
 #import <Proton/PRORemovalTransformation.h>
 #import <Proton/PROTransformer.h>
