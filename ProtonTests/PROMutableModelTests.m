@@ -8,6 +8,16 @@
 
 #import <Proton/Proton.h>
 
+#ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+    #import <ApplicationServices/ApplicationServices.h>
+#else
+    #import <UIKit/UIKit.h>
+
+    // really annoying
+    #define valueWithRect valueWithCGRect
+    #define rectValue CGRectValue
+#endif
+
 @interface MutabilityTestSubModel : PROModel
 @property (nonatomic, assign, getter = isEnabled) BOOL enabled;
 
@@ -18,16 +28,20 @@
 @property (nonatomic, copy) NSArray *subModels;
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, assign) long longValue;
+@property (nonatomic, assign) CGRect frame;
 @end
 
 SpecBegin(PROMutableModel)
 
     __block MutabilityTestModel *immutableModel = nil;
 
+    CGRect initialFrame = CGRectMake(0, 0, 20, 20);
+
     before(^{
         NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
             @"foobar", @"name",
             [NSNumber numberWithLong:42], @"longValue",
+            [NSValue valueWithRect:initialFrame], @"frame",
             nil
         ];
 
@@ -110,6 +124,10 @@ SpecBegin(PROMutableModel)
             it(@"should return a primitive", ^{
                 expect([model longValue]).toEqual(42);
             });
+
+            it(@"should return a structure", ^{
+                expect([model frame]).toEqual(initialFrame);
+            });
         });
 
         describe(@"setters", ^{
@@ -152,6 +170,13 @@ SpecBegin(PROMutableModel)
                 [model setLongValue:-20];
                 expect([model longValue]).toEqual(-20);
             });
+
+            it(@"should set a structure", ^{
+                expect(model).toRespondTo(@selector(setFrame:));
+
+                [model setFrame:CGRectInfinite];
+                expect([model frame]).toEqual(CGRectInfinite);
+            });
         });
 
         describe(@"key-value coding", ^{
@@ -164,7 +189,11 @@ SpecBegin(PROMutableModel)
             });
 
             it(@"should return a primitive", ^{
-                expect([model valueForKey:@"longValue"]).toEqual([model longValue]);
+                expect([[model valueForKey:@"longValue"] longValue]).toEqual([model longValue]);
+            });
+
+            it(@"should return a structure", ^{
+                expect([[model valueForKey:@"frame"] rectValue]).toEqual([model frame]);
             });
 
             it(@"should set an array", ^{
@@ -193,6 +222,13 @@ SpecBegin(PROMutableModel)
             it(@"should set a primitive", ^{
                 [model setValue:[NSNumber numberWithLong:8] forKey:@"longValue"];
                 expect([model longValue]).toEqual(8);
+            });
+
+            it(@"should set a structure", ^{
+                CGRect newRect = CGRectMake(0, 20, 50, 80);
+
+                [model setValue:[NSValue valueWithRect:newRect] forKey:@"frame"];
+                expect([model frame]).toEqual(newRect);
             });
         });
 
@@ -274,6 +310,23 @@ SpecBegin(PROMutableModel)
                 ];
 
                 [model setLongValue:newValue];
+            });
+
+            it(@"should generate KVO notification for setting a structure", ^{
+                CGRect newRect = CGRectMake(0, 20, 50, 80);
+
+                observer = [[PROKeyValueObserver alloc]
+                    initWithTarget:model
+                    keyPath:@"frame"
+                    options:NSKeyValueObservingOptionNew
+                    block:^(NSDictionary *changes){
+                        observerInvoked = YES;
+
+                        expect([[changes objectForKey:NSKeyValueChangeNewKey] rectValue]).toEqual(newRect);
+                    }
+                ];
+
+                [model setFrame:newRect];
             });
         });
     });
@@ -370,4 +423,5 @@ SpecEnd
 @synthesize subModels = m_subModels;
 @synthesize name = m_name;
 @synthesize longValue = m_longValue;
+@synthesize frame = m_frame;
 @end

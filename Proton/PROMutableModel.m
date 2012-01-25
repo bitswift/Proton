@@ -460,7 +460,18 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 || strcmp(type, @encode(NSRect)) == 0
             #endif
             ) {
-                NSVALUE_METHOD_BLOCK(CGRect);
+                methodBlock = [^(PROMutableModel *self, CGRect value){
+                    NSValue *valueObj;
+
+                    #ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+                        valueObj = [NSValue valueWithRect:value];
+                    #else
+                        valueObj = [NSValue valueWithCGRect:value];
+                    #endif
+
+                    [self setValue:valueObj forKey:propertyKey];
+                } copy];
+
                 break;
             }
             
@@ -469,7 +480,18 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 || strcmp(type, @encode(NSSize)) == 0
             #endif
             ) {
-                NSVALUE_METHOD_BLOCK(CGSize);
+                methodBlock = [^(PROMutableModel *self, CGSize value){
+                    NSValue *valueObj;
+
+                    #ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+                        valueObj = [NSValue valueWithSize:value];
+                    #else
+                        valueObj = [NSValue valueWithCGSize:value];
+                    #endif
+
+                    [self setValue:valueObj forKey:propertyKey];
+                } copy];
+
                 break;
             }
             
@@ -478,7 +500,18 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 || strcmp(type, @encode(NSPoint)) == 0
             #endif
             ) {
-                NSVALUE_METHOD_BLOCK(CGPoint);
+                methodBlock = [^(PROMutableModel *self, CGPoint value){
+                    NSValue *valueObj;
+
+                    #ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+                        valueObj = [NSValue valueWithPoint:value];
+                    #else
+                        valueObj = [NSValue valueWithCGPoint:value];
+                    #endif
+
+                    [self setValue:valueObj forKey:propertyKey];
+                } copy];
+
                 break;
             }
             
