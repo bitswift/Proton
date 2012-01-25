@@ -330,7 +330,6 @@ SpecBegin(PROMutableModel)
 
             expect(error.domain).toEqual([PROTransformation errorDomain]);
             expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
-            expect([error.userInfo objectForKey:PROTransformationFailingTransformationPathErrorKey]).toEqual(@"name");
         });
 
         it(@"should not change when the model controller changes", ^{
