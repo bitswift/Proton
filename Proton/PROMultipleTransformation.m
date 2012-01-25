@@ -98,7 +98,10 @@
     if (!currentValue)
         return NO;
 
-    NSAssert([[self transform:currentValue error:NULL] isEqual:result], @"Value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
+    NSAssert([currentValue isEqual:result], @"Current value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
+
+    // rewind the current model value to what it was before the change
+    currentValue = [self.reverseTransformation transform:currentValue error:NULL];
 
     for (PROTransformation *transformation in self.transformations) {
         currentValue = [transformation transform:currentValue error:NULL];
