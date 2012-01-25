@@ -57,16 +57,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 + (Class)mutableModelClassForModelClass:(Class)modelClass;
 
 /**
- * Creates the methods necessary for the `mutableModelClass` to be a mutable
- * proxy for the given property of the `modelClass`.
+ * Creates, on `mutableModelClass`, the methods necessary for instances to be
+ * mutable proxies for the given property.
  * 
  * @param property The property for which to synthesize setter and mutator
  * methods.
  * @param mutableModelClass The <PROMutableModel> subclass for which to
  * synthesize methods.
- * @param modelClass The <PROModel> class being proxied.
  */
-+ (void)synthesizeProperty:(objc_property_t)property forMutableModelClass:(Class)mutableModelClass modelClass:(Class)modelClass;
++ (void)synthesizeProperty:(objc_property_t)property forMutableModelClass:(Class)mutableModelClass;
 
 /**
  * Returns a new method implementation that implements a setter for the given
@@ -144,7 +143,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             };
 
             for (unsigned i = 0; i < propertyCount; ++i) {
-                [self synthesizeProperty:properties[i] forMutableModelClass:mutableModelClass modelClass:modelClass];
+                [self synthesizeProperty:properties[i] forMutableModelClass:mutableModelClass];
             }
         }];
 
@@ -156,7 +155,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return mutableModelClass;
 }
 
-+ (void)synthesizeProperty:(objc_property_t)property forMutableModelClass:(Class)mutableModelClass modelClass:(Class)modelClass; {
++ (void)synthesizeProperty:(objc_property_t)property forMutableModelClass:(Class)mutableModelClass {
     ext_propertyAttributes *attributes = ext_copyPropertyAttributes(property);
     @onExit {
         free(attributes);
