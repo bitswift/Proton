@@ -235,7 +235,7 @@ SpecBegin(PROMutableModel)
                     block:^(NSDictionary *changes){
                         observerInvoked = YES;
 
-                        expect([changes objectForKey:NSKeyValueChangeNewKey]).toEqual([MutabilityTestSubModel enabledSubModel]);
+                        expect([changes objectForKey:NSKeyValueChangeNewKey]).toEqual([NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]]);
                     }
                 ];
 
