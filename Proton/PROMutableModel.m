@@ -10,6 +10,8 @@
 #import "EXTRuntimeExtensions.h"
 #import "EXTScope.h"
 #import "PROAssert.h"
+#import "PROIndexedTransformation.h"
+#import "PROInsertionTransformation.h"
 #import "PROKeyedTransformation.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROLogging.h"
@@ -17,6 +19,7 @@
 #import "PROModelController.h"
 #import "PROMultipleTransformation.h"
 #import "PROMutableModelPrivate.h"
+#import "PRORemovalTransformation.h"
 #import "PROUniqueTransformation.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
@@ -66,6 +69,17 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * synthesize methods.
  */
 + (void)synthesizeProperty:(objc_property_t)property forMutableModelClass:(Class)mutableModelClass;
+
+/**
+ * Creates, on `mutableModelClass`, the key-value coding methods necessary to
+ * support a mutable, indexed to-many relationship for the given key.
+ *
+ * @param property The property for which to synthesize indexed accessor
+ * methods.
+ * @param mutableModelClass The <PROMutableModel> subclass for which to
+ * synthesize methods.
+ */
++ (void)synthesizeMutableIndexedAccessorsForKey:(NSString *)key forMutableModelClass:(Class)mutableModelClass;
 
 /**
  * Returns a new method implementation that implements a setter for the given
@@ -171,10 +185,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     IMP setterIMP = [self synthesizedSetterForPropertyKey:propertyKey attributes:attributes];
     if (setterIMP) {
         NSString *setterType = [[NSString alloc] initWithFormat:
-            // void (id self, SEL _cmd, TYPE value)
+            // void (PROMutableModel *self, SEL _cmd, TYPE value)
             @"%s%s%s%s",
             @encode(void),
-            @encode(id),
+            @encode(PROMutableModel *),
             @encode(SEL),
             attributes->type
         ];
@@ -184,6 +198,138 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         BOOL success = class_addMethod(mutableModelClass, attributes->setter, setterIMP, [setterType UTF8String]);
         PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(attributes->setter), mutableModelClass);
     }
+
+    Class propertyClass = attributes->objectClass;
+
+    if ([propertyClass isSubclassOfClass:[NSArray class]] || [propertyClass isSubclassOfClass:[NSOrderedSet class]]) {
+        // synthesize indexed accessors
+        [self synthesizeMutableIndexedAccessorsForKey:propertyKey forMutableModelClass:mutableModelClass];
+    } else if ([propertyClass isSubclassOfClass:[NSDictionary class]]) {
+        // TODO: synthesize unordered accessors
+    }
+}
+
++ (void)synthesizeMutableIndexedAccessorsForKey:(NSString *)key forMutableModelClass:(Class)mutableModelClass; {
+    NSMutableString *capitalizedKey = [[NSMutableString alloc] init];
+    [capitalizedKey appendString:[[key substringToIndex:1] uppercaseString]];
+    [capitalizedKey appendString:[key substringFromIndex:1]];
+
+    SEL countOfSelector = NSSelectorFromString([NSString stringWithFormat:@"countOf%@", capitalizedKey]);
+    SEL objectsAtIndexesSelector = NSSelectorFromString([NSString stringWithFormat:@"%@AtIndexes:", key]);
+
+    SEL insertSelector = NSSelectorFromString([NSString stringWithFormat:@"insert%@:atIndexes:", capitalizedKey]);
+    SEL removeSelector = NSSelectorFromString([NSString stringWithFormat:@"remove%@AtIndexes:", capitalizedKey]);
+    SEL replaceSelector = NSSelectorFromString([NSString stringWithFormat:@"replace%@AtIndexes:with%@:", capitalizedKey, capitalizedKey]);
+
+    void (^installBlockMethod)(SEL, id, NSString *) = ^(SEL selector, id block, NSString *typeEncoding){
+        // purposely leaks (since methods, by their nature, are never really "released")
+        IMP methodIMP = imp_implementationWithBlock((__bridge_retained void *)block);
+
+        BOOL success = class_addMethod(mutableModelClass, selector, methodIMP, [typeEncoding UTF8String]);
+        PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(selector), mutableModelClass);
+    };
+
+    // count of objects
+    id countOfMethodBlock = ^(PROMutableModel *self){
+        return [[self->m_latestModel valueForKey:key] count];
+    };
+
+    installBlockMethod(countOfSelector, countOfMethodBlock, [NSString stringWithFormat:
+        // NSUInteger (PROMutableModel *self, SEL _cmd)
+        @"%s%s%s",
+        @encode(NSUInteger),
+        @encode(PROMutableModel *),
+        @encode(SEL)
+    ]);
+
+    // objects at indexes
+    id objectsAtIndexesBlock = ^(PROMutableModel *self, NSIndexSet *indexes){
+        return [[self->m_latestModel valueForKey:key] objectsAtIndexes:indexes];
+    };
+
+    installBlockMethod(objectsAtIndexesSelector, objectsAtIndexesBlock, [NSString stringWithFormat:
+        // NSArray * (PROMutableModel *self, SEL _cmd, NSIndexSet *indexes)
+        @"%s%s%s%s",
+        @encode(NSArray *),
+        @encode(PROMutableModel *),
+        @encode(SEL),
+        @encode(NSIndexSet *)
+    ]);
+
+    // insertion
+    id insertMethodBlock = ^(PROMutableModel *self, NSArray *objects, NSIndexSet *indexes){
+        PROTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexes objects:objects];
+
+        [self willChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+        @onExit {
+            [self didChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+        };
+
+        [self performTransformation:transformation forKey:key];
+    };
+
+    installBlockMethod(insertSelector, insertMethodBlock, [NSString stringWithFormat:
+        // void (PROMutableModel *self, SEL _cmd, NSArray *objects, NSIndexSet *indexes)
+        @"%s%s%s%s%s",
+        @encode(void),
+        @encode(PROMutableModel *),
+        @encode(SEL),
+        @encode(NSArray *),
+        @encode(NSIndexSet *)
+    ]);
+
+    // removal
+    id removeMethodBlock = ^(PROMutableModel *self, NSIndexSet *indexes){
+        NSArray *expectedObjects = [self->m_latestModel valueForKey:key];
+
+        [self willChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+        @onExit {
+            [self didChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+        };
+
+        PROTransformation *transformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexes expectedObjects:expectedObjects];
+        [self performTransformation:transformation forKey:key];
+    };
+
+    installBlockMethod(removeSelector, removeMethodBlock, [NSString stringWithFormat:
+        // void (PROMutableModel *self, SEL _cmd, NSIndexSet *indexes)
+        @"%s%s%s%s",
+        @encode(void),
+        @encode(PROMutableModel *),
+        @encode(SEL),
+        @encode(NSIndexSet *)
+    ]);
+
+    // replacement
+    id replaceMethodBlock = ^(PROMutableModel *self, NSIndexSet *indexes, NSArray *newObjects){
+        NSArray *originalObjects = [[self->m_latestModel valueForKey:key] objectsAtIndexes:indexes];
+        NSMutableArray *uniqueTransformations = [[NSMutableArray alloc] initWithCapacity:[indexes count]];
+
+        [newObjects enumerateObjectsUsingBlock:^(id newObject, NSUInteger arrayIndex, BOOL *stop){
+            id originalObject = [originalObjects objectAtIndex:arrayIndex];
+            PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:newObject];
+
+            [uniqueTransformations addObject:uniqueTransformation];
+        }];
+
+        [self willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+        @onExit {
+            [self didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+        };
+
+        PROTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:indexes transformations:uniqueTransformations];
+        [self performTransformation:transformation forKey:key];
+    };
+
+    installBlockMethod(replaceSelector, replaceMethodBlock, [NSString stringWithFormat:
+        // void (PROMutableModel *self, SEL _cmd, NSIndexSet *indexes, NSArray *objects)
+        @"%s%s%s%s%s",
+        @encode(void),
+        @encode(PROMutableModel *),
+        @encode(SEL),
+        @encode(NSIndexSet *),
+        @encode(NSArray *)
+    ]);
 }
 
 + (IMP)synthesizedSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes {
@@ -425,11 +571,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         return;
     }
 
-    [self willChangeValueForKey:key];
-    @onExit {
-        [self didChangeValueForKey:key];
-    };
-
     [m_transformations addObject:keyedTransformation];
     m_latestModel = [newModel copy];
 }
@@ -526,11 +667,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     id currentValue = [m_latestModel valueForKey:key];
     PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentValue outputValue:value];
 
-    [self performTransformation:transformation forKey:key];
-}
+    [self willChangeValueForKey:key];
+    @onExit {
+        [self didChangeValueForKey:key];
+    };
 
-- (NSMutableArray *)mutableArrayValueForKey:(NSString *)key {
-    return nil;
+    [self performTransformation:transformation forKey:key];
 }
 
 - (NSMutableOrderedSet *)mutableOrderedSetValueForKey:(NSString *)key {
