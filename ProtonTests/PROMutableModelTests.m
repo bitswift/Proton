@@ -26,6 +26,7 @@
 
 @interface MutabilityTestModel : PROModel
 @property (nonatomic, copy) NSArray *subModels;
+@property (nonatomic, copy) NSSet *strings;
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, assign) long longValue;
 @property (nonatomic, assign) CGRect frame;
@@ -42,6 +43,7 @@ SpecBegin(PROMutableModel)
             @"foobar", @"name",
             [NSNumber numberWithLong:42], @"longValue",
             [NSValue valueWithRect:initialFrame], @"frame",
+            [NSArray arrayWithObject:[[MutabilityTestSubModel alloc] init]], @"subModels",
             nil
         ];
 
@@ -114,19 +116,19 @@ SpecBegin(PROMutableModel)
 
         describe(@"getters", ^{
             it(@"should return an array", ^{
-                expect([model subModels]).toEqual([NSArray array]);
+                expect([model subModels]).toEqual([immutableModel subModels]);
             });
 
             it(@"should return a string", ^{
-                expect([model name]).toEqual(@"foobar");
+                expect([model name]).toEqual([immutableModel name]);
             });
 
             it(@"should return a primitive", ^{
-                expect([model longValue]).toEqual(42);
+                expect([model longValue]).toEqual([immutableModel longValue]);
             });
 
             it(@"should return a structure", ^{
-                expect([model frame]).toEqual(initialFrame);
+                expect([model frame]).toEqual([immutableModel frame]);
             });
         });
 
@@ -203,13 +205,35 @@ SpecBegin(PROMutableModel)
                 expect([model subModels]).toEqual(subModels);
             });
 
-            it(@"should mutate an array", ^{
+            it(@"should insert into an array", ^{
                 NSMutableArray *subModels = [[model subModels] mutableCopy];
                 NSMutableArray *subModelsProxy = [model mutableArrayValueForKey:@"subModels"];
                 expect(subModelsProxy).toEqual(subModels);
 
                 [subModels insertObject:[MutabilityTestSubModel enabledSubModel] atIndex:0];
                 [subModelsProxy insertObject:[MutabilityTestSubModel enabledSubModel] atIndex:0];
+
+                expect([model subModels]).toEqual(subModels);
+            });
+
+            it(@"should remove from an array", ^{
+                NSMutableArray *subModelsProxy = [model mutableArrayValueForKey:@"subModels"];
+                NSMutableArray *subModels = [[model subModels] mutableCopy];
+                expect(subModelsProxy).toEqual(subModels);
+
+                [subModels removeObjectAtIndex:0];
+                [subModelsProxy removeObjectAtIndex:0];
+
+                expect([model subModels]).toEqual(subModels);
+            });
+
+            it(@"should replace in an array", ^{
+                NSMutableArray *subModelsProxy = [model mutableArrayValueForKey:@"subModels"];
+                NSMutableArray *subModels = [[model subModels] mutableCopy];
+                expect(subModelsProxy).toEqual(subModels);
+
+                [subModels replaceObjectAtIndex:0 withObject:[MutabilityTestSubModel enabledSubModel]];
+                [subModelsProxy replaceObjectAtIndex:0 withObject:[MutabilityTestSubModel enabledSubModel]];
 
                 expect([model subModels]).toEqual(subModels);
             });
@@ -246,36 +270,55 @@ SpecBegin(PROMutableModel)
                 observer = nil;
             });
 
-            it(@"should generate KVO notification for setting an array", ^{
-                NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            describe(@"array mutation", ^{
+                __block NSKeyValueChange change;
+                __block NSIndexSet *indexes;
 
-                observer = [[PROKeyValueObserver alloc]
-                    initWithTarget:model
-                    keyPath:@"subModels"
-                    options:NSKeyValueObservingOptionNew
-                    block:^(NSDictionary *changes){
-                        observerInvoked = YES;
+                before(^{
+                    indexes = nil;
 
-                        expect([changes objectForKey:NSKeyValueChangeNewKey]).toEqual(subModels);
-                    }
-                ];
+                    observer = [[PROKeyValueObserver alloc]
+                        initWithTarget:model
+                        keyPath:@"subModels"
+                        options:NSKeyValueObservingOptionNew
+                        block:^(NSDictionary *changes){
+                            observerInvoked = YES;
 
-                [model setSubModels:subModels];
-            });
+                            expect([[changes objectForKey:NSKeyValueChangeKindKey] integerValue]).toEqual(change);
 
-            it(@"should generate KVO notification for mutating an array", ^{
-                observer = [[PROKeyValueObserver alloc]
-                    initWithTarget:model
-                    keyPath:@"subModels"
-                    options:NSKeyValueObservingOptionNew
-                    block:^(NSDictionary *changes){
-                        observerInvoked = YES;
+                            if (indexes)
+                                expect([changes objectForKey:NSKeyValueChangeIndexesKey]).toEqual(indexes);
+                        }
+                    ];
+                });
 
-                        expect([changes objectForKey:NSKeyValueChangeNewKey]).toEqual([NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]]);
-                    }
-                ];
+                it(@"should generate notification for setting", ^{
+                    change = NSKeyValueChangeSetting;
 
-                [[model mutableArrayValueForKey:@"subModels"] addObject:[MutabilityTestSubModel enabledSubModel]];
+                    NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+                    [model setSubModels:subModels];
+                });
+
+                it(@"should generate notification for inserting", ^{
+                    indexes = [NSIndexSet indexSetWithIndex:[[model subModels] count]];
+                    change = NSKeyValueChangeInsertion;
+
+                    [[model mutableArrayValueForKey:@"subModels"] addObject:[MutabilityTestSubModel enabledSubModel]];
+                });
+
+                it(@"should generate notification for removing", ^{
+                    indexes = [NSIndexSet indexSetWithIndex:0];
+                    change = NSKeyValueChangeRemoval;
+
+                    [[model mutableArrayValueForKey:@"subModels"] removeObjectAtIndex:0];
+                });
+
+                it(@"should generate notification for replacement", ^{
+                    indexes = [NSIndexSet indexSetWithIndex:0];
+                    change = NSKeyValueChangeReplacement;
+
+                    [[model mutableArrayValueForKey:@"subModels"] replaceObjectAtIndex:0 withObject:[MutabilityTestSubModel enabledSubModel]];
+                });
             });
 
             it(@"should generate KVO notification for setting a string", ^{
@@ -424,4 +467,5 @@ SpecEnd
 @synthesize name = m_name;
 @synthesize longValue = m_longValue;
 @synthesize frame = m_frame;
+@synthesize strings = m_strings;
 @end
