@@ -20,6 +20,13 @@
 #import "SDQueue.h"
 #import <objc/runtime.h>
 
+// import geometry stuctures
+#ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+    #import <AppKit/AppKit.h>
+#else
+    #import <UIKit/UIKit.h>
+#endif
+
 static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 /**
