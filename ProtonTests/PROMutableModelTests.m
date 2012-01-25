@@ -17,7 +17,7 @@
 @interface MutabilityTestModel : PROModel
 @property (nonatomic, copy) NSArray *subModels;
 @property (nonatomic, copy) NSString *name;
-@property (nonatomic, assign) double doubleValue;
+@property (nonatomic, assign) long longValue;
 @end
 
 SpecBegin(PROMutableModel)
@@ -27,7 +27,7 @@ SpecBegin(PROMutableModel)
     before(^{
         NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
             @"foobar", @"name",
-            [NSNumber numberWithDouble:3.14], @"doubleValue",
+            [NSNumber numberWithLong:42], @"longValue",
             nil
         ];
 
@@ -107,8 +107,8 @@ SpecBegin(PROMutableModel)
                 expect([model name]).toEqual(@"foobar");
             });
 
-            it(@"should return a double", ^{
-                expect([model doubleValue]).toEqual(3.14);
+            it(@"should return a primitive", ^{
+                expect([model longValue]).toEqual(42);
             });
         });
 
@@ -146,11 +146,11 @@ SpecBegin(PROMutableModel)
                 expect([model name]).toEqual(@"fizz");
             });
 
-            it(@"should set a double", ^{
-                expect(model).toRespondTo(@selector(setDoubleValue:));
+            it(@"should set a primitive", ^{
+                expect(model).toRespondTo(@selector(setLongValue:));
 
-                [model setDoubleValue:42.0];
-                expect([model doubleValue]).toEqual(42.0);
+                [model setLongValue:-20];
+                expect([model longValue]).toEqual(-20);
             });
         });
 
@@ -163,8 +163,8 @@ SpecBegin(PROMutableModel)
                 expect([model valueForKey:@"name"]).toEqual([model name]);
             });
 
-            it(@"should return a double", ^{
-                expect([model valueForKey:@"doubleValue"]).toEqual([model doubleValue]);
+            it(@"should return a primitive", ^{
+                expect([model valueForKey:@"longValue"]).toEqual([model longValue]);
             });
 
             it(@"should set an array", ^{
@@ -190,9 +190,9 @@ SpecBegin(PROMutableModel)
                 expect([model name]).toEqual(@"bazbuzz");
             });
 
-            it(@"should set a double", ^{
-                [model setValue:[NSNumber numberWithDouble:5.5] forKey:@"doubleValue"];
-                expect([model doubleValue]).toEqual(5.5);
+            it(@"should set a primitive", ^{
+                [model setValue:[NSNumber numberWithLong:8] forKey:@"longValue"];
+                expect([model longValue]).toEqual(8);
             });
         });
 
@@ -260,20 +260,20 @@ SpecBegin(PROMutableModel)
             });
 
             it(@"should generate KVO notification for setting a primitive", ^{
-                double newValue = -4.5;
+                long newValue = -55;
 
                 observer = [[PROKeyValueObserver alloc]
                     initWithTarget:model
-                    keyPath:@"name"
+                    keyPath:@"longValue"
                     options:NSKeyValueObservingOptionNew
                     block:^(NSDictionary *changes){
                         observerInvoked = YES;
 
-                        expect([[changes objectForKey:NSKeyValueChangeNewKey] doubleValue]).toEqual(newValue);
+                        expect([[changes objectForKey:NSKeyValueChangeNewKey] longValue]).toEqual(newValue);
                     }
                 ];
 
-                [model setDoubleValue:newValue];
+                [model setLongValue:newValue];
             });
         });
     });
@@ -370,5 +370,5 @@ SpecEnd
 @implementation MutabilityTestModel
 @synthesize subModels = m_subModels;
 @synthesize name = m_name;
-@synthesize doubleValue = m_doubleValue;
+@synthesize longValue = m_longValue;
 @end
