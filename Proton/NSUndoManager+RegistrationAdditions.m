@@ -31,7 +31,11 @@
     }
 }
 
-- (BOOL)addGroupingWithActionName:(NSString *)actionName performingBlock:(BOOL (^)(void))block undoBlock:(void (^)(void))undoBlock; {
+- (void)performBlock:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock; {
+    [self performWithTarget:self block:block registeringUndoWithBlock:undoBlock];
+}
+
+- (void)performWithTarget:(id)target block:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock; {
     BOOL (^copiedRedoBlock)(void) = [block copy];
     void (^copiedUndoBlock)(void) = [undoBlock copy];
 
@@ -39,21 +43,16 @@
     __block __unsafe_unretained id weakRecursiveUndoBlock;
 
     __weak NSUndoManager *weakSelf = self;
+    __unsafe_unretained id weakTarget = target;
 
     id recursiveUndoBlock = [^{
-        [weakSelf beginUndoGrouping];
-        [weakSelf setActionName:actionName];
-        [weakSelf registerUndoWithBlock:weakRecursiveRedoBlock];
-        [weakSelf endUndoGrouping];
+        [weakSelf registerUndoWithTarget:weakTarget block:weakRecursiveRedoBlock];
 
         copiedUndoBlock();
     } copy];
 
-    id recursiveRedoBlock = [^{
-        [weakSelf beginUndoGrouping];
-        [weakSelf setActionName:actionName];
-        [weakSelf registerUndoWithBlock:weakRecursiveUndoBlock];
-        [weakSelf endUndoGrouping];
+    void (^recursiveRedoBlock)(void) = [^{
+        [weakSelf registerUndoWithTarget:weakTarget block:weakRecursiveUndoBlock];
 
         copiedRedoBlock();
     } copy];
@@ -61,14 +60,13 @@
     weakRecursiveRedoBlock = recursiveRedoBlock;
     weakRecursiveUndoBlock = recursiveUndoBlock;
 
-    // these should only be deallocated when the undo manager is
+    // TODO: these should be associated with the lifecycle of 'target', and
+    // freed when actions are removed from 'target'
     objc_setAssociatedObject(self, (__bridge void *)recursiveRedoBlock, recursiveRedoBlock, OBJC_ASSOCIATION_COPY_NONATOMIC);
     objc_setAssociatedObject(self, (__bridge void *)recursiveUndoBlock, recursiveUndoBlock, OBJC_ASSOCIATION_COPY_NONATOMIC);
 
-    return [self addGroupingWithActionName:actionName usingBlock:^{
-        [weakSelf registerUndoWithBlock:weakRecursiveUndoBlock];
-        return copiedRedoBlock();
-    }];
+    // start it off with a redo
+    recursiveRedoBlock();
 }
 
 - (void)registerUndoWithBlock:(void (^)(void))block; {
