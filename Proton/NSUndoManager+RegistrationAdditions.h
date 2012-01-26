@@ -36,6 +36,11 @@
  *
  * @param block A block to execute. This will also be the redo action.
  * @param undoBlock The block representing the actions required to undo `block`.
+ *
+ * @warning **Important:** Because of how undo managers work, you cannot embed
+ * `NSInvocation`-based undo registration within `block` or `undoBlock`.
+ * Instead, to register blocks alongside or with invocations, register them
+ * separately, but put them into the same undo group.
  */
 - (void)performBlock:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock;
 
@@ -47,6 +52,11 @@
  * to support a later call to `removeAllActionsWithTarget:`.
  * @param block A block to execute. This will also be the redo action.
  * @param undoBlock The block representing the actions required to undo `block`.
+ *
+ * @warning **Important:** Because of how undo managers work, you cannot embed
+ * `NSInvocation`-based undo registration within `block` or `undoBlock`.
+ * Instead, to register blocks alongside or with invocations, register them
+ * separately, but put them into the same undo group.
  */
 - (void)performWithTarget:(id)target block:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock;
 
@@ -60,6 +70,11 @@
  *
  * @param block The block representing the actions required to undo the last
  * operation.
+ *
+ * @warning **Important:** Because of how undo managers work, you cannot embed
+ * `NSInvocation`-based undo registration within `block`. * Instead, to register
+ * blocks alongside or with invocations, register them separately, but put them
+ * into the same undo group.
  */
 - (void)registerUndoWithBlock:(void (^)(void))block;
 
@@ -71,6 +86,11 @@
  * to support a later call to `removeAllActionsWithTarget:`.
  * @param block The block representing the actions required to undo the last
  * operation.
+ *
+ * @warning **Important:** Because of how undo managers work, you cannot embed
+ * `NSInvocation`-based undo registration within `block`. Instead, to register
+ * blocks alongside or with invocations, register them separately, but put them
+ * into the same undo group.
  */
 - (void)registerUndoWithTarget:(id)target block:(void (^)(void))block;
 
