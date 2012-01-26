@@ -138,6 +138,136 @@ SpecBegin(NSUndoManagerAdditions)
         });
     });
 
+    describe(@"block memory management", ^{
+        __block id block;
+        __block id objectRetainedInBlock;
+
+        before(^{
+            @autoreleasepool {
+                objectRetainedInBlock = [NSMutableString stringWithFormat:@"this is a format %i string", 42];
+
+                block = [^{
+                    // reference this in the block to retain it
+                    [objectRetainedInBlock appendString:@"foo"];
+                } copy];
+            }
+
+            expect(objectRetainedInBlock).not.toBeNil();
+        });
+
+        it(@"should release undo blocks without a target", ^{
+            __weak id weakObject = objectRetainedInBlock;
+
+            @autoreleasepool {
+                [undoManager addGroupingWithActionName:nil usingBlock:^{
+                    [weakManager registerUndoWithBlock:block];
+                    return YES;
+                }];
+
+                [undoManager removeAllActions];
+
+                block = nil;
+                objectRetainedInBlock = nil;
+            }
+
+            expect(weakObject).toBeNil();
+        });
+
+        describe(@"undo blocks with a target", ^{
+            it(@"should be released when removing all actions", ^{
+                __weak id weakObject = objectRetainedInBlock;
+
+                @autoreleasepool {
+                    [undoManager addGroupingWithActionName:nil usingBlock:^{
+                        [weakManager registerUndoWithTarget:weakObject block:block];
+                        return YES;
+                    }];
+
+                    [undoManager removeAllActions];
+
+                    block = nil;
+                    objectRetainedInBlock = nil;
+                }
+
+                expect(weakObject).toBeNil();
+            });
+
+            it(@"should be released when removing actions for target", ^{
+                __weak id weakObject = objectRetainedInBlock;
+
+                @autoreleasepool {
+                    [undoManager addGroupingWithActionName:nil usingBlock:^{
+                        [weakManager registerUndoWithTarget:weakObject block:block];
+                        return YES;
+                    }];
+
+                    [undoManager removeAllActionsWithTarget:weakObject];
+
+                    block = nil;
+                    objectRetainedInBlock = nil;
+                }
+
+                expect(weakObject).toBeNil();
+            });
+        });
+
+        it(@"should release undo and redo blocks without a target", ^{
+            __weak id weakObject = objectRetainedInBlock;
+
+            @autoreleasepool {
+                [undoManager addGroupingWithActionName:nil usingBlock:^{
+                    [weakManager performBlock:block registeringUndoWithBlock:block];
+                    return YES;
+                }];
+
+                [undoManager removeAllActions];
+
+                block = nil;
+                objectRetainedInBlock = nil;
+            }
+
+            expect(weakObject).toBeNil();
+        });
+
+        describe(@"undo and redo blocks with a target", ^{
+            it(@"should be released when removing all actions", ^{
+                __weak id weakObject = objectRetainedInBlock;
+
+                @autoreleasepool {
+                    [undoManager addGroupingWithActionName:nil usingBlock:^{
+                        [weakManager performWithTarget:weakObject block:block registeringUndoWithBlock:block];
+                        return YES;
+                    }];
+
+                    [undoManager removeAllActions];
+
+                    block = nil;
+                    objectRetainedInBlock = nil;
+                }
+
+                expect(weakObject).toBeNil();
+            });
+
+            it(@"should be released when removing actions for target", ^{
+                __weak id weakObject = objectRetainedInBlock;
+
+                @autoreleasepool {
+                    [undoManager addGroupingWithActionName:nil usingBlock:^{
+                        [weakManager performWithTarget:weakObject block:block registeringUndoWithBlock:block];
+                        return YES;
+                    }];
+
+                    [undoManager removeAllActionsWithTarget:weakObject];
+
+                    block = nil;
+                    objectRetainedInBlock = nil;
+                }
+
+                expect(weakObject).toBeNil();
+            });
+        });
+    });
+
     describe(@"registering undo and redo with block", ^{
         __block NSInteger changeCount;
         __block void (^decrementBlock)(void);
