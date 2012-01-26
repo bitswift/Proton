@@ -27,6 +27,26 @@
 - (BOOL)addGroupingWithActionName:(NSString *)actionName usingBlock:(BOOL (^)(void))block;
 
 /**
+ * Creates an undo grouping with the given action name, executing the given
+ * block inside it, and registering `undoBlock` for undoing it. If the block
+ * returns `NO`, the undo group is popped and discarded. Returns the return
+ * value of `block`.
+ *
+ * This method is useful to conditionally add an undo group, which uses blocks
+ * to provide its undo and redo actions.
+ *
+ * @param actionName The localized action name for this undo group. If `nil`,
+ * the current action name is used.
+ * @param block A block to execute while inside the undo grouping. This will
+ * also be the redo action.
+ * @param undoBlock The block representing the actions required to undo `block`.
+ *
+ * @warning **Important:** Blocks added through this method cannot be removed
+ * with `removeAllActionsWithTarget:`.
+ */
+- (BOOL)addGroupingWithActionName:(NSString *)actionName performingBlock:(BOOL (^)(void))block undoBlock:(void (^)(void))undoBlock;
+
+/**
  * Registers a single undo operation, such that performing an undo will invoke
  * `block`.
  *
@@ -35,6 +55,9 @@
  *
  * @param block The block representing the actions required to undo the last
  * operation.
+ *
+ * @warning **Important:** Blocks added through this method cannot be removed
+ * with `removeAllActionsWithTarget:`.
  */
 - (void)registerUndoWithBlock:(void (^)(void))block;
 

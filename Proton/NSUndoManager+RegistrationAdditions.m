@@ -9,6 +9,7 @@
 #import "NSUndoManager+RegistrationAdditions.h"
 #import "NSUndoManager+UndoStackAdditions.h"
 #import "EXTSafeCategory.h"
+#import <objc/runtime.h>
 
 @interface NSObject (NSUndoManagerPerformBlockAdditions)
 - (void)performUndoBlock:(void (^)(void))block;
@@ -28,6 +29,46 @@
         [self undoNestedGroupingWithoutRegisteringRedo];
         return NO;
     }
+}
+
+- (BOOL)addGroupingWithActionName:(NSString *)actionName performingBlock:(BOOL (^)(void))block undoBlock:(void (^)(void))undoBlock; {
+    BOOL (^copiedRedoBlock)(void) = [block copy];
+    void (^copiedUndoBlock)(void) = [undoBlock copy];
+
+    __block __unsafe_unretained id weakRecursiveRedoBlock;
+    __block __unsafe_unretained id weakRecursiveUndoBlock;
+
+    __weak NSUndoManager *weakSelf = self;
+
+    id recursiveUndoBlock = [^{
+        [weakSelf beginUndoGrouping];
+        [weakSelf setActionName:actionName];
+        [weakSelf registerUndoWithBlock:weakRecursiveRedoBlock];
+        [weakSelf endUndoGrouping];
+
+        copiedUndoBlock();
+    } copy];
+
+    id recursiveRedoBlock = [^{
+        [weakSelf beginUndoGrouping];
+        [weakSelf setActionName:actionName];
+        [weakSelf registerUndoWithBlock:weakRecursiveUndoBlock];
+        [weakSelf endUndoGrouping];
+
+        copiedRedoBlock();
+    } copy];
+
+    weakRecursiveRedoBlock = recursiveRedoBlock;
+    weakRecursiveUndoBlock = recursiveUndoBlock;
+
+    // these should only be deallocated when the undo manager is
+    objc_setAssociatedObject(self, (__bridge void *)recursiveRedoBlock, recursiveRedoBlock, OBJC_ASSOCIATION_COPY_NONATOMIC);
+    objc_setAssociatedObject(self, (__bridge void *)recursiveUndoBlock, recursiveUndoBlock, OBJC_ASSOCIATION_COPY_NONATOMIC);
+
+    return [self addGroupingWithActionName:actionName usingBlock:^{
+        [weakSelf registerUndoWithBlock:weakRecursiveUndoBlock];
+        return copiedRedoBlock();
+    }];
 }
 
 - (void)registerUndoWithBlock:(void (^)(void))block; {

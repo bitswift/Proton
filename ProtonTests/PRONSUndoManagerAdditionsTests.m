@@ -130,6 +130,66 @@ SpecBegin(NSUndoManagerAdditions)
             expect(undoManager.canUndo).toBeFalsy();
         });
     });
+
+    describe(@"adding group performing block", ^{
+        __block NSInteger changeCount;
+        __block void (^decrementBlock)(void);
+        __block BOOL (^successfulIncrementBlock)(void);
+        __block BOOL (^failingIncrementBlock)(void);
+
+        before(^{
+            changeCount = 0;
+
+            decrementBlock = [^{
+                --changeCount;
+            } copy];
+
+            successfulIncrementBlock = [^{
+                ++changeCount;
+                return YES;
+            } copy];
+
+            failingIncrementBlock = [^{
+                ++changeCount;
+                return NO;
+            } copy];
+        });
+
+        it(@"should be undoable", ^{
+            BOOL success = [undoManager addGroupingWithActionName:nil performingBlock:successfulIncrementBlock undoBlock:decrementBlock];
+            expect(success).toBeTruthy();
+
+            expect(changeCount).toEqual(1);
+            expect(undoManager.canUndo).toBeTruthy();
+            expect(undoManager.canRedo).toBeFalsy();
+
+            [undoManager undo];
+        });
+
+        it(@"should be redoable", ^{
+            [undoManager addGroupingWithActionName:nil performingBlock:successfulIncrementBlock undoBlock:decrementBlock];
+            [undoManager undo];
+
+            expect(changeCount).toEqual(0);
+            expect(undoManager.canUndo).toBeFalsy();
+            expect(undoManager.canRedo).toBeTruthy();
+
+            [undoManager redo];
+
+            expect(changeCount).toEqual(1);
+            expect(undoManager.canUndo).toBeTruthy();
+            expect(undoManager.canRedo).toBeFalsy();
+        });
+
+        it(@"should not be undoable upon failure", ^{
+            BOOL success = [undoManager addGroupingWithActionName:nil performingBlock:failingIncrementBlock undoBlock:decrementBlock];
+            expect(success).toBeFalsy();
+
+            expect(changeCount).toEqual(0);
+            expect(undoManager.canUndo).toBeFalsy();
+            expect(undoManager.canRedo).toBeFalsy();
+        });
+    });
     
 SpecEnd
 
