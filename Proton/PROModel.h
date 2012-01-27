@@ -108,12 +108,14 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 
 /**
  * Returns a dictionary containing the classes of all of the properties on the
- * receiver, keyed by property name. If the receiver has no properties, then
- * an empty dictionary is returned.
+ * receiver, keyed by property name.
  *
  * This will only include `@property` declarations that are of object type and
  * explicitly specify a class. Properties of type `id` will not be included in
  * the result.
+ *
+ * If the receiver has no properties that match these criteria, then an empty
+ * dictionary will be returned.
  */
 + (NSDictionary *)propertyClassesByKey;
 
@@ -124,8 +126,7 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 /**
  * Returns a dictionary containing the default values for any number of
  * properties on the receiver. Any property not included in the dictionary will
- * not be explicitly set on initialization. If the receiver has no properties,
- * then an empty dictionary is returned.
+ * not be explicitly set on initialization.
  *
  * The default implementation of this method looks for any to-many properties on
  * the receiver (by searching through <propertyClassesByKey> for `NSArray`,
@@ -133,6 +134,9 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  * value for each one. This enables <PROInsertionTransformation>,
  * <PRORemovalTransformation>, etc. to work even if a model object was not
  * created with an explicit value for a to-many property.
+ *
+ * If the receiver has no properties that match these criteria, then an empty
+ * dictionary will be returned.
  *
  * @warning **Important:** Default values do not go through key-value coding
  * validation.
