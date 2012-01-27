@@ -266,10 +266,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
         return nil;
     }];
 
-    if ([defaultValues count])
-        return defaultValues;
-    else
-        return nil;
+    return defaultValues;
 }
 
 #pragma mark PROKeyedObject
