@@ -193,10 +193,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
         [classesByKey setObject:objectClass forKey:key];
     }];
 
-    if ([classesByKey count])
-        return classesByKey;
-    else
-        return nil;
+    return classesByKey;
 }
 
 #pragma mark Transformation
@@ -266,10 +263,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
         return nil;
     }];
 
-    if ([defaultValues count])
-        return defaultValues;
-    else
-        return nil;
+    return defaultValues;
 }
 
 #pragma mark PROKeyedObject
