@@ -33,11 +33,11 @@ SpecBegin(PROModel)
         });
 
         it(@"has no propertyClassesByKey", ^{
-            expect([PROModel propertyClassesByKey]).toBeNil();
+            expect([[PROModel propertyClassesByKey] count]).toEqual(0);
         });
 
         it(@"has no defaultValuesForKeys", ^{
-            expect([PROModel defaultValuesForKeys]).toBeNil();
+            expect([[PROModel defaultValuesForKeys] count]).toEqual(0);
         });
     });
 
@@ -57,7 +57,7 @@ SpecBegin(PROModel)
         });
 
         it(@"has no defaultValuesForKeys", ^{
-            expect([[TestModel defaultValuesForKeys] count ]).toEqual(0);
+            expect([[TestModel defaultValuesForKeys] count]).toEqual(0);
         });
 
         it(@"initializes", ^{
