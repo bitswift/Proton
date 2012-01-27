@@ -108,7 +108,8 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 
 /**
  * Returns a dictionary containing the classes of all of the properties on the
- * receiver, keyed by property name.
+ * receiver, keyed by property name. If the receiver has no properties, then
+ * an empty dictionary is returned.
  *
  * This will only include `@property` declarations that are of object type and
  * explicitly specify a class. Properties of type `id` will not be included in
@@ -123,7 +124,8 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 /**
  * Returns a dictionary containing the default values for any number of
  * properties on the receiver. Any property not included in the dictionary will
- * not be explicitly set on initialization.
+ * not be explicitly set on initialization. If the receiver has no properties,
+ * then an empty dictionary is returned.
  *
  * The default implementation of this method looks for any to-many properties on
  * the receiver (by searching through <propertyClassesByKey> for `NSArray`,
