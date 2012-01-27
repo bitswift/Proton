@@ -57,7 +57,7 @@ SpecBegin(PROModel)
         });
 
         it(@"has no defaultValuesForKeys", ^{
-            expect([TestModel defaultValuesForKeys]).toBeNil();
+            expect([[TestModel defaultValuesForKeys] count ]).toEqual(0);
         });
 
         it(@"initializes", ^{
