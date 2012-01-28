@@ -114,6 +114,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @synthesize modelControllerObservers = m_modelControllerObservers;
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 
+// TODO
+@dynamic transformationLogLimit;
+
 - (id)model {
     __block id model;
 
@@ -434,6 +437,21 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     }];
 
     return success;
+}
+
+- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
+    // TODO
+    return nil;
+}
+
+- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block; {
+    // TODO
+    return nil;
+}
+
+- (PROModel *)modelWithTransformationLogID:(id)transformationLogEntry; {
+    // TODO
+    return nil;
 }
 
 #pragma mark NSCoding

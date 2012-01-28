@@ -666,10 +666,10 @@
 				D0A0E5DB14B5788E00E278CA /* PROModelController.m */,
 				D097ADBE14CF0A92009C452C /* PROMutableModel.h */,
 				D097ADBF14CF0A92009C452C /* PROMutableModel.m */,
-				D0DA64D714C681D100B6A577 /* PROTransformer.h */,
-				D0DA64D814C681D100B6A577 /* PROTransformer.m */,
 				D0103FF414CFDFB500780E62 /* PROMutableModelPrivate.h */,
 				D0103FF514CFDFB500780E62 /* PROMutableModelPrivate.m */,
+				D0DA64D714C681D100B6A577 /* PROTransformer.h */,
+				D0DA64D814C681D100B6A577 /* PROTransformer.m */,
 			);
 			name = "Model Framework";
 			sourceTree = "<group>";

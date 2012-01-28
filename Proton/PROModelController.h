@@ -132,6 +132,13 @@
  * returning `YES` upon success. If the transformation fails, `NO` is returned
  * and `error` is set to the error that occurred.
  *
+ * If the transformation succeeds, it is added to an internal "transformation
+ * log" (limited in size to the <transformationLogLimit>), which can be used
+ * to replay transformations in reverse and retrieve an older copy of the
+ * <model>. See
+ * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:> for more
+ * information.
+ *
  * @param transformation The transformation to attempt to perform.
  * @param error If not `NULL`, this is set to any error that occurs. This
  * argument will only be set if the method returns `NO`.
@@ -146,5 +153,69 @@
  * notifications that are received during the course of a transformation.
  */
 @property (assign, readonly, getter = isPerformingTransformation) BOOL performingTransformation;
+
+/**
+ * @name Transformation Log
+ */
+
+/**
+ * The maximum number of <PROTransformation> instances to store in the
+ * transformation log, or zero to disable limiting of the log.
+ *
+ * If recording a new transformation (such as one being performed with
+ * <performTransformation:error:>) would push the log over the limit, the oldest
+ * transformation is discarded, but only after calling any blocks registered for
+ * that transformation log entry with
+ * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ *
+ * The default value for this property is 50.
+ */
+@property (assign) NSUInteger transformationLogLimit;
+
+/**
+ * Invokes <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>
+ * with a `nil` block.
+ *
+ * @param modelPointer If not `NULL`, this will be set to the current <model>.
+ * It is not safe to retrieve the log entry and model in separate steps, as
+ * another thread may make a change during that time.
+ */
+- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer;
+
+/**
+ * Atomically retrieves the latest transformation log entry and the current
+ * version of the <model>, and saves the given block, to be invoked when the log
+ * entry is about to be removed.
+ *
+ * The transformation log entry is an opaque object that can later be passed to
+ * <modelWithTransformationLogID:> to replay the transformation log to the
+ * current point, as long as enough of the log remains to do so. Because the
+ * transformation log will be trimmed when the <transformationLogLimit> is
+ * exceeded, the log entry returned may not actually be replayable later.
+ * `block` will be invoked before the log entry is removed, providing the
+ * opportunity to retrieve any information that needs to be saved.
+ *
+ * @param modelPointer If not `NULL`, this will be set to the current <model>.
+ * It is not safe to retrieve the log entry and model in separate steps, as
+ * another thread may make a change during that time.
+ * @param block If not `nil`, a block to invoke immediately before the (now
+ * current) transformation log entry is deleted.
+ */
+- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block;
+
+/**
+ * Returns the version of the model that corresponds to the given transformation
+ * log entry, or `nil` if the entry no longer exists in the log.
+ *
+ * The given log entry may no longer exist if the transformation was trimmed to
+ * stay within the <transformationLogLimit>. To detect this case, you must
+ * provide a block to
+ * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ *
+ * @param transformationLogEntry An object previously returned from
+ * <transformationLogEntryWithModelPointer:> or
+ * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ */
+- (PROModel *)modelWithTransformationLogID:(id)transformationLogEntry;
 
 @end
