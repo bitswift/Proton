@@ -30,14 +30,6 @@
 @end
 
 SpecBegin(PROModelController)
-    __block TestSuperModel *model = nil;
-    __block TestSuperModelController *controller = nil;
-
-    before(^{
-        model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
-        controller = [[TestSuperModelController alloc] initWithModel:model];
-    });
-
     it(@"initializes without a model", ^{
         PROModelController *controller = [[PROModelController alloc] init];
         expect(controller).not.toBeNil();
