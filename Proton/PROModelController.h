@@ -188,7 +188,7 @@
  * entry is about to be removed.
  *
  * The transformation log entry is an opaque object that can later be passed to
- * <modelWithTransformationLogID:> to replay the transformation log to the
+ * <modelWithTransformationLogEntry:> to replay the transformation log to the
  * current point, as long as enough of the log remains to do so. Because the
  * transformation log will be trimmed when the <transformationLogLimit> is
  * exceeded, the log entry returned may not actually be replayable later.
