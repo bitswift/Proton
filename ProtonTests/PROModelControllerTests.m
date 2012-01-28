@@ -266,6 +266,163 @@ SpecBegin(PROModelController)
             expect(error.domain).toEqual([PROTransformation errorDomain]);
             expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
         });
+
+        describe(@"transformation log", ^{
+            it(@"should default transformation log limit to 50", ^{
+                expect(controller.transformationLogLimit).toEqual(50);
+            });
+
+            it(@"should return transformation log entry without model pointer", ^{
+                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                expect(logEntry).not.toBeNil();
+            });
+
+            it(@"should return transformation log entry with model pointer", ^{
+                TestSuperModel *model = nil;
+                id logEntry = [controller transformationLogEntryWithModelPointer:&model];
+
+                expect(logEntry).not.toBeNil();
+                expect(model).toEqual(controller.model);
+            });
+
+            it(@"should return transformation log entry without model pointer and with block", ^{
+                id logEntry = [controller transformationLogEntryWithModelPointer:NULL willRemoveLogEntryBlock:^{}];
+                expect(logEntry).not.toBeNil();
+            });
+
+            it(@"should return transformation log entry with model pointer and block", ^{
+                TestSuperModel *model = nil;
+                id logEntry = [controller transformationLogEntryWithModelPointer:&model willRemoveLogEntryBlock:^{}];
+
+                expect(logEntry).not.toBeNil();
+                expect(model).toEqual(controller.model);
+            });
+
+            it(@"should return current model given current log entry", ^{
+                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                
+                TestSuperModel *model = [controller modelWithTransformationLogEntry:logEntry];
+                expect(model).toEqual(controller.model);
+            });
+
+            it(@"should return model given log entry after archiving", ^{
+                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:controller];
+                TestSuperModelController *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+                
+                TestSuperModel *model = [decoded modelWithTransformationLogEntry:logEntry];
+                expect(model).toEqual(controller.model);
+                expect(model).toEqual(decoded.model);
+            });
+
+            it(@"should return past model given past log entry", ^{
+                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                TestSuperModel *originalModel = controller.model;
+
+                NSArray *subModels = [NSArray arrayWithObject:[[TestSubModel alloc] init]];
+                PROTransformation *transformation = [controller.model transformationForKey:PROKeyForObject(controller.model, subModels) value:subModels];
+
+                // perform a transformation, to update the log
+                expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+                
+                // we should get back the model that existed at the time of the
+                // log entry retrieval
+                TestSuperModel *model = [controller modelWithTransformationLogEntry:logEntry];
+                expect(model).toEqual(originalModel);
+                expect(model).not.toEqual(controller.model);
+            });
+
+            describe(@"transformation log trimming", ^{
+                __block PROModel *originalModel;
+
+                // a transformation which can be performed to add to the log
+                __block PROTransformation *transformation;
+
+                before(^{
+                    originalModel = controller.model;
+
+                    // only include one transformation in the log, for testing
+                    // purposes
+                    controller.transformationLogLimit = 1;
+                    expect(controller.transformationLogLimit).toEqual(1);
+
+                    PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:[[TestSubModel alloc] init]];
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+                    expect([transformation transform:controller.model error:NULL]).not.toEqual(controller.model);
+                });
+
+                it(@"should not return past model if log entry was removed", ^{
+                    id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                    // one to add something to the log, and then one more to
+                    // push it out
+                    [controller performTransformation:transformation error:NULL];
+                    [controller performTransformation:transformation error:NULL];
+
+                    expect([controller modelWithTransformationLogEntry:logEntry]).toBeNil();
+                });
+
+                it(@"should invoke block before removing log entry", ^{
+                    __block BOOL blockInvoked = NO;
+                    __block id logEntry = nil;
+
+                    logEntry = [controller transformationLogEntryWithModelPointer:NULL willRemoveLogEntryBlock:^{
+                        blockInvoked = YES;
+
+                        expect([controller modelWithTransformationLogEntry:logEntry]).toEqual(originalModel);
+                    }];
+
+                    [controller performTransformation:transformation error:NULL];
+                    [controller performTransformation:transformation error:NULL];
+
+                    expect(blockInvoked).toBeTruthy();
+                });
+
+                it(@"should invoke multiple blocks for the same log entry", ^{
+                    __block BOOL firstBlockInvoked = NO;
+                    __block BOOL secondBlockInvoked = NO;
+
+                    [controller transformationLogEntryWithModelPointer:NULL willRemoveLogEntryBlock:^{
+                        firstBlockInvoked = YES;
+                    }];
+
+                    [controller transformationLogEntryWithModelPointer:NULL willRemoveLogEntryBlock:^{
+                        secondBlockInvoked = YES;
+                    }];
+
+                    [controller performTransformation:transformation error:NULL];
+                    [controller performTransformation:transformation error:NULL];
+
+                    expect(firstBlockInvoked).toBeTruthy();
+                    expect(secondBlockInvoked).toBeTruthy();
+                });
+
+                it(@"should not trim log without a limit set", ^{
+                    controller.transformationLogLimit = 0;
+
+                    id firstLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                    id previousLogEntry = firstLogEntry;
+                    
+                    // test adding 100 transformations to the log (just
+                    // something more than the default)
+                    for (unsigned i = 0; i < 100; ++i) {
+                        PROModel *previousModel = controller.model;
+
+                        expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+                        expect(controller.model).not.toEqual(previousModel);
+
+                        id newLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                        expect(newLogEntry).not.toEqual(previousLogEntry);
+                        expect(newLogEntry).not.toEqual(firstLogEntry);
+                    }
+
+                    // make sure we can still retrieve the original model
+                    expect([controller modelWithTransformationLogEntry:firstLogEntry]).toEqual(originalModel);
+                });
+            });
+        });
     });
 
 SpecEnd
