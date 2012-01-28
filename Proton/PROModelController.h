@@ -204,8 +204,8 @@
 - (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block;
 
 /**
- * Returns the version of the model that corresponds to the given transformation
- * log entry, or `nil` if the entry no longer exists in the log.
+ * Returns the version of the <model> that corresponds to the given
+ * transformation log entry, or `nil` if the entry no longer exists in the log.
  *
  * The given log entry may no longer exist if the transformation was trimmed to
  * stay within the <transformationLogLimit>. To detect this case, you must
@@ -216,6 +216,6 @@
  * <transformationLogEntryWithModelPointer:> or
  * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
  */
-- (PROModel *)modelWithTransformationLogID:(id)transformationLogEntry;
+- (id)modelWithTransformationLogEntry:(id)transformationLogEntry;
 
 @end

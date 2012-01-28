@@ -449,7 +449,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return nil;
 }
 
-- (PROModel *)modelWithTransformationLogID:(id)transformationLogEntry; {
+- (id)modelWithTransformationLogEntry:(id)transformationLogEntry; {
     // TODO
     return nil;
 }
