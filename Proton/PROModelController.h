@@ -200,6 +200,9 @@
  * another thread may make a change during that time.
  * @param block If not `nil`, a block to invoke immediately before the (now
  * current) transformation log entry is deleted.
+ *
+ * @warning **Important:** Blocks provided to this method are not archived with
+ * the model controller.
  */
 - (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block;
 
