@@ -137,6 +137,15 @@
 + (NSDictionary *)modelControllerKeysByModelKeyPath;
 
 /**
+ * Returns the model controller managed by the receiver which has the given
+ * <uniqueIdentifier>, or `nil` if no such model controller exists.
+ *
+ * @param identifier An identifier which matches the <uniqueIdentifier> of the
+ * model controller to return.
+ */
+- (id)modelControllerWithIdentifier:(PROUniqueIdentifier *)identifier;
+
+/**
  * @name Performing Transformations
  */
 

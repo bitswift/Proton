@@ -112,6 +112,23 @@ SpecBegin(PROModelController)
             expect(observerInvoked).toBeTruthy();
         });
 
+        describe(@"model controller with unique identifier", ^{
+            before(^{
+                controller.model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+            });
+
+            it(@"should return a model controller for a matching unique identifier", ^{
+                TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+                PROUniqueIdentifier *subControllerID = subController.uniqueIdentifier;
+
+                expect([controller modelControllerWithIdentifier:subControllerID]).toEqual(subController);
+            });
+
+            it(@"should not return a model controller for a non-matching unique identifier", ^{
+                expect([controller modelControllerWithIdentifier:[[PROUniqueIdentifier alloc] init]]).toBeNil();
+            });
+        });
+
         // TODO: add KVO tests for the various operations on the
         // modelControllers array
 

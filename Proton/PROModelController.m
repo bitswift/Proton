@@ -445,6 +445,30 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return nil;
 }
 
+- (id)modelControllerWithIdentifier:(PROUniqueIdentifier *)identifier; {
+    NSParameterAssert(identifier != nil);
+
+    NSDictionary *modelControllerKeysByModelKeyPath = [[self class] modelControllerKeysByModelKeyPath];
+    
+    __block PROModelController *matchingController = nil;
+
+    [self.dispatchQueue runSynchronously:^{
+        // TODO: this could be optimized
+        [modelControllerKeysByModelKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *controllerKey, BOOL *stop){
+            NSArray *controllers = [self valueForKey:controllerKey];
+
+            matchingController = [controllers objectWithOptions:NSEnumerationConcurrent passingTest:^(PROModelController *controller, NSUInteger index, BOOL *stop){
+                return [controller.uniqueIdentifier isEqual:identifier];
+            }];
+
+            if (matchingController)
+                *stop = YES;
+        }];
+    }];
+
+    return matchingController;
+}
+
 - (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath; {
     NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
     Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
