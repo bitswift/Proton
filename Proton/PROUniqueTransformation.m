@@ -6,10 +6,11 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROUniqueTransformation.h>
-#import <Proton/NSArray+HigherOrderAdditions.h>
-#import <Proton/NSObject+ComparisonAdditions.h>
-#import <Proton/PROModelController.h>
+#import "PROUniqueTransformation.h"
+#import "NSArray+HigherOrderAdditions.h"
+#import "NSObject+ComparisonAdditions.h"
+#import "PROModelController.h"
+#import "PROModelControllerPrivate.h"
 
 @implementation PROUniqueTransformation
 
@@ -92,7 +93,7 @@
 
     if (!modelKeyPath) {
         // update the top-level model
-        modelController.model = result;
+        [modelController setModel:result replacingModelControllers:YES];
         return YES;
     }
 
