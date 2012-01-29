@@ -6,12 +6,13 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROKeyedTransformation.h>
-#import <Proton/NSObject+ComparisonAdditions.h>
-#import <Proton/PROKeyedObject.h>
-#import <Proton/PROModelController.h>
-#import <Proton/PROModel.h>
-#import <Proton/NSDictionary+HigherOrderAdditions.h>
+#import "PROKeyedTransformation.h"
+#import "NSDictionary+HigherOrderAdditions.h"
+#import "NSObject+ComparisonAdditions.h"
+#import "PROKeyedObject.h"
+#import "PROModel.h"
+#import "PROModelController.h"
+#import "PROModelControllerPrivate.h"
 
 @implementation PROKeyedTransformation
 
@@ -185,7 +186,7 @@
     if (!modelKeyPath && !allModelUpdatesSuccessful) {
         // not all changes correctly propagated, so we just need to set the
         // top-level object
-        modelController.model = result;
+        [modelController setModel:result replacingModelControllers:YES];
 
         allModelUpdatesSuccessful = YES;
     }

@@ -7,6 +7,7 @@
 //
 
 #import "PROModelController.h"
+#import "EXTNil.h"
 #import "EXTScope.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
@@ -17,6 +18,7 @@
 #import "PROKeyedTransformation.h"
 #import "PROLogging.h"
 #import "PROModel.h"
+#import "PROModelControllerPrivate.h"
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
 #import "PROTransformationLog.h"
@@ -25,7 +27,7 @@
 #import "SDQueue.h"
 #import <objc/runtime.h>
 
-/*
+/**
  * A key into the thread dictionary, associated with an `NSNumber` indicating
  * whether the current thread is performing a transformation.
  *
@@ -34,7 +36,7 @@
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
 @interface PROModelController ()
-/*
+/**
  * Automatically implements the appropriate KVC-compliant model controller
  * methods on the receiver for the given model controller key.
  *
@@ -55,18 +57,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  */
 - (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath;
 
-/*
- * Replaces the <model>, optionally updating other model controllers on the
- * receiver to match.
- *
- * @param model The new model object to set on the receiver.
- * @param replacing If `YES`, all existing model controllers will be destroyed
- * and recreated from the models in `model`. If `NO`, model controllers are
- * assumed to be updated elsewhere, and will not be modified.
- */
-- (void)setModel:(PROModel *)model replacingModelControllers:(BOOL)replacing;
-
-/*
+/**
  * Contains <PROKeyValueObserver> objects observing each model controller
  * managed by the receiver (in no particular order).
  *
@@ -77,7 +68,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  */
 @property (nonatomic, strong) NSMutableArray *modelControllerObservers;
 
-/*
+/**
  * Whether <performTransformation:error:> is currently being executed on the
  * <dispatchQueue>.
  *
@@ -158,12 +149,33 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return model;
 }
 
+/*
+ * This method should only be called externally, since it invokes
+ * <performTransformation:> (which, called internally, could result in infinite
+ * recursion).
+ */
 - (void)setModel:(id)newModel {
-    [self setModel:newModel replacingModelControllers:YES];
+    NSParameterAssert([newModel isEqual:[EXTNil null]] || [newModel isKindOfClass:[PROModel class]]);
+
+    [self.dispatchQueue runSynchronously:^{
+        id currentModel = self.model;
+        if (!currentModel) {
+            // never pass 'nil' into a transformation
+            currentModel = [EXTNil null];
+        }
+
+        if ([currentModel isEqual:newModel])
+            return;
+
+        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentModel outputValue:newModel];
+
+        BOOL success = [self performTransformation:transformation error:NULL];
+        PROAssert(success, @"Transformation %@ should never fail", transformation);
+    }];
 }
 
 - (void)setModel:(PROModel *)newModel replacingModelControllers:(BOOL)replacing; {
-    NSParameterAssert(!newModel || [newModel isKindOfClass:[PROModel class]]);
+    NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
         // invoke KVO methods while on the dispatch queue, so synchronous
@@ -465,7 +477,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             self.performingTransformationOnDispatchQueue = NO;
         };
 
-        PROModel *oldModel = self.model;
+        id oldModel = self.model;
+        if (!oldModel) {
+            // never pass 'nil' into a transformation
+            oldModel = [EXTNil null];
+        }
+
         PROModel *newModel = [transformation transform:oldModel error:error];
 
         if (!newModel) {
@@ -477,24 +494,18 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         // update the transformation log before setting the new model
         [self.transformationLog addLogEntryWithTransformation:transformation];
 
-        if ([transformation isKindOfClass:[PROUniqueTransformation class]]) {
-            // for a unique transformation, we want to use the proper setter for
-            // 'model' to make sure that all model controllers are replaced
-            self.model = newModel;
-        } else {
-            // for any other kind of transformation, we don't necessarily want
-            // to replace all of the model controllers
-            [self setModel:newModel replacingModelControllers:NO];
+        // the below call to -updateModelController:… should replace our model
+        // controllers if necessary
+        [self setModel:newModel replacingModelControllers:NO];
 
-            success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
-            if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-                // do our best to back out of that failure -- this probably
-                // won't be 100%, since model controllers may already have
-                // updated references, and we've already recorded the failing
-                // transformation in the log
-                [self.transformationLog addLogEntryWithTransformation:transformation.reverseTransformation];
-                [self setModel:oldModel replacingModelControllers:NO];
-            }
+        success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
+        if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
+            // do our best to back out of that failure -- this probably
+            // won't be 100%, since model controllers may already have
+            // updated references, and we've already recorded the failing
+            // transformation in the log
+            [self.transformationLog addLogEntryWithTransformation:transformation.reverseTransformation];
+            [self setModel:oldModel replacingModelControllers:NO];
         }
     }];
 
@@ -585,14 +596,16 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     if (!decodedIdentifier)
         return nil;
 
+    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
+    if (!model)
+        return nil;
+
     self = [self init];
     if (!self)
         return nil;
 
     // replace the UUID created in -init
     m_uniqueIdentifier = [decodedIdentifier copy];
-
-    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
 
     // we need to set up the model controllers manually anyways
     [self setModel:model replacingModelControllers:NO];
@@ -631,8 +644,11 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.uniqueIdentifier forKey:PROKeyForObject(self, uniqueIdentifier)];
 
-    if (self.model)
-        [coder encodeObject:self.model forKey:PROKeyForObject(self, model)];
+    id model = self.model;
+    if (!model)
+        model = [EXTNil null];
+
+    [coder encodeObject:model forKey:PROKeyForObject(self, model)];
 
     NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
 

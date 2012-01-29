@@ -6,10 +6,11 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROMultipleTransformation.h>
-#import <Proton/NSObject+ComparisonAdditions.h>
-#import <Proton/PROKeyValueCodingMacros.h>
-#import <Proton/PROModelController.h>
+#import "PROMultipleTransformation.h"
+#import "NSObject+ComparisonAdditions.h"
+#import "PROKeyValueCodingMacros.h"
+#import "PROModelController.h"
+#import "PROModelControllerPrivate.h"
 
 @implementation PROMultipleTransformation
 
@@ -112,6 +113,7 @@
             // some model propagation failed, so just set the top-level object
             // after all
             modelController.model = result;
+            [modelController setModel:result replacingModelControllers:YES];
             break;
         }
     }

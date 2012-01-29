@@ -6,8 +6,8 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROTransformation.h>
-#import <Proton/PROModelController.h>
+#import "PROTransformation.h"
+#import "PROModelController.h"
 
 NSString * const PROTransformationFailingTransformationsErrorKey = @"PROTransformationFailingTransformations";
 NSString * const PROTransformationFailingTransformationPathErrorKey = @"PROTransformationFailingTransformationPath";
