@@ -399,10 +399,7 @@ SpecBegin(PROMutableModel)
             expect(encoded).not.toBeNil();
 
             PROMutableModel *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
-
-            // model controllers do not implement equality, so check the models
-            // instead
-            expect(decoded.modelController.model).toEqual(modelController.model);
+            expect(decoded.modelController).toEqual(modelController);
         });
 
         it(@"should save to model controller", ^{
