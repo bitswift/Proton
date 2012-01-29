@@ -490,23 +490,18 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         // update the transformation log before setting the new model
         [self.transformationLog addLogEntryWithTransformation:transformation];
 
-        if ([transformation isKindOfClass:[PROUniqueTransformation class]]) {
-            // for a unique transformation, we want to make sure that all model controllers are replaced
-            [self setModel:newModel replacingModelControllers:YES];
-        } else {
-            // for any other kind of transformation, we don't necessarily want
-            // to replace all of the model controllers
-            [self setModel:newModel replacingModelControllers:NO];
+        // the below call to -updateModelController:… should replace our model
+        // controllers if necessary
+        [self setModel:newModel replacingModelControllers:NO];
 
-            success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
-            if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-                // do our best to back out of that failure -- this probably
-                // won't be 100%, since model controllers may already have
-                // updated references, and we've already recorded the failing
-                // transformation in the log
-                [self.transformationLog addLogEntryWithTransformation:transformation.reverseTransformation];
-                [self setModel:oldModel replacingModelControllers:NO];
-            }
+        success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
+        if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
+            // do our best to back out of that failure -- this probably
+            // won't be 100%, since model controllers may already have
+            // updated references, and we've already recorded the failing
+            // transformation in the log
+            [self.transformationLog addLogEntryWithTransformation:transformation.reverseTransformation];
+            [self setModel:oldModel replacingModelControllers:NO];
         }
     }];
 
