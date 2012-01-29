@@ -6,12 +6,13 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROIndexedTransformation.h>
-#import <Proton/EXTScope.h>
-#import <Proton/NSArray+HigherOrderAdditions.h>
-#import <Proton/NSObject+ComparisonAdditions.h>
-#import <Proton/PROAssert.h>
-#import <Proton/PROModelController.h>
+#import "PROIndexedTransformation.h"
+#import "EXTScope.h"
+#import "NSArray+HigherOrderAdditions.h"
+#import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
+#import "PROModelController.h"
+#import "PROModelControllerPrivate.h"
 
 @implementation PROIndexedTransformation
 
@@ -175,7 +176,7 @@
         PROModelController *controller = [associatedControllers objectAtIndex:index];
         if (![transformation updateModelController:controller transformationResult:object forModelKeyPath:nil]) {
             // no model below here, so update the top-level object
-            controller.model = object;
+            [controller setModel:object replacingModelControllers:YES];
         }
     }];
 

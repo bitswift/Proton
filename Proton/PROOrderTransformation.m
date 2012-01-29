@@ -6,10 +6,10 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROOrderTransformation.h>
-#import <Proton/EXTScope.h>
-#import <Proton/NSObject+ComparisonAdditions.h>
-#import <Proton/PROModelController.h>
+#import "PROOrderTransformation.h"
+#import "EXTScope.h"
+#import "NSObject+ComparisonAdditions.h"
+#import "PROModelController.h"
 
 @implementation PROOrderTransformation
 

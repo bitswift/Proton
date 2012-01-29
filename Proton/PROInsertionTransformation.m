@@ -6,11 +6,11 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROInsertionTransformation.h>
-#import <Proton/NSArray+HigherOrderAdditions.h>
-#import <Proton/NSObject+ComparisonAdditions.h>
-#import <Proton/PROModelController.h>
-#import <Proton/PRORemovalTransformation.h>
+#import "PROInsertionTransformation.h"
+#import "NSArray+HigherOrderAdditions.h"
+#import "NSObject+ComparisonAdditions.h"
+#import "PROModelController.h"
+#import "PRORemovalTransformation.h"
 
 @implementation PROInsertionTransformation
 
