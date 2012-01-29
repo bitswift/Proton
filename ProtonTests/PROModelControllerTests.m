@@ -298,6 +298,13 @@ SpecBegin(PROModelController)
                 expect(model).toEqual(controller.model);
             });
 
+            it(@"should return different transformation log entry after replacing model", ^{
+                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                controller.model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+                expect([controller transformationLogEntryWithModelPointer:NULL]).not.toEqual(logEntry);
+            });
+
             it(@"should return current model given current log entry", ^{
                 id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
                 

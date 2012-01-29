@@ -7,6 +7,7 @@
 //
 
 #import "PROModelController.h"
+#import "EXTNil.h"
 #import "EXTScope.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "PROAssert.h"
@@ -155,12 +156,33 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return model;
 }
 
+/*
+ * This method should only be called externally, since it invokes
+ * <performTransformation:> (which, called internally, could result in infinite
+ * recursion).
+ */
 - (void)setModel:(id)newModel {
-    [self setModel:newModel replacingModelControllers:YES];
+    NSParameterAssert([newModel isEqual:[EXTNil null]] || [newModel isKindOfClass:[PROModel class]]);
+
+    [self.dispatchQueue runSynchronously:^{
+        id currentModel = self.model;
+        if (!currentModel) {
+            // never pass 'nil' into a transformation
+            currentModel = [EXTNil null];
+        }
+
+        if ([currentModel isEqual:newModel])
+            return;
+
+        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentModel outputValue:newModel];
+
+        BOOL success = [self performTransformation:transformation error:NULL];
+        PROAssert(success, @"Transformation %@ should never fail", transformation);
+    }];
 }
 
 - (void)setModel:(PROModel *)newModel replacingModelControllers:(BOOL)replacing; {
-    NSParameterAssert(!newModel || [newModel isKindOfClass:[PROModel class]]);
+    NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
         // invoke KVO methods while on the dispatch queue, so synchronous
@@ -461,7 +483,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             self.performingTransformationOnDispatchQueue = NO;
         };
 
-        PROModel *oldModel = self.model;
+        id oldModel = self.model;
+        if (!oldModel) {
+            // never pass 'nil' into a transformation
+            oldModel = [EXTNil null];
+        }
+
         PROModel *newModel = [transformation transform:oldModel error:error];
 
         if (!newModel) {
@@ -474,9 +501,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         [self.transformationLog addLogEntryWithTransformation:transformation];
 
         if ([transformation isKindOfClass:[PROUniqueTransformation class]]) {
-            // for a unique transformation, we want to use the proper setter for
-            // 'model' to make sure that all model controllers are replaced
-            self.model = newModel;
+            // for a unique transformation, we want to make sure that all model controllers are replaced
+            [self setModel:newModel replacingModelControllers:YES];
         } else {
             // for any other kind of transformation, we don't necessarily want
             // to replace all of the model controllers
@@ -577,11 +603,13 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
+    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
+    if (!model)
+        return nil;
+
     self = [self init];
     if (!self)
         return nil;
-
-    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
 
     // we need to set up the model controllers manually anyways
     [self setModel:model replacingModelControllers:NO];
@@ -618,8 +646,11 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    if (self.model)
-        [coder encodeObject:self.model forKey:PROKeyForObject(self, model)];
+    id model = self.model;
+    if (!model)
+        model = [EXTNil null];
+
+    [coder encodeObject:model forKey:PROKeyForObject(self, model)];
 
     NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
 
