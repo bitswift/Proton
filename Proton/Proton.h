@@ -6,11 +6,6 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/EXTConcreteProtocol.h>
-#import <Proton/EXTNil.h>
-#import <Proton/EXTRuntimeExtensions.h>
-#import <Proton/EXTSafeCategory.h>
-#import <Proton/EXTScope.h>
 #import <Proton/Foundation+LocalizationAdditions.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSDictionary+HigherOrderAdditions.h>
@@ -42,4 +37,11 @@
 #import <Proton/PROTransformation.h>
 #import <Proton/PROUniqueIdentifier.h>
 #import <Proton/PROUniqueTransformation.h>
-#import <Proton/SDQueue.h>
+
+// other imported frameworks
+#import "EXTConcreteProtocol.h"
+#import "EXTNil.h"
+#import "EXTRuntimeExtensions.h"
+#import "EXTSafeCategory.h"
+#import "EXTScope.h"
+#import "SDQueue.h"

@@ -6,9 +6,9 @@
 //  Copyright (c) 2012 Bitswift. All rights reserved.
 //
 
-#import <Proton/DDASLLogger.h>
-#import <Proton/DDLog.h>
-#import <Proton/DDTTYLogger.h>
+#import "DDASLLogger.h"
+#import "DDLog.h"
+#import "DDTTYLogger.h"
 
 #ifdef PROTON_LOGGING_LEVEL
     static int ddLogLevel = PROTON_LOGGING_LEVEL;
