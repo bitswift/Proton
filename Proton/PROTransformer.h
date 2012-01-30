@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <Proton/EXTConcreteProtocol.h>
+#import "EXTConcreteProtocol.h"
 
 @class PROTransformation;
 
