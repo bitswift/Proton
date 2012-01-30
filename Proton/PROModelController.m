@@ -6,22 +6,26 @@
 //  Copyright (c) 2012 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROModelController.h>
-#import <Proton/EXTScope.h>
-#import <Proton/NSArray+HigherOrderAdditions.h>
-#import <Proton/PROAssert.h>
-#import <Proton/PROIndexedTransformation.h>
-#import <Proton/PROKeyedTransformation.h>
-#import <Proton/PROKeyValueCodingMacros.h>
-#import <Proton/PROKeyValueObserver.h>
-#import <Proton/PROLogging.h>
-#import <Proton/PROModel.h>
-#import <Proton/PROTransformation.h>
-#import <Proton/PROUniqueTransformation.h>
-#import <Proton/SDQueue.h>
+#import "PROModelController.h"
+#import "EXTNil.h"
+#import "EXTScope.h"
+#import "NSArray+HigherOrderAdditions.h"
+#import "PROAssert.h"
+#import "PROIndexedTransformation.h"
+#import "PROKeyValueCodingMacros.h"
+#import "PROKeyValueObserver.h"
+#import "PROKeyedTransformation.h"
+#import "PROLogging.h"
+#import "PROModel.h"
+#import "PROModelControllerPrivate.h"
+#import "PROMultipleTransformation.h"
+#import "PROTransformation.h"
+#import "PROTransformationLog.h"
+#import "PROUniqueTransformation.h"
+#import "SDQueue.h"
 #import <objc/runtime.h>
 
-/*
+/**
  * A key into the thread dictionary, associated with an `NSNumber` indicating
  * whether the current thread is performing a transformation.
  *
@@ -30,7 +34,7 @@
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
 @interface PROModelController ()
-/*
+/**
  * Automatically implements the appropriate KVC-compliant model controller
  * methods on the receiver for the given model controller key.
  *
@@ -51,18 +55,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  */
 - (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath;
 
-/*
- * Replaces the <model>, optionally updating other model controllers on the
- * receiver to match.
- *
- * @param model The new model object to set on the receiver.
- * @param replacing If `YES`, all existing model controllers will be destroyed
- * and recreated from the models in `model`. If `NO`, model controllers are
- * assumed to be updated elsewhere, and will not be modified.
- */
-- (void)setModel:(PROModel *)model replacingModelControllers:(BOOL)replacing;
-
-/*
+/**
  * Contains <PROKeyValueObserver> objects observing each model controller
  * managed by the receiver (in no particular order).
  *
@@ -73,7 +66,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  */
 @property (nonatomic, strong) NSMutableArray *modelControllerObservers;
 
-/*
+/**
  * Whether <performTransformation:error:> is currently being executed on the
  * <dispatchQueue>.
  *
@@ -82,6 +75,33 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * cases.
  */
 @property (nonatomic, assign, getter = isPerformingTransformationOnDispatchQueue) BOOL performingTransformationOnDispatchQueue;
+
+/**
+ * A transformation log representing updates to the receiver's <model> over
+ * time.
+ *
+ * @warning **Important:** Mutation of this log must be synchronized using the
+ * receiver's <dispatchQueue>.
+ */
+@property (nonatomic, strong, readonly) PROTransformationLog *transformationLog;
+
+/**
+ * A dictionary containing any blocks passed to
+ * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>, keyed by
+ * the log entry that they should be notified of.
+ *
+ * @warning **Important:** Mutation of this dictionary must be synchronized
+ * using the receiver's <dispatchQueue>.
+ */
+@property (nonatomic, strong, readonly) NSMutableDictionary *willRemoveLogEntryBlocksByLogEntry;
+
+/**
+ * Invoked from the <[PROTransformationLog willRemoveLogEntryBlock]> of the
+ * receiver's <transformationLog>.
+ *
+ * @param logEntry The log entry being removed.
+ */
+- (void)transformationLogWillRemoveLogEntry:(id)logEntry;
 @end
 
 @implementation PROModelController
@@ -113,6 +133,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @synthesize model = m_model;
 @synthesize modelControllerObservers = m_modelControllerObservers;
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
+@synthesize transformationLog = m_transformationLog;
+@synthesize willRemoveLogEntryBlocksByLogEntry = m_willRemoveLogEntryBlocksByLogEntry;
 
 - (id)model {
     __block id model;
@@ -124,12 +146,33 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return model;
 }
 
+/*
+ * This method should only be called externally, since it invokes
+ * <performTransformation:> (which, called internally, could result in infinite
+ * recursion).
+ */
 - (void)setModel:(id)newModel {
-    [self setModel:newModel replacingModelControllers:YES];
+    NSParameterAssert([newModel isEqual:[EXTNil null]] || [newModel isKindOfClass:[PROModel class]]);
+
+    [self.dispatchQueue runSynchronously:^{
+        id currentModel = self.model;
+        if (!currentModel) {
+            // never pass 'nil' into a transformation
+            currentModel = [EXTNil null];
+        }
+
+        if ([currentModel isEqual:newModel])
+            return;
+
+        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentModel outputValue:newModel];
+
+        BOOL success = [self performTransformation:transformation error:NULL];
+        PROAssert(success, @"Transformation %@ should never fail", transformation);
+    }];
 }
 
 - (void)setModel:(PROModel *)newModel replacingModelControllers:(BOOL)replacing; {
-    NSParameterAssert(!newModel || [newModel isKindOfClass:[PROModel class]]);
+    NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
         // invoke KVO methods while on the dispatch queue, so synchronous
@@ -166,6 +209,22 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return self.performingTransformationOnDispatchQueue;
 }
 
+- (NSUInteger)transformationLogLimit {
+    __block NSUInteger limit;
+
+    [self.dispatchQueue runSynchronously:^{
+        limit = self.transformationLog.maximumNumberOfLogEntries;
+    }];
+
+    return limit;
+}
+
+- (void)setTransformationLogLimit:(NSUInteger)limit {
+    [self.dispatchQueue runSynchronously:^{
+        self.transformationLog.maximumNumberOfLogEntries = limit;
+    }];
+}
+
 #pragma mark Lifecycle
 
 - (id)init {
@@ -174,6 +233,15 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         return nil;
 
     m_dispatchQueue = [[SDQueue alloc] init];
+    m_transformationLog = [[PROTransformationLog alloc] init];
+    m_willRemoveLogEntryBlocksByLogEntry = [[NSMutableDictionary alloc] init];
+
+    __weak PROModelController *weakSelf = self;
+
+    m_transformationLog.willRemoveLogEntryBlock = ^(id logEntry){
+        [weakSelf transformationLogWillRemoveLogEntry:logEntry];
+    };
+
     return self;
 }
 
@@ -405,7 +473,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             self.performingTransformationOnDispatchQueue = NO;
         };
 
-        PROModel *oldModel = self.model;
+        id oldModel = self.model;
+        if (!oldModel) {
+            // never pass 'nil' into a transformation
+            oldModel = [EXTNil null];
+        }
+
         PROModel *newModel = [transformation transform:oldModel error:error];
 
         if (!newModel) {
@@ -414,36 +487,114 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             return;
         }
 
-        if ([transformation isKindOfClass:[PROUniqueTransformation class]]) {
-            // for a unique transformation, we want to use the proper setter for
-            // 'model' to make sure that all model controllers are replaced
-            self.model = newModel;
-        } else {
-            // for any other kind of transformation, we don't necessarily want
-            // to replace all of the model controllers
-            [self setModel:newModel replacingModelControllers:NO];
+        // update the transformation log before setting the new model
+        [self.transformationLog addLogEntryWithTransformation:transformation];
 
-            success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
-            if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-                // do our best to back out of that failure -- this probably
-                // won't be 100%, since model controllers may already have
-                // updated references
-                [self setModel:oldModel replacingModelControllers:NO];
-            }
+        // the below call to -updateModelController:… should replace our model
+        // controllers if necessary
+        [self setModel:newModel replacingModelControllers:NO];
+
+        success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
+        if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
+            // do our best to back out of that failure -- this probably
+            // won't be 100%, since model controllers may already have
+            // updated references, and we've already recorded the failing
+            // transformation in the log
+            [self.transformationLog addLogEntryWithTransformation:transformation.reverseTransformation];
+            [self setModel:oldModel replacingModelControllers:NO];
         }
     }];
 
     return success;
 }
 
+- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
+    return [self transformationLogEntryWithModelPointer:modelPointer willRemoveLogEntryBlock:nil];
+}
+
+- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block; {
+    __block PROModel *strongModel = nil;
+    __block id<NSCoding, NSCopying> logEntry = nil;
+
+    [self.dispatchQueue runSynchronously:^{
+        if (modelPointer) {
+            // necessary to make sure this object escapes any autorelease pool
+            strongModel = self.model;
+        }
+
+        logEntry = [self.transformationLog.nextLogEntry copy];
+
+        if (block) {
+            void (^existingBlock)(void) = [self.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
+            void (^newBlock)(void);
+
+            if (existingBlock) {
+                // compose the two blocks
+                newBlock = [^{
+                    existingBlock();
+                    block();
+                } copy];
+            } else {
+                newBlock = block;
+            }
+
+            [self.willRemoveLogEntryBlocksByLogEntry setObject:newBlock forKey:logEntry];
+        }
+    }];
+
+    if (modelPointer)
+        *modelPointer = strongModel;
+
+    return logEntry;
+}
+
+- (id)modelWithTransformationLogEntry:(id)transformationLogEntry; {
+    NSParameterAssert(transformationLogEntry != nil);
+
+    __block PROModel *currentModel = nil;
+    __block PROTransformation *transformationFromOldModel = nil;
+
+    [self.dispatchQueue runSynchronously:^{
+        transformationFromOldModel = [self.transformationLog multipleTransformationStartingFromLogEntry:transformationLogEntry];
+        if (transformationFromOldModel)
+            currentModel = self.model;
+    }];
+
+    if (!transformationFromOldModel)
+        return nil;
+
+    PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
+    PROModel *oldModel = [transformationToOldModel transform:currentModel error:NULL];
+    NSAssert(oldModel != nil, @"Transformation from current model %@ to previous model should never fail: %@", currentModel, transformationToOldModel);
+
+    return oldModel;
+}
+
+- (void)transformationLogWillRemoveLogEntry:(id)logEntry; {
+    // we should already be on the dispatch queue, but just in case...
+    [self.dispatchQueue runSynchronously:^{
+        void (^willRemoveBlock)(void) = [self.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
+
+        if (!willRemoveBlock)
+            return;
+
+        // won't need this block anymore
+        [self.willRemoveLogEntryBlocksByLogEntry removeObjectForKey:logEntry];
+
+        willRemoveBlock();
+    }];
+}
+
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
+    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
+    if (!model)
+        return nil;
+
     self = [self init];
     if (!self)
         return nil;
-
-    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
 
     // we need to set up the model controllers manually anyways
     [self setModel:model replacingModelControllers:NO];
@@ -464,12 +615,27 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         [modelControllers setArray:decodedModelControllers];
     }
 
+    PROTransformationLog *decodedLog = [coder decodeObjectForKey:PROKeyForObject(self, transformationLog)];
+    if (decodedLog) {
+        // replace the default transformation log created in -init
+        m_transformationLog = decodedLog;
+
+        __weak PROModelController *weakSelf = self;
+
+        m_transformationLog.willRemoveLogEntryBlock = ^(id logEntry){
+            [weakSelf transformationLogWillRemoveLogEntry:logEntry];
+        };
+    }
+
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    if (self.model)
-        [coder encodeObject:self.model forKey:PROKeyForObject(self, model)];
+    id model = self.model;
+    if (!model)
+        model = [EXTNil null];
+
+    [coder encodeObject:model forKey:PROKeyForObject(self, model)];
 
     NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
 
@@ -481,6 +647,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
         [coder encodeObject:modelControllers forKey:modelControllerKey];
     }];
+
+    if (self.transformationLog)
+        [coder encodeObject:self.transformationLog forKey:PROKeyForObject(self, transformationLog)];
 }
 
 #pragma mark NSKeyValueObserving
