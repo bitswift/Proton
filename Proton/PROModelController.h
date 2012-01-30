@@ -10,6 +10,7 @@
 
 @class PROModel;
 @class PROTransformation;
+@class PROUniqueIdentifier;
 @class SDQueue;
 
 /**
@@ -50,6 +51,18 @@
  * sure to implement manual KVO support on any such properties.
  */
 @property (copy) id model;
+
+/**
+ * @name Identification
+ */
+
+/**
+ * A UUID for this model controller, to uniquely identify it across archival and
+ * between application launches.
+ *
+ * This value is automatically created at initialization.
+ */
+@property (nonatomic, copy, readonly) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
  * @name Synchronization
@@ -122,6 +135,15 @@
  * along with this method.
  */
 + (NSDictionary *)modelControllerKeysByModelKeyPath;
+
+/**
+ * Returns the model controller managed by the receiver which has the given
+ * <uniqueIdentifier>, or `nil` if no such model controller exists.
+ *
+ * @param identifier An identifier which matches the <uniqueIdentifier> of the
+ * model controller to return.
+ */
+- (id)modelControllerWithIdentifier:(PROUniqueIdentifier *)identifier;
 
 /**
  * @name Performing Transformations

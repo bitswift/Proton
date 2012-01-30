@@ -14,11 +14,15 @@
  * the same machine or different ones, are equal, excepting when:
  *
  *  - One is a copy of the other.
- *  - One is initialized with the stringValue if another.
+ *  - One is initialized with the <stringValue> of another.
  *  - One is unarchived from the archive data of another.
  *  - Both were initialized with the same non-nil string.
  */
 @interface PROUniqueIdentifier : NSObject <NSCoding, NSCopying>
+
+/**
+ * @name Initialization
+ */
 
 /**
  * Initializes a new unique identifier, different from any previously ceated.
@@ -34,6 +38,10 @@
  * @param uuidString A canonical string representation of a UUID.
  */
 - (id)initWithString:(NSString *)uuidString;
+
+/**
+ * @name Representing a UUID
+ */
 
 /**
  * A string representation of the receiver, conforming to the standard representation for
