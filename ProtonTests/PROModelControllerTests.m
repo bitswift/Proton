@@ -37,9 +37,10 @@ SpecBegin(PROModelController)
         expect(controller.model).toBeNil();
         expect(controller.dispatchQueue).not.toBeNil();
         expect(controller.performingTransformation).toBeFalsy();
+        expect(controller.uniqueIdentifier).not.toBeNil();
     });
 
-    it(@"initializes without model", ^{
+    it(@"initializes with a model", ^{
         PROModel *model = [[PROModel alloc] init];
 
         PROModelController *controller = [[PROModelController alloc] initWithModel:model];
@@ -48,6 +49,15 @@ SpecBegin(PROModelController)
         expect(controller.model).toEqual(model);
         expect(controller.dispatchQueue).not.toBeNil();
         expect(controller.performingTransformation).toBeFalsy();
+        expect(controller.uniqueIdentifier).not.toBeNil();
+    });
+
+    it(@"should have a unique identifier", ^{
+        PROModelController *firstController = [[PROModelController alloc] init];
+        PROModelController *secondController = [[PROModelController alloc] init];
+
+        expect(firstController.uniqueIdentifier).not.toEqual(secondController.uniqueIdentifier);
+        expect(firstController).not.toEqual(secondController);
     });
     
     describe(@"model controller subclass", ^{
@@ -74,10 +84,7 @@ SpecBegin(PROModelController)
             expect(encoded).not.toBeNil();
 
             TestSuperModelController *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
-
-            // equality comparisons (rightfully) don't work on model controllers
-            expect(decoded.model).toEqual(controller.model);
-            expect(decoded.subModelControllers.count).toEqual(controller.subModelControllers.count);
+            expect(decoded).toEqual(controller);
 
             // check the model of each sub-controller
             [controller.subModelControllers enumerateObjectsUsingBlock:^(TestSubModelController *subController, NSUInteger index, BOOL *stop){
@@ -103,6 +110,23 @@ SpecBegin(PROModelController)
 
             expect(controller.model).toEqual(newModel);
             expect(observerInvoked).toBeTruthy();
+        });
+
+        describe(@"model controller with unique identifier", ^{
+            before(^{
+                controller.model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+            });
+
+            it(@"should return a model controller for a matching unique identifier", ^{
+                TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+                PROUniqueIdentifier *subControllerID = subController.uniqueIdentifier;
+
+                expect([controller modelControllerWithIdentifier:subControllerID]).toEqual(subController);
+            });
+
+            it(@"should not return a model controller for a non-matching unique identifier", ^{
+                expect([controller modelControllerWithIdentifier:[[PROUniqueIdentifier alloc] init]]).toBeNil();
+            });
         });
 
         // TODO: add KVO tests for the various operations on the

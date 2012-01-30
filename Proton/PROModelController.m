@@ -10,6 +10,7 @@
 #import "EXTNil.h"
 #import "EXTScope.h"
 #import "NSArray+HigherOrderAdditions.h"
+#import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PROIndexedTransformation.h"
 #import "PROKeyValueCodingMacros.h"
@@ -21,6 +22,7 @@
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
 #import "PROTransformationLog.h"
+#import "PROUniqueIdentifier.h"
 #import "PROUniqueTransformation.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
@@ -134,6 +136,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @synthesize modelControllerObservers = m_modelControllerObservers;
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 @synthesize transformationLog = m_transformationLog;
+@synthesize uniqueIdentifier = m_uniqueIdentifier;
 @synthesize willRemoveLogEntryBlocksByLogEntry = m_willRemoveLogEntryBlocksByLogEntry;
 
 - (id)model {
@@ -234,6 +237,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     m_dispatchQueue = [[SDQueue alloc] init];
     m_transformationLog = [[PROTransformationLog alloc] init];
+    m_uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
     m_willRemoveLogEntryBlocksByLogEntry = [[NSMutableDictionary alloc] init];
 
     __weak PROModelController *weakSelf = self;
@@ -441,6 +445,30 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return nil;
 }
 
+- (id)modelControllerWithIdentifier:(PROUniqueIdentifier *)identifier; {
+    NSParameterAssert(identifier != nil);
+
+    NSDictionary *modelControllerKeysByModelKeyPath = [[self class] modelControllerKeysByModelKeyPath];
+    
+    __block PROModelController *matchingController = nil;
+
+    [self.dispatchQueue runSynchronously:^{
+        // TODO: this could be optimized
+        [modelControllerKeysByModelKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *controllerKey, BOOL *stop){
+            NSArray *controllers = [self valueForKey:controllerKey];
+
+            matchingController = [controllers objectWithOptions:NSEnumerationConcurrent passingTest:^(PROModelController *controller, NSUInteger index, BOOL *stop){
+                return [controller.uniqueIdentifier isEqual:identifier];
+            }];
+
+            if (matchingController)
+                *stop = YES;
+        }];
+    }];
+
+    return matchingController;
+}
+
 - (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath; {
     NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
     Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
@@ -588,6 +616,10 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
+    PROUniqueIdentifier *decodedIdentifier = [coder decodeObjectForKey:PROKeyForObject(self, uniqueIdentifier)];
+    if (!decodedIdentifier)
+        return nil;
+
     PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, model)];
     if (!model)
         return nil;
@@ -595,6 +627,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     self = [self init];
     if (!self)
         return nil;
+
+    // replace the UUID created in -init
+    m_uniqueIdentifier = [decodedIdentifier copy];
 
     // we need to set up the model controllers manually anyways
     [self setModel:model replacingModelControllers:NO];
@@ -631,6 +666,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
+    [coder encodeObject:self.uniqueIdentifier forKey:PROKeyForObject(self, uniqueIdentifier)];
+
     id model = self.model;
     if (!model)
         model = [EXTNil null];
@@ -655,10 +692,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark NSKeyValueObserving
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key {
-    // nothing will actually be done with this nil value -- we just need the
-    // first argument to PROKeyForObject() to be the TYPE of an instance
-    PROModelController *controller = nil;
-    NSString *modelKey = PROKeyForObject(controller, model);
+    NSString *modelKey = PROKeyForClass(PROModelController, model);
 
     if ([key isEqualToString:modelKey]) {
         // don't auto-generate KVO notifications when changing 'model' -- we'll
@@ -667,6 +701,40 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     }
 
     return [super automaticallyNotifiesObserversForKey:key];
+}
+
+#pragma mark NSObject overrides
+
+- (NSUInteger)hash {
+    return [self.uniqueIdentifier hash];
+}
+
+- (BOOL)isEqual:(PROModelController *)controller {
+    // be very strict about controller classes, since different classes should
+    // be considered conceptually different
+    if (![controller isMemberOfClass:[self class]]) {
+        return NO;
+    }
+
+    if (![self.uniqueIdentifier isEqual:controller.uniqueIdentifier]) {
+        return NO;
+    }
+
+    if (!NSEqualObjects(self.model, controller.model)) {
+        return NO;
+    }
+
+    __block BOOL equal = YES;
+
+    // recursively compare model controllers
+    [[[self class] modelControllerKeysByModelKeyPath] enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+        if (!NSEqualObjects([self valueForKey:modelControllerKey], [controller valueForKey:modelControllerKey])) {
+            equal = NO;
+            *stop = YES;
+        }
+    }];
+
+    return equal;
 }
 
 @end

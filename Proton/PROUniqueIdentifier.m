@@ -7,10 +7,15 @@
 //
 
 #import "PROUniqueIdentifier.h"
+#import "PROKeyValueCodingMacros.h"
 
 @interface PROUniqueIdentifier () {
+    /**
+     * The UUID represented by the receiver.
+     */
     CFUUIDRef m_uuid;
 }
+
 @end
 
 @implementation PROUniqueIdentifier
@@ -18,8 +23,10 @@
 #pragma mark Lifecycle
 
 - (void)dealloc {
-    if (m_uuid)
+    if (m_uuid) {
         CFRelease(m_uuid);
+        m_uuid = NULL;
+    }
 }
 
 - (id)init {
@@ -53,7 +60,7 @@
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)aDecoder {
-    NSString *uuidString = [aDecoder decodeObjectForKey:@"stringValue"];
+    NSString *uuidString = [aDecoder decodeObjectForKey:PROKeyForObject(self, stringValue)];
     if (!uuidString)
         return nil;
 
@@ -63,14 +70,13 @@
 - (void)encodeWithCoder:(NSCoder *)aCoder {
     NSString *stringValue = self.stringValue;
     if (stringValue)
-        [aCoder encodeObject:stringValue forKey:@"stringValue"];
+        [aCoder encodeObject:stringValue forKey:PROKeyForObject(self, stringValue)];
 }
 
 #pragma mark Equality
 
 - (NSUInteger)hash {
-    // CFUUIDRefs are uniqued
-    return (NSUInteger)m_uuid;
+    return CFHash(m_uuid);
 }
 
 - (BOOL)isEqual:(id)object {
@@ -78,6 +84,7 @@
         return NO;
 
     PROUniqueIdentifier *other = object;
+
     // CFUUIDRefs are uniqued, so pointer equality is equivalent to value equality
     return (m_uuid == other->m_uuid);
 }
