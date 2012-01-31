@@ -199,4 +199,16 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  */
 + (NSString *)errorDomain;
 
+/**
+ * A dictionary that represents the receiver's object graph using only property
+ * list values. If any values exist in the object graph that are not encodable
+ * into a property list, they are omitted.
+ *
+ * @warning **Important:** Although property lists support `NSData` values,
+ * this method will not archive any objects into `NSData`, nor provide `NSData`
+ * objects themselves. This is to preserve compatibility with even more restrictive
+ * formats, such as JSON.
+ */
+- (NSDictionary *)propertyListRepresentation;
+
 @end
