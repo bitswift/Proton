@@ -10,6 +10,7 @@
 #import <Proton/EXTRuntimeExtensions.h>
 #import <Proton/EXTScope.h>
 #import <Proton/NSDictionary+HigherOrderAdditions.h>
+#import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROUniqueTransformation.h>
@@ -89,12 +90,12 @@ const NSInteger PROModelErrorValidationFailed = 2;
         // a new object to be stored in this variable (and we don't want ARC to
         // double-free or leak the old or new values)
         __autoreleasing id value = [dictionary objectForKey:key];
-        
+
         // consider NSNull to be nil if it comes in the dictionary
         if ([value isEqual:[NSNull null]]) {
             value = nil;
         }
-        
+
         NSError *validationError = nil;
         if (![self validateValue:&value forKey:key error:(error ? &validationError : NULL)]) {
             if (error) {
@@ -129,7 +130,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
             }
         }
     }
-    
+
     return self;
 }
 
@@ -142,30 +143,30 @@ const NSInteger PROModelErrorValidationFailed = 2;
 #pragma mark Reflection
 
 + (void)enumeratePropertiesUsingBlock:(void (^)(objc_property_t property))block; {
-	for (Class cls = self; cls != [PROModel class]; cls = [cls superclass]) {
-		unsigned count = 0;
-		objc_property_t *properties = class_copyPropertyList(cls, &count);
+    for (Class cls = self; cls != [PROModel class]; cls = [cls superclass]) {
+        unsigned count = 0;
+        objc_property_t *properties = class_copyPropertyList(cls, &count);
 
-		if (!properties)
-			continue;
+        if (!properties)
+            continue;
 
-		for (unsigned i = 0;i < count;++i) {
-			block(properties[i]);
-		}
+        for (unsigned i = 0;i < count;++i) {
+            block(properties[i]);
+        }
 
-		free(properties);
-	}
+        free(properties);
+    }
 }
 
 + (NSArray *)propertyKeys {
-	NSMutableArray *names = [[NSMutableArray alloc] init];
+    NSMutableArray *names = [[NSMutableArray alloc] init];
 
-	[self enumeratePropertiesUsingBlock:^(objc_property_t property){
-		const char *cName = property_getName(property);
-		NSString *str = [[NSString alloc] initWithUTF8String:cName];
+    [self enumeratePropertiesUsingBlock:^(objc_property_t property){
+        const char *cName = property_getName(property);
+        NSString *str = [[NSString alloc] initWithUTF8String:cName];
 
-		[names addObject:str];
-	}];
+        [names addObject:str];
+    }];
 
     if ([names count])
         return names;
@@ -235,7 +236,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
         // nothing to do for any of the keys
         return nil;
     }
-    
+
     // set up a key-based transformation for self
     return [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
 }
@@ -320,6 +321,39 @@ const NSInteger PROModelErrorValidationFailed = 2;
         return NO;
 
     return [self.dictionaryValue isEqualToDictionary:model.dictionaryValue];
+}
+
+- (NSDictionary *)propertyListRepresentation {
+    NSMutableDictionary *encodedProperties = [NSMutableDictionary dictionary];
+    unsigned int outCount, i;
+    objc_property_t *propertyList = class_copyPropertyList([self class], &outCount);
+
+    for (i = 0; i < outCount; i++) {
+        objc_property_t property = propertyList[i];
+        NSString *propertyName = [[NSString alloc] initWithCString:property_getName(property) encoding:NSUTF8StringEncoding];
+
+        id (^propertyListRepresentationBlock)(id obj) = ^(id obj) {
+            return [obj respondsToSelector:@selector(propertyListRepresentation)] ? [obj propertyListRepresentation] : obj;
+        };
+
+        id propertyValue = [self valueForKey:propertyName];
+        if (propertyValue) {
+            if ([propertyValue respondsToSelector:@selector(propertyListRepresentation)]) {
+                propertyValue = [propertyValue dictionaryRepresentation];
+            } else if ([propertyValue isKindOfClass:[NSArray class]]) {
+                propertyValue = [propertyValue mapUsingBlock:propertyListRepresentationBlock];
+            } else if ([propertyValue isKindOfClass:[NSDictionary class]]) {
+                propertyValue = [propertyValue mapValuesUsingBlock:^id(id key, id obj) {
+                    return propertyListRepresentationBlock(obj);
+                }];
+            }
+
+            [encodedProperties setObject:propertyValue forKey:propertyName];
+        }
+    }
+
+    free(propertyList);
+    return [encodedProperties copy];
 }
 
 @end
