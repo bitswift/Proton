@@ -36,6 +36,8 @@
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
 @interface PROModelController ()
+@property (nonatomic, weak, readwrite) id parentModelController;
+
 /**
  * Automatically implements the appropriate KVC-compliant model controller
  * methods on the receiver for the given model controller key.
@@ -134,6 +136,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @synthesize dispatchQueue = m_dispatchQueue;
 @synthesize model = m_model;
 @synthesize modelControllerObservers = m_modelControllerObservers;
+@synthesize parentModelController = m_parentModelController;
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 @synthesize transformationLog = m_transformationLog;
 @synthesize uniqueIdentifier = m_uniqueIdentifier;
@@ -384,6 +387,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
         [self.dispatchQueue runSynchronously:^{
             [modelControllersArray(self) insertObject:controller atIndex:index];
+            controller.parentModelController = self;
 
             if (!self.modelControllerObservers)
                 self.modelControllerObservers = [[NSMutableArray alloc] init];
@@ -409,7 +413,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     id removeController = ^(PROModelController *self, NSUInteger index) {
         [self.dispatchQueue runSynchronously:^{
             NSMutableArray *controllers = modelControllersArray(self);
-            id controller = [controllers objectAtIndex:index];
+            PROModelController *controller = [controllers objectAtIndex:index];
 
             // find and tear down the observer first
             NSUInteger observerIndex = [self.modelControllerObservers
@@ -423,6 +427,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                 [self.modelControllerObservers removeObjectAtIndex:observerIndex];
 
             [controllers removeObjectAtIndex:index];
+            controller.parentModelController = nil;
         }];
     };
 
@@ -628,6 +633,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     if (!self)
         return nil;
 
+    self.parentModelController = [coder decodeObjectForKey:PROKeyForObject(self, parentModelController)];
+
     // replace the UUID created in -init
     m_uniqueIdentifier = [decodedIdentifier copy];
 
@@ -687,6 +694,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     if (self.transformationLog)
         [coder encodeObject:self.transformationLog forKey:PROKeyForObject(self, transformationLog)];
+
+    if (self.parentModelController)
+        [coder encodeConditionalObject:self.parentModelController forKey:PROKeyForObject(self, parentModelController)];
 }
 
 #pragma mark NSKeyValueObserving
@@ -720,21 +730,15 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         return NO;
     }
 
+    if (self.parentModelController != controller.parentModelController) {
+        return NO;
+    }
+
     if (!NSEqualObjects(self.model, controller.model)) {
         return NO;
     }
 
-    __block BOOL equal = YES;
-
-    // recursively compare model controllers
-    [[[self class] modelControllerKeysByModelKeyPath] enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        if (!NSEqualObjects([self valueForKey:modelControllerKey], [controller valueForKey:modelControllerKey])) {
-            equal = NO;
-            *stop = YES;
-        }
-    }];
-
-    return equal;
+    return YES;
 }
 
 @end

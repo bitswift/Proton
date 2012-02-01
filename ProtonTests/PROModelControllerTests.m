@@ -112,6 +112,26 @@ SpecBegin(PROModelController)
             expect(observerInvoked).toBeTruthy();
         });
 
+        it(@"should not have a parent model controller by default", ^{
+            expect(controller.parentModelController).toBeNil();
+        });
+
+        it(@"should have a parent model controller after being added to one", ^{
+            controller.model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+
+            TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+            expect(subController.parentModelController).toEqual(controller);
+        });
+
+        it(@"should unset parent model controller after being removed from one", ^{
+            controller.model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+
+            TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+            controller.model = [[TestSuperModel alloc] init];
+
+            expect(subController.parentModelController).toBeNil();
+        });
+
         describe(@"model controller with unique identifier", ^{
             before(^{
                 controller.model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
