@@ -85,6 +85,12 @@
  */
 
 /**
+ * The model controller managing this model controller, or `nil` if this model
+ * controller is the root of the hierarchy.
+ */
+@property (nonatomic, weak, readonly) id parentModelController;
+
+/**
  * Implemented by subclasses to return a dictionary indicating the classes of
  * model controllers managed on the receiver.
  *
