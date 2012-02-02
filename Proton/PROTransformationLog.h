@@ -12,8 +12,12 @@
 @class PROTransformation;
 
 /**
- * Private class used to implement the transformation log for
- * <PROModelController>.
+ * Represents a log of <PROTransformation> objects.
+ *
+ * This log is an optionally size-limited list of transformations that record
+ * changes to an object over time. At any time, a <PROMultipleTransformation>
+ * can be constructed from a range of the log, and used to "play back" changes
+ * to the transformed object.
  *
  * This class is not thread-safe.
  */
