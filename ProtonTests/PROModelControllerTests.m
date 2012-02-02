@@ -394,7 +394,6 @@ SpecBegin(PROModelController)
                 expect(model).not.toEqual(controller.model);
             });
 
-            #if 0
             it(@"should restore past model given past log entry", ^{
                 id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
@@ -419,7 +418,6 @@ SpecBegin(PROModelController)
                 expect([controller restoreModelFromTransformationLogEntry:futureLogEntry]).toBeTruthy();
                 expect(controller.model).not.toEqual(originalModel);
             });
-            #endif
 
             describe(@"transformation log trimming", ^{
                 before(^{
@@ -440,7 +438,6 @@ SpecBegin(PROModelController)
                     expect([controller modelWithTransformationLogEntry:logEntry]).toBeNil();
                 });
 
-                #if 0
                 it(@"should not restore past model if log entry was removed", ^{
                     id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
@@ -462,7 +459,6 @@ SpecBegin(PROModelController)
 
                     expect([controller restoreModelFromTransformationLogEntry:futureLogEntry]).toBeFalsy();
                 });
-                #endif
 
                 it(@"should invoke block before removing log entry", ^{
                     __block BOOL blockInvoked = NO;
