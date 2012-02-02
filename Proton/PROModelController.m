@@ -603,6 +603,10 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return oldModel;
 }
 
+- (BOOL)restoreModelFromTransformationLogEntry:(id<NSCoding, NSCopying>)transformationLogEntry; {
+    return NO;
+}
+
 - (void)transformationLogWillRemoveLogEntry:(id)logEntry; {
     // we should already be on the dispatch queue, but just in case...
     [self.dispatchQueue runSynchronously:^{

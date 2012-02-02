@@ -216,12 +216,13 @@
  * entry is about to be removed.
  *
  * The transformation log entry is an opaque object that can later be passed to
- * <modelWithTransformationLogEntry:> to replay the transformation log to the
+ * <modelWithTransformationLogEntry:> or
+ * <restoreModelFromTransformationLogEntry:> to retrieve the model at the
  * current point, as long as enough of the log remains to do so. Because the
  * transformation log will be trimmed when the <transformationLogLimit> is
  * exceeded, the log entry returned may not actually be replayable later.
  * `block` will be invoked before the log entry is removed, providing the
- * opportunity to retrieve any information that needs to be saved.
+ * opportunity to preserve any information that needs to be saved.
  *
  * @param modelPointer If not `NULL`, this will be set to the current <model>.
  * It is not safe to retrieve the log entry and model in separate steps, as
@@ -247,6 +248,22 @@
  * <transformationLogEntryWithModelPointer:> or
  * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
  */
-- (id)modelWithTransformationLogEntry:(id)transformationLogEntry;
+- (id)modelWithTransformationLogEntry:(id<NSCoding, NSCopying>)transformationLogEntry;
+
+/**
+ * Atomically replaces the receiver's <model> with the version that corresponds
+ * to the given log entry. Returns `YES` on success, or `NO` if the entry no
+ * longer exists in the log.
+ *
+ * This method is better suited to undo and redo than
+ * <modelWithTransformationLogEntry:>, since this method can rewind or
+ * fast-forward the transformation log to the given point without actually
+ * modifying the log (as would happen from setting the receiver's <model>).
+ *
+ * @param transformationLogEntry An object previously returned from
+ * <transformationLogEntryWithModelPointer:> or
+ * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ */
+- (BOOL)restoreModelFromTransformationLogEntry:(id<NSCoding, NSCopying>)transformationLogEntry;
 
 @end
