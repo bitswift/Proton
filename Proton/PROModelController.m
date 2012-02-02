@@ -605,7 +605,31 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (BOOL)restoreModelFromTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
-    return NO;
+    NSParameterAssert(transformationLogEntry != nil);
+
+    __block BOOL success = NO;
+
+    [self.dispatchQueue runSynchronously:^{
+        PROTransformation *transformationFromOldModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
+        if (!transformationFromOldModel)
+            return;
+
+        PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
+        PROModel *oldModel = [transformationToOldModel transform:self.model error:NULL];
+        if (!PROAssert(oldModel, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
+            return;
+
+        if (![self.transformationLog moveToLogEntry:transformationLogEntry])
+            return;
+
+        // TODO: this should try to restore the model controllers that existed
+        // at the time of the specified log entries
+        [self setModel:oldModel replacingModelControllers:YES];
+
+        success = YES;
+    }];
+
+    return success;
 }
 
 - (void)transformationLogWillRemoveLogEntry:(PROTransformationLogEntry *)logEntry; {
