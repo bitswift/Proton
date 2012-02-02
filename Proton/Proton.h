@@ -36,6 +36,7 @@
 #import <Proton/PROTransformer.h>
 #import <Proton/PROTransformation.h>
 #import <Proton/PROTransformationLog.h>
+#import <Proton/PROTransformationLogEntry.h>
 #import <Proton/PROUniqueIdentifier.h>
 #import <Proton/PROUniqueTransformation.h>
 
