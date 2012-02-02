@@ -312,6 +312,20 @@ SpecBegin(PROModelController)
         });
 
         describe(@"transformation log", ^{
+            __block PROModel *originalModel;
+
+            // a transformation which can be performed to add to the log
+            __block PROTransformation *transformation;
+
+            before(^{
+                originalModel = controller.model;
+
+                PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:[[TestSubModel alloc] init]];
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+                expect([transformation transform:controller.model error:NULL]).not.toEqual(originalModel);
+            });
+
             it(@"should default transformation log limit to 50", ^{
                 expect(controller.transformationLogLimit).toEqual(50);
             });
@@ -369,10 +383,6 @@ SpecBegin(PROModelController)
 
             it(@"should return past model given past log entry", ^{
                 id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
-                TestSuperModel *originalModel = controller.model;
-
-                NSArray *subModels = [NSArray arrayWithObject:[[TestSubModel alloc] init]];
-                PROTransformation *transformation = [controller.model transformationForKey:PROKeyForObject(controller.model, subModels) value:subModels];
 
                 // perform a transformation, to update the log
                 expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
@@ -384,24 +394,39 @@ SpecBegin(PROModelController)
                 expect(model).not.toEqual(controller.model);
             });
 
+            #if 0
+            it(@"should restore past model given past log entry", ^{
+                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                // perform a transformation, to update the log
+                expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+                
+                expect([controller restoreModelFromTransformationLogEntry:logEntry]).toBeTruthy();
+                expect(controller.model).toEqual(originalModel);
+            });
+
+            it(@"should restore future model given future log entry", ^{
+                id pastLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+                id futureLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                expect(pastLogEntry).not.toEqual(futureLogEntry);
+
+                expect([controller restoreModelFromTransformationLogEntry:pastLogEntry]).toBeTruthy();
+                expect(controller.model).toEqual(originalModel);
+
+                expect([controller restoreModelFromTransformationLogEntry:futureLogEntry]).toBeTruthy();
+                expect(controller.model).not.toEqual(originalModel);
+            });
+            #endif
+
             describe(@"transformation log trimming", ^{
-                __block PROModel *originalModel;
-
-                // a transformation which can be performed to add to the log
-                __block PROTransformation *transformation;
-
                 before(^{
-                    originalModel = controller.model;
-
                     // only include one transformation in the log, for testing
                     // purposes
                     controller.transformationLogLimit = 1;
                     expect(controller.transformationLogLimit).toEqual(1);
-
-                    PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:[[TestSubModel alloc] init]];
-                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
-
-                    expect([transformation transform:controller.model error:NULL]).not.toEqual(controller.model);
                 });
 
                 it(@"should not return past model if log entry was removed", ^{
@@ -414,6 +439,30 @@ SpecBegin(PROModelController)
 
                     expect([controller modelWithTransformationLogEntry:logEntry]).toBeNil();
                 });
+
+                #if 0
+                it(@"should not restore past model if log entry was removed", ^{
+                    id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                    [controller performTransformation:transformation error:NULL];
+                    [controller performTransformation:transformation error:NULL];
+
+                    expect([controller restoreModelFromTransformationLogEntry:logEntry]).toBeFalsy();
+                    expect(controller.model).toEqual(originalModel);
+                });
+
+                it(@"should not restore future model if log entry was removed", ^{
+                    id pastLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                    [controller performTransformation:transformation error:NULL];
+                    id futureLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                    expect([controller restoreModelFromTransformationLogEntry:pastLogEntry]).toBeTruthy();
+                    [controller performTransformation:transformation error:NULL];
+
+                    expect([controller restoreModelFromTransformationLogEntry:futureLogEntry]).toBeFalsy();
+                });
+                #endif
 
                 it(@"should invoke block before removing log entry", ^{
                     __block BOOL blockInvoked = NO;
