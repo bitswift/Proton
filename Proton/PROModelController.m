@@ -22,6 +22,7 @@
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
 #import "PROTransformationLog.h"
+#import "PROTransformationLogEntry.h"
 #import "PROUniqueIdentifier.h"
 #import "PROUniqueTransformation.h"
 #import "SDQueue.h"
@@ -521,7 +522,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         }
 
         // update the transformation log before setting the new model
-        [self.transformationLog addLogEntryWithTransformation:transformation];
+        [self.transformationLog appendTransformation:transformation];
 
         // the below call to -updateModelController:… should replace our model
         // controllers if necessary
@@ -533,7 +534,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             // won't be 100%, since model controllers may already have
             // updated references, and we've already recorded the failing
             // transformation in the log
-            [self.transformationLog addLogEntryWithTransformation:transformation.reverseTransformation];
+            [self.transformationLog appendTransformation:transformation.reverseTransformation];
             [self setModel:oldModel replacingModelControllers:NO];
         }
     }];
@@ -555,7 +556,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             strongModel = self.model;
         }
 
-        logEntry = [self.transformationLog.nextLogEntry copy];
+        logEntry = [self.transformationLog.latestLogEntry copy];
 
         if (block) {
             void (^existingBlock)(void) = [self.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
@@ -588,7 +589,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     __block PROTransformation *transformationFromOldModel = nil;
 
     [self.dispatchQueue runSynchronously:^{
-        transformationFromOldModel = [self.transformationLog multipleTransformationStartingFromLogEntry:transformationLogEntry];
+        transformationFromOldModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
         if (transformationFromOldModel)
             currentModel = self.model;
     }];
