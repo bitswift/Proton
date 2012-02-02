@@ -106,7 +106,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  *
  * @param logEntry The log entry being removed.
  */
-- (void)transformationLogWillRemoveLogEntry:(id)logEntry;
+- (void)transformationLogWillRemoveLogEntry:(PROTransformationLogEntry *)logEntry;
 @end
 
 @implementation PROModelController
@@ -542,13 +542,13 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return success;
 }
 
-- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
+- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
     return [self transformationLogEntryWithModelPointer:modelPointer willRemoveLogEntryBlock:nil];
 }
 
-- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block; {
+- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block; {
     __block PROModel *strongModel = nil;
-    __block id<NSCoding, NSCopying> logEntry = nil;
+    __block PROTransformationLogEntry *logEntry = nil;
 
     [self.dispatchQueue runSynchronously:^{
         if (modelPointer) {
@@ -582,7 +582,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return logEntry;
 }
 
-- (id)modelWithTransformationLogEntry:(id)transformationLogEntry; {
+- (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
 
     __block PROModel *currentModel = nil;
@@ -604,11 +604,11 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return oldModel;
 }
 
-- (BOOL)restoreModelFromTransformationLogEntry:(id<NSCoding, NSCopying>)transformationLogEntry; {
+- (BOOL)restoreModelFromTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
     return NO;
 }
 
-- (void)transformationLogWillRemoveLogEntry:(id)logEntry; {
+- (void)transformationLogWillRemoveLogEntry:(PROTransformationLogEntry *)logEntry; {
     // we should already be on the dispatch queue, but just in case...
     [self.dispatchQueue runSynchronously:^{
         void (^willRemoveBlock)(void) = [self.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];

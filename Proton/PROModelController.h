@@ -10,6 +10,7 @@
 
 @class PROModel;
 @class PROTransformation;
+@class PROTransformationLogEntry;
 @class PROUniqueIdentifier;
 @class SDQueue;
 
@@ -208,14 +209,14 @@
  * It is not safe to retrieve the log entry and model in separate steps, as
  * another thread may make a change during that time.
  */
-- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer;
+- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer;
 
 /**
  * Atomically retrieves the latest transformation log entry and the current
  * version of the <model>, and saves the given block, to be invoked when the log
  * entry is about to be removed.
  *
- * The transformation log entry is an opaque object that can later be passed to
+ * The transformation log entry can later be passed to
  * <modelWithTransformationLogEntry:> or
  * <restoreModelFromTransformationLogEntry:> to retrieve the model at the
  * current point, as long as enough of the log remains to do so. Because the
@@ -233,7 +234,7 @@
  * @warning **Important:** Blocks provided to this method are not archived with
  * the model controller.
  */
-- (id<NSCoding, NSCopying>)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block;
+- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block;
 
 /**
  * Returns the version of the <model> that corresponds to the given
@@ -248,7 +249,7 @@
  * <transformationLogEntryWithModelPointer:> or
  * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
  */
-- (id)modelWithTransformationLogEntry:(id<NSCoding, NSCopying>)transformationLogEntry;
+- (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
 
 /**
  * Atomically replaces the receiver's <model> with the version that corresponds
@@ -264,6 +265,6 @@
  * <transformationLogEntryWithModelPointer:> or
  * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
  */
-- (BOOL)restoreModelFromTransformationLogEntry:(id<NSCoding, NSCopying>)transformationLogEntry;
+- (BOOL)restoreModelFromTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
 
 @end
