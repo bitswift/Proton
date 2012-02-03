@@ -155,8 +155,13 @@ SpecBegin(PROModelController)
         describe(@"successful transformations", ^{
             __block PROTransformation *transformation;
 
+            // can be set to verify the exact model controllers at each index
+            // unknown model controllers can be represented in here by NSNulls
+            __block NSArray *expectedSubModelControllers;
+
             before(^{
                 transformation = nil;
+                expectedSubModelControllers = nil;
             });
 
             after(^{
@@ -176,6 +181,16 @@ SpecBegin(PROModelController)
                     TestSubModelController *subController = [controller.subModelControllers objectAtIndex:index];
                     expect(subController.model).toEqual(subModel);
                 }];
+
+                if (expectedSubModelControllers) {
+                    [controller.subModelControllers enumerateObjectsUsingBlock:^(TestSubModelController *subController, NSUInteger index, BOOL *stop){
+                        TestSubModelController *expectedController = [expectedSubModelControllers objectAtIndex:index];
+                        if ([expectedController isEqual:[NSNull null]])
+                            return;
+
+                        expect(subController).toEqual(expectedController);
+                    }];
+                }
             });
 
             it(@"should perform a unique transformation", ^{
@@ -231,6 +246,12 @@ SpecBegin(PROModelController)
 
                 PROOrderTransformation *subModelsTransformation = [[PROOrderTransformation alloc] initWithStartIndex:0 endIndex:1];
                 transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+
+                expectedSubModelControllers = [NSArray arrayWithObjects:
+                    [controller.subModelControllers objectAtIndex:1],
+                    [controller.subModelControllers objectAtIndex:0],
+                    nil
+                ];
             });
 
             it(@"should perform a keyed + indexed transformation", ^{
@@ -247,6 +268,7 @@ SpecBegin(PROModelController)
                 PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
 
                 transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+                expectedSubModelControllers = [NSArray arrayWithObject:subController];
             });
 
             it(@"should perform a keyed + indexed + unique transformation", ^{
@@ -265,6 +287,7 @@ SpecBegin(PROModelController)
                 PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
 
                 transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(controller.model, subModels)];
+                expectedSubModelControllers = [NSArray arrayWithObject:subController];
             });
 
             it(@"should perform an insertion transformation followed by a removal transformation", ^{
@@ -276,6 +299,8 @@ SpecBegin(PROModelController)
 
                 controller.model = [[TestSuperModel alloc] initWithDictionary:[NSDictionary dictionaryWithObject:subModels forKey:PROKeyForObject(controller.model, subModels)] error:NULL];
 
+                NSArray *originalSubControllers = controller.subModelControllers;
+
                 // insertion
                 TestSubModel *newModel = [[TestSubModel alloc] initWithName:@"fizzbuzz"];
                 PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
@@ -286,6 +311,8 @@ SpecBegin(PROModelController)
                 expect(error).toBeNil();
 
                 expect([controller.subModelControllers count]).toEqual(3);
+                expect([controller.subModelControllers objectAtIndex:1]).toEqual([originalSubControllers objectAtIndex:0]);
+                expect([controller.subModelControllers objectAtIndex:2]).toEqual([originalSubControllers objectAtIndex:1]);
 
                 // removal
                 NSIndexSet *indexSet = [[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, 2)];
