@@ -74,6 +74,28 @@
         return nil;
     }
 
+    NSMutableArray *newArray = [array mutableCopy];
+    if ([self transformInPlace:&newArray error:error])
+        return [newArray copy];
+    else
+        return nil;
+}
+
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    NSParameterAssert(objPtr != NULL);
+
+    if (!self.removalIndexes)
+        return YES;
+
+    NSMutableArray *array = *objPtr;
+
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
+        return NO;
+    }
+
     NSUInteger count = [array count];
 
     // if the index set goes out of bounds, return nil
@@ -81,7 +103,7 @@
         if (error)
             *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.removalIndexes.lastIndex, array];
 
-        return nil;
+        return NO;
     }
 
     // if one or more objects doesn't match, return nil
@@ -90,13 +112,11 @@
         if (error)
             *error = [self errorWithCode:PROTransformationErrorMismatchedInput format:@"Array %@ does not have the expected objects at the indexes to be removed", array];
 
-        return nil;
+        return NO;
     }
 
-    NSMutableArray *newArray = [array mutableCopy];
-    [newArray removeObjectsAtIndexes:self.removalIndexes];
-
-    return [newArray copy];
+    [array removeObjectsAtIndexes:self.removalIndexes];
+    return YES;
 }
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
