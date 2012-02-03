@@ -549,13 +549,23 @@ SpecBegin(PROTransformation)
                 expect(equalTransformation).toEqual(transformation);
             });
 
-            it(@"transforms the input value to the output value", ^{
+            it(@"should transform the input value to the output value", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:startDictionary error:&error]).toEqual(endDictionary);
                 expect(error).toBeNil();
             });
 
-            it(@"treats missing values as NSNull", ^{
+            it(@"should not transform an object which is not a <PROKeyedObject>", ^{
+                __block NSError *error = nil;
+                expect([transformation transform:@"foobar" error:&error]).toBeNil();
+                expect(error).not.toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorUnsupportedInputType);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should treat missing values as NSNull", ^{
                 NSMutableDictionary *modifiedStartDictionary = [startDictionary mutableCopy];
 
                 // remove the key associated with NSNull
