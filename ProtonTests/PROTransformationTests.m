@@ -874,15 +874,38 @@ SpecBegin(PROTransformation)
                 expect(equalTransformation).toEqual(transformation);
             });
 
-            it(@"transforms the input value to the output value", ^{
+            it(@"should transform the input value to the output value", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:multipleStartValue error:&error]).toEqual(multipleEndValue);
                 expect(error).toBeNil();
             });
 
-            it(@"doesn't transform another value to the output value", ^{
+            it(@"should not transform another value to the output value", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:multipleMiddleValue error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+
+                NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+            });
+
+            it(@"should transform the input value to the output value in place", ^{
+                __block NSError *error = nil;
+                __block id value = multipleStartValue;
+
+                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                expect(value).toEqual(multipleEndValue);
+                expect(error).toBeNil();
+            });
+
+            it(@"should not transform another value to the output value in place", ^{
+                __block NSError *error = nil;
+                __block id value = multipleMiddleValue;
+
+                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                expect(value).toEqual(multipleMiddleValue);
 
                 expect(error.domain).toEqual([PROTransformation errorDomain]);
                 expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
