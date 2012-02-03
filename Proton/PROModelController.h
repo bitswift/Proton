@@ -259,7 +259,8 @@
  * This method is better suited to undo and redo than
  * <modelWithTransformationLogEntry:>, since this method can rewind or
  * fast-forward the transformation log to the given point without actually
- * modifying the log (as would happen from setting the receiver's <model>).
+ * modifying the _contents_ of the log (as would happen from setting the
+ * receiver's <model>, which adds a new transformation).
  *
  * @param transformationLogEntry An object previously returned from
  * <transformationLogEntryWithModelPointer:> or
