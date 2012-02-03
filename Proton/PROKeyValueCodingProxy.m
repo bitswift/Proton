@@ -7,39 +7,49 @@
 //
 
 #import "PROKeyValueCodingProxy.h"
+#import "EXTNil.h"
 
 @interface PROKeyValueCodingProxy ()
-@property (nonatomic, copy, readwrite) NSString *keyPath;
+@property (nonatomic, copy, readwrite) NSString *proxiedKeyPath;
+@property (nonatomic, strong, readwrite) id proxiedObject;
 @end
 
 @implementation PROKeyValueCodingProxy
 
 #pragma mark Properties
 
-@synthesize keyPath = m_keyPath;
+@synthesize proxiedKeyPath = m_proxiedKeyPath;
+@synthesize proxiedObject = m_proxiedObject;
 @synthesize setValueForKeyPathBlock = m_setValueForKeyPathBlock;
 @synthesize valueForKeyPathBlock = m_valueForKeyPathBlock;
 @synthesize mutableArrayValueForKeyPathBlock = m_mutableArrayValueForKeyPathBlock;
 
 #pragma mark Initialization
 
-- (id)init; {
-    return [self initWithKeyPath:nil];
+- (id)init {
+    return [self initWithProxiedObject:[EXTNil null]];
 }
 
-- (id)initWithKeyPath:(NSString *)keyPath; {
+- (id)initWithProxiedObject:(id)object; {
+    return [self initWithProxiedObject:object keyPath:nil];
+}
+
+- (id)initWithProxiedObject:(id)object keyPath:(NSString *)keyPath; {
+    NSParameterAssert(object != nil);
+
     self = [super init];
     if (!self)
         return nil;
 
-    self.keyPath = keyPath;
+    self.proxiedObject = object;
+    self.proxiedKeyPath = keyPath;
     return self;
 }
 
 #pragma mark Nested Proxies
 
-- (PROKeyValueCodingProxy *)proxyForKeyPath:(NSString *)keyPath; {
-    PROKeyValueCodingProxy *proxy = [[[self class] alloc] initWithKeyPath:keyPath];
+- (PROKeyValueCodingProxy *)proxyWithObject:(id)object keyPath:(NSString *)keyPath; {
+    PROKeyValueCodingProxy *proxy = [[[self class] alloc] initWithProxiedObject:object keyPath:keyPath];
 
     proxy.setValueForKeyPathBlock = self.setValueForKeyPathBlock;
     proxy.valueForKeyPathBlock = self.valueForKeyPathBlock;
@@ -85,6 +95,52 @@
         return self.valueForKeyPathBlock(keyPath);
     else
         return [super valueForKeyPath:keyPath];
+}
+
+#pragma mark Forwarding
+
+- (id)forwardingTargetForSelector:(SEL)selector {
+    return self.proxiedObject;
+}
+
+- (void)forwardInvocation:(NSInvocation *)invocation {
+    [invocation invokeWithTarget:self.proxiedObject];
+}
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
+    NSMethodSignature *signature = [[self class] instanceMethodSignatureForSelector:selector];
+    if (signature)
+        return signature;
+
+    return [self.proxiedObject methodSignatureForSelector:selector];
+}
+
+- (BOOL)respondsToSelector:(SEL)selector {
+    if ([[self class] instancesRespondToSelector:selector])
+        return YES;
+
+    return [self.proxiedObject respondsToSelector:selector];
+}
+
+#pragma mark NSObject overrides
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p object: %@>", [self class], (__bridge void *)self, self.proxiedObject];
+}
+
+- (NSUInteger)hash {
+    return [self.proxiedObject hash];
+}
+
+- (BOOL)isEqual:(id)obj {
+    if (self == obj)
+        return YES;
+
+    return [self.proxiedObject isEqual:obj];
+}
+
+- (BOOL)isProxy {
+    return YES;
 }
 
 @end
