@@ -146,6 +146,26 @@ SpecBegin(PROTransformationLog)
                 expect(transformation.transformations).toEqual([NSArray arrayWithObject:secondTransformation]);
             });
 
+            it(@"should return multiple transformations across different hierarchies of log entries", ^{
+                expect([log moveToLogEntry:rootEntry]).toBeTruthy();
+
+                [log appendTransformation:firstTransformation];
+
+                // this should transform from the other head of the log, up to
+                // the root, and then back down to the latest entry
+                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:lastEntry toLogEntry:log.latestLogEntry];
+                expect(transformation).not.toBeNil();
+
+                NSArray *expectedTransformations = [NSArray arrayWithObjects:
+                    secondTransformation.reverseTransformation,
+                    firstTransformation.reverseTransformation,
+                    firstTransformation,
+                    nil
+                ];
+
+                expect(transformation.transformations).toEqual(expectedTransformations);
+            });
+
             it(@"should move to the middle of the log", ^{
                 expect([log moveToLogEntry:middleEntry]).toBeTruthy();
                 expect(log.latestLogEntry).toEqual(middleEntry);

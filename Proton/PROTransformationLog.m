@@ -86,24 +86,50 @@
     NSParameterAssert(fromLogEntry != nil);
     NSParameterAssert(toLogEntry != nil);
 
-    NSMutableArray *transformations = [[NSMutableArray alloc] init];
-    PROTransformationLogEntry *currentEntry = toLogEntry;
+    PROTransformationLogEntry *commonAncestorEntry = toLogEntry;
 
-    while (![currentEntry isEqual:fromLogEntry]) {
+    while (![fromLogEntry isDescendantOfLogEntry:commonAncestorEntry]) {
+        commonAncestorEntry = commonAncestorEntry.parentLogEntry;
+        if (!commonAncestorEntry)
+            return nil;
+    }
+
+    NSMutableArray *transformations = [[NSMutableArray alloc] init];
+    PROTransformationLogEntry *currentEntry = fromLogEntry;
+
+    // accumulate reverse transformations from 'fromLogEntry' up to the common
+    // ancestor
+    while (![currentEntry isEqual:commonAncestorEntry]) {
         if (![self.logEntries containsObject:currentEntry]) {
-            // the entry we're about to retrieve the transformation for does not
-            // exist in the log
             return nil;
         }
 
         PROTransformation *transformation = [self.transformationsByLogEntry objectForKey:currentEntry];
         if (transformation)
-            [transformations insertObject:transformation atIndex:0];
+            [transformations addObject:transformation.reverseTransformation];
 
         currentEntry = currentEntry.parentLogEntry;
-        if (!currentEntry) {
+        NSAssert(currentEntry, @"Parent entry should not be nil after already finding a common ancestor");
+    }
+
+    // then accumulate forward transformations from the common ancestor down to
+    // 'toLogEntry' (but we have to traverse in the opposite direction, so
+    // insert in reverse order)
+    
+    NSUInteger insertIndex = transformations.count;
+
+    currentEntry = toLogEntry;
+    while (![currentEntry isEqual:commonAncestorEntry]) {
+        if (![self.logEntries containsObject:currentEntry]) {
             return nil;
         }
+
+        PROTransformation *transformation = [self.transformationsByLogEntry objectForKey:currentEntry];
+        if (transformation)
+            [transformations insertObject:transformation atIndex:insertIndex];
+
+        currentEntry = currentEntry.parentLogEntry;
+        NSAssert(currentEntry, @"Parent entry should not be nil after already finding a common ancestor");
     }
 
     return [[PROMultipleTransformation alloc] initWithTransformations:transformations];
