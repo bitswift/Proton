@@ -225,15 +225,42 @@ SpecBegin(PROTransformation)
                 expect(equalTransformation).toEqual(transformation);
             });
 
-            it(@"transforms the input value to the output value", ^{
+            it(@"should transform the input value to the output value", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:startArray error:&error]).toEqual(endArray);
                 expect(error).toBeNil();
             });
 
-            it(@"doesn't transform out of bounds indexes", ^{
+            it(@"should not transform out of bounds indexes", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should transform the input value to the output value in place", ^{
+                NSMutableArray *mutableArray = [startArray mutableCopy];
+
+                __block NSError *error = nil;
+                __block id value = mutableArray;
+
+                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                expect(value).toEqual(endArray);
+                expect(error).toBeNil();
+
+                // the transformation should've mutated the array, not created
+                // a new one
+                expect(mutableArray).toEqual(endArray);
+            });
+
+            it(@"should not transform out of bounds indexes in place", ^{
+                __block NSError *error = nil;
+                __block id value = [NSArray array];
+
+                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                expect(value).toEqual([NSArray array]);
 
                 expect(error.domain).toEqual([PROTransformation errorDomain]);
                 expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
@@ -246,6 +273,49 @@ SpecBegin(PROTransformation)
                 __block NSError *error = nil;
                 expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
                 expect(error).toBeNil();
+            });
+        });
+
+        describe(@"nested array transformations in place", ^{
+            __block PROTransformation *arrayTransformation;
+
+            before(^{
+                arrayTransformation = nil;
+            });
+
+            after(^{
+                expect(arrayTransformation).not.toBeNil();
+
+                NSMutableArray *items = [NSMutableArray arrayWithObject:@"foobar"];
+                __block NSMutableArray *array = [NSMutableArray arrayWithObject:items];
+
+                NSArray *expectedArray = [arrayTransformation transform:items error:NULL];
+                expect(expectedArray).not.toBeNil();
+
+                transformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:arrayTransformation];
+                expect(transformation).not.toBeNil();
+    
+                __block NSError *error = nil;
+                expect([transformation transformInPlace:&array error:&error]).toBeTruthy();
+                expect(error).toBeNil();
+
+                expect([array objectAtIndex:0]).toEqual(expectedArray);
+
+                // should've mutated the array, not created a new one
+                expect(items).toEqual(expectedArray);
+            });
+
+            it(@"should perform an indexed transformation in place at the index", ^{
+                PROTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foobar" outputValue:@"fizzbuzz"];
+                arrayTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:uniqueTransformation];
+            });
+
+            it(@"should perform an insertion transformation in place at the index", ^{
+                arrayTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:1 object:@"fizzbuzz"];
+            });
+
+            it(@"should perform a removal transformation in place at the index", ^{
+                arrayTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:@"foobar"];
             });
         });
     });
