@@ -70,7 +70,7 @@
 
 - (NSMutableArray *)mutableArrayValueForKeyPath:(NSString *)keyPath {
     if (self.mutableArrayValueForKeyPathBlock)
-        return self.mutableArrayValueForKeyPathBlock(keyPath);
+        return self.mutableArrayValueForKeyPathBlock(self, keyPath);
     else
         return [super mutableArrayValueForKeyPath:keyPath];
 }
@@ -81,7 +81,7 @@
 
 - (void)setValue:(id)value forKeyPath:(NSString *)keyPath {
     if (self.setValueForKeyPathBlock)
-        self.setValueForKeyPathBlock(value, keyPath);
+        self.setValueForKeyPathBlock(self, value, keyPath);
     else
         [super setValue:value forKeyPath:keyPath];
 }
@@ -92,7 +92,7 @@
 
 - (id)valueForKeyPath:(NSString *)keyPath {
     if (self.valueForKeyPathBlock)
-        return self.valueForKeyPathBlock(keyPath);
+        return self.valueForKeyPathBlock(self, keyPath);
     else
         return [super valueForKeyPath:keyPath];
 }

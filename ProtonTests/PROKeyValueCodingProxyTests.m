@@ -52,11 +52,15 @@ SpecBegin(PROKeyValueCodingProxy)
                 nil
             ];
 
-            proxy.setValueForKeyPathBlock = ^(id value, NSString *keyPath){
+            proxy.setValueForKeyPathBlock = ^(PROKeyValueCodingProxy *proxy, id value, NSString *keyPath){
+                expect(proxy).not.toBeNil();
+
                 [dictionary setValue:value forKeyPath:keyPath];
             };
 
-            proxy.valueForKeyPathBlock = ^(NSString *keyPath){
+            proxy.valueForKeyPathBlock = ^(PROKeyValueCodingProxy *proxy, NSString *keyPath){
+                expect(proxy).not.toBeNil();
+
                 id value = [dictionary valueForKeyPath:keyPath];
                 if (value)
                     return value;
@@ -71,7 +75,8 @@ SpecBegin(PROKeyValueCodingProxy)
                 return nestedProxy;
             };
 
-            proxy.mutableArrayValueForKeyPathBlock = ^(NSString *keyPath){
+            proxy.mutableArrayValueForKeyPathBlock = ^(PROKeyValueCodingProxy *proxy, NSString *keyPath){
+                expect(proxy).not.toBeNil();
                 return [dictionary mutableArrayValueForKeyPath:keyPath];
             };
         });

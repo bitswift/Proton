@@ -86,7 +86,7 @@
  * This key path passed to this block will be the key or key path provided with
  * the message, appended to the receiver's `keyPath`.
  */
-@property (nonatomic, copy) void (^setValueForKeyPathBlock)(id value, NSString *keyPath);
+@property (nonatomic, copy) void (^setValueForKeyPathBlock)(PROKeyValueCodingProxy *proxy, id value, NSString *keyPath);
 
 /**
  * If not `nil`, invoked when a `valueForKey:` or `valueForKeyPath:` message is
@@ -95,7 +95,7 @@
  * This key path passed to this block will be the key or key path provided with
  * the message, appended to the receiver's `keyPath`.
  */
-@property (nonatomic, copy) id (^valueForKeyPathBlock)(NSString *keyPath);
+@property (nonatomic, copy) id (^valueForKeyPathBlock)(PROKeyValueCodingProxy *proxy, NSString *keyPath);
 
 /**
  * If not `nil`, invoked when a `mutableArrayValueForKey:` or
@@ -104,6 +104,6 @@
  * This key path passed to this block will be the key or key path provided with
  * the message, appended to the receiver's `keyPath`.
  */
-@property (nonatomic, copy) NSMutableArray *(^mutableArrayValueForKeyPathBlock)(NSString *keyPath);
+@property (nonatomic, copy) NSMutableArray *(^mutableArrayValueForKeyPathBlock)(PROKeyValueCodingProxy *proxy, NSString *keyPath);
 
 @end
