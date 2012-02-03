@@ -89,15 +89,36 @@ SpecBegin(PROTransformation)
                 expect([transformation outputValue]).toEqual(uniqueOutputValue);
             });
 
-            it(@"transforms the input value to the output value", ^{
+            it(@"should transform the input value to the output value", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:uniqueInputValue error:&error]).toEqual(uniqueOutputValue);
                 expect(error).toBeNil();
             });
 
-            it(@"doesn't transform another value to the output value", ^{
+            it(@"should not transform another value to the output value", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:uniqueOutputValue error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should transform the input value to the output value in place", ^{
+                __block NSError *error = nil;
+                __block id value = uniqueInputValue;
+
+                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                expect(value).toEqual(uniqueOutputValue);
+                expect(error).toBeNil();
+            });
+
+            it(@"should not transform another value to the output value in place", ^{
+                __block NSError *error = nil;
+                __block id value = uniqueOutputValue;
+
+                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                expect(value).toEqual(uniqueOutputValue);
 
                 expect(error.domain).toEqual([PROTransformation errorDomain]);
                 expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
