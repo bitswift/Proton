@@ -444,8 +444,10 @@ SpecBegin(PROModelController)
                     [controller performTransformation:transformation error:NULL];
                     [controller performTransformation:transformation error:NULL];
 
+                    PROModel *model = controller.model;
+
                     expect([controller restoreModelFromTransformationLogEntry:logEntry]).toBeFalsy();
-                    expect(controller.model).toEqual(originalModel);
+                    expect(controller.model).toEqual(model);
                 });
 
                 it(@"should not restore future model if log entry was removed", ^{
