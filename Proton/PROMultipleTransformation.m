@@ -77,6 +77,35 @@
     return currentValue;
 }
 
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    __block id obj = *objPtr;
+    __block NSError *strongError = nil;
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger index, BOOL *stop){
+        if (![transformation transformInPlace:&obj error:&strongError]) {
+            if (error) {
+                NSString *path = [NSString stringWithFormat:@"multipleTransformation(%lu).", (unsigned long)index];
+                strongError = [self prependTransformationPath:path toError:strongError];
+            }
+
+            obj = nil;
+            *stop = YES;
+            return;
+        }
+    }];
+
+    if (strongError && error) {
+        *error = strongError;
+    }
+
+    if (obj) {
+        *objPtr = obj;
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);

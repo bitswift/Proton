@@ -62,17 +62,27 @@
 #pragma mark Transformation
 
 - (id)transform:(id)obj error:(NSError **)error; {
-    if (!self.inputValue)
+    if ([self transformInPlace:&obj error:error])
         return obj;
-
-    if (![self.inputValue isEqual:obj]) {
-        if (error)
-            *error = [self errorWithCode:PROTransformationErrorMismatchedInput format:@"Input value %@ is not equal to expected value", obj];
-
+    else
         return nil;
+}
+
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    NSParameterAssert(objPtr != NULL);
+
+    if (!self.inputValue)
+        return YES;
+
+    if (![self.inputValue isEqual:*objPtr]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorMismatchedInput format:@"Input value %@ is not equal to expected value", *objPtr];
+
+        return NO;
     }
 
-    return self.outputValue;
+    *objPtr = self.outputValue;
+    return YES;
 }
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {

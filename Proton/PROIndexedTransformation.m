@@ -14,6 +14,25 @@
 #import "PROModelController.h"
 #import "PROModelControllerPrivate.h"
 
+@interface PROIndexedTransformation ()
+/**
+ * Transforms the given array in-place, optionally also mutating the actual
+ * indexes of the array in-place as well.
+ *
+ * @param objPtr A pointer to the object to attempt to transform. This may be
+ * set if the transformation cannot be performed in-place. This pointer should
+ * not be `NULL`, nor should the object it points to be `nil`. **If the
+ * transformation fails, this object may be left in an invalid state.**
+ * @param deeplyMutable Whether indexes of the array are expected to be mutable,
+ * and should thus be modified in-place as well.
+ * @param error If not `NULL`, and this method returns `NO`, this is set to the
+ * error that occurred if the receiver (or one of its <transformations>) failed.
+ * **This error should not be presented to the user**, as it is unlikely to
+ * contain useful information for them.
+ */
+- (BOOL)transformInPlace:(id *)objPtr deeplyMutable:(BOOL)deeplyMutable error:(NSError **)error;
+@end
+
 @implementation PROIndexedTransformation
 
 #pragma mark Properties
@@ -73,6 +92,32 @@
         return nil;
     }
 
+    NSMutableArray *newArray = [array mutableCopy];
+    if ([self transformInPlace:&newArray deeplyMutable:NO error:error])
+        return [newArray copy];
+    else
+        return nil;
+}
+
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    return [self transformInPlace:objPtr deeplyMutable:YES error:error];
+}
+
+- (BOOL)transformInPlace:(id *)objPtr deeplyMutable:(BOOL)deeplyMutable error:(NSError **)error; {
+    NSParameterAssert(objPtr != NULL);
+
+    if (!self.indexes)
+        return YES;
+
+    NSMutableArray *array = *objPtr;
+
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
+        return NO;
+    }
+
     NSUInteger arrayCount = [array count];
 
     // if the index set goes out of bounds, return nil
@@ -80,7 +125,7 @@
         if (error)
             *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.indexes.lastIndex, array];
 
-        return nil;
+        return NO;
     }
 
     NSUInteger indexCount = [self.indexes count];
@@ -89,7 +134,7 @@
     // retrieve values from it one-by-one
     NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
     if (!PROAssert(indexes, @"Could not allocate memory for %lu indexes", (unsigned long)indexCount)) {
-        return nil;
+        return NO;
     }
 
     @onExit {
@@ -98,16 +143,24 @@
 
     [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
 
-    __block NSMutableArray *newArray = [array mutableCopy];
+    __block BOOL success = YES;
     __block NSError *strongError = nil;
 
     [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
         NSUInteger index = indexes[setIndex];
         id inputValue = [array objectAtIndex:index];
 
-        id result = [transformation transform:inputValue error:&strongError];
-        if (!result) {
-            newArray = nil;
+        id newValue;
+
+        if (deeplyMutable) {
+            newValue = inputValue;
+            success = [transformation transformInPlace:&newValue error:&strongError];
+        } else {
+            newValue = [transformation transform:inputValue error:&strongError];
+            success = (newValue != nil);
+        }
+
+        if (!success) {
             *stop = YES;
 
             if (strongError) {
@@ -118,14 +171,15 @@
             return;
         }
 
-        [newArray replaceObjectAtIndex:index withObject:result];
+        if (newValue != inputValue)
+            [array replaceObjectAtIndex:index withObject:newValue];
     }];
 
     if (error && strongError) {
         *error = strongError;
     }
 
-    return [newArray copy];
+    return success;
 }
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {

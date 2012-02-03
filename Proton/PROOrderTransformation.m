@@ -69,54 +69,46 @@
         return nil;
     }
 
+    NSMutableArray *newArray = [array mutableCopy];
+    if ([self transformInPlace:&newArray error:error])
+        return [newArray copy];
+    else
+        return nil;
+}
+
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    if (!self.startIndexes)
+        return YES;
+
+    NSMutableArray *array = *objPtr;
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
+        return NO;
+    }
+
     // if either index set goes out of bounds, return nil
     NSUInteger count = [array count];
     if ([self.startIndexes lastIndex] >= count) {
         if (error)
             *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.startIndexes.lastIndex, array];
 
-        return nil;
+        return NO;
     }
 
     if ([self.endIndexes lastIndex] >= count) {
         if (error)
             *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.endIndexes.lastIndex, array];
 
-        return nil;
+        return NO;
     }
 
-    NSMutableArray *newArray = [[NSMutableArray alloc] initWithCapacity:count];
+    NSArray *objectsFromIndexes = [array objectsAtIndexes:self.startIndexes];
+    [array removeObjectsAtIndexes:self.startIndexes];
+    [array insertObjects:objectsFromIndexes atIndexes:self.endIndexes];
 
-    [array enumerateObjectsUsingBlock:^(id obj, NSUInteger originalIndex, BOOL *stop){
-        // if this index isn't moved,
-        if (![self.startIndexes containsIndex:originalIndex]) {
-            // add the object into the new array
-            [newArray addObject:obj];
-        }
-    }];
-
-    NSUInteger indexCount = [self.startIndexes count];
-    NSAssert(indexCount == [self.endIndexes count], @"%@ should have the same number of start and end indexes", self);
-
-    // we have to copy the indexes into C arrays, since there's no way to
-    // retrieve values from them one-by-one
-    NSUInteger startIndexes[indexCount];
-    [self.startIndexes getIndexes:startIndexes maxCount:indexCount inIndexRange:nil];
-
-    NSUInteger endIndexes[indexCount];
-    [self.endIndexes getIndexes:endIndexes maxCount:indexCount inIndexRange:nil];
-
-    // for every index that was moved, insert the objects into the proper
-    // place after the fact
-    for (NSUInteger setIndex = 0; setIndex < indexCount; ++setIndex) {
-        NSUInteger originalIndex = startIndexes[setIndex];
-        NSUInteger newIndex = endIndexes[setIndex];
-
-        id obj = [array objectAtIndex:originalIndex];
-        [newArray insertObject:obj atIndex:newIndex];
-    }
-
-    return [newArray copy];
+    return YES;
 }
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
