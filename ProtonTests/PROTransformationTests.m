@@ -12,6 +12,15 @@
 @property (nonatomic, copy) NSArray *array;
 @end
 
+// implements KVC mutable to-many accessors for an "items" key, but doesn't
+// provide an actual property
+@interface TransformationInPlaceTestObject : NSObject {
+@public
+    NSMutableArray *m_items;
+}
+
+@end
+
 SpecBegin(PROTransformation)
     __block id transformation = nil;
 
@@ -736,6 +745,21 @@ SpecBegin(PROTransformation)
                 expect(error).toBeNil();
             });
 
+            it(@"should transform the input value to the output value in place", ^{
+                NSMutableDictionary *mutableStartDictionary = [startDictionary mutableCopy];
+
+                __block NSError *error = nil;
+                __block id value = mutableStartDictionary;
+
+                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                expect(value).toEqual(endDictionary);
+                expect(error).toBeNil();
+
+                // the transformation should've mutated the dictionary, not
+                // created a new one
+                expect(mutableStartDictionary).toEqual(endDictionary);
+            });
+
             it(@"should return a reverse transformation which does the opposite", ^{
                 PROTransformation *reverseTransformation = [transformation reverseTransformation];
 
@@ -758,6 +782,51 @@ SpecBegin(PROTransformation)
             __block NSError *error = nil;
             expect([transformation transform:model error:&error]).toEqual(expectedModel);
             expect(error).toBeNil();
+        });
+
+        describe(@"array transformations in place", ^{
+            __block PROTransformation *arrayTransformation;
+
+            before(^{
+                arrayTransformation = nil;
+            });
+
+            after(^{
+                expect(arrayTransformation).not.toBeNil();
+
+                __block TransformationInPlaceTestObject *model = [[TransformationInPlaceTestObject alloc] init];
+
+                NSMutableArray *items = model->m_items;
+                [items addObject:@"foobar"];
+
+                NSArray *expectedArray = [arrayTransformation transform:items error:NULL];
+                expect(expectedArray).not.toBeNil();
+
+                transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"items"];
+                expect(transformation).not.toBeNil();
+    
+                __block NSError *error = nil;
+                expect([transformation transformInPlace:&model error:&error]).toBeTruthy();
+                expect(error).toBeNil();
+
+                expect(model->m_items).toEqual(expectedArray);
+
+                // should've mutated the array, not created a new one
+                expect(items).toEqual(expectedArray);
+            });
+
+            it(@"should perform an indexed transformation in place on the key", ^{
+                PROTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foobar" outputValue:@"fizzbuzz"];
+                arrayTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:uniqueTransformation];
+            });
+
+            it(@"should perform an insertion transformation in place on the key", ^{
+                arrayTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:1 object:@"fizzbuzz"];
+            });
+
+            it(@"should perform a removal transformation in place on the key", ^{
+                arrayTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:@"foobar"];
+            });
         });
     });
 
@@ -955,4 +1024,41 @@ SpecEnd
 
 @implementation TransformationTestModel
 @synthesize array = m_array;
+@end
+
+@implementation TransformationInPlaceTestObject
+
+#pragma mark Initialization
+
+- (id)init {
+    self = [super init];
+    if (!self)
+        return nil;
+
+    m_items = [[NSMutableArray alloc] init];
+    return self;
+}
+
+#pragma mark NSKeyValueCoding
+
++ (BOOL)accessInstanceVariablesDirectly {
+    return NO;
+}
+
+- (NSUInteger)countOfItems {
+    return m_items.count;
+}
+
+- (NSArray *)itemsAtIndexes:(NSIndexSet *)indexes {
+    return [m_items objectsAtIndexes:indexes];
+}
+
+- (void)insertItems:(NSArray *)items atIndexes:(NSIndexSet *)indexes {
+    [m_items insertObjects:items atIndexes:indexes];
+}
+
+- (void)removeItemsAtIndexes:(NSIndexSet *)indexes {
+    [m_items removeObjectsAtIndexes:indexes];
+}
+
 @end
