@@ -27,6 +27,12 @@
     return nil;
 }
 
+#pragma mark Nested Proxies
+
+- (PROKeyValueCodingProxy *)proxyForKeyPath:(NSString *)keyPath; {
+    return nil;
+}
+
 #pragma mark NSKeyValueCoding
 
 #pragma mark NSObject overrides

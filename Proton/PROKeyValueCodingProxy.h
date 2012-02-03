@@ -48,6 +48,14 @@
 @property (nonatomic, copy, readonly) NSString *keyPath;
 
 /**
+ * Creates and returns a new proxy object with the given <keyPath> and the same
+ * callback blocks as the receiver.
+ *
+ * @param keyPath The key path to pass to <initWithKeyPath:>.
+ */
+- (PROKeyValueCodingProxy *)proxyForKeyPath:(NSString *)keyPath;
+
+/**
  * @name Key-Value Coding Callbacks
  */
 
