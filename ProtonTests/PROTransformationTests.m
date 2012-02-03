@@ -402,15 +402,42 @@ SpecBegin(PROTransformation)
                 expect(equalTransformation).toEqual(transformation);
             });
 
-            it(@"transforms the input value to the output value", ^{
+            it(@"should transform the input value to the output value", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:startArray error:&error]).toEqual(endArray);
                 expect(error).toBeNil();
             });
 
-            it(@"doesn't transform out of bounds indexes", ^{
+            it(@"should not transform out of bounds indexes", ^{
                 __block NSError *error = nil;
                 expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+
+                expect(error.domain).toEqual([PROTransformation errorDomain]);
+                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+            });
+
+            it(@"should transform the input value to the output value in place", ^{
+                NSMutableArray *mutableArray = [startArray mutableCopy];
+
+                __block NSError *error = nil;
+                __block id value = mutableArray;
+
+                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                expect(value).toEqual(endArray);
+                expect(error).toBeNil();
+
+                // the transformation should've mutated the array, not created
+                // a new one
+                expect(mutableArray).toEqual(endArray);
+            });
+
+            it(@"should not transform out of bounds indexes in place", ^{
+                __block NSError *error = nil;
+                __block id value = [NSArray array];
+
+                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                expect(value).toEqual([NSArray array]);
 
                 expect(error.domain).toEqual([PROTransformation errorDomain]);
                 expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
