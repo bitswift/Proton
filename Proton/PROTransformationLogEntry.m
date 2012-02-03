@@ -35,6 +35,17 @@
     return self;
 }
 
+#pragma mark Log Entry Tree
+
+- (BOOL)isDescendantOfLogEntry:(PROTransformationLogEntry *)ancestorLogEntry; {
+    NSParameterAssert(ancestorLogEntry != nil);
+
+    if ([self isEqual:ancestorLogEntry])
+        return YES;
+
+    return [self.parentLogEntry isDescendantOfLogEntry:ancestorLogEntry];
+}
+
 #pragma mark NSCopying
 
 - (id)copyWithZone:(NSZone *)zone {

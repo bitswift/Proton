@@ -59,7 +59,7 @@
 @property (nonatomic, copy, readonly) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
- * @name Parent Log Entry
+ * @name Log Entry Tree
  */
 
 /**
@@ -69,5 +69,14 @@
  * no parent), or if the parent log entry has since been destroyed.
  */
 @property (nonatomic, weak, readonly) PROTransformationLogEntry *parentLogEntry;
+
+/**
+ * Returns whether the receiver is equal to or a descendant of the given log
+ * entry.
+ *
+ * This method works by traversing the <parentLogEntry> until the given entry is
+ * found, or until no more log entries exist.
+ */
+- (BOOL)isDescendantOfLogEntry:(PROTransformationLogEntry *)ancestorLogEntry;
 
 @end

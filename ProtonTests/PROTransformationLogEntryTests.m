@@ -100,6 +100,20 @@ SpecBegin(PROTransformationLogEntry)
         it(@"should support <NSCoding>", ^{
             verifyCoding(entry);
         });
+
+        it(@"should be a descendant of its parent", ^{
+            expect([entry isDescendantOfLogEntry:rootEntry]).toBeTruthy();
+        });
+
+        it(@"should be a descendant of its root", ^{
+            PROTransformationLogEntry *descendantEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:entry];
+            expect([descendantEntry isDescendantOfLogEntry:rootEntry]).toBeTruthy();
+        });
+
+        it(@"should not be a descendant of another log entry", ^{
+            PROTransformationLogEntry *anotherEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:rootEntry];
+            expect([entry isDescendantOfLogEntry:anotherEntry]).toBeFalsy();
+        });
     });
 
 SpecEnd
