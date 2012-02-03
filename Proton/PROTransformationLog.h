@@ -10,10 +10,15 @@
 
 @class PROMultipleTransformation;
 @class PROTransformation;
+@class PROTransformationLogEntry;
 
 /**
- * Private class used to implement the transformation log for
- * <PROModelController>.
+ * Represents a log of <PROTransformation> objects.
+ *
+ * This log is an optionally size-limited list of transformations that record
+ * changes to an object over time. At any time, a <PROMultipleTransformation>
+ * can be constructed from a range of the log, and used to "play back" changes
+ * to the transformed object.
  *
  * This class is not thread-safe.
  */
@@ -24,35 +29,54 @@
  */
 
 /**
- * Returns an opaque object representing the next log entry that will be
- * recorded. This method will never return `nil`.
+ * The last log entry that was recorded. This may be a root log entry if no
+ * transformations have been recorded yet in the log.
  *
- * This method can be used to record the current position of the log.
+ * This property will never be `nil`.
  */
-@property (nonatomic, copy, readonly) id nextLogEntry;
+@property (nonatomic, copy, readonly) PROTransformationLogEntry *latestLogEntry;
 
 /**
- * Returns a <PROMultipleTransformation> that represents the transformations in
- * the log beginning from the given log entry and continuing to the end of the
- * log. If the log entry has been deleted, `nil` is returned.
+ * Returns a <PROMultipleTransformation> that contains the transformations in
+ * the log starting from `fromLogEntry`, exclusive, and continuing until
+ * `toLogEntry`, inclusive. If any transformations in the range have been
+ * removed, `nil` is returned.
  *
- * If the current value of <nextLogEntry> is passed into this method, an empty
- * transformation is returned.
+ * If `fromLogEntry` is equal to `toLogEntry`, an empty transformation is
+ * returned.
  *
- * @param logEntry The log entry from which to start the transformation.
+ * @param fromLogEntry The log entry from which to start accumulating
+ * transformations. The transformation associated with this log entry is _not_
+ * included in the result.
+ * @param toLogEntry The log entry at which to stop accumulating
+ * transformations. The transformation associated with this log entry _is_
+ * included in the result.
  */
-- (PROMultipleTransformation *)multipleTransformationStartingFromLogEntry:(id)logEntry;
+- (PROMultipleTransformation *)multipleTransformationFromLogEntry:(PROTransformationLogEntry *)fromLogEntry toLogEntry:(PROTransformationLogEntry *)toLogEntry;
 
 /**
- * @name Adding to the Log
+ * @name Modifying the Log
  */
 
 /**
- * Records the given transformation into the log and updates <nextLogEntry>.
+ * Creates a new <PROTransformationLogEntry> associated with the given
+ * transformation, and records it into the log.
+ *
+ * <latestLogEntry> will be set to the new <PROTransformationLogEntry> object.
  * 
  * @param transformation The transformation to append to the log.
  */
-- (void)addLogEntryWithTransformation:(PROTransformation *)transformation;
+- (void)appendTransformation:(PROTransformation *)transformation;
+
+/**
+ * Moves the receiver's <latestLogEntry> to the given entry, if possible.
+ * Returns `NO` without doing anything if it would be invalid to move to the
+ * given log entry.
+ *
+ * @param logEntry The log entry to set as the receiver's <latestLogEntry>. This
+ * entry must either be a new root log entry, or must already be in the log.
+ */
+- (BOOL)moveToLogEntry:(PROTransformationLogEntry *)logEntry;
 
 /**
  * @name Log Limiting
@@ -81,6 +105,6 @@
  * @warning **Important:** This block will not be copied or archived with the
  * transformation log.
  */
-@property (nonatomic, copy) void (^willRemoveLogEntryBlock)(id);
+@property (nonatomic, copy) void (^willRemoveLogEntryBlock)(PROTransformationLogEntry *logEntry);
 
 @end

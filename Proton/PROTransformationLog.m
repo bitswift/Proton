@@ -7,58 +7,58 @@
 //
 
 #import "PROTransformationLog.h"
+#import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROMultipleTransformation.h"
+#import "PROTransformationLogEntry.h"
 #import "PROUniqueIdentifier.h"
 
 @interface PROTransformationLog ()
-@property (nonatomic, copy, readwrite) PROUniqueIdentifier *nextLogEntry;
+@property (nonatomic, copy, readwrite) PROTransformationLogEntry *latestLogEntry;
 
 /**
- * Contains <PROUniqueIdentifier> objects representing unique log entries,
- * ordered from oldest to newest.
+ * Contains <PROTransformationLogEntry> instances.
+ *
+ * When discarding log entries, this set is ordered such that the first items
+ * should be discarded first, and the last items discarded last.
  */
 @property (nonatomic, strong, readonly) NSMutableOrderedSet *logEntries;
 
 /**
- * Contains the <PROTransformation> objects associated with each unique
- * identifier in <logEntries>.
+ * Contains the <PROTransformation> objects associated with each
+ * <PROTransformationLogEntry>.
  *
- * This array must always contain exactly as many objects as <logEntries>.
+ * This dictionary should never have more objects than <logEntries>.
+ *
+ * Note that root log entries do not have associated transformations.
  */
-@property (nonatomic, strong, readonly) NSMutableArray *transformations;
+@property (nonatomic, strong, readonly) NSMutableDictionary *transformationsByLogEntry;
+
+/**
+ * Ensures that the receiver has free space for the given number of additional
+ * log entries, discarding previous ones as necessary.
+ *
+ * If the given number is equal to or greater than the maximum number of log
+ * entries, the entire log is cleared out.
+ */
+- (void)prepareForAdditionalEntries:(NSUInteger)additionalEntries;
 @end
 
 @implementation PROTransformationLog
 
 #pragma mark Properties
 
-@synthesize willRemoveLogEntryBlock = m_willRemoveLogEntryBlock;
 @synthesize logEntries = m_logEntries;
-@synthesize transformations = m_transformations;
+@synthesize transformationsByLogEntry = m_transformationsByLogEntry;
+@synthesize latestLogEntry = m_latestLogEntry;
 @synthesize maximumNumberOfLogEntries = m_maximumNumberOfLogEntries;
-@synthesize nextLogEntry = m_nextLogEntry;
+@synthesize willRemoveLogEntryBlock = m_willRemoveLogEntryBlock;
 
 - (void)setMaximumNumberOfLogEntries:(NSUInteger)maximum {
     m_maximumNumberOfLogEntries = maximum;
 
-    if (m_maximumNumberOfLogEntries > 0 && self.logEntries.count > m_maximumNumberOfLogEntries) {
-        NSRange rangeToRemove = NSMakeRange(0, m_maximumNumberOfLogEntries - self.logEntries.count);
-
-        if (self.willRemoveLogEntryBlock) {
-            [self.logEntries enumerateObjectsUsingBlock:^(PROUniqueIdentifier *entry, NSUInteger index, BOOL *stop){
-                if (index >= NSMaxRange(rangeToRemove)) {
-                    *stop = YES;
-                    return;
-                }
-
-                self.willRemoveLogEntryBlock(entry);
-            }];
-        }
-        
-        [self.logEntries removeObjectsInRange:rangeToRemove];
-        [self.transformations removeObjectsInRange:rangeToRemove];
-    }
+    // trim the log if necessary
+    [self prepareForAdditionalEntries:0];
 }
 
 #pragma mark Initialization
@@ -68,54 +68,119 @@
     if (!self)
         return nil;
 
-    m_logEntries = [[NSMutableOrderedSet alloc] init];
-    m_transformations = [[NSMutableArray alloc] init];
     m_maximumNumberOfLogEntries = 50;
+    m_logEntries = [[NSMutableOrderedSet alloc] initWithCapacity:m_maximumNumberOfLogEntries];
+    m_transformationsByLogEntry = [[NSMutableDictionary alloc] initWithCapacity:m_maximumNumberOfLogEntries];
 
-    self.nextLogEntry = [[PROUniqueIdentifier alloc] init];
+    // move to an initial root log entry
+    BOOL success = [self moveToLogEntry:[[PROTransformationLogEntry alloc] init]];
+    if (!PROAssert(success, @"Could not move to initial root log entry"))
+        return nil;
+
     return self;
 }
 
 #pragma mark Reading
 
-- (PROMultipleTransformation *)multipleTransformationStartingFromLogEntry:(id)logEntry; {
-    NSParameterAssert([logEntry isKindOfClass:[PROUniqueIdentifier class]]);
+- (PROMultipleTransformation *)multipleTransformationFromLogEntry:(PROTransformationLogEntry *)fromLogEntry toLogEntry:(PROTransformationLogEntry *)toLogEntry; {
+    NSParameterAssert(fromLogEntry != nil);
+    NSParameterAssert(toLogEntry != nil);
 
-    if ([logEntry isEqual:self.nextLogEntry]) {
-        return [[PROMultipleTransformation alloc] init];
+    PROTransformationLogEntry *commonAncestorEntry = toLogEntry;
+
+    while (![fromLogEntry isDescendantOfLogEntry:commonAncestorEntry]) {
+        commonAncestorEntry = commonAncestorEntry.parentLogEntry;
+        if (!commonAncestorEntry)
+            return nil;
     }
 
-    NSUInteger index = [self.logEntries indexOfObject:logEntry];
-    if (index == NSNotFound)
-        return nil;
+    NSMutableArray *transformations = [[NSMutableArray alloc] init];
+    PROTransformationLogEntry *currentEntry = fromLogEntry;
 
-    NSArray *transformations = [self.transformations subarrayWithRange:NSMakeRange(index, self.transformations.count - index)];
+    // accumulate reverse transformations from 'fromLogEntry' up to the common
+    // ancestor
+    while (![currentEntry isEqual:commonAncestorEntry]) {
+        if (![self.logEntries containsObject:currentEntry]) {
+            return nil;
+        }
+
+        PROTransformation *transformation = [self.transformationsByLogEntry objectForKey:currentEntry];
+        if (transformation)
+            [transformations addObject:transformation.reverseTransformation];
+
+        currentEntry = currentEntry.parentLogEntry;
+        NSAssert(currentEntry, @"Parent entry should not be nil after already finding a common ancestor");
+    }
+
+    // then accumulate forward transformations from the common ancestor down to
+    // 'toLogEntry' (but we have to traverse in the opposite direction, so
+    // insert in reverse order)
+    
+    NSUInteger insertIndex = transformations.count;
+
+    currentEntry = toLogEntry;
+    while (![currentEntry isEqual:commonAncestorEntry]) {
+        if (![self.logEntries containsObject:currentEntry]) {
+            return nil;
+        }
+
+        PROTransformation *transformation = [self.transformationsByLogEntry objectForKey:currentEntry];
+        if (transformation)
+            [transformations insertObject:transformation atIndex:insertIndex];
+
+        currentEntry = currentEntry.parentLogEntry;
+        NSAssert(currentEntry, @"Parent entry should not be nil after already finding a common ancestor");
+    }
+
     return [[PROMultipleTransformation alloc] initWithTransformations:transformations];
 }
 
 #pragma mark Writing
 
-- (void)addLogEntryWithTransformation:(PROTransformation *)transformation; {
-    if (self.maximumNumberOfLogEntries) {
-        NSUInteger logEntryCount = self.logEntries.count;
-        if (logEntryCount + 1 > self.maximumNumberOfLogEntries) {
-            if (self.willRemoveLogEntryBlock) {
-                self.willRemoveLogEntryBlock(self.logEntries.firstObject);
-            }
+- (void)appendTransformation:(PROTransformation *)transformation; {
+    NSParameterAssert(transformation != nil);
 
-            [self.logEntries removeObjectAtIndex:0];
-            [self.transformations removeObjectAtIndex:0];
-        }
+    [self prepareForAdditionalEntries:1];
+
+    PROTransformationLogEntry *newEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:self.latestLogEntry];
+    [self.logEntries addObject:newEntry];
+    [self.transformationsByLogEntry setObject:transformation forKey:newEntry];
+
+    self.latestLogEntry = newEntry;
+}
+
+- (BOOL)moveToLogEntry:(PROTransformationLogEntry *)logEntry; {
+    if (logEntry.parentLogEntry) {
+        // this entry must already exist in the log
+        if (![self.logEntries containsObject:logEntry])
+            return NO;
+    } else {
+        [self prepareForAdditionalEntries:1];
+        [self.logEntries addObject:logEntry];
+        [self.transformationsByLogEntry removeObjectForKey:logEntry];
     }
 
-    [self.logEntries addObject:self.nextLogEntry];
-    [self.transformations addObject:transformation];
+    self.latestLogEntry = logEntry;
+    return YES;
+}
 
-    // find a unique 'nextLogEntry' that doesn't conflict with anything already
-    // in the log
-    do {
-        self.nextLogEntry = [[PROUniqueIdentifier alloc] init];
-    } while ([self.logEntries containsObject:self.nextLogEntry]);
+- (void)prepareForAdditionalEntries:(NSUInteger)additionalEntries; {
+    if (!self.maximumNumberOfLogEntries || self.logEntries.count + additionalEntries <= self.maximumNumberOfLogEntries) {
+        // no expansion needed
+        return;
+    }
+
+    NSRange rangeToRemove = NSMakeRange(0, self.logEntries.count + additionalEntries - self.maximumNumberOfLogEntries);
+    NSIndexSet *indexesToRemove = [NSIndexSet indexSetWithIndexesInRange:rangeToRemove];
+
+    [self.logEntries enumerateObjectsAtIndexes:indexesToRemove options:0 usingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
+        if (self.willRemoveLogEntryBlock)
+            self.willRemoveLogEntryBlock(entry);
+
+        [self.transformationsByLogEntry removeObjectForKey:entry];
+    }];
+
+    [self.logEntries removeObjectsInRange:rangeToRemove];
 }
 
 #pragma mark NSCopying
@@ -123,14 +188,12 @@
 - (id)copyWithZone:(NSZone *)zone {
     PROTransformationLog *log = [[[self class] allocWithZone:zone] init];
 
-    log.maximumNumberOfLogEntries = self.maximumNumberOfLogEntries;
+    [log.logEntries removeAllObjects];
     [log.logEntries unionOrderedSet:self.logEntries];
-    [log.transformations addObjectsFromArray:self.transformations];
+    [log.transformationsByLogEntry setDictionary:self.transformationsByLogEntry];
 
-    // it seems like this shouldn't be copied, but the copied log will have all
-    // of the same UUIDs recorded already anyways, so we want to ensure
-    // consistency
-    log.nextLogEntry = self.nextLogEntry;
+    log.latestLogEntry = self.latestLogEntry;
+    log.maximumNumberOfLogEntries = self.maximumNumberOfLogEntries;
 
     return log;
 }
@@ -138,43 +201,67 @@
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
-    PROUniqueIdentifier *nextLogEntry = [coder decodeObjectForKey:PROKeyForObject(self, nextLogEntry)];
-    if (!nextLogEntry) {
-        // this ID must remain valid across archiving, in order to ensure
-        // a consistent view of the "latest" position in the log
+    PROTransformationLogEntry *latestLogEntry = [coder decodeObjectForKey:PROKeyForObject(self, latestLogEntry)];
+    if (!latestLogEntry)
         return nil;
-    }
 
-    NSOrderedSet *decodedLogEntries = [coder decodeObjectForKey:PROKeyForObject(self, logEntries)];
-    NSArray *decodedTransformations = [coder decodeObjectForKey:PROKeyForObject(self, transformations)];
-    
-    if (decodedLogEntries.count != decodedTransformations.count)
+    NSOrderedSet *logEntries = [coder decodeObjectForKey:PROKeyForObject(self, logEntries)];
+    if (!logEntries)
+        return nil;
+
+    NSDictionary *transformationsByLogEntry = [coder decodeObjectForKey:PROKeyForObject(self, transformationsByLogEntry)];
+    if (!transformationsByLogEntry)
         return nil;
 
     self = [self init];
     if (!self)
         return nil;
 
-    self.maximumNumberOfLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
-    self.nextLogEntry = nextLogEntry;
+    [self.logEntries removeAllObjects];
+    [self.logEntries unionOrderedSet:logEntries];
+    [self.transformationsByLogEntry setDictionary:transformationsByLogEntry];
 
-    if (decodedLogEntries) {
-        [self.logEntries unionOrderedSet:decodedLogEntries];
-        [self.transformations addObjectsFromArray:decodedTransformations];
-    }
+    self.latestLogEntry = latestLogEntry;
+    self.maximumNumberOfLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
 
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
+    [coder encodeObject:self.latestLogEntry forKey:PROKeyForObject(self, latestLogEntry)];
+    [coder encodeObject:self.transformationsByLogEntry forKey:PROKeyForObject(self, transformationsByLogEntry)];
+    [coder encodeObject:self.logEntries forKey:PROKeyForObject(self, logEntries)];
+
     [coder encodeInteger:self.maximumNumberOfLogEntries forKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
-    [coder encodeObject:self.nextLogEntry forKey:PROKeyForObject(self, nextLogEntry)];
+}
 
-    if (self.logEntries.count)
-        [coder encodeObject:self.logEntries forKey:PROKeyForObject(self, logEntries)];
+#pragma mark NSObject overrides
 
-    if (self.transformations.count)
-        [coder encodeObject:self.transformations forKey:PROKeyForObject(self, transformations)];
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p> entries: %@", [self class], (__bridge void *)self, self.logEntries];
+}
+
+- (NSUInteger)hash {
+    return self.logEntries.hash;
+}
+
+- (BOOL)isEqual:(PROTransformationLog *)log {
+    if (![log isKindOfClass:[PROTransformationLog class]])
+        return NO;
+
+    if (self.maximumNumberOfLogEntries != log.maximumNumberOfLogEntries)
+        return NO;
+
+    if (![self.latestLogEntry isEqual:log.latestLogEntry])
+        return NO;
+
+    if (![self.logEntries isEqual:log.logEntries])
+        return NO;
+
+    if (![self.transformationsByLogEntry isEqual:log.transformationsByLogEntry])
+        return NO;
+
+    return YES;
 }
 
 @end
