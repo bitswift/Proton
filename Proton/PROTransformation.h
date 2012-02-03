@@ -145,6 +145,31 @@ extern NSString * const PROTransformationFailingTransformationPathErrorKey;
 - (id)transform:(id)obj error:(NSError **)error;
 
 /**
+ * Attempts to transform the given object in-place. Returns whether the
+ * transformation is successful.
+ *
+ * If an in-place transformation is not possible (for instance, in the case of
+ * a <PROUniqueTransformation>), `objPtr` will be set to a new, transformed
+ * version of the object.
+ *
+ * This transforms values in-place "deeply," meaning that keys and indexes in
+ * the given object are also expected to be mutable and transformed in-place.
+ *
+ * @param objPtr A pointer to the object to attempt to transform. This may be
+ * set to a new object if the transformation cannot be performed in-place. This
+ * pointer should not be `NULL`, nor should the object it points to be `nil`.
+ * **If the transformation fails, this object may be left in an invalid state.**
+ * @param error If not `NULL`, and this method returns `NO`, this is set to the
+ * error that occurred if the receiver (or one of its <transformations>) failed.
+ * **This error should not be presented to the user**, as it is unlikely to
+ * contain useful information for them.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
+ */
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error;
+
+/**
  * Attempts to update the given key path, relative to the given model
  * controller, with the result of this transformation. Returns whether the
  * update was validly applied.
