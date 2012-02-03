@@ -149,6 +149,49 @@
     }
 }
 
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    NSParameterAssert(objPtr != NULL);
+
+    if (!self.valueTransformations) {
+        return YES;
+    }
+
+    id obj = *objPtr;
+
+    for (NSString *key in self.valueTransformations) {
+        NSAssert([key isKindOfClass:[NSString class]], @"Key for %@ is not a string: %@", self, key);
+
+        id value = [obj valueForKey:key];
+        if (!value) {
+            // consider the value to be NSNull
+            value = [NSNull null];
+        } else if ([value isKindOfClass:[NSArray class]]) {
+            // pull the value out as a mutable array instead
+            value = [obj mutableArrayValueForKey:key];
+        }
+
+        PROTransformation *transformation = [self.valueTransformations objectForKey:key];
+
+        id modifiedValue = value;
+        if (![transformation transformInPlace:&modifiedValue error:error]) {
+            if (error) {
+                NSString *path = [NSString stringWithFormat:@"%@.", key];
+                *error = [self prependTransformationPath:path toError:*error];
+            }
+
+            // invalid transformation
+            return NO;
+        }
+
+        if (modifiedValue != value) {
+            // got a new object back
+            [obj setValue:modifiedValue forKey:key];
+        }
+    }
+
+    return YES;
+}
+
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSParameterAssert(modelController != nil);
     NSParameterAssert(result != nil);

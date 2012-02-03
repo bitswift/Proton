@@ -72,6 +72,27 @@
         return nil;
     }
 
+    NSMutableArray *newArray = [array mutableCopy];
+    if ([self transformInPlace:&newArray error:error])
+        return [newArray copy];
+    else
+        return nil;
+}
+
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    NSParameterAssert(objPtr != NULL);
+
+    if (!self.insertionIndexes)
+        return YES;
+
+    NSMutableArray *array = *objPtr;
+    if (![array isKindOfClass:[NSArray class]]) {
+        if (error)
+            *error = [self errorWithCode:PROTransformationErrorUnsupportedInputType format:@"%@ is not an array", array];
+
+        return NO;
+    }
+
     NSUInteger count = [array count];
 
     // if the index set goes out of bounds (including empty slots at the end
@@ -80,13 +101,11 @@
         if (error)
             *error = [self errorWithCode:PROTransformationErrorIndexOutOfBounds format:@"Index %lu is out of bounds for array %@", (unsigned long)self.insertionIndexes.lastIndex, array];
 
-        return nil;
+        return NO;
     }
 
-    NSMutableArray *newArray = [array mutableCopy];
-    [newArray insertObjects:self.objects atIndexes:self.insertionIndexes];
-
-    return [newArray copy];
+    [array insertObjects:self.objects atIndexes:self.insertionIndexes];
+    return YES;
 }
 
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {

@@ -37,6 +37,11 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
     return nil;
 }
 
+- (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
+    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
+    return NO;
+}
+
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
     NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
     return NO;
