@@ -36,6 +36,16 @@
  */
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
+/**
+ * A key associated with a dictionary returned from <[PROModelController
+ * modelControllerIdentifiersByKeyPath]> on a <PROTransformationLogEntry>
+ * object.
+ *
+ * This will be used to restore the correct unique identifiers when moving
+ * around in a model controller's transformation log.
+ */
+static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModelControllerTransformationLogEntryUUIDs";
+
 @interface PROModelController ()
 @property (nonatomic, weak, readwrite) id parentModelController;
 
@@ -70,6 +80,21 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * receiver's <dispatchQueue>.
  */
 @property (nonatomic, strong) NSMutableArray *modelControllerObservers;
+
+/**
+ * Returns a dictionary of arrays, each containing the <uniqueIdentifier> for
+ * every model controller owned, directly or indirectly, by the receiver.
+ */
+- (NSDictionary *)modelControllerIdentifiersByKeyPath;
+
+/**
+ * Deeply restores the <uniqueIdentifier> for every model controller owned,
+ * directly or indirectly, by the receiver.
+ *
+ * @param identifiersByKeyPath A dictionary returned from
+ * <modelControllerIdentifiersByKeyPath>.
+ */
+- (void)restoreModelControllerIdentifiersWithDictionary:(NSDictionary *)identifiersByKeyPath;
 
 /**
  * Whether <performTransformation:error:> is currently being executed on the
@@ -451,6 +476,89 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return nil;
 }
 
+- (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath; {
+    NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
+    Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
+
+    NSArray *models = [m_model valueForKeyPath:modelKeyPath];
+
+    NSAssert(!models || [models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
+
+    NSArray *newModelControllers = [models mapWithOptions:NSEnumerationConcurrent usingBlock:^(PROModel *model){
+        return [[modelControllerClass alloc] initWithModel:model];
+    }];
+
+    NSMutableArray *modelControllers = [self mutableArrayValueForKey:modelControllerKey];
+    [modelControllers setArray:newModelControllers];
+}
+
+#pragma mark Model Controller Identifiers
+
+- (NSDictionary *)modelControllerIdentifiersByKeyPath; {
+    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
+    if (![modelControllerKeys count])
+        return [NSDictionary dictionary];
+
+    NSMutableDictionary *identifiersByKeyPath = [[NSMutableDictionary alloc] init];
+    
+    [modelControllerKeys enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+        NSArray *modelControllers = [self valueForKey:modelControllerKey];
+        if (![modelControllers count])
+            return;
+
+        NSMutableArray *identifiers = [[NSMutableArray alloc] initWithCapacity:[modelControllers count]];
+        for (PROModelController *modelController in modelControllers) {
+            [identifiers addObject:modelController.uniqueIdentifier];
+
+            NSDictionary *nestedIdentifiersByKeyPath = modelController.modelControllerIdentifiersByKeyPath;
+            if (![nestedIdentifiersByKeyPath count])
+                continue;
+
+            // flatten the identifiers from this model controller into our own
+            // dictionary
+            [nestedIdentifiersByKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *relativeKeyPath, NSArray *nestedIdentifiers, BOOL *stop){
+                NSString *fullKeyPath = [modelControllerKey stringByAppendingFormat:@".%@", relativeKeyPath];
+                [identifiersByKeyPath setObject:nestedIdentifiers forKey:fullKeyPath];
+            }];
+        }
+
+        [identifiersByKeyPath setObject:identifiers forKey:modelControllerKey];
+    }];
+
+    return identifiersByKeyPath;
+}
+
+- (void)restoreModelControllerIdentifiersWithDictionary:(NSDictionary *)identifiersByKeyPath; {
+    [identifiersByKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *keyPath, NSArray *identifiers, BOOL *stop){
+        NSRange range = [keyPath rangeOfString:@"."];
+
+        NSString *controllersKey;
+        NSString *nestedKey = nil;
+
+        if (range.location == NSNotFound) {
+            controllersKey = keyPath;
+        } else {
+            controllersKey = [keyPath substringToIndex:range.location];
+            nestedKey = [keyPath substringFromIndex:NSMaxRange(range)];
+        }
+
+        NSArray *controllers = [self valueForKey:controllersKey];
+        if (!PROAssert([identifiers count] == [controllers count], @"Number of identifiers (%lu) does not match number of controllers (%lu)", (unsigned long)identifiers.count, (unsigned long)controllers.count))
+            return;
+
+        if (nestedKey) {
+            [controllers enumerateObjectsUsingBlock:^(PROModelController *modelController, NSUInteger index, BOOL *stop){
+                [modelController restoreModelControllerIdentifiersWithDictionary:[identifiers objectAtIndex:index]];
+            }];
+        } else {
+            [controllers enumerateObjectsUsingBlock:^(PROModelController *modelController, NSUInteger index, BOOL *stop){
+                // forcibly set the unique identifier
+                modelController->m_uniqueIdentifier = [[identifiers objectAtIndex:index] copy];
+            }];
+        }
+    }];
+}
+
 - (id)modelControllerWithIdentifier:(PROUniqueIdentifier *)identifier; {
     NSParameterAssert(identifier != nil);
 
@@ -473,22 +581,6 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     }];
 
     return matchingController;
-}
-
-- (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath; {
-    NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
-    Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
-
-    NSArray *models = [m_model valueForKeyPath:modelKeyPath];
-
-    NSAssert(!models || [models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
-
-    NSArray *newModelControllers = [models mapWithOptions:NSEnumerationConcurrent usingBlock:^(PROModel *model){
-        return [[modelControllerClass alloc] initWithModel:model];
-    }];
-
-    NSMutableArray *modelControllers = [self mutableArrayValueForKey:modelControllerKey];
-    [modelControllers setArray:newModelControllers];
 }
 
 #pragma mark Transformations
@@ -574,6 +666,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
             [self.willRemoveLogEntryBlocksByLogEntry setObject:newBlock forKey:logEntry];
         }
+
+        NSDictionary *identifiers = self.modelControllerIdentifiersByKeyPath;
+        objc_setAssociatedObject(logEntry, PROModelControllerTransformationLogEntryUUIDsKey, identifiers, OBJC_ASSOCIATION_COPY_NONATOMIC);
     }];
 
     if (modelPointer)
@@ -615,16 +710,19 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             return;
 
         PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
-        PROModel *oldModel = [transformationToOldModel transform:self.model error:NULL];
-        if (!PROAssert(oldModel, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
+
+        // TODO: don't record this in the log
+        if (!PROAssert([self performTransformation:transformationToOldModel error:NULL], @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
             return;
 
         if (![self.transformationLog moveToLogEntry:transformationLogEntry])
             return;
 
-        // TODO: this should try to restore the model controllers that existed
-        // at the time of the specified log entries
-        [self setModel:oldModel replacingModelControllers:YES];
+        NSDictionary *identifiers = objc_getAssociatedObject(transformationLogEntry, PROModelControllerTransformationLogEntryUUIDsKey);
+        if (identifiers) {
+            // try to restore all model controller UUIDs
+            [self restoreModelControllerIdentifiersWithDictionary:identifiers];
+        }
 
         success = YES;
     }];

@@ -446,6 +446,26 @@ SpecBegin(PROModelController)
                 expect(controller.model).not.toEqual(originalModel);
             });
 
+            it(@"should reuse model controller UUIDs when restoring a future log entry", ^{
+                id pastLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+
+                id futureLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                NSArray *controllerIDs = [controller.subModelControllers mapUsingBlock:^(PROModelController *modelController){
+                    return modelController.uniqueIdentifier;
+                }];
+
+                expect([controller restoreModelFromTransformationLogEntry:pastLogEntry]).toBeTruthy();
+                expect([controller restoreModelFromTransformationLogEntry:futureLogEntry]).toBeTruthy();
+
+                NSArray *newIDs = [controller.subModelControllers mapUsingBlock:^(PROModelController *modelController){
+                    return modelController.uniqueIdentifier;
+                }];
+
+                expect(controllerIDs).toEqual(newIDs);
+            });
+
             describe(@"transformation log trimming", ^{
                 before(^{
                     // only include one transformation in the log, for testing
