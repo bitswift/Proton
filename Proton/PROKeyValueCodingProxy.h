@@ -11,6 +11,10 @@
 /**
  * Supports key-value coding on arbitrary key paths, invoking blocks to provide
  * the key-value coding behavior.
+ *
+ * This object will behave like another object (the one it's initialized with)
+ * for most purposes, but key-value coding messages will be treated specially,
+ * and result in an invocation of one of the receiver's blocks.
  */
 @interface PROKeyValueCodingProxy : NSObject
 
@@ -19,23 +23,33 @@
  */
 
 /**
- * Initializes the receiver to proxy calls without a starting key path.
+ * Initializes the receiver to proxy calls to the given object without
+ * a starting key path.
  *
  * This means that any key-value coding messages sent to the receiver will
  * pass the provided key directly to the receiver's callback blocks.
+ *
+ * @param object An object for the receiver to forward non-key-value-coding
+ * messages to. This must not be `nil`.
  */
-- (id)init;
+- (id)initWithProxiedObject:(id)object;
 
 /**
- * Initializes the receiver to proxy calls at the given key path.
+ * Initializes the receiver to proxy calls to the given object at the given key
+ * path.
  *
  * This means that any key-value coding messages sent to the receiver will
  * append the provided key to `keyPath`. The combined result will be the key
  * path provided to each of the receiver's callback blocks.
  *
- * @param keyPath The key path that the receiver should proxy.
+ * This is the designated initializer for this class.
+ *
+ * @param object An object for the receiver to forward non-key-value-coding
+ * messages to. This must not be `nil`.
+ * @param keyPath The key path that the receiver should consider `object` to be
+ * at.
  */
-- (id)initWithKeyPath:(NSString *)keyPath;
+- (id)initWithProxiedObject:(id)object keyPath:(NSString *)keyPath;
 
 /**
  * @name Proxied Key Path
@@ -45,15 +59,21 @@
  * The key path to this specific proxy, or `nil` if this proxy is the start of
  * a key path.
  */
-@property (nonatomic, copy, readonly) NSString *keyPath;
+@property (nonatomic, copy, readonly) NSString *proxiedKeyPath;
 
 /**
- * Creates and returns a new proxy object with the given <keyPath> and the same
- * callback blocks as the receiver.
- *
- * @param keyPath The key path to pass to <initWithKeyPath:>.
+ * The object being proxied.
  */
-- (PROKeyValueCodingProxy *)proxyForKeyPath:(NSString *)keyPath;
+@property (nonatomic, strong, readonly) id proxiedObject;
+
+/**
+ * Creates and returns a new proxy object with the given proxied object and key
+ * path, but the same callback blocks as the receiver.
+ *
+ * @param object The object to pass to <initWithProxiedObject:keyPath:>.
+ * @param keyPath The key path to pass to <initWithProxiedObject:keyPath:>.
+ */
+- (PROKeyValueCodingProxy *)proxyWithObject:(id)object keyPath:(NSString *)keyPath;
 
 /**
  * @name Key-Value Coding Callbacks
@@ -66,7 +86,7 @@
  * This key path passed to this block will be the key or key path provided with
  * the message, appended to the receiver's `keyPath`.
  */
-@property (nonatomic, copy) void (^setValueForKeyPathBlock)(id value, NSString *keyPath);
+@property (nonatomic, copy) void (^setValueForKeyPathBlock)(PROKeyValueCodingProxy *proxy, id value, NSString *keyPath);
 
 /**
  * If not `nil`, invoked when a `valueForKey:` or `valueForKeyPath:` message is
@@ -75,7 +95,7 @@
  * This key path passed to this block will be the key or key path provided with
  * the message, appended to the receiver's `keyPath`.
  */
-@property (nonatomic, copy) id (^valueForKeyPathBlock)(NSString *keyPath);
+@property (nonatomic, copy) id (^valueForKeyPathBlock)(PROKeyValueCodingProxy *proxy, NSString *keyPath);
 
 /**
  * If not `nil`, invoked when a `mutableArrayValueForKey:` or
@@ -84,6 +104,6 @@
  * This key path passed to this block will be the key or key path provided with
  * the message, appended to the receiver's `keyPath`.
  */
-@property (nonatomic, copy) NSMutableArray *(^mutableArrayValueForKeyPathBlock)(NSString *keyPath);
+@property (nonatomic, copy) NSMutableArray *(^mutableArrayValueForKeyPathBlock)(PROKeyValueCodingProxy *proxy, NSString *keyPath);
 
 @end
