@@ -666,6 +666,9 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
 
             [self.willRemoveLogEntryBlocksByLogEntry setObject:newBlock forKey:logEntry];
         }
+
+        NSDictionary *identifiers = self.modelControllerIdentifiersByKeyPath;
+        objc_setAssociatedObject(logEntry, PROModelControllerTransformationLogEntryUUIDsKey, identifiers, OBJC_ASSOCIATION_COPY_NONATOMIC);
     }];
 
     if (modelPointer)
@@ -707,16 +710,19 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
             return;
 
         PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
-        PROModel *oldModel = [transformationToOldModel transform:self.model error:NULL];
-        if (!PROAssert(oldModel, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
+
+        // TODO: don't record this in the log
+        if (!PROAssert([self performTransformation:transformationToOldModel error:NULL], @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
             return;
 
         if (![self.transformationLog moveToLogEntry:transformationLogEntry])
             return;
 
-        // TODO: this should try to restore the model controllers that existed
-        // at the time of the specified log entries
-        [self setModel:oldModel replacingModelControllers:YES];
+        NSDictionary *identifiers = objc_getAssociatedObject(transformationLogEntry, PROModelControllerTransformationLogEntryUUIDsKey);
+        if (identifiers) {
+            // try to restore all model controller UUIDs
+            [self restoreModelControllerIdentifiersWithDictionary:identifiers];
+        }
 
         success = YES;
     }];
