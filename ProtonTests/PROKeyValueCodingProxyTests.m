@@ -7,19 +7,30 @@
 //
 
 #import <Proton/PROKeyValueCodingProxy.h>
+#import <Proton/EXTNil.h>
 
 SpecBegin(PROKeyValueCodingProxy)
 
+    __block EXTNil *proxiedObject;
+
+    before(^{
+        proxiedObject = [EXTNil null];
+    });
+
     it(@"should initialize without a key path", ^{
-        PROKeyValueCodingProxy *proxy = [[PROKeyValueCodingProxy alloc] init];
+        PROKeyValueCodingProxy *proxy = [[PROKeyValueCodingProxy alloc] initWithProxiedObject:proxiedObject];
         expect(proxy).not.toBeNil();
+
+        expect(proxy.proxiedObject).toEqual(proxiedObject);
+        expect(proxy.proxiedKeyPath).toBeNil();
     });
 
     it(@"should initialize with a key path", ^{
-        PROKeyValueCodingProxy *proxy = [[PROKeyValueCodingProxy alloc] initWithKeyPath:@"foo.bar"];
+        PROKeyValueCodingProxy *proxy = [[PROKeyValueCodingProxy alloc] initWithProxiedObject:proxiedObject keyPath:@"foo.bar"];
         expect(proxy).not.toBeNil();
 
-        expect(proxy.keyPath).toEqual(@"foo.bar");
+        expect(proxy.proxiedObject).toEqual(proxiedObject);
+        expect(proxy.proxiedKeyPath).toEqual(@"foo.bar");
     });
 
     describe(@"callbacks", ^{
@@ -41,16 +52,20 @@ SpecBegin(PROKeyValueCodingProxy)
                 nil
             ];
 
-            proxy.setValueForKeyPathBlock = ^(id value, NSString *keyPath){
+            proxy.setValueForKeyPathBlock = ^(PROKeyValueCodingProxy *proxy, id value, NSString *keyPath){
+                expect(proxy).not.toBeNil();
+
                 [dictionary setValue:value forKeyPath:keyPath];
             };
 
-            proxy.valueForKeyPathBlock = ^(NSString *keyPath){
+            proxy.valueForKeyPathBlock = ^(PROKeyValueCodingProxy *proxy, NSString *keyPath){
+                expect(proxy).not.toBeNil();
+
                 id value = [dictionary valueForKeyPath:keyPath];
                 if (value)
                     return value;
 
-                PROKeyValueCodingProxy *nestedProxy = [weakProxy proxyForKeyPath:keyPath];
+                PROKeyValueCodingProxy *nestedProxy = [weakProxy proxyWithObject:proxiedObject keyPath:keyPath];
                 expect(nestedProxy).not.toBeNil();
 
                 expect(nestedProxy.setValueForKeyPathBlock).toEqual(weakProxy.setValueForKeyPathBlock);
@@ -60,9 +75,15 @@ SpecBegin(PROKeyValueCodingProxy)
                 return nestedProxy;
             };
 
-            proxy.mutableArrayValueForKeyPathBlock = ^(NSString *keyPath){
+            proxy.mutableArrayValueForKeyPathBlock = ^(PROKeyValueCodingProxy *proxy, NSString *keyPath){
+                expect(proxy).not.toBeNil();
                 return [dictionary mutableArrayValueForKeyPath:keyPath];
             };
+        });
+
+        it(@"should forward unrecognized messages to the proxied object", ^{
+            expect([(id)proxy length]).toEqual(0);
+            expect([(id)proxy stringByAppendingString:@"foobar"]).toBeNil();
         });
 
         it(@"should retrieve a value for a key", ^{
