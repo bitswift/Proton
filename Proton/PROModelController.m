@@ -99,6 +99,18 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * receiver's <dispatchQueue>.
  */
 @property (nonatomic, strong, readonly) PROModelControllerTransformationLog *transformationLog;
+
+/**
+ * Attempts to perform the given transformation, optionally appending it to the
+ * receiver's <transformationLog> upon success.
+ *
+ * @param transformation The transformation to attempt to perform.
+ * @param shouldAppendTransformation Whether the transformation should be
+ * appended to the transformation log upon success.
+ * @param error If not `NULL`, this is set to any error that occurs. This
+ * argument will only be set if the method returns `NO`.
+ */
+- (BOOL)performTransformation:(PROTransformation *)transformation appendToTransformationLog:(BOOL)shouldAppendTransformation error:(NSError **)error;
 @end
 
 @implementation PROModelController
@@ -482,6 +494,10 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark Transformations
 
 - (BOOL)performTransformation:(PROTransformation *)transformation error:(NSError **)error; {
+    return [self performTransformation:transformation appendToTransformationLog:YES error:error];
+}
+
+- (BOOL)performTransformation:(PROTransformation *)transformation appendToTransformationLog:(BOOL)shouldAppendTransformation error:(NSError **)error; {
     NSAssert(!self.performingTransformation, @"%s should not be invoked recursively", __func__);
 
     __block BOOL success = YES;
@@ -510,7 +526,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         }
 
         id lastLogEntry = self.transformationLog.latestLogEntry;
-        [self.transformationLog appendTransformation:transformation];
+
+        if (shouldAppendTransformation)
+            [self.transformationLog appendTransformation:transformation];
 
         [self setModel:newModel replacingModelControllers:NO];
 
@@ -518,11 +536,15 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
 
         if (PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-            [(id)self.transformationLog.latestLogEntry captureModelController:self];
+            if (shouldAppendTransformation)
+                [(id)self.transformationLog.latestLogEntry captureModelController:self];
         } else {
             // try to back out of that failure -- this won't be 100%, since
             // model controllers may already have updated references
-            [self.transformationLog moveToLogEntry:lastLogEntry];
+
+            if (shouldAppendTransformation)
+                [self.transformationLog moveToLogEntry:lastLogEntry];
+
             [self setModel:oldModel replacingModelControllers:NO];
         }
     }];
@@ -604,8 +626,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
         PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
 
-        // TODO: don't record this in the log
-        if (!PROAssert([self performTransformation:transformationToOldModel error:NULL], @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
+        success = [self performTransformation:transformationToOldModel appendToTransformationLog:NO error:NULL];
+        if (!PROAssert(success, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
             return;
 
         if (![self.transformationLog moveToLogEntry:transformationLogEntry])

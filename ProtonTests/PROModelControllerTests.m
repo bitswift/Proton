@@ -504,6 +504,8 @@ SpecBegin(PROModelController)
                     id futureLogEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
                     expect([controller restoreModelFromTransformationLogEntry:pastLogEntry]).toBeTruthy();
+
+                    [controller performTransformation:transformation error:NULL];
                     [controller performTransformation:transformation error:NULL];
 
                     expect([controller restoreModelFromTransformationLogEntry:futureLogEntry]).toBeFalsy();
