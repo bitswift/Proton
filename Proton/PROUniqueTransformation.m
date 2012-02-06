@@ -10,7 +10,6 @@
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "PROModelController.h"
-#import "PROModelControllerPrivate.h"
 
 @implementation PROUniqueTransformation
 
@@ -103,7 +102,7 @@
 
     if (!modelKeyPath) {
         // update the top-level model
-        [modelController setModel:result replacingModelControllers:YES];
+        modelController.model = result;
         return YES;
     }
 

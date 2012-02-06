@@ -18,7 +18,6 @@
 #import "PROKeyedTransformation.h"
 #import "PROLogging.h"
 #import "PROModel.h"
-#import "PROModelControllerPrivate.h"
 #import "PROModelControllerTransformationLog.h"
 #import "PROModelControllerTransformationLogEntry.h"
 #import "PROMultipleTransformation.h"
@@ -99,6 +98,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * receiver's <dispatchQueue>.
  */
 @property (nonatomic, strong, readonly) PROModelControllerTransformationLog *transformationLog;
+
+/**
+ * Replaces the <model>, optionally updating other model controllers on the
+ * receiver to match.
+ *
+ * @param model The new model object to set on the receiver.
+ * @param replacing If `YES`, all existing model controllers will be destroyed
+ * and recreated from the models in `model`. If `NO`, model controllers are
+ * assumed to be updated elsewhere, and will not be modified.
+ */
+- (void)setModel:(PROModel *)model replacingModelControllers:(BOOL)replacing;
 
 /**
  * Attempts to perform the given transformation, optionally appending it to the

@@ -12,7 +12,6 @@
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PROModelController.h"
-#import "PROModelControllerPrivate.h"
 
 @interface PROIndexedTransformation ()
 /**
@@ -230,7 +229,7 @@
         PROModelController *controller = [associatedControllers objectAtIndex:index];
         if (![transformation updateModelController:controller transformationResult:object forModelKeyPath:nil]) {
             // no model below here, so update the top-level object
-            [controller setModel:object replacingModelControllers:YES];
+            controller.model = object;
         }
     }];
 
