@@ -18,35 +18,8 @@
 #pragma mark Properties
 
 @synthesize modelController = m_modelController;
-@synthesize willRemoveLogEntryBlocksByLogEntry = m_willRemoveLogEntryBlocksByLogEntry;
 
 #pragma mark Initialization
-
-- (id)init {
-    self = [super init];
-    if (!self)
-        return nil;
-
-    m_willRemoveLogEntryBlocksByLogEntry = [[NSMutableDictionary alloc] init];
-
-    __weak PROModelControllerTransformationLog *weakSelf = self;
-
-    self.willRemoveLogEntryBlock = ^(id logEntry){
-        [weakSelf.modelController.dispatchQueue runSynchronously:^{
-            void (^willRemoveBlock)(void) = [weakSelf.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
-
-            if (!willRemoveBlock)
-                return;
-
-            // won't need this block anymore
-            [weakSelf.willRemoveLogEntryBlocksByLogEntry removeObjectForKey:logEntry];
-
-            willRemoveBlock();
-        }];
-    };
-
-    return self;
-}
 
 - (id)initWithModelController:(PROModelController *)modelController; {
     NSParameterAssert(modelController != nil);

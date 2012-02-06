@@ -219,19 +219,19 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return self.performingTransformationOnDispatchQueue;
 }
 
-- (NSUInteger)transformationLogLimit {
+- (NSUInteger)archivedTransformationLogLimit {
     __block NSUInteger limit;
 
     [self.dispatchQueue runSynchronously:^{
-        limit = self.transformationLog.maximumNumberOfLogEntries;
+        limit = self.transformationLog.maximumNumberOfArchivedLogEntries;
     }];
 
     return limit;
 }
 
-- (void)setTransformationLogLimit:(NSUInteger)limit {
+- (void)setArchivedTransformationLogLimit:(NSUInteger)limit {
     [self.dispatchQueue runSynchronously:^{
-        self.transformationLog.maximumNumberOfLogEntries = limit;
+        self.transformationLog.maximumNumberOfArchivedLogEntries = limit;
     }];
 }
 
@@ -245,6 +245,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     m_dispatchQueue = [[SDQueue alloc] init];
 
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
+    m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
     [(id)m_transformationLog.latestLogEntry captureModelController:self];
 
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
@@ -554,10 +555,6 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
-    return [self transformationLogEntryWithModelPointer:modelPointer willRemoveLogEntryBlock:nil];
-}
-
-- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block; {
     __block PROModel *strongModel = nil;
     __block PROTransformationLogEntry *logEntry = nil;
 
@@ -568,23 +565,6 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         }
 
         logEntry = [self.transformationLog.latestLogEntry copy];
-
-        if (block) {
-            void (^existingBlock)(void) = [self.transformationLog.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
-            void (^newBlock)(void);
-
-            if (existingBlock) {
-                // compose the two blocks
-                newBlock = [^{
-                    existingBlock();
-                    block();
-                } copy];
-            } else {
-                newBlock = block;
-            }
-
-            [self.transformationLog.willRemoveLogEntryBlocksByLogEntry setObject:newBlock forKey:logEntry];
-        }
     }];
 
     if (modelPointer)

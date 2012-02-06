@@ -35,15 +35,4 @@
  */
 @property (nonatomic, weak, readonly) PROModelController *modelController;
 
-/**
- * @name Log Limiting
- */
-
-/**
- * A dictionary containing any blocks passed to <[PROModelController
- * transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:]>, keyed by
- * the log entry that they should be notified of.
- */
-@property (nonatomic, strong, readonly) NSMutableDictionary *willRemoveLogEntryBlocksByLogEntry;
-
 @end

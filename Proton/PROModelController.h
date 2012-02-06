@@ -188,22 +188,25 @@
  */
 
 /**
- * The maximum number of <PROTransformation> instances to store in the
- * transformation log, or zero to disable limiting of the log.
+ * The maximum number of <PROTransformation> instances to include in the
+ * transformation log when the receiver is archived, or zero to disable limiting
+ * of the archived log.
  *
- * If recording a new transformation (such as one being performed with
- * <performTransformation:error:>) would push the log over the limit, the oldest
- * transformation is discarded, but only after calling any blocks registered for
- * that transformation log entry with
- * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ * There is intentionally no way to limit a transformation log's in-memory size
+ * limit, as doing so would introduce more problems than it would solve.
  *
  * The default value for this property is 50.
  */
-@property (assign) NSUInteger transformationLogLimit;
+@property (assign) NSUInteger archivedTransformationLogLimit;
 
 /**
- * Invokes <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>
- * with a `nil` block.
+ * Atomically retrieves the latest transformation log entry and the current
+ * version of the <model>.
+ *
+ * The transformation log entry can later be passed to
+ * <modelWithTransformationLogEntry:> or
+ * <restoreModelFromTransformationLogEntry:> to retrieve the model as it existed
+ * when this method was invoked.
  *
  * @param modelPointer If not `NULL`, this will be set to the current <model>.
  * It is not safe to retrieve the log entry and model in separate steps, as
@@ -212,42 +215,14 @@
 - (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer;
 
 /**
- * Atomically retrieves the latest transformation log entry and the current
- * version of the <model>, and saves the given block, to be invoked when the log
- * entry is about to be removed.
- *
- * The transformation log entry can later be passed to
- * <modelWithTransformationLogEntry:> or
- * <restoreModelFromTransformationLogEntry:> to retrieve the model at the
- * current point, as long as enough of the log remains to do so. Because the
- * transformation log will be trimmed when the <transformationLogLimit> is
- * exceeded, the log entry returned may not actually be replayable later.
- * `block` will be invoked before the log entry is removed, providing the
- * opportunity to preserve any information that needs to be saved.
- *
- * @param modelPointer If not `NULL`, this will be set to the current <model>.
- * It is not safe to retrieve the log entry and model in separate steps, as
- * another thread may make a change during that time.
- * @param block If not `nil`, a block to invoke immediately before the (now
- * current) transformation log entry is deleted.
- *
- * @warning **Important:** Blocks provided to this method are not archived with
- * the model controller.
- */
-- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer willRemoveLogEntryBlock:(void (^)(void))block;
-
-/**
  * Returns the version of the <model> that corresponds to the given
  * transformation log entry, or `nil` if the entry no longer exists in the log.
  *
- * The given log entry may no longer exist if the transformation was trimmed to
- * stay within the <transformationLogLimit>. To detect this case, you must
- * provide a block to
- * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ * The given log entry may no longer exist if the transformation was archived
+ * and trimmed to stay within the <archivedTransformationLogLimit>.
  *
  * @param transformationLogEntry An object previously returned from
- * <transformationLogEntryWithModelPointer:> or
- * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ * <transformationLogEntryWithModelPointer:>.
  */
 - (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
 
@@ -260,11 +235,10 @@
  * <modelWithTransformationLogEntry:>, since this method can rewind or
  * fast-forward the transformation log to the given point without actually
  * modifying the _contents_ of the log (as would happen from setting the
- * receiver's <model>, which adds a new transformation).
+ * receiver's <model>, which adds a new log entry).
  *
  * @param transformationLogEntry An object previously returned from
- * <transformationLogEntryWithModelPointer:> or
- * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>.
+ * <transformationLogEntryWithModelPointer:>.
  */
 - (BOOL)restoreModelFromTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
 

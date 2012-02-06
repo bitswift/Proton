@@ -32,8 +32,8 @@ SpecBegin(PROTransformationLog)
             expect(log.latestLogEntry.parentLogEntry).toBeNil();
         });
 
-        it(@"should default to 50 log entries", ^{
-            expect(log.maximumNumberOfLogEntries).toEqual(50);
+        it(@"should default to not having an in-memory limit", ^{
+            expect(log.maximumNumberOfLogEntries).toEqual(0);
         });
 
         describe(@"interacting with the log", ^{
@@ -279,6 +279,51 @@ SpecBegin(PROTransformationLog)
                     expect(log.latestLogEntry).not.toEqual(middleEntry);
 
                     expect(blockInvoked).toBeTruthy();
+                });
+            });
+
+            describe(@"archived log trimming", ^{
+                __block PROTransformationLog *(^archivedLogWithLog)(PROTransformationLog *);
+
+                before(^{
+                    // limit to one archived entry for testing purposes
+                    log.maximumNumberOfArchivedLogEntries = 1;
+
+                    archivedLogWithLog = ^(PROTransformationLog *log){
+                        NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:log];
+                        expect(encoded).not.toBeNil();
+
+                        PROTransformationLog *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+                        expect(decoded).not.toBeNil();
+
+                        return decoded;
+                    };
+                });
+
+                it(@"should not move backward to a removed log entry after archiving", ^{
+                    [log appendTransformation:firstTransformation];
+                    [log appendTransformation:secondTransformation];
+
+                    expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry]).not.toBeNil();
+                    
+                    log = archivedLogWithLog(log);
+
+                    expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry]).toBeNil();
+                });
+
+                it(@"should archive to a smaller size with a maximum entry limit", ^{
+                    PROTransformationLog *unlimitedLog = [[PROTransformationLog alloc] init];
+
+                    [log appendTransformation:firstTransformation];
+                    [log appendTransformation:secondTransformation];
+
+                    [unlimitedLog appendTransformation:firstTransformation];
+                    [unlimitedLog appendTransformation:secondTransformation];
+
+                    NSData *limitedData = [NSKeyedArchiver archivedDataWithRootObject:log];
+                    NSData *unlimitedData = [NSKeyedArchiver archivedDataWithRootObject:unlimitedLog];
+
+                    expect(limitedData.length).toBeLessThan(unlimitedData.length);
                 });
             });
 

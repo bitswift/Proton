@@ -7,6 +7,7 @@
 //
 
 #import "PROTransformationLog.h"
+#import "NSDictionary+HigherOrderAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROMultipleTransformation.h"
@@ -52,6 +53,7 @@
 @synthesize transformationsByLogEntry = m_transformationsByLogEntry;
 @synthesize latestLogEntry = m_latestLogEntry;
 @synthesize maximumNumberOfLogEntries = m_maximumNumberOfLogEntries;
+@synthesize maximumNumberOfArchivedLogEntries = m_maximumNumberOfArchivedLogEntries;
 @synthesize willRemoveLogEntryBlock = m_willRemoveLogEntryBlock;
 
 - (void)setMaximumNumberOfLogEntries:(NSUInteger)maximum {
@@ -68,7 +70,6 @@
     if (!self)
         return nil;
 
-    m_maximumNumberOfLogEntries = 50;
     m_logEntries = [[NSMutableOrderedSet alloc] initWithCapacity:m_maximumNumberOfLogEntries];
     m_transformationsByLogEntry = [[NSMutableDictionary alloc] initWithCapacity:m_maximumNumberOfLogEntries];
 
@@ -200,6 +201,7 @@
 
     log.latestLogEntry = self.latestLogEntry;
     log.maximumNumberOfLogEntries = self.maximumNumberOfLogEntries;
+    log.maximumNumberOfArchivedLogEntries = self.maximumNumberOfArchivedLogEntries;
 
     return log;
 }
@@ -229,16 +231,32 @@
 
     self.latestLogEntry = latestLogEntry;
     self.maximumNumberOfLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
+    self.maximumNumberOfArchivedLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfArchivedLogEntries)];
 
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.latestLogEntry forKey:PROKeyForObject(self, latestLogEntry)];
-    [coder encodeObject:self.transformationsByLogEntry forKey:PROKeyForObject(self, transformationsByLogEntry)];
-    [coder encodeObject:self.logEntries forKey:PROKeyForObject(self, logEntries)];
+
+    NSDictionary *limitedTransformations = self.transformationsByLogEntry;
+    NSOrderedSet *limitedEntries = self.logEntries;
+
+    if (self.maximumNumberOfArchivedLogEntries && limitedEntries.count > self.maximumNumberOfArchivedLogEntries) {
+        NSRange range = NSMakeRange(limitedEntries.count - self.maximumNumberOfArchivedLogEntries, self.maximumNumberOfArchivedLogEntries);
+
+        limitedEntries = [[NSOrderedSet alloc] initWithOrderedSet:self.logEntries range:range copyItems:NO];
+
+        limitedTransformations = [self.transformationsByLogEntry filterEntriesUsingBlock:^(PROTransformationLogEntry *logEntry, PROTransformation *transformation){
+            return [limitedEntries containsObject:logEntry];
+        }];
+    }
+
+    [coder encodeObject:limitedTransformations forKey:PROKeyForObject(self, transformationsByLogEntry)];
+    [coder encodeObject:limitedEntries forKey:PROKeyForObject(self, logEntries)];
 
     [coder encodeInteger:self.maximumNumberOfLogEntries forKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
+    [coder encodeInteger:self.maximumNumberOfArchivedLogEntries forKey:PROKeyForObject(self, maximumNumberOfArchivedLogEntries)];
 }
 
 #pragma mark NSObject overrides
@@ -256,6 +274,9 @@
         return NO;
 
     if (self.maximumNumberOfLogEntries != log.maximumNumberOfLogEntries)
+        return NO;
+
+    if (self.maximumNumberOfArchivedLogEntries != log.maximumNumberOfArchivedLogEntries)
         return NO;
 
     if (![self.latestLogEntry isEqual:log.latestLogEntry])
