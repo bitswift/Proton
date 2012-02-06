@@ -538,7 +538,6 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         if (PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
             if (shouldAppendTransformation) {
                 [(id)self.transformationLog.latestLogEntry captureModelController:self];
-                NSLog(@"%s:%u logEntry: %@", __func__, (unsigned)__LINE__, self.transformationLog.latestLogEntry);
             }
         } else {
             // try to back out of that failure -- this won't be 100%, since
@@ -643,18 +642,13 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)restoreModelControllersWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)logEntry; {
-    NSLog(@"%s:%u self: %@", __func__, (unsigned)__LINE__, self);
-
     [logEntry.logEntriesByModelControllerKey enumerateKeysAndObjectsUsingBlock:^(NSString *modelControllerKey, NSArray *logEntries, BOOL *stop){
         NSArray *controllers = [self valueForKey:modelControllerKey];
         if (!PROAssert(controllers.count == logEntries.count, @"Number of controllers (%lu) does not match number of log entries (%lu)", (unsigned long)controllers.count, (unsigned long)logEntries.count))
             return;
 
-        NSLog(@"%s:%u", __func__, (unsigned)__LINE__);
         [controllers enumerateObjectsUsingBlock:^(PROModelController *controller, NSUInteger index, BOOL *stop){
             PROModelControllerTransformationLogEntry *controllerLogEntry = [logEntries objectAtIndex:index];
-            NSLog(@"%s:%u controller: %@", __func__, (unsigned)__LINE__, controller);
-            NSLog(@"%s:%u entry: %@", __func__, (unsigned)__LINE__, controllerLogEntry);
 
             controller.uniqueIdentifier = controllerLogEntry.modelControllerIdentifier;
             [controller restoreModelControllersWithTransformationLogEntry:controllerLogEntry];
