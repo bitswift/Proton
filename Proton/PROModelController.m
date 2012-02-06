@@ -19,10 +19,10 @@
 #import "PROLogging.h"
 #import "PROModel.h"
 #import "PROModelControllerPrivate.h"
+#import "PROModelControllerTransformationLog.h"
+#import "PROModelControllerTransformationLogEntry.h"
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
-#import "PROTransformationLog.h"
-#import "PROTransformationLogEntry.h"
 #import "PROUniqueIdentifier.h"
 #import "PROUniqueTransformation.h"
 #import "SDQueue.h"
@@ -36,18 +36,9 @@
  */
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
-/**
- * A key associated with a dictionary returned from <[PROModelController
- * modelControllerIdentifiersByKeyPath]> on a <PROTransformationLogEntry>
- * object.
- *
- * This will be used to restore the correct unique identifiers when moving
- * around in a model controller's transformation log.
- */
-static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModelControllerTransformationLogEntryUUIDs";
-
 @interface PROModelController ()
 @property (nonatomic, weak, readwrite) id parentModelController;
+@property (nonatomic, copy, readwrite) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
  * Automatically implements the appropriate KVC-compliant model controller
@@ -71,6 +62,15 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
 - (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath;
 
 /**
+ * Reverts every model controller owned by the receiver to the log entry
+ * associated with it in `logEntry`.
+ *
+ * This will also restore each model controller's <uniqueIdentifier> from the
+ * log entry.
+ */
+- (void)restoreModelControllersWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)logEntry;
+
+/**
  * Contains <PROKeyValueObserver> objects observing each model controller
  * managed by the receiver (in no particular order).
  *
@@ -80,21 +80,6 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
  * receiver's <dispatchQueue>.
  */
 @property (nonatomic, strong) NSMutableArray *modelControllerObservers;
-
-/**
- * Returns a dictionary of arrays, each containing the <uniqueIdentifier> for
- * every model controller owned, directly or indirectly, by the receiver.
- */
-- (NSDictionary *)modelControllerIdentifiersByKeyPath;
-
-/**
- * Deeply restores the <uniqueIdentifier> for every model controller owned,
- * directly or indirectly, by the receiver.
- *
- * @param identifiersByKeyPath A dictionary returned from
- * <modelControllerIdentifiersByKeyPath>.
- */
-- (void)restoreModelControllerIdentifiersWithDictionary:(NSDictionary *)identifiersByKeyPath;
 
 /**
  * Whether <performTransformation:error:> is currently being executed on the
@@ -113,25 +98,19 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
  * @warning **Important:** Mutation of this log must be synchronized using the
  * receiver's <dispatchQueue>.
  */
-@property (nonatomic, strong, readonly) PROTransformationLog *transformationLog;
+@property (nonatomic, strong, readonly) PROModelControllerTransformationLog *transformationLog;
 
 /**
- * A dictionary containing any blocks passed to
- * <transformationLogEntryWithModelPointer:willRemoveLogEntryBlock:>, keyed by
- * the log entry that they should be notified of.
+ * Attempts to perform the given transformation, optionally appending it to the
+ * receiver's <transformationLog> upon success.
  *
- * @warning **Important:** Mutation of this dictionary must be synchronized
- * using the receiver's <dispatchQueue>.
+ * @param transformation The transformation to attempt to perform.
+ * @param shouldAppendTransformation Whether the transformation should be
+ * appended to the transformation log upon success.
+ * @param error If not `NULL`, this is set to any error that occurs. This
+ * argument will only be set if the method returns `NO`.
  */
-@property (nonatomic, strong, readonly) NSMutableDictionary *willRemoveLogEntryBlocksByLogEntry;
-
-/**
- * Invoked from the <[PROTransformationLog willRemoveLogEntryBlock]> of the
- * receiver's <transformationLog>.
- *
- * @param logEntry The log entry being removed.
- */
-- (void)transformationLogWillRemoveLogEntry:(PROTransformationLogEntry *)logEntry;
+- (BOOL)performTransformation:(PROTransformation *)transformation appendToTransformationLog:(BOOL)shouldAppendTransformation error:(NSError **)error;
 @end
 
 @implementation PROModelController
@@ -166,7 +145,6 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 @synthesize transformationLog = m_transformationLog;
 @synthesize uniqueIdentifier = m_uniqueIdentifier;
-@synthesize willRemoveLogEntryBlocksByLogEntry = m_willRemoveLogEntryBlocksByLogEntry;
 
 - (id)model {
     __block id model;
@@ -265,16 +243,11 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
         return nil;
 
     m_dispatchQueue = [[SDQueue alloc] init];
-    m_transformationLog = [[PROTransformationLog alloc] init];
-    m_uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
-    m_willRemoveLogEntryBlocksByLogEntry = [[NSMutableDictionary alloc] init];
 
-    __weak PROModelController *weakSelf = self;
+    m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
+    [(id)m_transformationLog.latestLogEntry captureModelController:self];
 
-    m_transformationLog.willRemoveLogEntryBlock = ^(id logEntry){
-        [weakSelf transformationLogWillRemoveLogEntry:logEntry];
-    };
-
+    self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
     return self;
 }
 
@@ -494,71 +467,6 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
 
 #pragma mark Model Controller Identifiers
 
-- (NSDictionary *)modelControllerIdentifiersByKeyPath; {
-    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
-    if (![modelControllerKeys count])
-        return [NSDictionary dictionary];
-
-    NSMutableDictionary *identifiersByKeyPath = [[NSMutableDictionary alloc] init];
-    
-    [modelControllerKeys enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        NSArray *modelControllers = [self valueForKey:modelControllerKey];
-        if (![modelControllers count])
-            return;
-
-        NSMutableArray *identifiers = [[NSMutableArray alloc] initWithCapacity:[modelControllers count]];
-        for (PROModelController *modelController in modelControllers) {
-            [identifiers addObject:modelController.uniqueIdentifier];
-
-            NSDictionary *nestedIdentifiersByKeyPath = modelController.modelControllerIdentifiersByKeyPath;
-            if (![nestedIdentifiersByKeyPath count])
-                continue;
-
-            // flatten the identifiers from this model controller into our own
-            // dictionary
-            [nestedIdentifiersByKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *relativeKeyPath, NSArray *nestedIdentifiers, BOOL *stop){
-                NSString *fullKeyPath = [modelControllerKey stringByAppendingFormat:@".%@", relativeKeyPath];
-                [identifiersByKeyPath setObject:nestedIdentifiers forKey:fullKeyPath];
-            }];
-        }
-
-        [identifiersByKeyPath setObject:identifiers forKey:modelControllerKey];
-    }];
-
-    return identifiersByKeyPath;
-}
-
-- (void)restoreModelControllerIdentifiersWithDictionary:(NSDictionary *)identifiersByKeyPath; {
-    [identifiersByKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *keyPath, NSArray *identifiers, BOOL *stop){
-        NSRange range = [keyPath rangeOfString:@"."];
-
-        NSString *controllersKey;
-        NSString *nestedKey = nil;
-
-        if (range.location == NSNotFound) {
-            controllersKey = keyPath;
-        } else {
-            controllersKey = [keyPath substringToIndex:range.location];
-            nestedKey = [keyPath substringFromIndex:NSMaxRange(range)];
-        }
-
-        NSArray *controllers = [self valueForKey:controllersKey];
-        if (!PROAssert([identifiers count] == [controllers count], @"Number of identifiers (%lu) does not match number of controllers (%lu)", (unsigned long)identifiers.count, (unsigned long)controllers.count))
-            return;
-
-        if (nestedKey) {
-            [controllers enumerateObjectsUsingBlock:^(PROModelController *modelController, NSUInteger index, BOOL *stop){
-                [modelController restoreModelControllerIdentifiersWithDictionary:[identifiers objectAtIndex:index]];
-            }];
-        } else {
-            [controllers enumerateObjectsUsingBlock:^(PROModelController *modelController, NSUInteger index, BOOL *stop){
-                // forcibly set the unique identifier
-                modelController->m_uniqueIdentifier = [[identifiers objectAtIndex:index] copy];
-            }];
-        }
-    }];
-}
-
 - (id)modelControllerWithIdentifier:(PROUniqueIdentifier *)identifier; {
     NSParameterAssert(identifier != nil);
 
@@ -586,6 +494,10 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
 #pragma mark Transformations
 
 - (BOOL)performTransformation:(PROTransformation *)transformation error:(NSError **)error; {
+    return [self performTransformation:transformation appendToTransformationLog:YES error:error];
+}
+
+- (BOOL)performTransformation:(PROTransformation *)transformation appendToTransformationLog:(BOOL)shouldAppendTransformation error:(NSError **)error; {
     NSAssert(!self.performingTransformation, @"%s should not be invoked recursively", __func__);
 
     __block BOOL success = YES;
@@ -613,20 +525,27 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
             return;
         }
 
-        // update the transformation log before setting the new model
-        [self.transformationLog appendTransformation:transformation];
+        id lastLogEntry = self.transformationLog.latestLogEntry;
 
-        // the below call to -updateModelController:… should replace our model
-        // controllers if necessary
+        if (shouldAppendTransformation)
+            [self.transformationLog appendTransformation:transformation];
+
         [self setModel:newModel replacingModelControllers:NO];
 
+        // this call will replace our model controllers if necessary
         success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
-        if (!PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-            // do our best to back out of that failure -- this probably
-            // won't be 100%, since model controllers may already have
-            // updated references, and we've already recorded the failing
-            // transformation in the log
-            [self.transformationLog appendTransformation:transformation.reverseTransformation];
+
+        if (PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
+            if (shouldAppendTransformation) {
+                [(id)self.transformationLog.latestLogEntry captureModelController:self];
+            }
+        } else {
+            // try to back out of that failure -- this won't be 100%, since
+            // model controllers may already have updated references
+
+            if (shouldAppendTransformation)
+                [self.transformationLog moveToLogEntry:lastLogEntry];
+
             [self setModel:oldModel replacingModelControllers:NO];
         }
     }];
@@ -651,7 +570,7 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
         logEntry = [self.transformationLog.latestLogEntry copy];
 
         if (block) {
-            void (^existingBlock)(void) = [self.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
+            void (^existingBlock)(void) = [self.transformationLog.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
             void (^newBlock)(void);
 
             if (existingBlock) {
@@ -664,11 +583,8 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
                 newBlock = block;
             }
 
-            [self.willRemoveLogEntryBlocksByLogEntry setObject:newBlock forKey:logEntry];
+            [self.transformationLog.willRemoveLogEntryBlocksByLogEntry setObject:newBlock forKey:logEntry];
         }
-
-        NSDictionary *identifiers = self.modelControllerIdentifiersByKeyPath;
-        objc_setAssociatedObject(logEntry, PROModelControllerTransformationLogEntryUUIDsKey, identifiers, OBJC_ASSOCIATION_COPY_NONATOMIC);
     }];
 
     if (modelPointer)
@@ -699,7 +615,7 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
     return oldModel;
 }
 
-- (BOOL)restoreModelFromTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+- (BOOL)restoreModelFromTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
 
     __block BOOL success = NO;
@@ -711,37 +627,32 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
 
         PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
 
-        // TODO: don't record this in the log
-        if (!PROAssert([self performTransformation:transformationToOldModel error:NULL], @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
+        success = [self performTransformation:transformationToOldModel appendToTransformationLog:NO error:NULL];
+        if (!PROAssert(success, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
             return;
 
         if (![self.transformationLog moveToLogEntry:transformationLogEntry])
             return;
 
-        NSDictionary *identifiers = objc_getAssociatedObject(transformationLogEntry, PROModelControllerTransformationLogEntryUUIDsKey);
-        if (identifiers) {
-            // try to restore all model controller UUIDs
-            [self restoreModelControllerIdentifiersWithDictionary:identifiers];
-        }
-
+        [self restoreModelControllersWithTransformationLogEntry:transformationLogEntry];
         success = YES;
     }];
 
     return success;
 }
 
-- (void)transformationLogWillRemoveLogEntry:(PROTransformationLogEntry *)logEntry; {
-    // we should already be on the dispatch queue, but just in case...
-    [self.dispatchQueue runSynchronously:^{
-        void (^willRemoveBlock)(void) = [self.willRemoveLogEntryBlocksByLogEntry objectForKey:logEntry];
-
-        if (!willRemoveBlock)
+- (void)restoreModelControllersWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)logEntry; {
+    [logEntry.logEntriesByModelControllerKey enumerateKeysAndObjectsUsingBlock:^(NSString *modelControllerKey, NSArray *logEntries, BOOL *stop){
+        NSArray *controllers = [self valueForKey:modelControllerKey];
+        if (!PROAssert(controllers.count == logEntries.count, @"Number of controllers (%lu) does not match number of log entries (%lu)", (unsigned long)controllers.count, (unsigned long)logEntries.count))
             return;
 
-        // won't need this block anymore
-        [self.willRemoveLogEntryBlocksByLogEntry removeObjectForKey:logEntry];
+        [controllers enumerateObjectsUsingBlock:^(PROModelController *controller, NSUInteger index, BOOL *stop){
+            PROModelControllerTransformationLogEntry *controllerLogEntry = [logEntries objectAtIndex:index];
 
-        willRemoveBlock();
+            controller.uniqueIdentifier = controllerLogEntry.modelControllerIdentifier;
+            [controller restoreModelControllersWithTransformationLogEntry:controllerLogEntry];
+        }];
     }];
 }
 
@@ -763,7 +674,7 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
     self.parentModelController = [coder decodeObjectForKey:PROKeyForObject(self, parentModelController)];
 
     // replace the UUID created in -init
-    m_uniqueIdentifier = [decodedIdentifier copy];
+    self.uniqueIdentifier = [decodedIdentifier copy];
 
     // we need to set up the model controllers manually anyways
     [self setModel:model replacingModelControllers:NO];
@@ -784,16 +695,12 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
         [modelControllers setArray:decodedModelControllers];
     }
 
-    PROTransformationLog *decodedLog = [coder decodeObjectForKey:PROKeyForObject(self, transformationLog)];
+    id decodedLog = [coder decodeObjectForKey:PROKeyForObject(self, transformationLog)];
     if (decodedLog) {
         // replace the default transformation log created in -init
         m_transformationLog = decodedLog;
 
-        __weak PROModelController *weakSelf = self;
-
-        m_transformationLog.willRemoveLogEntryBlock = ^(id logEntry){
-            [weakSelf transformationLogWillRemoveLogEntry:logEntry];
-        };
+        NSAssert([self.transformationLog.modelController isEqual:self], @"Transformation log %@ is not actually owned by %@", self.transformationLog, self);
     }
 
     return self;
@@ -841,6 +748,10 @@ static char * const PROModelControllerTransformationLogEntryUUIDsKey = "PROModel
 }
 
 #pragma mark NSObject overrides
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p ID: %@>", [self class], (__bridge void *)self, self.uniqueIdentifier];
+}
 
 - (NSUInteger)hash {
     return [self.uniqueIdentifier hash];
