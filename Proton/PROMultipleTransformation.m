@@ -10,7 +10,6 @@
 #import "NSObject+ComparisonAdditions.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROModelController.h"
-#import "PROModelControllerPrivate.h"
 
 @implementation PROMultipleTransformation
 
@@ -142,7 +141,6 @@
             // some model propagation failed, so just set the top-level object
             // after all
             modelController.model = result;
-            [modelController setModel:result replacingModelControllers:YES];
             break;
         }
     }

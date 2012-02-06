@@ -18,7 +18,6 @@
 #import "PROKeyedTransformation.h"
 #import "PROLogging.h"
 #import "PROModel.h"
-#import "PROModelControllerPrivate.h"
 #import "PROModelControllerTransformationLog.h"
 #import "PROModelControllerTransformationLogEntry.h"
 #import "PROMultipleTransformation.h"
@@ -101,6 +100,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @property (nonatomic, strong, readonly) PROModelControllerTransformationLog *transformationLog;
 
 /**
+ * Replaces the <model>, optionally updating other model controllers on the
+ * receiver to match.
+ *
+ * @param model The new model object to set on the receiver.
+ * @param replacing If `YES`, all existing model controllers will be destroyed
+ * and recreated from the models in `model`. If `NO`, model controllers are
+ * assumed to be updated elsewhere, and will not be modified.
+ */
+- (void)setModel:(PROModel *)model replacingModelControllers:(BOOL)replacing;
+
+/**
  * Attempts to perform the given transformation, optionally appending it to the
  * receiver's <transformationLog> upon success.
  *
@@ -156,28 +166,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return model;
 }
 
-/*
- * This method should only be called externally, since it invokes
- * <performTransformation:> (which, called internally, could result in infinite
- * recursion).
- */
 - (void)setModel:(id)newModel {
-    NSParameterAssert([newModel isEqual:[EXTNil null]] || [newModel isKindOfClass:[PROModel class]]);
+    NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
-        id currentModel = self.model;
-        if (!currentModel) {
-            // never pass 'nil' into a transformation
-            currentModel = [EXTNil null];
+        PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] init];
+        if (!PROAssert([self.transformationLog moveToLogEntry:logEntry], @"Could not move transformation log %@ to new root %@", self.transformationLog, logEntry)) {
+            return;
         }
 
-        if ([currentModel isEqual:newModel])
-            return;
-
-        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentModel outputValue:newModel];
-
-        BOOL success = [self performTransformation:transformation error:NULL];
-        PROAssert(success, @"Transformation %@ should never fail", transformation);
+        [self setModel:newModel replacingModelControllers:YES];
+        [logEntry captureModelController:self];
     }];
 }
 
@@ -527,9 +526,13 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         }
 
         id lastLogEntry = self.transformationLog.latestLogEntry;
+        id newLogEntry = nil;
 
-        if (shouldAppendTransformation)
+        if (shouldAppendTransformation) {
             [self.transformationLog appendTransformation:transformation];
+
+            newLogEntry = self.transformationLog.latestLogEntry;
+        }
 
         [self setModel:newModel replacingModelControllers:NO];
 
@@ -537,7 +540,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
 
         if (PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-            if (shouldAppendTransformation) {
+            // only capture 'self' in the log entry if it hasn't changed in the
+            // interim
+            if (shouldAppendTransformation && [self.transformationLog.latestLogEntry isEqual:newLogEntry]) {
                 [(id)self.transformationLog.latestLogEntry captureModelController:self];
             }
         } else {

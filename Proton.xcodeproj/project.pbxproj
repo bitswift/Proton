@@ -411,7 +411,6 @@
 		D097ADBF14CF0A92009C452C /* PROMutableModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMutableModel.m; sourceTree = "<group>"; };
 		D097ADC514CF0F69009C452C /* PROMutableModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMutableModelTests.m; sourceTree = "<group>"; };
 		D097AE1914CF2DCC009C452C /* PROTransformationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROTransformationTests.m; sourceTree = "<group>"; };
-		D099C59214D50B29001C8DBF /* PROModelControllerPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PROModelControllerPrivate.h; sourceTree = "<group>"; };
 		D0A0E5DA14B5788E00E278CA /* PROModelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelController.h; sourceTree = "<group>"; };
 		D0A0E5DB14B5788E00E278CA /* PROModelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelController.m; sourceTree = "<group>"; };
 		D0A3DD7214CAB86100754143 /* PROLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROLogging.h; sourceTree = "<group>"; };
@@ -830,7 +829,6 @@
 			children = (
 				D0A0E5DA14B5788E00E278CA /* PROModelController.h */,
 				D0A0E5DB14B5788E00E278CA /* PROModelController.m */,
-				D099C59214D50B29001C8DBF /* PROModelControllerPrivate.h */,
 				D054A6A014DF93E500A10515 /* PROModelControllerTransformationLogEntry.h */,
 				D054A6A114DF93E500A10515 /* PROModelControllerTransformationLogEntry.m */,
 				D054A69A14DF939C00A10515 /* PROModelControllerTransformationLog.h */,
