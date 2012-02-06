@@ -156,28 +156,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return model;
 }
 
-/*
- * This method should only be called externally, since it invokes
- * <performTransformation:> (which, called internally, could result in infinite
- * recursion).
- */
 - (void)setModel:(id)newModel {
     NSParameterAssert([newModel isEqual:[EXTNil null]] || [newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
-        id currentModel = self.model;
-        if (!currentModel) {
-            // never pass 'nil' into a transformation
-            currentModel = [EXTNil null];
+        PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] init];
+        if (!PROAssert([self.transformationLog moveToLogEntry:logEntry], @"Could not move transformation log %@ to new root %@", self.transformationLog, logEntry)) {
+            return;
         }
 
-        if ([currentModel isEqual:newModel])
-            return;
-
-        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentModel outputValue:newModel];
-
-        BOOL success = [self performTransformation:transformation error:NULL];
-        PROAssert(success, @"Transformation %@ should never fail", transformation);
+        [self setModel:newModel replacingModelControllers:YES];
+        [logEntry captureModelController:self];
     }];
 }
 
