@@ -282,6 +282,51 @@ SpecBegin(PROTransformationLog)
                 });
             });
 
+            describe(@"archived log trimming", ^{
+                __block PROTransformationLog *(^archivedLogWithLog)(PROTransformationLog *);
+
+                before(^{
+                    // limit to one archived entry for testing purposes
+                    log.maximumNumberOfArchivedLogEntries = 1;
+
+                    archivedLogWithLog = ^(PROTransformationLog *log){
+                        NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:log];
+                        expect(encoded).not.toBeNil();
+
+                        PROTransformationLog *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+                        expect(decoded).not.toBeNil();
+
+                        return decoded;
+                    };
+                });
+
+                it(@"should not move backward to a removed log entry after archiving", ^{
+                    [log appendTransformation:firstTransformation];
+                    [log appendTransformation:secondTransformation];
+
+                    expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry]).not.toBeNil();
+                    
+                    log = archivedLogWithLog(log);
+
+                    expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry]).toBeNil();
+                });
+
+                it(@"should archive to a smaller size with a maximum entry limit", ^{
+                    PROTransformationLog *unlimitedLog = [[PROTransformationLog alloc] init];
+
+                    [log appendTransformation:firstTransformation];
+                    [log appendTransformation:secondTransformation];
+
+                    [unlimitedLog appendTransformation:firstTransformation];
+                    [unlimitedLog appendTransformation:secondTransformation];
+
+                    NSData *limitedData = [NSKeyedArchiver archivedDataWithRootObject:log];
+                    NSData *unlimitedData = [NSKeyedArchiver archivedDataWithRootObject:unlimitedLog];
+
+                    expect(limitedData.length).toBeLessThan(unlimitedData.length);
+                });
+            });
+
             it(@"should remove log entries when setting a smaller maximum", ^{
                 [log appendTransformation:firstTransformation];
                 [log appendTransformation:secondTransformation];

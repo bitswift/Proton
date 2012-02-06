@@ -83,16 +83,30 @@
  */
 
 /**
- * The maximum number of log entries to store, or zero to disable limiting of
- * the log.
+ * The maximum number of log entries to store in memory, or zero to disable
+ * limiting of the log in memory.
  *
  * If adding a new entry would push the log over the limit, the oldest log entry
  * is discarded, but only after invoking the <willRemoveLogEntryBlock> with that
  * entry.
  *
+ * To apply a limit to the log only when archived, use
+ * <maximumNumberOfArchivedLogEntries>.
+ *
  * The default value for this property is 50.
  */
 @property (nonatomic, assign) NSUInteger maximumNumberOfLogEntries;
+
+/**
+ * The maximum number of log entries to store when the receiver is encoded in an
+ * archive, or zero to disable limiting of the archived log.
+ *
+ * This property has no effect if set equal to or higher than
+ * <maximumNumberOfLogEntries>.
+ *
+ * The default value for this property is zero.
+ */
+@property (nonatomic, assign) NSUInteger maximumNumberOfArchivedLogEntries;
 
 /**
  * If not `nil`, this block is invoked immediately before removing an old log
