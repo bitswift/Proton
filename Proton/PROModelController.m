@@ -167,7 +167,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)setModel:(id)newModel {
-    NSParameterAssert([newModel isEqual:[EXTNil null]] || [newModel isKindOfClass:[PROModel class]]);
+    NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self.dispatchQueue runSynchronously:^{
         PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] init];
@@ -525,9 +525,13 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         }
 
         id lastLogEntry = self.transformationLog.latestLogEntry;
+        id newLogEntry = nil;
 
-        if (shouldAppendTransformation)
+        if (shouldAppendTransformation) {
             [self.transformationLog appendTransformation:transformation];
+
+            newLogEntry = self.transformationLog.latestLogEntry;
+        }
 
         [self setModel:newModel replacingModelControllers:NO];
 
@@ -535,7 +539,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         success = [transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil];
 
         if (PROAssert(success, @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-            if (shouldAppendTransformation) {
+            // only capture 'self' in the log entry if it hasn't changed in the
+            // interim
+            if (shouldAppendTransformation && [self.transformationLog.latestLogEntry isEqual:newLogEntry]) {
                 [(id)self.transformationLog.latestLogEntry captureModelController:self];
             }
         } else {
