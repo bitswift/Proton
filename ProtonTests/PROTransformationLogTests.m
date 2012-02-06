@@ -32,8 +32,8 @@ SpecBegin(PROTransformationLog)
             expect(log.latestLogEntry.parentLogEntry).toBeNil();
         });
 
-        it(@"should default to 50 log entries", ^{
-            expect(log.maximumNumberOfLogEntries).toEqual(50);
+        it(@"should default to not having an in-memory limit", ^{
+            expect(log.maximumNumberOfLogEntries).toEqual(0);
         });
 
         describe(@"interacting with the log", ^{

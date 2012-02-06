@@ -70,7 +70,6 @@
     if (!self)
         return nil;
 
-    m_maximumNumberOfLogEntries = 50;
     m_logEntries = [[NSMutableOrderedSet alloc] initWithCapacity:m_maximumNumberOfLogEntries];
     m_transformationsByLogEntry = [[NSMutableDictionary alloc] initWithCapacity:m_maximumNumberOfLogEntries];
 

@@ -93,7 +93,7 @@
  * To apply a limit to the log only when archived, use
  * <maximumNumberOfArchivedLogEntries>.
  *
- * The default value for this property is 50.
+ * The default value for this property is zero.
  */
 @property (nonatomic, assign) NSUInteger maximumNumberOfLogEntries;
 

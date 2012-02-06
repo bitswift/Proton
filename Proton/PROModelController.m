@@ -245,6 +245,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     m_dispatchQueue = [[SDQueue alloc] init];
 
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
+    m_transformationLog.maximumNumberOfLogEntries = 50;
     [(id)m_transformationLog.latestLogEntry captureModelController:self];
 
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
