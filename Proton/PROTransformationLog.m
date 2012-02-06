@@ -73,7 +73,7 @@
     m_transformationsByLogEntry = [[NSMutableDictionary alloc] initWithCapacity:m_maximumNumberOfLogEntries];
 
     // move to an initial root log entry
-    BOOL success = [self moveToLogEntry:[[PROTransformationLogEntry alloc] init]];
+    BOOL success = [self moveToLogEntry:[self logEntryWithParentLogEntry:nil]];
     if (!PROAssert(success, @"Could not move to initial root log entry"))
         return nil;
 
@@ -142,7 +142,7 @@
 
     [self prepareForAdditionalEntries:1];
 
-    PROTransformationLogEntry *newEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:self.latestLogEntry];
+    PROTransformationLogEntry *newEntry = [self logEntryWithParentLogEntry:self.latestLogEntry];
     [self.logEntries addObject:newEntry];
     [self.transformationsByLogEntry setObject:transformation forKey:newEntry];
 
@@ -181,6 +181,12 @@
     }];
 
     [self.logEntries removeObjectsInRange:rangeToRemove];
+}
+
+#pragma mark Subclassing
+
+- (PROTransformationLogEntry *)logEntryWithParentLogEntry:(PROTransformationLogEntry *)parentLogEntry; {
+    return [[PROTransformationLogEntry alloc] initWithParentLogEntry:parentLogEntry];
 }
 
 #pragma mark NSCopying

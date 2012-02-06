@@ -107,4 +107,24 @@
  */
 @property (nonatomic, copy) void (^willRemoveLogEntryBlock)(PROTransformationLogEntry *logEntry);
 
+/**
+ * @name Subclassing
+ */
+
+/**
+ * Creates and returns a new <PROTransformationLogEntry> as a child of the given
+ * log entry.
+ *
+ * Subclasses may override this method to change how log entries are
+ * instantiated.
+ *
+ * This method is not meant to be invoked by consumers of this class, as it does
+ * not provide any additional functionality over <[PROTransformationLogEntry
+ * initWithParentLogEntry:]> in its default implementation.
+ *
+ * @param parentLogEntry The log entry that the new entry should be a child of,
+ * or `nil` if the new entry should be a root entry.
+ */
+- (PROTransformationLogEntry *)logEntryWithParentLogEntry:(PROTransformationLogEntry *)parentLogEntry;
+
 @end
