@@ -359,7 +359,9 @@ SpecBegin(PROModelController)
 
             it(@"should return transformation log entry without model pointer", ^{
                 PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
                 expect(logEntry).not.toBeNil();
+                expect(logEntry.modelControllerIdentifier).toEqual(controller.uniqueIdentifier);
             });
 
             it(@"should return transformation log entry with model pointer", ^{
@@ -367,6 +369,7 @@ SpecBegin(PROModelController)
                 PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:&model];
 
                 expect(logEntry).not.toBeNil();
+                expect(logEntry.modelControllerIdentifier).toEqual(controller.uniqueIdentifier);
                 expect(model).toEqual(controller.model);
             });
 
@@ -381,6 +384,25 @@ SpecBegin(PROModelController)
                 PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
                 
                 TestSuperModel *model = [controller modelWithTransformationLogEntry:logEntry];
+                expect(model).toEqual(controller.model);
+            });
+
+            it(@"should return model given archived log entry", ^{
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                expect(logEntry).toSupportArchiving();
+
+                NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:logEntry];
+                PROModelControllerTransformationLogEntry *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+                
+                TestSuperModel *model = [controller modelWithTransformationLogEntry:decoded];
+                expect(model).toEqual(controller.model);
+            });
+
+            it(@"should return model given copied log entry", ^{
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                expect(logEntry).toSupportCopying();
+                
+                TestSuperModel *model = [controller modelWithTransformationLogEntry:[logEntry copy]];
                 expect(model).toEqual(controller.model);
             });
 
