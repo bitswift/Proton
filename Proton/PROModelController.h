@@ -10,7 +10,7 @@
 
 @class PROModel;
 @class PROTransformation;
-@class PROTransformationLogEntry;
+@class PROModelControllerTransformationLogEntry;
 @class PROUniqueIdentifier;
 @class SDQueue;
 
@@ -212,7 +212,7 @@
  * It is not safe to retrieve the log entry and model in separate steps, as
  * another thread may make a change during that time.
  */
-- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer;
+- (PROModelControllerTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer;
 
 /**
  * Returns the version of the <model> that corresponds to the given
@@ -224,7 +224,7 @@
  * @param transformationLogEntry An object previously returned from
  * <transformationLogEntryWithModelPointer:>.
  */
-- (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
+- (id)modelWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry;
 
 /**
  * Atomically replaces the receiver's <model> with the version that corresponds
@@ -240,6 +240,6 @@
  * @param transformationLogEntry An object previously returned from
  * <transformationLogEntryWithModelPointer:>.
  */
-- (BOOL)restoreModelFromTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
+- (BOOL)restoreModelFromTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry;
 
 @end

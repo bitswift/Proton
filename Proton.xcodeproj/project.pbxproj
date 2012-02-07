@@ -126,6 +126,8 @@
 		D080E0FB14AA976500F6EABB /* PRORemovalTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D080E0F814AA976500F6EABB /* PRORemovalTransformation.m */; };
 		D080E0FC14AA976500F6EABB /* PRORemovalTransformation.m in Sources */ = {isa = PBXBuildFile; fileRef = D080E0F814AA976500F6EABB /* PRORemovalTransformation.m */; };
 		D09186741492EC3E001DEBC8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07AF71492E76200A1E816 /* Foundation.framework */; };
+		D094A1F014E19CC9005DE410 /* PROModelControllerTransformationLogEntry.h in Headers */ = {isa = PBXBuildFile; fileRef = D054A6A014DF93E500A10515 /* PROModelControllerTransformationLogEntry.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D094A1F114E19CC9005DE410 /* PROModelControllerTransformationLogEntry.h in Headers */ = {isa = PBXBuildFile; fileRef = D054A6A014DF93E500A10515 /* PROModelControllerTransformationLogEntry.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D097ADC014CF0A92009C452C /* PROMutableModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D097ADBE14CF0A92009C452C /* PROMutableModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D097ADC114CF0A92009C452C /* PROMutableModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D097ADBE14CF0A92009C452C /* PROMutableModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D097ADC214CF0A92009C452C /* PROMutableModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D097ADBF14CF0A92009C452C /* PROMutableModel.m */; };
@@ -407,6 +409,7 @@
 		D080E0F114AA971000F6EABB /* PROInsertionTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROInsertionTransformation.m; sourceTree = "<group>"; };
 		D080E0F714AA976500F6EABB /* PRORemovalTransformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PRORemovalTransformation.h; sourceTree = "<group>"; };
 		D080E0F814AA976500F6EABB /* PRORemovalTransformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRORemovalTransformation.m; sourceTree = "<group>"; };
+		D094A1EF14E19BA4005DE410 /* PROModelControllerTransformationLogEntryPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PROModelControllerTransformationLogEntryPrivate.h; sourceTree = "<group>"; };
 		D097ADBE14CF0A92009C452C /* PROMutableModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROMutableModel.h; sourceTree = "<group>"; };
 		D097ADBF14CF0A92009C452C /* PROMutableModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMutableModel.m; sourceTree = "<group>"; };
 		D097ADC514CF0F69009C452C /* PROMutableModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMutableModelTests.m; sourceTree = "<group>"; };
@@ -829,10 +832,11 @@
 			children = (
 				D0A0E5DA14B5788E00E278CA /* PROModelController.h */,
 				D0A0E5DB14B5788E00E278CA /* PROModelController.m */,
-				D054A6A014DF93E500A10515 /* PROModelControllerTransformationLogEntry.h */,
-				D054A6A114DF93E500A10515 /* PROModelControllerTransformationLogEntry.m */,
 				D054A69A14DF939C00A10515 /* PROModelControllerTransformationLog.h */,
 				D054A69B14DF939C00A10515 /* PROModelControllerTransformationLog.m */,
+				D054A6A014DF93E500A10515 /* PROModelControllerTransformationLogEntry.h */,
+				D054A6A114DF93E500A10515 /* PROModelControllerTransformationLogEntry.m */,
+				D094A1EF14E19BA4005DE410 /* PROModelControllerTransformationLogEntryPrivate.h */,
 				D0DA64D714C681D100B6A577 /* PROTransformer.h */,
 				D0DA64D814C681D100B6A577 /* PROTransformer.m */,
 			);
@@ -1046,6 +1050,7 @@
 				D0C808B214D0EF310068E06C /* NSUndoManager+RegistrationAdditions.h in Headers */,
 				D01DD0D514DB05CF00179322 /* PROTransformationLog.h in Headers */,
 				D01DD0E914DB0A3300179322 /* PROTransformationLogEntry.h in Headers */,
+				D094A1F114E19CC9005DE410 /* PROModelControllerTransformationLogEntry.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1097,6 +1102,7 @@
 				D0C808B114D0EF310068E06C /* NSUndoManager+RegistrationAdditions.h in Headers */,
 				D01DD0D414DB05CF00179322 /* PROTransformationLog.h in Headers */,
 				D01DD0E814DB0A3300179322 /* PROTransformationLogEntry.h in Headers */,
+				D094A1F014E19CC9005DE410 /* PROModelControllerTransformationLogEntry.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
