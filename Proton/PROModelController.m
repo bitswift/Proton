@@ -20,6 +20,7 @@
 #import "PROModel.h"
 #import "PROModelControllerTransformationLog.h"
 #import "PROModelControllerTransformationLogEntry.h"
+#import "PROModelControllerTransformationLogEntryPrivate.h"
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
 #import "PROUniqueIdentifier.h"
