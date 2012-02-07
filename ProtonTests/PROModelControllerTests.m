@@ -62,18 +62,12 @@ SpecBegin(PROModelController)
     
     describe(@"model controller subclass", ^{
         __block TestSuperModelController *controller = nil;
-        __block PROKeyValueObserver *observer = nil;
-        __block BOOL observerInvoked = NO;
 
         before(^{
-            observerInvoked = NO;
-
             controller = [[TestSuperModelController alloc] init];
         });
 
         after(^{
-            // make sure the observer is torn down before controller
-            observer = nil;
             controller = nil;
         });
 
@@ -92,24 +86,41 @@ SpecBegin(PROModelController)
             }];
         });
 
-        it(@"should generate KVO notifications when replacing the model", ^{
-            TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+        describe(@"key-value observation", ^{
+            __block PROKeyValueObserver *observer = nil;
+            __block BOOL observerInvoked = NO;
 
-            observer = [[PROKeyValueObserver alloc]
-                initWithTarget:controller
-                keyPath:PROKeyForObject(controller, model)
-                options:NSKeyValueObservingOptionNew
-                block:^(NSDictionary *changes){
-                    STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
+            before(^{
+                observerInvoked = NO;
+            });
 
-                    observerInvoked = YES;
-                }
-            ];
+            after(^{
+                // make sure the observer is torn down before controller
+                observer = nil;
+            });
 
-            controller.model = newModel;
+            it(@"should generate KVO notifications when replacing the model", ^{
+                TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
 
-            expect(controller.model).toEqual(newModel);
-            expect(observerInvoked).toBeTruthy();
+                observer = [[PROKeyValueObserver alloc]
+                    initWithTarget:controller
+                    keyPath:PROKeyForObject(controller, model)
+                    options:NSKeyValueObservingOptionNew
+                    block:^(NSDictionary *changes){
+                        STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
+
+                        observerInvoked = YES;
+                    }
+                ];
+
+                controller.model = newModel;
+
+                expect(controller.model).toEqual(newModel);
+                expect(observerInvoked).toBeTruthy();
+            });
+
+            // TODO: add KVO tests for the various operations on the
+            // modelControllers array
         });
 
         it(@"should not have a parent model controller by default", ^{
@@ -148,9 +159,6 @@ SpecBegin(PROModelController)
                 expect([controller modelControllerWithIdentifier:[[PROUniqueIdentifier alloc] init]]).toBeNil();
             });
         });
-
-        // TODO: add KVO tests for the various operations on the
-        // modelControllers array
 
         describe(@"successful transformations", ^{
             __block PROTransformation *transformation;
@@ -473,6 +481,117 @@ SpecBegin(PROModelController)
                 }];
 
                 expect(controllerIDs).toEqual(newIDs);
+            });
+        });
+
+        describe(@"concurrency", ^{
+            unsigned concurrentOperations = 10;
+
+            __block NSArray *subModels;
+
+            before(^{
+                NSMutableArray *mutableSubModels = [[NSMutableArray alloc] init];
+
+                for (unsigned i = 0; i < concurrentOperations; ++i) {
+                    NSString *name = [NSString stringWithFormat:@"Sub model %u", i];
+                    TestSubModel *subModel = [[TestSubModel alloc] initWithName:name];
+                    expect(subModel).not.toBeNil();
+
+                    [mutableSubModels addObject:subModel];
+                }
+
+                subModels = mutableSubModels;
+
+                NSDictionary *dictionary = [NSDictionary dictionaryWithObject:subModels forKey:@"subModels"];
+                TestSuperModel *superModel = [[TestSuperModel alloc] initWithDictionary:dictionary error:NULL];
+                expect(superModel).not.toBeNil();
+
+                controller.model = superModel;
+            });
+
+            it(@"should serialize transformations from multiple threads", ^{
+                NSString *newNamePrefix = @"new name ";
+
+                dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+                    NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
+                    
+                    PROTransformation *subModelTransformation = [[subModels objectAtIndex:index] transformationForKey:@"name" value:newName];
+                    PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
+                    PROKeyedTransformation *superModelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+
+                    expect([controller performTransformation:superModelTransformation error:NULL]).toBeTruthy();
+                    expect([[[controller.model subModels] objectAtIndex:index] name]).toEqual(newName);
+
+                    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:index];
+                    expect([subController.model name]).toEqual(newName);
+                });
+
+                // verify that every sub-model matches the name pattern after
+                // the fact
+                for (unsigned index = 0; index < concurrentOperations; ++index) {
+                    NSString *name = [[[controller.model subModels] objectAtIndex:index] name];
+                    NSString *newName = [newNamePrefix stringByAppendingFormat:@"%u", index];
+
+                    expect(name).toEqual(newName);
+                }
+            });
+
+            it(@"should perform transformations on managed model controllers simultaneously", ^{
+                NSString *newNamePrefix = @"new name ";
+
+                dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+                    NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
+                    
+                    PROTransformation *subModelTransformation = [[subModels objectAtIndex:index] transformationForKey:@"name" value:newName];
+                    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:index];
+
+                    expect([subController performTransformation:subModelTransformation error:NULL]).toBeTruthy();
+                    expect([subController.model name]).toEqual(newName);
+                    expect([[[controller.model subModels] objectAtIndex:index] name]).toEqual(newName);
+                });
+
+                // verify that every sub-model matches the name pattern after
+                // the fact
+                for (unsigned index = 0; index < concurrentOperations; ++index) {
+                    NSString *name = [[[controller.model subModels] objectAtIndex:index] name];
+                    NSString *newName = [newNamePrefix stringByAppendingFormat:@"%u", index];
+
+                    expect(name).toEqual(newName);
+                }
+            });
+
+            it(@"should perform transformations on managing and managed model controllers simultaneously", ^{
+                NSString *newNamePrefix = @"new name ";
+
+                dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+                    NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
+                    
+                    PROTransformation *subModelTransformation = [[subModels objectAtIndex:index] transformationForKey:@"name" value:newName];
+                    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:index];
+
+                    if (index % 2 == 0) {
+                        // perform on super controller
+                        PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
+                        PROKeyedTransformation *superModelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+
+                        expect([controller performTransformation:superModelTransformation error:NULL]).toBeTruthy();
+                    } else {
+                        // perform on sub controller
+                        expect([subController performTransformation:subModelTransformation error:NULL]).toBeTruthy();
+                    }
+
+                    expect([subController.model name]).toEqual(newName);
+                    expect([[[controller.model subModels] objectAtIndex:index] name]).toEqual(newName);
+                });
+
+                // verify that every sub-model matches the name pattern after
+                // the fact
+                for (unsigned index = 0; index < concurrentOperations; ++index) {
+                    NSString *name = [[[controller.model subModels] objectAtIndex:index] name];
+                    NSString *newName = [newNamePrefix stringByAppendingFormat:@"%u", index];
+
+                    expect(name).toEqual(newName);
+                }
             });
         });
     });
