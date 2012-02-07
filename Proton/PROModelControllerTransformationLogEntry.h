@@ -8,14 +8,25 @@
 
 #import "PROTransformationLogEntry.h"
 
-@class PROModelController;
 @class PROUniqueIdentifier;
 
 /**
- * Private transformation log entry class used by
- * <PROModelControllerTransformationLog>.
+ * Represents a reference into the transformation log of a <PROModelController>,
+ * which can be used to retrieve any version of the <[PROModelController model]>
+ * with minimal data duplication.
+ *
+ * Log entry references are extremely cheap, but are only valid with respect to
+ * a model controller, and only as long as the underlying transformation log
+ * entry remains valid on the model controller. For this reason, model data
+ * should almost always be saved alongside a log entry, in case the reference is
+ * no longer valid when decoded.
+ *
+ * Log entries are valid across application launches and processes, as long as
+ * the associated model controller is also persisted and restored.
+ *
+ * This class should not be subclassed.
  */
-@interface PROModelControllerTransformationLogEntry : PROTransformationLogEntry <NSCoding>
+@interface PROModelControllerTransformationLogEntry : PROTransformationLogEntry
 
 /**
  * @name Model Controller
@@ -31,18 +42,6 @@
 @property (nonatomic, copy, readonly) PROUniqueIdentifier *modelControllerIdentifier;
 
 /**
- * Fills in the receiver's <modelControllerIdentifier> and
- * <logEntriesByModelControllerKey> using information from the given model
- * controller.
- *
- * To preserve the appearance of immutability, this method should only be
- * invoked **once** (typically very shortly after initialization).
- *
- * @param modelController A model controller from which to retrieve information.
- */
-- (void)captureModelController:(PROModelController *)modelController;
-
-/**
  * @name Log Entry Tree
  */
 
@@ -53,20 +52,4 @@
  * no parent), or if the parent log entry has since been destroyed.
  */
 @property (nonatomic, weak, readonly) PROModelControllerTransformationLogEntry *parentLogEntry;
-
-/**
- * A dictionary containing arrays of <PROModelControllerTransformationLogEntry>
- * instances for every model controller managed by the receiver's model
- * controller.
- *
- * The keys of this dictionary will be the values returned by
- * <[PROModelController modelControllerKeysByModelKeyPath]>. The values will be
- * arrays containing instances of <PROModelControllerTransformationLogEntry>,
- * one for each model controller in the array at the corresponding key.
- *
- * This is used to also update the transformation logs of any managed model
- * controllers when moving across their parent's transformation log.
- */
-@property (nonatomic, copy, readonly) NSDictionary *logEntriesByModelControllerKey;
-
 @end

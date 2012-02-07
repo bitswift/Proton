@@ -11,11 +11,14 @@
 #import "PROKeyValueCodingMacros.h"
 #import "PROModelController.h"
 #import "PROModelControllerTransformationLogEntry.h"
+#import "PROModelControllerTransformationLogEntryPrivate.h"
 #import "SDQueue.h"
 
 @implementation PROModelControllerTransformationLog
 
 #pragma mark Properties
+
+@dynamic latestLogEntry;
 
 @synthesize modelController = m_modelController;
 

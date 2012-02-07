@@ -20,6 +20,7 @@
 #import "PROModel.h"
 #import "PROModelControllerTransformationLog.h"
 #import "PROModelControllerTransformationLogEntry.h"
+#import "PROModelControllerTransformationLogEntryPrivate.h"
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
 #import "PROUniqueIdentifier.h"
@@ -245,7 +246,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
     m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
-    [(id)m_transformationLog.latestLogEntry captureModelController:self];
+    [m_transformationLog.latestLogEntry captureModelController:self];
 
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
     return self;
@@ -543,7 +544,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             // only capture 'self' in the log entry if it hasn't changed in the
             // interim
             if (shouldAppendTransformation && [self.transformationLog.latestLogEntry isEqual:newLogEntry]) {
-                [(id)self.transformationLog.latestLogEntry captureModelController:self];
+                [self.transformationLog.latestLogEntry captureModelController:self];
             }
         } else {
             // try to back out of that failure -- this won't be 100%, since
@@ -559,9 +560,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return success;
 }
 
-- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
+- (PROModelControllerTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
     __block PROModel *strongModel = nil;
-    __block PROTransformationLogEntry *logEntry = nil;
+    __block PROModelControllerTransformationLogEntry *logEntry = nil;
 
     [self.dispatchQueue runSynchronously:^{
         if (modelPointer) {
@@ -578,7 +579,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return logEntry;
 }
 
-- (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+- (id)modelWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
 
     __block PROModel *currentModel = nil;
