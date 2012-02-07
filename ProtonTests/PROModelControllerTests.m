@@ -538,8 +538,7 @@ SpecBegin(PROModelController)
                 }
             });
 
-            // FIXME
-            xit(@"should perform transformations on managing and managed model controllers simultaneously", ^{
+            it(@"should perform transformations on managing and managed model controllers simultaneously", ^{
                 NSString *newNamePrefix = @"new name ";
 
                 dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
