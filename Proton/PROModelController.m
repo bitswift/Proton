@@ -560,9 +560,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return success;
 }
 
-- (PROTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
+- (PROModelControllerTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
     __block PROModel *strongModel = nil;
-    __block PROTransformationLogEntry *logEntry = nil;
+    __block PROModelControllerTransformationLogEntry *logEntry = nil;
 
     [self.dispatchQueue runSynchronously:^{
         if (modelPointer) {
@@ -579,7 +579,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return logEntry;
 }
 
-- (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+- (id)modelWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
 
     __block PROModel *currentModel = nil;

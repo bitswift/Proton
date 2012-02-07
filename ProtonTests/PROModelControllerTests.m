@@ -358,34 +358,34 @@ SpecBegin(PROModelController)
             });
 
             it(@"should return transformation log entry without model pointer", ^{
-                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
                 expect(logEntry).not.toBeNil();
             });
 
             it(@"should return transformation log entry with model pointer", ^{
                 TestSuperModel *model = nil;
-                id logEntry = [controller transformationLogEntryWithModelPointer:&model];
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:&model];
 
                 expect(logEntry).not.toBeNil();
                 expect(model).toEqual(controller.model);
             });
 
             it(@"should return different transformation log entry after replacing model", ^{
-                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
                 controller.model = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
                 expect([controller transformationLogEntryWithModelPointer:NULL]).not.toEqual(logEntry);
             });
 
             it(@"should return current model given current log entry", ^{
-                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
                 
                 TestSuperModel *model = [controller modelWithTransformationLogEntry:logEntry];
                 expect(model).toEqual(controller.model);
             });
 
             it(@"should return model given log entry after archiving", ^{
-                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
                 NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:controller];
                 TestSuperModelController *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
@@ -396,7 +396,7 @@ SpecBegin(PROModelController)
             });
 
             it(@"should return past model given past log entry", ^{
-                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
                 // perform a transformation, to update the log
                 expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
@@ -409,7 +409,7 @@ SpecBegin(PROModelController)
             });
 
             it(@"should restore past model given past log entry", ^{
-                id logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
                 // perform a transformation, to update the log
                 expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
