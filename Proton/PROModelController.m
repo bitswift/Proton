@@ -246,7 +246,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
     m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
-    [(id)m_transformationLog.latestLogEntry captureModelController:self];
+    [m_transformationLog.latestLogEntry captureModelController:self];
 
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
     return self;
@@ -544,7 +544,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             // only capture 'self' in the log entry if it hasn't changed in the
             // interim
             if (shouldAppendTransformation && [self.transformationLog.latestLogEntry isEqual:newLogEntry]) {
-                [(id)self.transformationLog.latestLogEntry captureModelController:self];
+                [self.transformationLog.latestLogEntry captureModelController:self];
             }
         } else {
             // try to back out of that failure -- this won't be 100%, since

@@ -7,6 +7,7 @@
 //
 
 #import "PROTransformationLog.h"
+#import "PROModelControllerTransformationLogEntry.h"
 
 @class PROModelController;
 
@@ -25,6 +26,18 @@
  * @param modelController The model controller which will own the receiver.
  */
 - (id)initWithModelController:(PROModelController *)modelController;
+
+/**
+ * @name Reading the Log
+ */
+
+/**
+ * The last log entry that was recorded. This may be a root log entry if no
+ * transformations have been recorded yet in the log.
+ *
+ * This property will never be `nil`.
+ */
+@property (nonatomic, copy, readonly) PROModelControllerTransformationLogEntry *latestLogEntry;
 
 /**
  * @name Model Controller

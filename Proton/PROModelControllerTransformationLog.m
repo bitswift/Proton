@@ -18,6 +18,8 @@
 
 #pragma mark Properties
 
+@dynamic latestLogEntry;
+
 @synthesize modelController = m_modelController;
 
 #pragma mark Initialization
