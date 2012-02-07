@@ -199,45 +199,29 @@ const NSInteger PROModelErrorValidationFailed = 2;
 #pragma mark Transformation
 
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value; {
+    NSAssert2([key isKindOfClass:[NSString class]], @"Key passed to %s is not a string: %@", __func__, key);
+
+    id originalValue = [self valueForKey:key];
+    if (NSEqualObjects(value, originalValue)) {
+        // nothing to do for this key
+        return [[PROKeyedTransformation alloc] init];
+    }
+
+    if (!originalValue) {
+        // 'nil' needs to be represented as NSNull for PROKeyedTransformation
+        originalValue = [NSNull null];
+    }
+
     if (!value) {
+        // 'nil' needs to be represented as NSNull for PROKeyedTransformation
         value = [NSNull null];
     }
 
-    NSDictionary *dictionary = [NSDictionary dictionaryWithObject:value forKey:key];
-    return [self transformationForKeysWithDictionary:dictionary];
-}
-
-- (PROKeyedTransformation *)transformationForKeysWithDictionary:(NSDictionary *)dictionary; {
-    NSMutableDictionary *transformations = [[NSMutableDictionary alloc] initWithCapacity:[dictionary count]];
-
-    for (NSString *key in dictionary) {
-        NSAssert2([key isKindOfClass:[NSString class]], @"Key passed to %s is not a string: %@", __func__, key);
-
-        id value = [dictionary objectForKey:key];
-        id originalValue = [self valueForKey:key];
-
-        if (!originalValue) {
-            // 'nil' needs to be represented as NSNull for PROKeyedTransformation
-            originalValue = [NSNull null];
-        }
-
-        if (NSEqualObjects(value, originalValue)) {
-            // nothing to do for this key
-            continue;
-        }
-
-        // create the transformation for the specific property
-        PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:originalValue outputValue:value];
-        [transformations setObject:transformation forKey:key];
-    }
-
-    if (![transformations count]) {
-        // nothing to do for any of the keys
-        return nil;
-    }
+    // create the transformation for the specific property
+    PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:originalValue outputValue:value];
     
     // set up a key-based transformation for self
-    return [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
+    return [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:key];
 }
 
 #pragma mark Default values
