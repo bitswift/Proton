@@ -12,7 +12,6 @@
 #import "PROKeyedObject.h"
 #import "PROModel.h"
 #import "PROModelController.h"
-#import "PROModelControllerPrivate.h"
 
 @implementation PROKeyedTransformation
 
@@ -229,7 +228,7 @@
     if (!modelKeyPath && !allModelUpdatesSuccessful) {
         // not all changes correctly propagated, so we just need to set the
         // top-level object
-        [modelController setModel:result replacingModelControllers:YES];
+        modelController.model = result;
 
         allModelUpdatesSuccessful = YES;
     }
