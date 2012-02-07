@@ -62,18 +62,12 @@ SpecBegin(PROModelController)
     
     describe(@"model controller subclass", ^{
         __block TestSuperModelController *controller = nil;
-        __block PROKeyValueObserver *observer = nil;
-        __block BOOL observerInvoked = NO;
 
         before(^{
-            observerInvoked = NO;
-
             controller = [[TestSuperModelController alloc] init];
         });
 
         after(^{
-            // make sure the observer is torn down before controller
-            observer = nil;
             controller = nil;
         });
 
@@ -92,24 +86,41 @@ SpecBegin(PROModelController)
             }];
         });
 
-        it(@"should generate KVO notifications when replacing the model", ^{
-            TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+        describe(@"key-value observation", ^{
+            __block PROKeyValueObserver *observer = nil;
+            __block BOOL observerInvoked = NO;
 
-            observer = [[PROKeyValueObserver alloc]
-                initWithTarget:controller
-                keyPath:PROKeyForObject(controller, model)
-                options:NSKeyValueObservingOptionNew
-                block:^(NSDictionary *changes){
-                    STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
+            before(^{
+                observerInvoked = NO;
+            });
 
-                    observerInvoked = YES;
-                }
-            ];
+            after(^{
+                // make sure the observer is torn down before controller
+                observer = nil;
+            });
 
-            controller.model = newModel;
+            it(@"should generate KVO notifications when replacing the model", ^{
+                TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
 
-            expect(controller.model).toEqual(newModel);
-            expect(observerInvoked).toBeTruthy();
+                observer = [[PROKeyValueObserver alloc]
+                    initWithTarget:controller
+                    keyPath:PROKeyForObject(controller, model)
+                    options:NSKeyValueObservingOptionNew
+                    block:^(NSDictionary *changes){
+                        STAssertEqualObjects([changes objectForKey:NSKeyValueChangeNewKey], newModel, @"");
+
+                        observerInvoked = YES;
+                    }
+                ];
+
+                controller.model = newModel;
+
+                expect(controller.model).toEqual(newModel);
+                expect(observerInvoked).toBeTruthy();
+            });
+
+            // TODO: add KVO tests for the various operations on the
+            // modelControllers array
         });
 
         it(@"should not have a parent model controller by default", ^{
@@ -148,9 +159,6 @@ SpecBegin(PROModelController)
                 expect([controller modelControllerWithIdentifier:[[PROUniqueIdentifier alloc] init]]).toBeNil();
             });
         });
-
-        // TODO: add KVO tests for the various operations on the
-        // modelControllers array
 
         describe(@"successful transformations", ^{
             __block PROTransformation *transformation;
