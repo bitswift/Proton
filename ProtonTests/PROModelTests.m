@@ -141,36 +141,6 @@ SpecBegin(PROModel)
                 expect(uniqueTransformation.inputValue).toEqual(model.name);
                 expect(uniqueTransformation.outputValue).toEqual(@"fizzbuzz");
             });
-
-            describe(@"has transformation for keys with dictionary", ^{
-                NSDate *now = [[NSDate alloc] init];
-
-                __block PROKeyedTransformation *transformation;
-                
-                before(^{
-                    NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
-                        @"fizzbuzz", @"name",
-                        now, @"date",
-                        nil
-                    ];
-
-                    transformation = [model transformationForKeysWithDictionary:changes];
-                    expect(transformation).toBeKindOf([PROKeyedTransformation class]);
-                    
-                    // should be just the two transformations we specified
-                    expect(transformation.valueTransformations.count).toEqual(2);
-                });
-
-                it(@"including a unique transformation from 'foobar' to 'fizzbuzz'", ^{
-                    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.name outputValue:@"fizzbuzz"];
-                    expect([transformation.valueTransformations objectForKey:@"name"]).toEqual(uniqueTransformation);
-                });
-
-                it(@"including a unique transformation from the default date to now", ^{
-                    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.date outputValue:now];
-                    expect([transformation.valueTransformations objectForKey:@"date"]).toEqual(uniqueTransformation);
-                });
-            });
         });
 
         it(@"fails to initialize with invalid value", ^{

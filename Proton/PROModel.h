@@ -171,21 +171,6 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value;
 
 /**
- * Returns a keyed transformation to transform the values for the given keys
- * from their current values on the receiver.
- *
- * This will retrieve the current value on the receiver of every key in
- * `dictionary` and create a transformation for each one to convert it to the
- * value in the dictionary.
- *
- * @param dictionary The keys to transform, along with the new values to set.
- *
- * @warning **Important:** This method does not check to see if the returned
- * transformation would be valid.
- */
-- (PROKeyedTransformation *)transformationForKeysWithDictionary:(NSDictionary *)dictionary;
-
-/**
  * @name Error Handling
  */
 
