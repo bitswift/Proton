@@ -160,8 +160,7 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 
 /**
  * Returns a keyed transformation to transform the value for `key` from its
- * current value on the receiver to `value`. Returns `nil` if the given key is
- * already equal to the given value.
+ * current value on the receiver to `value`.
  *
  * @param key The key to transform.
  * @param value The value for `key` that will be set by the transformation.
@@ -173,8 +172,7 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 
 /**
  * Returns a keyed transformation to transform the values for the given keys
- * from their current values on the receiver. Returns `nil` if all of the keys
- * are already equal to the given values.
+ * from their current values on the receiver.
  *
  * This will retrieve the current value on the receiver of every key in
  * `dictionary` and create a transformation for each one to convert it to the

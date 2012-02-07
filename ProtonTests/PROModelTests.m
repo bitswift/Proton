@@ -142,11 +142,6 @@ SpecBegin(PROModel)
                 expect(uniqueTransformation.outputValue).toEqual(@"fizzbuzz");
             });
 
-            it(@"doesn't have transformation to key already transformed", ^{
-                PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:model.name];
-                expect(transformation).toBeNil();
-            });
-
             describe(@"has transformation for keys with dictionary", ^{
                 NSDate *now = [[NSDate alloc] init];
 
@@ -175,17 +170,6 @@ SpecBegin(PROModel)
                     PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:model.date outputValue:now];
                     expect([transformation.valueTransformations objectForKey:@"date"]).toEqual(uniqueTransformation);
                 });
-            });
-
-            it(@"doesn't have transformation to keys already transformed", ^{
-                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
-                    model.name, @"name",
-                    model.date, @"date",
-                    nil
-                ];
-
-                PROKeyedTransformation *transformation = [model transformationForKeysWithDictionary:changes];
-                expect(transformation).toBeNil();
             });
         });
 

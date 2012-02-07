@@ -230,11 +230,6 @@ const NSInteger PROModelErrorValidationFailed = 2;
         PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:originalValue outputValue:value];
         [transformations setObject:transformation forKey:key];
     }
-
-    if (![transformations count]) {
-        // nothing to do for any of the keys
-        return nil;
-    }
     
     // set up a key-based transformation for self
     return [[PROKeyedTransformation alloc] initWithValueTransformations:transformations];
