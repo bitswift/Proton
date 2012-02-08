@@ -299,9 +299,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         // purposely leaks (since methods, by their nature, are never really "released")
         IMP methodIMP = imp_implementationWithBlock((__bridge_retained void *)block);
 
-        if (!class_addMethod(self, selector, methodIMP, [typeEncoding UTF8String])) {
-            DDLogError(@"Could not add method %s to %@ -- perhaps it already exists?", selector, self);
-        }
+        PROAssert(class_addMethod(self, selector, methodIMP, [typeEncoding UTF8String]), @"Could not add method %s to %@ -- perhaps it already exists?", selector, self);
     };
 
     /*
@@ -372,8 +370,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                     NSArray *models = [weakSelf.model valueForKeyPath:modelKeyPath];
                     NSUInteger index = [models indexOfObjectIdenticalTo:oldSubModel];
 
-                    if (index == NSNotFound) {
-                        DDLogWarn(@"Could not find model object %@ to replace in array: %@", oldSubModel, models);
+                    if (!PROAssert(index != NSNotFound, @"Could not find model object %@ to replace in array: %@", oldSubModel, models)) {
                         return;
                     }
 
@@ -382,8 +379,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                     PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:modelsTransformation forKeyPath:modelKeyPath];
 
                     PROModel *newModel = [modelTransformation transform:weakSelf.model error:NULL];
-                    if (!newModel) {
-                        DDLogError(@"Could not create new model object from %@ with transformation %@", weakSelf.model, modelTransformation);
+                    if (!PROAssert(newModel, @"Could not create new model object from %@ with transformation %@", weakSelf.model, modelTransformation)) {
+                        return;
                     }
 
                     // the model controllers are already up-to-date; we just
@@ -696,8 +693,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         NSString *modelControllerKey = [modelControllerKeys objectForKey:modelKeyPath];
         NSArray *decodedModelControllers = [coder decodeObjectForKey:modelControllerKey];
 
-        if (!decodedModelControllers) {
-            DDLogError(@"Could not decode model controllers at key \"%@\", reconstructing them manually", modelControllerKey);
+        if (!PROAssert(decodedModelControllers, @"Could not decode model controllers at key \"%@\", reconstructing them manually", modelControllerKey)) {
             [self replaceModelControllersAtKey:modelControllerKey forModelKeyPath:modelKeyPath];
             continue;
         }

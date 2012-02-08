@@ -446,11 +446,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             break;
         
         case '[':
-            DDLogError(@"*** Cannot generate setter for array with type code \"%s\"", type);
+            NSAssert(@"*** Cannot generate setter for array with type code \"%s\"", type);
             break;
         
         case 'b':
-            DDLogError(@"*** Cannot generate setter for bitfield with type code \"%s\"", type);
+            NSAssert(@"*** Cannot generate setter for bitfield with type code \"%s\"", type);
             break;
         
         case '{':
@@ -519,11 +519,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 break;
             }
 
-            DDLogError(@"*** Cannot generate setter for struct with type code \"%s\"", type);
+            NSAssert(@"*** Cannot generate setter for struct with type code \"%s\"", type);
             break;
             
         case '(':
-            DDLogError(@"*** Cannot generate setter for union with type code \"%s\"", type);
+            NSAssert(@"*** Cannot generate setter for union with type code \"%s\"", type);
             break;
         
         case '?':
@@ -532,7 +532,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // case
             
         default:
-            DDLogError(@"*** Cannot generate setter for type code \"%s\"", type);
+            NSAssert(@"*** Cannot generate setter for type code \"%s\"", type);
     }
 
     #undef NSNUMBER_METHOD_BLOCK
