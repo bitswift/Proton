@@ -69,6 +69,20 @@
 - (void)appendTransformation:(PROTransformation *)transformation;
 
 /**
+ * Appends the given log entry to the log and updates the receiver's
+ * <latestLogEntry>. If the entry already existed in the log, any data
+ * associated with it is destroyed.
+ *
+ * This method is primarily meant to be overridden, but can be invoked
+ * externally to forcibly append a specific log entry or clear its associated
+ * data. Use with care.
+ *
+ * @param logEntry The entry to append to the log. This will be the
+ * <latestLogEntry> after this method completes.
+ */
+- (void)addOrReplaceLogEntry:(PROTransformationLogEntry *)logEntry;
+
+/**
  * Moves the receiver's <latestLogEntry> to the given entry, if possible.
  * Returns `NO` without doing anything if it would be invalid to move to the
  * given log entry.

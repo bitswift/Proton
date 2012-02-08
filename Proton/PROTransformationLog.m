@@ -141,25 +141,34 @@
 - (void)appendTransformation:(PROTransformation *)transformation; {
     NSParameterAssert(transformation != nil);
 
-    [self prepareForAdditionalEntries:1];
-
     PROTransformationLogEntry *newEntry = [self logEntryWithParentLogEntry:self.latestLogEntry];
-    [self.logEntries addObject:newEntry];
+    [self addOrReplaceLogEntry:newEntry];
     [self.transformationsByLogEntry setObject:transformation forKey:newEntry];
+}
 
-    self.latestLogEntry = newEntry;
+- (void)addOrReplaceLogEntry:(PROTransformationLogEntry *)logEntry; {
+    NSParameterAssert(logEntry != nil);
+
+    if (![self.logEntries containsObject:logEntry]) {
+        [self prepareForAdditionalEntries:1];
+        [self.logEntries addObject:logEntry];
+    }
+
+    [self.transformationsByLogEntry removeObjectForKey:logEntry];
+    self.latestLogEntry = logEntry;
 }
 
 - (BOOL)moveToLogEntry:(PROTransformationLogEntry *)logEntry; {
-    if (logEntry.parentLogEntry) {
-        // this entry must already exist in the log
-        if (![self.logEntries containsObject:logEntry])
-            return NO;
-    } else {
-        [self prepareForAdditionalEntries:1];
-        [self.logEntries addObject:logEntry];
-        [self.transformationsByLogEntry removeObjectForKey:logEntry];
+    NSParameterAssert(logEntry != nil);
+
+    if (!logEntry.parentLogEntry) {
+        [self addOrReplaceLogEntry:logEntry];
+        return YES;
     }
+        
+    // if this isn't a root, this entry must already exist in the log
+    if (![self.logEntries containsObject:logEntry])
+        return NO;
 
     self.latestLogEntry = logEntry;
     return YES;

@@ -127,6 +127,35 @@ SpecBegin(PROTransformationLog)
                 expect(transformation.transformations).toEqual([NSArray array]);
             });
 
+            it(@"should append a log entry", ^{
+                PROTransformationLogEntry *anotherEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:rootEntry];
+                [log addOrReplaceLogEntry:anotherEntry];
+
+                expect(log.latestLogEntry).toEqual(anotherEntry);
+
+                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:anotherEntry];
+                expect(transformation).not.toBeNil();
+                expect(transformation.transformations).toEqual([NSArray array]);
+            });
+
+            it(@"should destroy associated data when replacing an existing entry", ^{
+                [log appendTransformation:firstTransformation];
+
+                PROTransformationLogEntry *middleEntry = log.latestLogEntry;
+
+                [log appendTransformation:secondTransformation];
+
+                PROTransformationLogEntry *lastEntry = log.latestLogEntry;
+
+                [log addOrReplaceLogEntry:middleEntry];
+
+                expect(log.latestLogEntry).toEqual(middleEntry);
+
+                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:lastEntry];
+                expect(transformation).not.toBeNil();
+                expect(transformation.transformations).toEqual([NSArray arrayWithObject:secondTransformation]);
+            });
+
             it(@"should implement <NSCopying>", ^{
                 [log appendTransformation:firstTransformation];
 
