@@ -56,6 +56,15 @@
 @synthesize maximumNumberOfArchivedLogEntries = m_maximumNumberOfArchivedLogEntries;
 @synthesize willRemoveLogEntryBlock = m_willRemoveLogEntryBlock;
 
+- (NSOrderedSet *)archivableLogEntries {
+    if (self.maximumNumberOfArchivedLogEntries && self.logEntries.count > self.maximumNumberOfArchivedLogEntries) {
+        NSRange range = NSMakeRange(self.logEntries.count - self.maximumNumberOfArchivedLogEntries, self.maximumNumberOfArchivedLogEntries);
+        return [[NSOrderedSet alloc] initWithOrderedSet:self.logEntries range:range copyItems:NO];
+    } else {
+        return [self.logEntries copy];
+    }
+}
+
 - (void)setMaximumNumberOfLogEntries:(NSUInteger)maximum {
     m_maximumNumberOfLogEntries = maximum;
 
@@ -258,21 +267,14 @@
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.latestLogEntry forKey:PROKeyForObject(self, latestLogEntry)];
 
-    NSDictionary *limitedTransformations = self.transformationsByLogEntry;
-    NSOrderedSet *limitedEntries = self.logEntries;
+    NSOrderedSet *limitedEntries = self.archivableLogEntries;
+    [coder encodeObject:limitedEntries forKey:PROKeyForObject(self, logEntries)];
 
-    if (self.maximumNumberOfArchivedLogEntries && limitedEntries.count > self.maximumNumberOfArchivedLogEntries) {
-        NSRange range = NSMakeRange(limitedEntries.count - self.maximumNumberOfArchivedLogEntries, self.maximumNumberOfArchivedLogEntries);
-
-        limitedEntries = [[NSOrderedSet alloc] initWithOrderedSet:self.logEntries range:range copyItems:NO];
-
-        limitedTransformations = [self.transformationsByLogEntry filterEntriesUsingBlock:^(PROTransformationLogEntry *logEntry, PROTransformation *transformation){
-            return [limitedEntries containsObject:logEntry];
-        }];
-    }
+    NSDictionary *limitedTransformations = [self.transformationsByLogEntry filterEntriesUsingBlock:^(PROTransformationLogEntry *logEntry, PROTransformation *transformation){
+        return [limitedEntries containsObject:logEntry];
+    }];
 
     [coder encodeObject:limitedTransformations forKey:PROKeyForObject(self, transformationsByLogEntry)];
-    [coder encodeObject:limitedEntries forKey:PROKeyForObject(self, logEntries)];
 
     [coder encodeInteger:self.maximumNumberOfLogEntries forKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
     [coder encodeInteger:self.maximumNumberOfArchivedLogEntries forKey:PROKeyForObject(self, maximumNumberOfArchivedLogEntries)];

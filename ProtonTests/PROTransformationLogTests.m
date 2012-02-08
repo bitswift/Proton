@@ -351,6 +351,12 @@ SpecBegin(PROTransformationLog)
                     };
                 });
 
+                it(@"should return archivable log entries", ^{
+                    [log appendTransformation:firstTransformation];
+                    
+                    expect(log.archivableLogEntries).toEqual([NSOrderedSet orderedSetWithObject:log.latestLogEntry]);
+                });
+
                 it(@"should not move backward to a removed log entry after archiving", ^{
                     [log appendTransformation:firstTransformation];
                     [log appendTransformation:secondTransformation];
@@ -376,6 +382,42 @@ SpecBegin(PROTransformationLog)
 
                     expect(limitedData.length).toBeLessThan(unlimitedData.length);
                 });
+
+                describe(@"without maximums", ^{
+                    __block NSMutableOrderedSet *logEntries;
+
+                    before(^{
+                        logEntries = [[NSMutableOrderedSet alloc] init];
+
+                        log.maximumNumberOfLogEntries = 0;
+                        log.maximumNumberOfArchivedLogEntries = 0;
+
+                        [logEntries addObject:log.latestLogEntry];
+
+                        for (unsigned i = 0; i < 100; ++i) {
+                            [log appendTransformation:firstTransformation];
+                            [logEntries addObject:log.latestLogEntry];
+                        }
+                    });
+
+                    it(@"should not remove in-memory log entries", ^{
+                        PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry];
+
+                        expect(transformation).not.toBeNil();
+                        expect(transformation.transformations).not.toEqual([NSArray array]);
+                    });
+
+                    it(@"should not remove archived log entries", ^{
+                        expect(log.archivableLogEntries).toEqual(logEntries);
+
+                        log = archivedLogWithLog(log);                       
+
+                        PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry];
+
+                        expect(transformation).not.toBeNil();
+                        expect(transformation.transformations).not.toEqual([NSArray array]);
+                    });
+                });
             });
 
             it(@"should remove log entries when setting a smaller maximum", ^{
@@ -389,20 +431,6 @@ SpecBegin(PROTransformationLog)
                 log.maximumNumberOfLogEntries = 1;
 
                 expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:lastEntry]).toBeNil();
-            });
-
-            it(@"should not remove log entries without a maximum", ^{
-                log.maximumNumberOfLogEntries = 0;
-
-                // add more than the default maximum
-                for (unsigned i = 0; i < 100; ++i) {
-                    [log appendTransformation:firstTransformation];
-                }
-
-                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry];
-
-                expect(transformation).not.toBeNil();
-                expect(transformation.transformations).not.toEqual([NSArray array]);
             });
         });
     });

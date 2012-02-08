@@ -137,6 +137,12 @@
 @property (nonatomic, assign) NSUInteger maximumNumberOfArchivedLogEntries;
 
 /**
+ * The log entries in the receiver that would be archived with the log, based on
+ * the value of <maximumNumberOfArchivedLogEntries>.
+ */
+@property (nonatomic, copy, readonly) NSOrderedSet *archivableLogEntries;
+
+/**
  * If not `nil`, this block is invoked immediately before removing an old log
  * entry.
  *
