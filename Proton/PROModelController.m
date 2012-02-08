@@ -677,17 +677,28 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark Synchronization
 
 - (void)synchronizeAllTheThingsAndPerform:(dispatch_block_t)synchronizedBlock; {
-    PROModelController *parent = self.parentModelController;
-
     dispatch_block_t selfBlock = ^{
-        [self.dispatchQueue runSynchronously:synchronizedBlock];
-    };
+        // oh god
+        NSMutableArray *dispatchQueues = [[NSMutableArray alloc] init];
 
-    if (parent) {
-        [parent synchronizeAllTheThingsAndPerform:selfBlock];
-    } else {
-        selfBlock();
-    }
+        [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+            [modelControllers enumerateObjectsUsingBlock:^(PROModelController *controller, NSUInteger index, BOOL *stop){
+                [dispatchQueues addObject:controller.dispatchQueue];
+            }];
+        }];
+
+        if (dispatchQueues.count)
+            [SDQueue synchronizeQueues:dispatchQueues runSynchronously:synchronizedBlock];
+        else
+            synchronizedBlock();
+    };
+    
+    PROModelController *parentModelController = self.parentModelController;
+
+    if (parentModelController)
+        [parentModelController synchronizeAllTheThingsAndPerform:selfBlock];
+    else
+        [self.dispatchQueue runSynchronously:selfBlock];
 }
 
 #pragma mark NSCoding
