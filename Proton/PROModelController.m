@@ -123,6 +123,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * @param replacing If `YES`, all existing model controllers will be destroyed
  * and recreated from the models in `model`. If `NO`, model controllers are
  * assumed to be updated elsewhere, and will not be modified.
+ *
+ * @warning **Important:** This method does not automatically generate KVO
+ * notifications.
  */
 - (void)setModel:(PROModel *)model replacingModelControllers:(BOOL)replacing;
 
@@ -197,6 +200,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self synchronizeAllTheThingsAndPerform:^{
+        // don't duplicate KVO notifications posted from -performTransformation:
+        if (!self.performingTransformationOnDispatchQueue) {
+            [self willChangeValueForKey:PROKeyForObject(self, model)];
+        }
+
+        @onExit {
+            if (!self.performingTransformationOnDispatchQueue) {
+                [self didChangeValueForKey:PROKeyForObject(self, model)];
+            }
+        };
+
         PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] init];
         if (!PROAssert([self.transformationLog moveToLogEntry:logEntry], @"Could not move transformation log %@ to new root %@", self.transformationLog, logEntry)) {
             return;
@@ -211,14 +225,6 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
     [self synchronizeAllTheThingsAndPerform:^{
-        // invoke KVO methods while on the dispatch queue, so synchronous
-        // observers can perform operations that will be atomic with this method
-        [self willChangeValueForKey:PROKeyForObject(self, model)];
-
-        @onExit {
-            [self didChangeValueForKey:PROKeyForObject(self, model)];
-        };
-
         m_model = [newModel copy];
 
         if (replacing) {
@@ -398,9 +404,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                         return;
                     }
 
+                    [self willChangeValueForKey:PROKeyForObject(self, model)];
+                    @onExit {
+                        [self didChangeValueForKey:PROKeyForObject(self, model)];
+                    };
+
                     // the model controllers are already up-to-date; we just
-                    // want to drop in the new model object
+                    // want to drop in the new model object and record the
+                    // transformation in the log
+                    [self.transformationLog appendTransformation:modelTransformation];
                     [self setModel:newModel replacingModelControllers:NO];
+                    [self.transformationLog.latestLogEntry captureModelController:self];
                 }];
             }
         ];
@@ -566,6 +580,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
             newLogEntry = self.transformationLog.latestLogEntry;
         }
+
+        [self willChangeValueForKey:PROKeyForObject(self, model)];
+
+        @onExit {
+            [self didChangeValueForKey:PROKeyForObject(self, model)];
+        };
 
         [self setModel:newModel replacingModelControllers:NO];
 
