@@ -122,6 +122,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * argument will only be set if the method returns `NO`.
  */
 - (BOOL)performTransformation:(PROTransformation *)transformation appendToTransformationLog:(BOOL)shouldAppendTransformation error:(NSError **)error;
+
+/**
+ * Synchronizes with the dispatch queue of every <parentModelController> from
+ * the receiver, and then the receiver's own <dispatchQueue>, and then performs
+ * the given block.
+ *
+ * This method should be used with anything that may modify the receiver's
+ * managed model controllers, to prevent deadlocking caused by synchronizing
+ * with queues in an unpredictable order.
+ */
+- (void)synchronizeAllTheThingsAndPerform:(dispatch_block_t)synchronizedBlock;
 @end
 
 @implementation PROModelController
@@ -170,7 +181,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 - (void)setModel:(id)newModel {
     NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
-    [self.dispatchQueue runSynchronously:^{
+    [self synchronizeAllTheThingsAndPerform:^{
         PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] init];
         if (!PROAssert([self.transformationLog moveToLogEntry:logEntry], @"Could not move transformation log %@ to new root %@", self.transformationLog, logEntry)) {
             return;
@@ -184,7 +195,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 - (void)setModel:(PROModel *)newModel replacingModelControllers:(BOOL)replacing; {
     NSParameterAssert([newModel isKindOfClass:[PROModel class]]);
 
-    [self.dispatchQueue runSynchronously:^{
+    [self synchronizeAllTheThingsAndPerform:^{
         // invoke KVO methods while on the dispatch queue, so synchronous
         // observers can perform operations that will be atomic with this method
         [self willChangeValueForKey:PROKeyForObject(self, model)];
@@ -385,7 +396,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         // post synchronously
         observer.queue = nil;
 
-        [self.dispatchQueue runSynchronously:^{
+        [self synchronizeAllTheThingsAndPerform:^{
             [modelControllersArray(self) insertObject:controller atIndex:index];
             controller.parentModelController = self;
 
@@ -411,7 +422,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
      * KVC-compliant method for removing a model controller from an instance.
      */
     id removeController = ^(PROModelController *self, NSUInteger index) {
-        [self.dispatchQueue runSynchronously:^{
+        [self synchronizeAllTheThingsAndPerform:^{
             NSMutableArray *controllers = modelControllersArray(self);
             PROModelController *controller = [controllers objectAtIndex:index];
 
@@ -502,10 +513,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     NSAssert(!self.performingTransformation, @"%s should not be invoked recursively", __func__);
 
     __block BOOL success = YES;
-    
-    // TODO: seems like this should synchronize with child model controllers as
-    // well, to prevent deadlocks from jumping back and forth
-    [self.dispatchQueue runSynchronously:^{
+
+    [self synchronizeAllTheThingsAndPerform:^{
         self.performingTransformationOnDispatchQueue = YES;
 
         @onExit {
@@ -556,7 +565,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             [self setModel:oldModel replacingModelControllers:NO];
         }
     }];
-
+    
     return success;
 }
 
@@ -606,7 +615,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     __block BOOL success = NO;
 
-    [self.dispatchQueue runSynchronously:^{
+    [self synchronizeAllTheThingsAndPerform:^{
         PROTransformation *transformationFromOldModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
         if (!transformationFromOldModel)
             return;
@@ -640,6 +649,22 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             [controller restoreModelControllersWithTransformationLogEntry:controllerLogEntry];
         }];
     }];
+}
+
+#pragma mark Synchronization
+
+- (void)synchronizeAllTheThingsAndPerform:(dispatch_block_t)synchronizedBlock; {
+    PROModelController *parent = self.parentModelController;
+
+    dispatch_block_t selfBlock = ^{
+        [self.dispatchQueue runSynchronously:synchronizedBlock];
+    };
+
+    if (parent) {
+        [parent synchronizeAllTheThingsAndPerform:selfBlock];
+    } else {
+        selfBlock();
+    }
 }
 
 #pragma mark NSCoding
