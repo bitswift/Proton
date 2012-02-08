@@ -572,8 +572,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             return;
         }
 
-        id lastLogEntry = self.transformationLog.latestLogEntry;
-        id newLogEntry = nil;
+        PROModelControllerTransformationLogEntry *lastLogEntry = self.transformationLog.latestLogEntry;
+        PROModelControllerTransformationLogEntry *newLogEntry = nil;
 
         if (shouldAppendTransformation) {
             [self.transformationLog appendTransformation:transformation];
@@ -596,7 +596,18 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             // only capture 'self' in the log entry if it hasn't changed in the
             // interim
             if (shouldAppendTransformation && [self.transformationLog.latestLogEntry isEqual:newLogEntry]) {
-                [self.transformationLog.latestLogEntry captureModelController:self];
+                [newLogEntry captureModelController:self];
+
+                NSMutableDictionary *savedModelControllers = [NSMutableDictionary dictionary];
+
+                [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+                    [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
+                }];
+
+                if (savedModelControllers.count) {
+                    NSDictionary *controllers = [savedModelControllers copy];
+                    [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:newLogEntry];
+                }
             }
         } else {
             // try to back out of that failure -- this won't be 100%, since
