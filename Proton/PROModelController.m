@@ -101,6 +101,21 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @property (nonatomic, strong, readonly) PROModelControllerTransformationLog *transformationLog;
 
 /**
+ * Enumerates all model controllers on the receiver, passing each array of model
+ * controllers into the given block.
+ *
+ * @param shouldBeMutable Whether the arrays provided to the block should be
+ * mutable (thus allowing addition, removal, reordering, etc. of managed model
+ * controllers).
+ * @param block The block to invoke with each array of model controllers. This
+ * block will be passed the array of model controllers (mutable if
+ * `shouldBeMutable` is `YES`), the key path in the model that the model
+ * controllers are responsible for, and the key at which the model controllers
+ * exist on the receiver.
+ */
+- (void)enumerateModelControllersWithMutableArrays:(BOOL)shouldBeMutable usingBlock:(void (^)(id modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop))block;
+
+/**
  * Replaces the <model>, optionally updating other model controllers on the
  * receiver to match.
  *
@@ -458,6 +473,21 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     return nil;
 }
 
+- (void)enumerateModelControllersWithMutableArrays:(BOOL)shouldBeMutable usingBlock:(void (^)(id modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop))block; {
+    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
+
+    [modelControllerKeys enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+        id modelControllers;
+
+        if (shouldBeMutable)
+            modelControllers = [self mutableArrayValueForKey:modelControllerKey];
+        else
+            modelControllers = [self valueForKey:modelControllerKey];
+
+        block(modelControllers, modelKeyPath, modelControllerKey, stop);
+    }];
+}
+
 - (void)replaceModelControllersAtKey:(NSString *)modelControllerKey forModelKeyPath:(NSString *)modelKeyPath; {
     NSDictionary *modelControllerClasses = [[self class] modelControllerClassesByKey];
     Class modelControllerClass = [modelControllerClasses objectForKey:modelControllerKey];
@@ -478,16 +508,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
 - (id)modelControllerWithIdentifier:(PROUniqueIdentifier *)identifier; {
     NSParameterAssert(identifier != nil);
-
-    NSDictionary *modelControllerKeysByModelKeyPath = [[self class] modelControllerKeysByModelKeyPath];
     
     __block PROModelController *matchingController = nil;
 
     [self.dispatchQueue runSynchronously:^{
         // TODO: this could be optimized
-        [modelControllerKeysByModelKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *controllerKey, BOOL *stop){
-            NSArray *controllers = [self valueForKey:controllerKey];
-
+        [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *controllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
             matchingController = [controllers objectWithOptions:NSEnumerationConcurrent passingTest:^(PROModelController *controller, NSUInteger index, BOOL *stop){
                 return [controller.uniqueIdentifier isEqual:identifier];
             }];
@@ -634,8 +660,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)restoreModelControllersWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)logEntry; {
-    [logEntry.logEntriesByModelControllerKey enumerateKeysAndObjectsUsingBlock:^(NSString *modelControllerKey, NSArray *logEntries, BOOL *stop){
-        NSArray *controllers = [self valueForKey:modelControllerKey];
+    [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *controllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+        NSArray *logEntries = [logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey];
         if (!PROAssert(controllers.count == logEntries.count, @"Number of controllers (%lu) does not match number of log entries (%lu)", (unsigned long)controllers.count, (unsigned long)logEntries.count))
             return;
 
@@ -687,20 +713,16 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     // we need to set up the model controllers manually anyways
     [self setModel:model replacingModelControllers:NO];
 
-    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
-
-    for (NSString *modelKeyPath in modelControllerKeys) {
-        NSString *modelControllerKey = [modelControllerKeys objectForKey:modelKeyPath];
+    [self enumerateModelControllersWithMutableArrays:YES usingBlock:^(NSMutableArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
         NSArray *decodedModelControllers = [coder decodeObjectForKey:modelControllerKey];
 
         if (!PROAssert(decodedModelControllers, @"Could not decode model controllers at key \"%@\", reconstructing them manually", modelControllerKey)) {
             [self replaceModelControllersAtKey:modelControllerKey forModelKeyPath:modelKeyPath];
-            continue;
+            return;
         }
 
-        NSMutableArray *modelControllers = [self mutableArrayValueForKey:modelControllerKey];
         [modelControllers setArray:decodedModelControllers];
-    }
+    }];
 
     id decodedLog = [coder decodeObjectForKey:PROKeyForObject(self, transformationLog)];
     if (decodedLog) {
@@ -722,14 +744,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     [coder encodeObject:model forKey:PROKeyForObject(self, model)];
 
-    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
-
-    [modelControllerKeys enumerateKeysAndObjectsUsingBlock:^(NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        NSArray *modelControllers = [self valueForKey:modelControllerKey];
-        if (!modelControllers) {
-            return;
-        }
-
+    [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
         [coder encodeObject:modelControllers forKey:modelControllerKey];
     }];
 
