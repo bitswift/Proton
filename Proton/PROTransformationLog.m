@@ -174,14 +174,24 @@
     NSRange rangeToRemove = NSMakeRange(0, self.logEntries.count + additionalEntries - self.maximumNumberOfLogEntries);
     NSIndexSet *indexesToRemove = [NSIndexSet indexSetWithIndexesInRange:rangeToRemove];
 
-    [self.logEntries enumerateObjectsAtIndexes:indexesToRemove options:0 usingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
-        if (self.willRemoveLogEntryBlock)
-            self.willRemoveLogEntryBlock(entry);
-
-        [self.transformationsByLogEntry removeObjectForKey:entry];
+    NSArray *entriesToRemove = [self.logEntries objectsAtIndexes:indexesToRemove];
+    [entriesToRemove enumerateObjectsUsingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
+        [self removeLogEntry:entry];
     }];
+}
 
-    [self.logEntries removeObjectsInRange:rangeToRemove];
+- (void)removeLogEntry:(PROTransformationLogEntry *)logEntry; {
+    NSParameterAssert(logEntry != nil);
+
+    NSUInteger entryIndex = [self.logEntries indexOfObject:logEntry];
+    if (entryIndex == NSNotFound)
+        return;
+
+    if (self.willRemoveLogEntryBlock)
+        self.willRemoveLogEntryBlock(logEntry);
+
+    [self.logEntries removeObjectAtIndex:entryIndex];
+    [self.transformationsByLogEntry removeObjectForKey:logEntry];
 }
 
 #pragma mark Subclassing

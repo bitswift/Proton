@@ -79,6 +79,20 @@
 - (BOOL)moveToLogEntry:(PROTransformationLogEntry *)logEntry;
 
 /**
+ * Removes the given log entry and any associated data. If the entry does not
+ * exist in the log, nothing happens.
+ *
+ * This method is primarily meant to be overridden, but can be invoked
+ * externally to forcibly remove a specific log entry. Use with care.
+ *
+ * @param logEntry The entry to remove from the log.
+ *
+ * @warning **Important:** The behavior of removing the <latestLogEntry> is
+ * undefined.
+ */
+- (void)removeLogEntry:(PROTransformationLogEntry *)logEntry;
+
+/**
  * @name Log Limiting
  */
 
