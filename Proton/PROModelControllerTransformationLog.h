@@ -40,6 +40,21 @@
 @property (nonatomic, copy, readonly) PROModelControllerTransformationLogEntry *latestLogEntry;
 
 /**
+ * @name Data Associated with Log Entries
+ */
+
+/**
+ * Contains each <PROTransformationLogEntry> in the log as keys, associated with
+ * a dictionary of arrays of the <PROModelController> instances that existed
+ * after performing the transformation associated with the log entry.
+ *
+ * Each key in the nested dictionary is the key on the <modelController> at
+ * which the controllers live, and the value is the array of model controllers
+ * as they existed at the represented point in time.
+ */
+@property (nonatomic, strong, readonly) NSMutableDictionary *modelControllersByLogEntry;
+
+/**
  * @name Model Controller
  */
 
