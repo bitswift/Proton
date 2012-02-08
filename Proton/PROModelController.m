@@ -67,6 +67,9 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  *
  * This will also restore each model controller's <uniqueIdentifier> from the
  * log entry.
+ *
+ * @warning **Important:** This should only be invoked from a block passed to
+ * <synchronizeAllTheThingsAndPerform:>.
  */
 - (void)restoreModelControllersWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)logEntry;
 
@@ -90,6 +93,15 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * cases.
  */
 @property (nonatomic, assign, getter = isPerformingTransformationOnDispatchQueue) BOOL performingTransformationOnDispatchQueue;
+
+/**
+ * Whether the receiver's <transformationLog> is currently being moved on the
+ * <dispatchQueue>.
+ *
+ * @warning **Important:** This should only be read or written while already
+ * running on <dispatchQueue>.
+ */
+@property (nonatomic, assign, getter = isUnwindingTransformationLogOnDispatchQueue) BOOL unwindingTransformationLogOnDispatchQueue;
 
 /**
  * A transformation log representing updates to the receiver's <model> over
@@ -151,6 +163,15 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
  * with queues in an unpredictable order.
  */
 - (void)synchronizeAllTheThingsAndPerform:(dispatch_block_t)synchronizedBlock;
+
+/**
+ * Captures information about the receiver for the latest entry in the
+ * receiver's <transformationLog>.
+ *
+ * @warning **Important:** This should only be invoked from a block passed to
+ * <synchronizeAllTheThingsAndPerform:>.
+ */
+- (void)captureInLatestLogEntry;
 @end
 
 @implementation PROModelController
@@ -185,6 +206,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 @synthesize performingTransformationOnDispatchQueue = m_performingTransformationOnDispatchQueue;
 @synthesize transformationLog = m_transformationLog;
 @synthesize uniqueIdentifier = m_uniqueIdentifier;
+@synthesize unwindingTransformationLogOnDispatchQueue = m_unwindingTransformationLogOnDispatchQueue;
 
 - (id)model {
     __block id model;
@@ -217,7 +239,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         }
 
         [self setModel:newModel replacingModelControllers:YES];
-        [logEntry captureModelController:self];
+        [self captureInLatestLogEntry];
     }];
 }
 
@@ -278,7 +300,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
     m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
-    [m_transformationLog.latestLogEntry captureModelController:self];
+    [self captureInLatestLogEntry];
 
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
     return self;
@@ -388,6 +410,12 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
                 // synchronize our replacement of the model object
                 [weakSelf.dispatchQueue runSynchronously:^{
+                    if (weakSelf.unwindingTransformationLogOnDispatchQueue) {
+                        // ignore model changes while unwinding the
+                        // transformation log
+                        return;
+                    }
+
                     NSArray *models = [weakSelf.model valueForKeyPath:modelKeyPath];
                     NSUInteger index = [models indexOfObjectIdenticalTo:oldSubModel];
 
@@ -414,7 +442,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                     // transformation in the log
                     [self.transformationLog appendTransformation:modelTransformation];
                     [self setModel:newModel replacingModelControllers:NO];
-                    [self.transformationLog.latestLogEntry captureModelController:self];
+                    [self captureInLatestLogEntry];
                 }];
             }
         ];
@@ -596,18 +624,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             // only capture 'self' in the log entry if it hasn't changed in the
             // interim
             if (shouldAppendTransformation && [self.transformationLog.latestLogEntry isEqual:newLogEntry]) {
-                [newLogEntry captureModelController:self];
-
-                NSMutableDictionary *savedModelControllers = [NSMutableDictionary dictionary];
-
-                [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-                    [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
-                }];
-
-                if (savedModelControllers.count) {
-                    NSDictionary *controllers = [savedModelControllers copy];
-                    [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:newLogEntry];
-                }
+                [self captureInLatestLogEntry];
             }
         } else {
             // try to back out of that failure -- this won't be 100%, since
@@ -676,14 +693,21 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
         PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
 
-        success = [self performTransformation:transformationToOldModel appendToTransformationLog:NO error:NULL];
-        if (!PROAssert(success, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
+        PROModel *newModel = [transformationToOldModel transform:self.model error:NULL];
+        if (!PROAssert(newModel, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
             return;
+
+        [self willChangeValueForKey:PROKeyForObject(self, model)];
+        @onExit {
+            [self didChangeValueForKey:PROKeyForObject(self, model)];
+        };
 
         if (![self.transformationLog moveToLogEntry:transformationLogEntry])
             return;
 
+        [self setModel:newModel replacingModelControllers:NO];
         [self restoreModelControllersWithTransformationLogEntry:transformationLogEntry];
+
         success = YES;
     }];
 
@@ -691,18 +715,63 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)restoreModelControllersWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)logEntry; {
-    [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *controllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        NSArray *logEntries = [logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey];
-        if (!PROAssert(controllers.count == logEntries.count, @"Number of controllers (%lu) does not match number of log entries (%lu)", (unsigned long)controllers.count, (unsigned long)logEntries.count))
+    self.unwindingTransformationLogOnDispatchQueue = YES;
+    @onExit {
+        self.unwindingTransformationLogOnDispatchQueue = NO;
+    };
+
+    NSDictionary *savedControllers = [self.transformationLog.modelControllersByLogEntry objectForKey:logEntry];
+
+    [self enumerateModelControllersWithMutableArrays:YES usingBlock:^(NSMutableArray *controllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+        NSArray *existingModels = [self.model valueForKey:modelKeyPath];
+
+        NSArray *replacementControllers = [savedControllers objectForKey:modelControllerKey];
+        NSArray *logEntriesForControllers = [logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey];
+
+        if (!PROAssert(replacementControllers.count == logEntriesForControllers.count, @"Log entries %@ do not match controllers: %@", logEntriesForControllers, replacementControllers))
             return;
 
-        [controllers enumerateObjectsUsingBlock:^(PROModelController *controller, NSUInteger index, BOOL *stop){
-            PROModelControllerTransformationLogEntry *controllerLogEntry = [logEntries objectAtIndex:index];
+        if (!replacementControllers.count) {
+            // didn't save anything because there were no model controllers
+            replacementControllers = [NSArray array];
+        }
 
-            controller.uniqueIdentifier = controllerLogEntry.modelControllerIdentifier;
-            [controller restoreModelControllersWithTransformationLogEntry:controllerLogEntry];
+        NSMutableArray *replacementModels = [[NSMutableArray alloc] initWithCapacity:replacementControllers.count];
+
+        [replacementControllers enumerateObjectsUsingBlock:^(PROModelController *controller, NSUInteger index, BOOL *stop){
+            PROModelControllerTransformationLogEntry *logEntry = [logEntriesForControllers objectAtIndex:index];
+            PROAssert([controller restoreModelFromTransformationLogEntry:logEntry], @"Could not restore log entry %@ for controller %@", logEntry, controller);
+
+            // this MUST be done only after restoring this controller's model!
+            [replacementModels addObject:controller.model];
         }];
+
+        [controllers setArray:replacementControllers];
+
+        PROUniqueTransformation *modelsTransformation = [[PROUniqueTransformation alloc] initWithInputValue:existingModels outputValue:replacementModels];
+        PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:modelsTransformation forKeyPath:modelKeyPath];
+
+        PROModel *newModel = [modelTransformation transform:self.model error:NULL];
+        if (!PROAssert(newModel, @"Replacement of models at key path \"%@\" in %@ to previous models should never fail: %@", modelKeyPath, self.model, modelTransformation))
+            return;
+
+        [self setModel:newModel replacingModelControllers:NO];
     }];
+}
+
+- (void)captureInLatestLogEntry; {
+    [self.transformationLog.latestLogEntry captureModelController:self];
+
+    NSMutableDictionary *savedModelControllers = [NSMutableDictionary dictionary];
+
+    [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+        [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
+    }];
+
+    if (savedModelControllers.count) {
+        NSDictionary *controllers = [savedModelControllers copy];
+        [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:self.transformationLog.latestLogEntry];
+    }
 }
 
 #pragma mark Synchronization
