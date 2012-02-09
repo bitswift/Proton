@@ -283,7 +283,20 @@
 #pragma mark NSObject overrides
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"<%@: %p> entries: %@", [self class], (__bridge void *)self, self.logEntries];
+    NSMutableString *description = [[NSMutableString alloc] initWithFormat:@"<%@: %p>{", [self class], (__bridge void *)self];
+
+    [self.logEntries enumerateObjectsUsingBlock:^(PROTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
+        PROTransformation *transformation = [self.transformationsByLogEntry objectForKey:logEntry];
+        PROTransformationLogEntry *parentLogEntry = logEntry.parentLogEntry;
+
+        if (parentLogEntry)
+            [description appendFormat:@"\n\t%@ (parent: %@) = %@", logEntry.uniqueIdentifier, parentLogEntry.uniqueIdentifier, transformation];
+        else
+            [description appendFormat:@"\n\t%@ (no parent) = %@", logEntry.uniqueIdentifier, transformation];
+    }];
+
+    [description appendString:@"\n}"];
+    return description;
 }
 
 - (NSUInteger)hash {
