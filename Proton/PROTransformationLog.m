@@ -23,7 +23,7 @@
  * When discarding log entries, this set is ordered such that the first items
  * should be discarded first, and the last items discarded last.
  */
-@property (nonatomic, strong, readonly) NSMutableOrderedSet *logEntries;
+@property (nonatomic, strong) NSMutableOrderedSet *logEntries;
 
 /**
  * Contains the <PROTransformation> objects associated with each
@@ -33,7 +33,7 @@
  *
  * Note that root log entries do not have associated transformations.
  */
-@property (nonatomic, strong, readonly) NSMutableDictionary *transformationsByLogEntry;
+@property (nonatomic, strong) NSMutableDictionary *transformationsByLogEntry;
 
 /**
  * Ensures that the receiver has free space for the given number of additional
@@ -72,22 +72,6 @@
     [self prepareForAdditionalEntries:0];
 }
 
-- (NSMutableOrderedSet *)logEntries {
-    if (!m_logEntries) {
-        m_logEntries = [NSMutableOrderedSet orderedSet];
-    }
-
-    return m_logEntries;
-}
-
-- (NSMutableDictionary *)transformationsByLogEntry {
-    if (!m_transformationsByLogEntry) {
-        m_transformationsByLogEntry = [NSMutableDictionary dictionary];
-    }
-
-    return m_transformationsByLogEntry;
-}
-
 #pragma mark Initialization
 
 - (id)init {
@@ -95,10 +79,9 @@
     if (!self)
         return nil;
 
-    // move to an initial root log entry
-    BOOL success = [self moveToLogEntry:[self logEntryWithParentLogEntry:nil]];
-    if (!PROAssert(success, @"Could not move to initial root log entry"))
-        return nil;
+    // move to an initial root log entry, deferring creation of the collections
+    // until we actually need to mutate them
+    self.latestLogEntry = [self logEntryWithParentLogEntry:nil];
 
     return self;
 }
@@ -165,11 +148,23 @@
 
     PROTransformationLogEntry *newEntry = [self logEntryWithParentLogEntry:self.latestLogEntry];
     [self addOrReplaceLogEntry:newEntry];
+
+    if (!self.transformationsByLogEntry) {
+        self.transformationsByLogEntry = [NSMutableDictionary dictionary];
+    }
+
     [self.transformationsByLogEntry setObject:transformation forKey:newEntry];
 }
 
 - (void)addOrReplaceLogEntry:(PROTransformationLogEntry *)logEntry; {
     NSParameterAssert(logEntry != nil);
+
+    if (!self.logEntries) {
+        self.logEntries = [NSMutableOrderedSet orderedSet];
+
+        // add the root entry to the log
+        [self.logEntries addObject:self.latestLogEntry];
+    }
 
     if (![self.logEntries containsObject:logEntry]) {
         [self prepareForAdditionalEntries:1];
@@ -214,6 +209,9 @@
 - (void)removeLogEntry:(PROTransformationLogEntry *)logEntry; {
     NSParameterAssert(logEntry != nil);
 
+    if (!self.logEntries)
+        return;
+
     NSUInteger entryIndex = [self.logEntries indexOfObject:logEntry];
     if (entryIndex == NSNotFound)
         return;
@@ -236,9 +234,8 @@
 - (id)copyWithZone:(NSZone *)zone {
     PROTransformationLog *log = [[[self class] allocWithZone:zone] init];
 
-    [log.logEntries removeAllObjects];
-    [log.logEntries unionOrderedSet:self.logEntries];
-    [log.transformationsByLogEntry setDictionary:self.transformationsByLogEntry];
+    log.logEntries = [self.logEntries mutableCopy];
+    log.transformationsByLogEntry = [self.transformationsByLogEntry mutableCopy];
 
     log.latestLogEntry = self.latestLogEntry;
     log.maximumNumberOfLogEntries = self.maximumNumberOfLogEntries;
@@ -266,9 +263,8 @@
     if (!self)
         return nil;
 
-    [self.logEntries removeAllObjects];
-    [self.logEntries unionOrderedSet:logEntries];
-    [self.transformationsByLogEntry setDictionary:transformationsByLogEntry];
+    self.logEntries = [logEntries mutableCopy];
+    self.transformationsByLogEntry = [transformationsByLogEntry mutableCopy];
 
     self.latestLogEntry = latestLogEntry;
     self.maximumNumberOfLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
