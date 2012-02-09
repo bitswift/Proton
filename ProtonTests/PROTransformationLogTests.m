@@ -105,6 +105,57 @@ SpecBegin(PROTransformationLog)
                 expect(transformation.transformations).toEqual(expectedTransformations);
             });
 
+            it(@"should remove a log entry in the log", ^{
+                [log appendTransformation:firstTransformation];
+
+                PROTransformationLogEntry *middleEntry = log.latestLogEntry;
+
+                [log appendTransformation:secondTransformation];
+                [log removeLogEntry:middleEntry];
+
+                expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry]).toBeNil();
+            });
+
+            it(@"should not do anything to remove a log entry not in the log", ^{
+                PROTransformationLogEntry *anotherEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:rootEntry];
+                [log removeLogEntry:anotherEntry];
+
+                expect(log.latestLogEntry).toEqual(rootEntry);
+
+                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:rootEntry];
+                expect(transformation).not.toBeNil();
+                expect(transformation.transformations).toEqual([NSArray array]);
+            });
+
+            it(@"should append a log entry", ^{
+                PROTransformationLogEntry *anotherEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:rootEntry];
+                [log addOrReplaceLogEntry:anotherEntry];
+
+                expect(log.latestLogEntry).toEqual(anotherEntry);
+
+                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:anotherEntry];
+                expect(transformation).not.toBeNil();
+                expect(transformation.transformations).toEqual([NSArray array]);
+            });
+
+            it(@"should destroy associated data when replacing an existing entry", ^{
+                [log appendTransformation:firstTransformation];
+
+                PROTransformationLogEntry *middleEntry = log.latestLogEntry;
+
+                [log appendTransformation:secondTransformation];
+
+                PROTransformationLogEntry *lastEntry = log.latestLogEntry;
+
+                [log addOrReplaceLogEntry:middleEntry];
+
+                expect(log.latestLogEntry).toEqual(middleEntry);
+
+                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:lastEntry];
+                expect(transformation).not.toBeNil();
+                expect(transformation.transformations).toEqual([NSArray arrayWithObject:secondTransformation]);
+            });
+
             it(@"should implement <NSCopying>", ^{
                 [log appendTransformation:firstTransformation];
 
@@ -300,6 +351,12 @@ SpecBegin(PROTransformationLog)
                     };
                 });
 
+                it(@"should return archivable log entries", ^{
+                    [log appendTransformation:firstTransformation];
+                    
+                    expect(log.archivableLogEntries).toEqual([NSOrderedSet orderedSetWithObject:log.latestLogEntry]);
+                });
+
                 it(@"should not move backward to a removed log entry after archiving", ^{
                     [log appendTransformation:firstTransformation];
                     [log appendTransformation:secondTransformation];
@@ -325,6 +382,42 @@ SpecBegin(PROTransformationLog)
 
                     expect(limitedData.length).toBeLessThan(unlimitedData.length);
                 });
+
+                describe(@"without maximums", ^{
+                    __block NSMutableOrderedSet *logEntries;
+
+                    before(^{
+                        logEntries = [[NSMutableOrderedSet alloc] init];
+
+                        log.maximumNumberOfLogEntries = 0;
+                        log.maximumNumberOfArchivedLogEntries = 0;
+
+                        [logEntries addObject:log.latestLogEntry];
+
+                        for (unsigned i = 0; i < 100; ++i) {
+                            [log appendTransformation:firstTransformation];
+                            [logEntries addObject:log.latestLogEntry];
+                        }
+                    });
+
+                    it(@"should not remove in-memory log entries", ^{
+                        PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry];
+
+                        expect(transformation).not.toBeNil();
+                        expect(transformation.transformations).not.toEqual([NSArray array]);
+                    });
+
+                    it(@"should not remove archived log entries", ^{
+                        expect(log.archivableLogEntries).toEqual(logEntries);
+
+                        log = archivedLogWithLog(log);                       
+
+                        PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry];
+
+                        expect(transformation).not.toBeNil();
+                        expect(transformation.transformations).not.toEqual([NSArray array]);
+                    });
+                });
             });
 
             it(@"should remove log entries when setting a smaller maximum", ^{
@@ -338,20 +431,6 @@ SpecBegin(PROTransformationLog)
                 log.maximumNumberOfLogEntries = 1;
 
                 expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:lastEntry]).toBeNil();
-            });
-
-            it(@"should not remove log entries without a maximum", ^{
-                log.maximumNumberOfLogEntries = 0;
-
-                // add more than the default maximum
-                for (unsigned i = 0; i < 100; ++i) {
-                    [log appendTransformation:firstTransformation];
-                }
-
-                PROMultipleTransformation *transformation = [log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry];
-
-                expect(transformation).not.toBeNil();
-                expect(transformation.transformations).not.toEqual([NSArray array]);
             });
         });
     });

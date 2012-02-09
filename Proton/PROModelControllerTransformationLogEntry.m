@@ -14,11 +14,6 @@
 #import "PROModelController.h"
 #import "PROUniqueIdentifier.h"
 
-@interface PROModelControllerTransformationLogEntry ()
-@property (nonatomic, copy, readwrite) PROUniqueIdentifier *modelControllerIdentifier;
-@property (nonatomic, copy, readwrite) NSDictionary *logEntriesByModelControllerKey;
-@end
-
 @implementation PROModelControllerTransformationLogEntry
 
 #pragma mark Properties
@@ -26,30 +21,16 @@
 @dynamic parentLogEntry;
 
 @synthesize modelControllerIdentifier = m_modelControllerIdentifier;
-@synthesize logEntriesByModelControllerKey = m_logEntriesByModelControllerKey;
 
-#pragma mark Model Controller
+#pragma mark Initialization
 
-- (void)captureModelController:(PROModelController *)modelController; {
-    NSAssert(!self.modelControllerIdentifier, @"%s should not be invoked more than once", __func__);
-    NSAssert(!self.logEntriesByModelControllerKey, @"%s should not be invoked more than once", __func__);
+- (id)initWithParentLogEntry:(PROTransformationLogEntry *)parentLogEntry modelControllerIdentifier:(PROUniqueIdentifier *)modelControllerIdentifier; {
+    self = [self initWithParentLogEntry:parentLogEntry];
+    if (!self)
+        return nil;
 
-    self.modelControllerIdentifier = [modelController.uniqueIdentifier copy];
-
-    NSDictionary *modelControllerKeys = [[modelController class] modelControllerKeysByModelKeyPath];
-    if ([modelControllerKeys count]) {
-        NSDictionary *modelControllerClasses = [[modelController class] modelControllerClassesByKey];
-
-        self.logEntriesByModelControllerKey = [modelControllerClasses mapValuesUsingBlock:^ id (NSString *key, Class modelControllerClass){
-            NSArray *controllers = [modelController valueForKey:key];
-            if (![controllers count])
-                return nil;
-
-            return [controllers mapUsingBlock:^(PROModelController *controller){
-                return [controller transformationLogEntryWithModelPointer:NULL];
-            }];
-        }];
-    }
+    m_modelControllerIdentifier = [modelControllerIdentifier copy];
+    return self;
 }
 
 #pragma mark NSCoding
@@ -59,9 +40,7 @@
     if (!self)
         return nil;
 
-    self.modelControllerIdentifier = [coder decodeObjectForKey:PROKeyForObject(self, modelControllerIdentifier)];
-    self.logEntriesByModelControllerKey = [coder decodeObjectForKey:PROKeyForObject(self, logEntriesByModelControllerKey)];
-
+    m_modelControllerIdentifier = [coder decodeObjectForKey:PROKeyForObject(self, modelControllerIdentifier)];
     return self;
 }
 
@@ -70,9 +49,6 @@
 
     if (self.modelControllerIdentifier)
         [coder encodeObject:self.modelControllerIdentifier forKey:PROKeyForObject(self, modelControllerIdentifier)];
-
-    if (self.logEntriesByModelControllerKey)
-        [coder encodeObject:self.logEntriesByModelControllerKey forKey:PROKeyForObject(self, logEntriesByModelControllerKey)];
 }
 
 #pragma mark NSObject overrides
@@ -89,9 +65,6 @@
         return NO;
 
     if (!NSEqualObjects(self.modelControllerIdentifier, entry.modelControllerIdentifier))
-        return NO;
-
-    if (!NSEqualObjects(self.logEntriesByModelControllerKey, entry.logEntriesByModelControllerKey))
         return NO;
 
     return YES;
