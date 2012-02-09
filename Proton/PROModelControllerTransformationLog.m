@@ -46,11 +46,14 @@
 - (id)initWithModelController:(PROModelController *)modelController; {
     NSParameterAssert(modelController != nil);
 
+    // set this up before [self init], because it will create a new log entry,
+    // and we need the UUID of the model controller at that point
+    m_modelController = modelController;
+
     self = [self init];
     if (!self)
         return nil;
 
-    m_modelController = modelController;
     return self;
 }
 
