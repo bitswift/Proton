@@ -760,17 +760,23 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)captureInLatestLogEntry; {
-    [self.transformationLog.latestLogEntry captureModelController:self];
+    PROModelControllerTransformationLogEntry *logEntry = self.transformationLog.latestLogEntry;
+    [logEntry captureModelController:self];
 
     NSMutableDictionary *savedModelControllers = [NSMutableDictionary dictionary];
 
     [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
+        NSAssert([[logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey] count] == [modelControllers count], @"Log entries %@ do not match controllers %@", [logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey], modelControllers);
+
+        if (modelControllers.count)
+            [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
     }];
+
+    NSAssert([logEntry.logEntriesByModelControllerKey count] == [savedModelControllers count], @"Log entries %@ do not match controllers %@", logEntry.logEntriesByModelControllerKey, savedModelControllers);
 
     if (savedModelControllers.count) {
         NSDictionary *controllers = [savedModelControllers copy];
-        [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:self.transformationLog.latestLogEntry];
+        [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:logEntry];
     }
 }
 
