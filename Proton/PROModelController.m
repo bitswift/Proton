@@ -296,12 +296,14 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
         return nil;
 
     m_dispatchQueue = [[SDQueue alloc] init];
+    
+    // this must be set up before the transformation log is created
+    self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
 
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
     m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
     [self captureInLatestLogEntry];
 
-    self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
     return self;
 }
 
