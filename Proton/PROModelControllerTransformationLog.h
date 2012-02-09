@@ -55,6 +55,18 @@
 @property (nonatomic, strong, readonly) NSMutableDictionary *modelControllersByLogEntry;
 
 /**
+ * Contains each <PROTransformationLogEntry> in the log as keys, associated with
+ * a dictionary of arrays of the <PROModelControllerTransformationLogEntry>
+ * instances that each model controller had after the parent performed the
+ * original transformation.
+ *
+ * Each key in the nested dictionary is the key on the <modelController> at
+ * which the controllers live, and the value is the array of log entries as they
+ * existed on each controller at the represented point in time.
+ */
+@property (nonatomic, strong, readonly) NSMutableDictionary *modelControllerLogEntriesByLogEntry;
+
+/**
  * @name Model Controller
  */
 

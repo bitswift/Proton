@@ -13,7 +13,6 @@
 #import "PROKeyValueCodingMacros.h"
 #import "PROModelController.h"
 #import "PROModelControllerTransformationLogEntry.h"
-#import "PROModelControllerTransformationLogEntryPrivate.h"
 #import "SDQueue.h"
 
 @implementation PROModelControllerTransformationLog
@@ -24,6 +23,7 @@
 
 @synthesize modelController = m_modelController;
 @synthesize modelControllersByLogEntry = m_modelControllersByLogEntry;
+@synthesize modelControllerLogEntriesByLogEntry = m_modelControllerLogEntriesByLogEntry;
 
 #pragma mark Initialization
 
@@ -36,6 +36,7 @@
 
     m_modelController = modelController;
     m_modelControllersByLogEntry = [[NSMutableDictionary alloc] init];
+    m_modelControllerLogEntriesByLogEntry = [[NSMutableDictionary alloc] init];
 
     return self;
 }
@@ -45,17 +46,19 @@
 - (void)addOrReplaceLogEntry:(PROModelControllerTransformationLogEntry *)logEntry; {
     [super addOrReplaceLogEntry:logEntry];
     [self.modelControllersByLogEntry removeObjectForKey:logEntry];
+    [self.modelControllerLogEntriesByLogEntry removeObjectForKey:logEntry];
 }
 
 - (PROModelControllerTransformationLogEntry *)logEntryWithParentLogEntry:(PROModelControllerTransformationLogEntry *)parentLogEntry; {
     NSParameterAssert(!parentLogEntry || [parentLogEntry isKindOfClass:[PROModelControllerTransformationLogEntry class]]);
     
-    return [[PROModelControllerTransformationLogEntry alloc] initWithParentLogEntry:parentLogEntry];
+    return [[PROModelControllerTransformationLogEntry alloc] initWithParentLogEntry:parentLogEntry modelControllerIdentifier:self.modelController.uniqueIdentifier];
 }
 
 - (void)removeLogEntry:(PROModelControllerTransformationLogEntry *)logEntry; {
     [super removeLogEntry:logEntry];
     [self.modelControllersByLogEntry removeObjectForKey:logEntry];
+    [self.modelControllerLogEntriesByLogEntry removeObjectForKey:logEntry];
 }
 
 #pragma mark NSCoding
@@ -67,6 +70,7 @@
 
     m_modelController = [coder decodeObjectForKey:PROKeyForObject(self, modelController)];
     m_modelControllersByLogEntry = [[coder decodeObjectForKey:PROKeyForObject(self, modelControllersByLogEntry)] mutableCopy];
+    m_modelControllerLogEntriesByLogEntry = [[coder decodeObjectForKey:PROKeyForObject(self, modelControllerLogEntriesByLogEntry)] mutableCopy];
 
     return self;
 }
@@ -85,6 +89,13 @@
 
     if (limitedModelControllers)
         [coder encodeObject:limitedModelControllers forKey:PROKeyForObject(self, modelControllersByLogEntry)];
+
+    NSDictionary *limitedModelControllerLogEntries = [self.modelControllerLogEntriesByLogEntry filterEntriesUsingBlock:^(PROModelControllerTransformationLogEntry *entry, id modelControllerLogEntry){
+        return [archivableEntries containsObject:entry];
+    }];
+
+    if (limitedModelControllerLogEntries)
+        [coder encodeObject:limitedModelControllerLogEntries forKey:PROKeyForObject(self, modelControllerLogEntriesByLogEntry)];
 }
 
 #pragma mark NSObject overrides

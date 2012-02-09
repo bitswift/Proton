@@ -20,7 +20,6 @@
 #import "PROModel.h"
 #import "PROModelControllerTransformationLog.h"
 #import "PROModelControllerTransformationLogEntry.h"
-#import "PROModelControllerTransformationLogEntryPrivate.h"
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
 #import "PROUniqueIdentifier.h"
@@ -233,7 +232,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
             }
         };
 
-        PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] init];
+        PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] initWithParentLogEntry:nil modelControllerIdentifier:self.uniqueIdentifier];
         if (!PROAssert([self.transformationLog moveToLogEntry:logEntry], @"Could not move transformation log %@ to new root %@", self.transformationLog, logEntry)) {
             return;
         }
@@ -721,12 +720,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     };
 
     NSDictionary *savedControllers = [self.transformationLog.modelControllersByLogEntry objectForKey:logEntry];
+    NSDictionary *savedLogEntries = [self.transformationLog.modelControllerLogEntriesByLogEntry objectForKey:logEntry];
+
+    if (!PROAssert([savedLogEntries count] == [savedControllers count], @"Log entries %@ do not match controllers %@", savedLogEntries, savedControllers)) {
+        return;
+    }
 
     [self enumerateModelControllersWithMutableArrays:YES usingBlock:^(NSMutableArray *controllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
         NSArray *existingModels = [self.model valueForKey:modelKeyPath];
 
         NSArray *replacementControllers = [savedControllers objectForKey:modelControllerKey];
-        NSArray *logEntriesForControllers = [logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey];
+        NSArray *logEntriesForControllers = [savedLogEntries objectForKey:modelControllerKey];
 
         if (!PROAssert(replacementControllers.count == logEntriesForControllers.count, @"Log entries %@ do not match controllers: %@", logEntriesForControllers, replacementControllers))
             return;
@@ -761,22 +765,37 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
 - (void)captureInLatestLogEntry; {
     PROModelControllerTransformationLogEntry *logEntry = self.transformationLog.latestLogEntry;
-    [logEntry captureModelController:self];
 
     NSMutableDictionary *savedModelControllers = [NSMutableDictionary dictionary];
+    NSMutableDictionary *savedModelControllerLogEntries = [NSMutableDictionary dictionary];
 
     [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        NSAssert([[logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey] count] == [modelControllers count], @"Log entries %@ do not match controllers %@", [logEntry.logEntriesByModelControllerKey objectForKey:modelControllerKey], modelControllers);
+        if (!modelControllers.count)
+            return;
 
-        if (modelControllers.count)
-            [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
+        [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
+
+        NSArray *savedLogEntries = [modelControllers mapUsingBlock:^ id (PROModelController *controller){
+            PROModelControllerTransformationLogEntry *controllerEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+            if (PROAssert(controllerEntry, @"Could not retrieve log entry from controller %@", controller)) {
+                return controllerEntry;
+            } else {
+                return [EXTNil null];
+            }
+        }];
+
+        [savedModelControllerLogEntries setObject:savedLogEntries forKey:modelControllerKey];
     }];
 
-    NSAssert([logEntry.logEntriesByModelControllerKey count] == [savedModelControllers count], @"Log entries %@ do not match controllers %@", logEntry.logEntriesByModelControllerKey, savedModelControllers);
+    NSAssert([savedModelControllerLogEntries count] == [savedModelControllers count], @"Log entries %@ do not match controllers %@", savedModelControllerLogEntries, savedModelControllers);
 
     if (savedModelControllers.count) {
         NSDictionary *controllers = [savedModelControllers copy];
         [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:logEntry];
+
+        NSDictionary *entries = [savedModelControllerLogEntries copy];
+        [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:entries forKey:logEntry];
     }
 }
 
