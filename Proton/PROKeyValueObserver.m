@@ -55,6 +55,12 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
     [self.target removeObserver:self forKeyPath:self.keyPath context:PROKeyValueObserverContext];
 }
 
+#pragma mark NSObject overrides
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p>( target = %@, keyPath = %@ )", [self class], (__bridge void *)self, self.target, self.keyPath];
+}
+
 #pragma mark NSKeyValueObserving
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)changes context:(void *)context {
