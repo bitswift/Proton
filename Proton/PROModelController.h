@@ -211,6 +211,18 @@
 - (id)modelWithTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry;
 
 /**
+ * Attempts to find a model controller on the receiver for each log entry, and
+ * return the corresponding version of each model controller's <model>. Returns
+ * `nil` if the receiver does not have a model controller corresponding to any
+ * entry, or if any entry no longer exists in its model controller's log.
+ *
+ * @param logEntries An array of log entries previously returned from
+ * <transformationLogEntryWithModelPointer:> calls on the receiver's model
+ * controllers.
+ */
+- (NSArray *)modelControllerModelsWithTransformationLogEntries:(NSArray *)logEntries;
+
+/**
  * Atomically replaces the receiver's <model> with the version that corresponds
  * to the given log entry. Returns `YES` on success, or `NO` if the entry no
  * longer exists in the log.
