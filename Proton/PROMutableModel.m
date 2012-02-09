@@ -17,9 +17,12 @@
 #import "PROLogging.h"
 #import "PROModel.h"
 #import "PROModelController.h"
+#import "PROModelControllerTransformationLogEntry.h"
 #import "PROMultipleTransformation.h"
 #import "PROMutableModelPrivate.h"
 #import "PRORemovalTransformation.h"
+#import "PROTransformationLog.h"
+#import "PROTransformationLogEntry.h"
 #import "PROUniqueTransformation.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
@@ -40,15 +43,21 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @interface PROMutableModel () {
     /**
      * The model managed by this object, as transformed by everything in
-     * <m_transformations>.
+     * <m_transformationLog> after <m_originalModelLogEntry>.
      */
     PROModel *m_latestModel;
 
     /**
-     * Transformations representing all of the changes made so far, with the
-     * latest transformation at the end of the array.
+     * The log entry corresponding to the version of the model that was
+     * last retrieved from the <modelController>.
      */
-    NSMutableArray *m_transformations;
+    PROTransformationLogEntry *m_originalModelLogEntry;
+
+    /**
+     * Transformation log containing all of the changes made since
+     * <m_originalModelLogEntry>.
+     */
+    PROTransformationLog *m_transformationLog;
 }
 
 /**
@@ -548,15 +557,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark Initialization
 
-- (id)init {
-    self = [super init];
-    if (!self)
-        return nil;
-
-    m_transformations = [NSMutableArray array];
-    return self;
-}
-
 - (id)initWithModel:(PROModel *)model; {
     if (!model)
         return nil;
@@ -581,11 +581,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!modelController)
         return nil;
 
-    self = [self initWithModel:modelController.model];
+    PROModel *model = nil;
+    m_originalModelLogEntry = [modelController transformationLogEntryWithModelPointer:&model];
+
+    self = [self initWithModel:model];
     if (!self)
         return nil;
 
     m_modelController = modelController;
+    m_transformationLog = [[PROTransformationLog alloc] initWithLogEntry:m_originalModelLogEntry];
+
     return self;
 }
 
@@ -603,26 +608,39 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         return;
     }
 
-    [m_transformations addObject:keyedTransformation];
+    [m_transformationLog appendTransformation:keyedTransformation];
     m_latestModel = [newModel copy];
 }
 
 #pragma mark Saving
 
 - (BOOL)save:(NSError **)error; {
-    if (!m_modelController || ![m_transformations count])
+    if (!m_modelController)
         return YES;
 
-    PROMultipleTransformation *transformation = [[PROMultipleTransformation alloc] initWithTransformations:m_transformations];
-    if (![m_modelController performTransformation:transformation error:error]) {
-        return NO;
+    id latestLogEntry = m_transformationLog.latestLogEntry;
+
+    // try restoring the model on the model controller first (if the log entry
+    // is compatible)
+    if (![latestLogEntry isKindOfClass:[PROModelControllerTransformationLogEntry class]] || ![m_modelController restoreModelFromTransformationLogEntry:latestLogEntry]) {
+        PROMultipleTransformation *transformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:latestLogEntry];
+        if (![m_modelController performTransformation:transformation error:error]) {
+            return NO;
+        }
     }
 
-    // "flush" our model object, to get the latest version
-    m_latestModel = [m_modelController.model copy];
-    
-    // get rid of our record of transformations, now that they're saved
-    [m_transformations removeAllObjects];
+    // "flush" our model object, to get the latest version, and empty our
+    // transformation log
+    PROModel *newModel = nil;
+    PROTransformationLogEntry *newLogEntry = [m_modelController transformationLogEntryWithModelPointer:&newModel];
+    if (!PROAssert(newLogEntry, @"Could not get transformation log entry from controller %@", m_modelController))
+        return NO;
+
+    m_latestModel = newModel;
+    m_originalModelLogEntry = newLogEntry;
+
+    [m_transformationLog addOrReplaceLogEntry:m_originalModelLogEntry];
+    [m_transformationLog removeAllLogEntries];
 
     return YES;
 }
@@ -658,17 +676,24 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     m_latestModel = model;
     m_modelController = [coder decodeObjectForKey:PROKeyForObject(self, modelController)];
-    m_transformations = [[coder decodeObjectForKey:@"transformations"] mutableCopy];
+    m_transformationLog = [coder decodeObjectForKey:@"transformationLog"];
+    m_originalModelLogEntry = [coder decodeObjectForKey:@"originalModelLogEntry"];
 
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    [coder encodeObject:m_latestModel forKey:@"model"];
-    [coder encodeObject:m_transformations forKey:@"transformations"];
+    if (m_latestModel)
+        [coder encodeObject:m_latestModel forKey:@"model"];
 
     if (m_modelController)
         [coder encodeObject:m_modelController forKey:PROKeyForObject(self, modelController)];
+
+    if (m_transformationLog)
+        [coder encodeObject:m_transformationLog forKey:@"transformationLog"];
+
+    if (m_originalModelLogEntry)
+        [coder encodeObject:m_originalModelLogEntry forKey:@"originalModelLogEntry"];
 }
 
 #pragma mark NSCopying
@@ -683,8 +708,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     PROMutableModel *model = [[[self class] alloc] init];
 
     model->m_latestModel = [m_latestModel copy];
-    model->m_transformations = [m_transformations mutableCopy];
     model->m_modelController = self.modelController;
+    model->m_transformationLog = [m_transformationLog copy];
+    model->m_originalModelLogEntry = [m_originalModelLogEntry copy];
 
     return model;
 }
