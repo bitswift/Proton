@@ -35,6 +35,12 @@
  */
 static NSString * const PROModelControllerPerformingTransformationKey = @"PROModelControllerPerformingTransformation";
 
+/**
+ * A key associated with the `SDQueue` that a given class (upon which the
+ * association is made) should use.
+ */
+static void * const PROModelControllerClassDispatchQueueKey = "PROModelControllerClassDispatchQueue";
+
 @interface PROModelController ()
 @property (nonatomic, weak, readwrite) id parentModelController;
 @property (nonatomic, copy, readwrite) PROUniqueIdentifier *uniqueIdentifier;
@@ -178,6 +184,11 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark Class initialization
 
 + (void)initialize {
+    SDQueue *classQueue = [[SDQueue alloc] init];
+
+    NSLog(@"self: %@ classQueue: %@", self, classQueue);
+    objc_setAssociatedObject(self, PROModelControllerClassDispatchQueueKey, classQueue, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
     // automatically set up model controller properties for subclasses
     NSDictionary *modelControllerKeys = [self modelControllerKeysByModelKeyPath];
     if (![modelControllerKeys count])
@@ -295,7 +306,8 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     if (!self)
         return nil;
 
-    m_dispatchQueue = [[SDQueue alloc] init];
+    // if this ever changes, update -synchronizeAllTheThingsAndPerform: as well!
+    m_dispatchQueue = objc_getAssociatedObject([self class], PROModelControllerClassDispatchQueueKey);
     
     // this must be set up before the transformation log is created
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
@@ -373,7 +385,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     id getter = ^(PROModelController *self){
         __block NSArray *controllers;
 
-        [self.dispatchQueue runSynchronously:^{
+        [self synchronizeAllTheThingsAndPerform:^{
             controllers = [modelControllersArray(self) copy];
         }];
 
@@ -410,7 +422,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                 PROModel *newSubModel = [changes objectForKey:NSKeyValueChangeNewKey];
 
                 // synchronize our replacement of the model object
-                [weakSelf.dispatchQueue runSynchronously:^{
+                [weakSelf synchronizeAllTheThingsAndPerform:^{
                     if (weakSelf.unwindingTransformationLogOnDispatchQueue) {
                         // ignore model changes while unwinding the
                         // transformation log
@@ -539,7 +551,7 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     NSAssert(!models || [models isKindOfClass:[NSArray class]], @"Model key path \"%@\", bound to model controller key \"%@\", should be associated with an array: %@", modelKeyPath, modelControllerKey, models);
 
-    NSArray *newModelControllers = [models mapWithOptions:NSEnumerationConcurrent usingBlock:^(PROModel *model){
+    NSArray *newModelControllers = [models mapUsingBlock:^(PROModel *model){
         return [[modelControllerClass alloc] initWithModel:model];
     }];
 
@@ -554,10 +566,10 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
     
     __block PROModelController *matchingController = nil;
 
-    [self.dispatchQueue runSynchronously:^{
+    [self synchronizeAllTheThingsAndPerform:^{
         // TODO: this could be optimized
         [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *controllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-            matchingController = [controllers objectWithOptions:NSEnumerationConcurrent passingTest:^(PROModelController *controller, NSUInteger index, BOOL *stop){
+            matchingController = [controllers objectPassingTest:^(PROModelController *controller, NSUInteger index, BOOL *stop){
                 return [controller.uniqueIdentifier isEqual:identifier];
             }];
 
@@ -802,20 +814,32 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 #pragma mark Synchronization
 
 - (void)synchronizeAllTheThingsAndPerform:(dispatch_block_t)synchronizedBlock; {
-    dispatch_block_t selfBlock = ^{
-        // oh god
-        NSMutableArray *dispatchQueues = [[NSMutableArray alloc] init];
+    NSDictionary *modelControllerKeys = [[self class] modelControllerKeysByModelKeyPath];
 
-        [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-            [modelControllers enumerateObjectsUsingBlock:^(PROModelController *controller, NSUInteger index, BOOL *stop){
-                [dispatchQueues addObject:controller.dispatchQueue];
-            }];
+    dispatch_block_t selfBlock = ^{
+        if (![modelControllerKeys count]) {
+            synchronizedBlock();
+            return;
+        }
+        
+        NSDictionary *modelControllerClassesByKey = [[self class] modelControllerClassesByKey];
+
+        // everything below depends on the current implementation of one
+        // dispatch queue per model controller class -- if this ever changes,
+        // this should all be refactored
+        NSMutableArray *dispatchQueues = [[NSMutableArray alloc] initWithCapacity:modelControllerClassesByKey.count];
+
+        [modelControllerClassesByKey enumerateKeysAndObjectsUsingBlock:^(NSString *modelControllerKey, Class modelControllerClass, BOOL *stop){
+            // make sure the Class object has received an +initialize method,
+            // and thus initialized its dispatch queue
+            [modelControllerClass self];
+
+            SDQueue *dispatchQueue = objc_getAssociatedObject(modelControllerClass, PROModelControllerClassDispatchQueueKey);
+            if ([dispatchQueues indexOfObjectIdenticalTo:dispatchQueue] == NSNotFound)
+                [dispatchQueues addObject:dispatchQueue];
         }];
 
-        if (dispatchQueues.count)
-            [SDQueue synchronizeQueues:dispatchQueues runSynchronously:synchronizedBlock];
-        else
-            synchronizedBlock();
+        [SDQueue synchronizeQueues:dispatchQueues runSynchronously:synchronizedBlock];
     };
     
     PROModelController *parentModelController = self.parentModelController;
@@ -872,23 +896,25 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    [coder encodeObject:self.uniqueIdentifier forKey:PROKeyForObject(self, uniqueIdentifier)];
+    [self synchronizeAllTheThingsAndPerform:^{
+        [coder encodeObject:self.uniqueIdentifier forKey:PROKeyForObject(self, uniqueIdentifier)];
 
-    id model = self.model;
-    if (!model)
-        model = [EXTNil null];
+        id model = self.model;
+        if (!model)
+            model = [EXTNil null];
 
-    [coder encodeObject:model forKey:PROKeyForObject(self, model)];
+        [coder encodeObject:model forKey:PROKeyForObject(self, model)];
 
-    [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        [coder encodeObject:modelControllers forKey:modelControllerKey];
+        [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
+            [coder encodeObject:modelControllers forKey:modelControllerKey];
+        }];
+
+        if (self.transformationLog)
+            [coder encodeObject:self.transformationLog forKey:PROKeyForObject(self, transformationLog)];
+
+        if (self.parentModelController)
+            [coder encodeConditionalObject:self.parentModelController forKey:PROKeyForObject(self, parentModelController)];
     }];
-
-    if (self.transformationLog)
-        [coder encodeObject:self.transformationLog forKey:PROKeyForObject(self, transformationLog)];
-
-    if (self.parentModelController)
-        [coder encodeConditionalObject:self.parentModelController forKey:PROKeyForObject(self, parentModelController)];
 }
 
 #pragma mark NSKeyValueObserving
