@@ -790,14 +790,21 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
     PROModelControllerTransformationLogEntry *logEntry = self.transformationLog.latestLogEntry;
 
-    NSMutableDictionary *savedModelControllers = [NSMutableDictionary dictionary];
-    NSMutableDictionary *savedModelControllerLogEntries = [NSMutableDictionary dictionary];
+    NSArray *modelControllerKeys = [[[self class] modelControllerKeysByModelKeyPath] allValues];
 
-    [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        if (!modelControllers.count)
-            return;
+    NSUInteger modelControllerKeyCount = modelControllerKeys.count;
+    if (!modelControllerKeyCount) {
+        [self.transformationLog.modelControllersByLogEntry removeObjectForKey:logEntry];
+        [self.transformationLog.modelControllerLogEntriesByLogEntry removeObjectForKey:logEntry];
+        return;
+    }
 
-        [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
+    NSMutableArray *savedModelControllersArrays = [NSMutableArray arrayWithCapacity:modelControllerKeyCount];
+    NSMutableArray *savedModelControllerLogEntriesArrays = [NSMutableArray arrayWithCapacity:modelControllerKeyCount];
+
+    [modelControllerKeys enumerateObjectsUsingBlock:^(NSString *modelControllerKey, NSUInteger index, BOOL *stop){
+        NSArray *modelControllers = [self valueForKey:modelControllerKey];
+        [savedModelControllersArrays addObject:modelControllers];
 
         NSArray *savedLogEntries = [modelControllers mapUsingBlock:^ id (PROModelController *controller){
             PROModelControllerTransformationLogEntry *controllerEntry = [controller transformationLogEntryWithModelPointer:NULL];
@@ -809,12 +816,15 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
             }
         }];
 
-        [savedModelControllerLogEntries setObject:savedLogEntries forKey:modelControllerKey];
+        [savedModelControllerLogEntriesArrays addObject:savedLogEntries];
     }];
 
-    NSAssert([savedModelControllerLogEntries count] == [savedModelControllers count], @"Log entries %@ do not match controllers %@", savedModelControllerLogEntries, savedModelControllers);
+    NSAssert([savedModelControllerLogEntriesArrays count] == [savedModelControllersArrays count], @"Log entries %@ do not match controllers %@", savedModelControllerLogEntriesArrays, savedModelControllersArrays);
 
+    NSDictionary *savedModelControllers = [NSDictionary dictionaryWithObjects:savedModelControllersArrays forKeys:modelControllerKeys];
     [self.transformationLog.modelControllersByLogEntry setObject:savedModelControllers forKey:logEntry];
+
+    NSDictionary *savedModelControllerLogEntries = [NSDictionary dictionaryWithObjects:savedModelControllerLogEntriesArrays forKeys:modelControllerKeys];
     [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:savedModelControllerLogEntries forKey:logEntry];
 }
 
