@@ -294,6 +294,19 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     }];
 }
 
+- (CFMutableDictionaryRef)modelControllerObservers {
+    if (!m_modelControllerObservers) {
+        m_modelControllerObservers = CFDictionaryCreateMutable(
+            NULL,
+            0,
+            &kCFTypeDictionaryKeyCallBacks,
+            &kCFTypeDictionaryValueCallBacks
+        );
+    }
+
+    return m_modelControllerObservers;
+}
+
 #pragma mark Lifecycle
 
 - (id)init {
@@ -303,13 +316,6 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     
     // this must be set up before the transformation log is created
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
-
-    m_modelControllerObservers = CFDictionaryCreateMutable(
-        NULL,
-        0,
-        &kCFTypeDictionaryKeyCallBacks,
-        &kCFTypeDictionaryValueCallBacks
-    );
 
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
     m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
@@ -326,7 +332,12 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     if (!self)
         return nil;
 
-    self.model = model;
+    [PROModelControllerConcurrentQueue runBarrierSynchronously:^{
+        // don't need to grow the transformation log yet
+        [self setModel:model replacingModelControllers:YES];
+        [self captureInLatestLogEntry];
+    }];
+
     return self;
 }
 
@@ -378,7 +389,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
         NSMutableArray *array = objc_getAssociatedObject(self, getterSelector);
         if (!array) {
-            array = [[NSMutableArray alloc] init];
+            array = [NSMutableArray array];
 
             objc_setAssociatedObject(self, getterSelector, array, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
@@ -803,11 +814,8 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
     NSAssert([savedModelControllerLogEntries count] == [savedModelControllers count], @"Log entries %@ do not match controllers %@", savedModelControllerLogEntries, savedModelControllers);
 
-    NSDictionary *controllers = [savedModelControllers copy];
-    [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:logEntry];
-
-    NSDictionary *entries = [savedModelControllerLogEntries copy];
-    [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:entries forKey:logEntry];
+    [self.transformationLog.modelControllersByLogEntry setObject:savedModelControllers forKey:logEntry];
+    [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:savedModelControllerLogEntries forKey:logEntry];
 }
 
 #pragma mark NSCoding

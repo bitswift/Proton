@@ -72,15 +72,28 @@
     [self prepareForAdditionalEntries:0];
 }
 
+- (NSMutableOrderedSet *)logEntries {
+    if (!m_logEntries) {
+        m_logEntries = [NSMutableOrderedSet orderedSet];
+    }
+
+    return m_logEntries;
+}
+
+- (NSMutableDictionary *)transformationsByLogEntry {
+    if (!m_transformationsByLogEntry) {
+        m_transformationsByLogEntry = [NSMutableDictionary dictionary];
+    }
+
+    return m_transformationsByLogEntry;
+}
+
 #pragma mark Initialization
 
 - (id)init {
     self = [super init];
     if (!self)
         return nil;
-
-    m_logEntries = [[NSMutableOrderedSet alloc] initWithCapacity:m_maximumNumberOfLogEntries];
-    m_transformationsByLogEntry = [[NSMutableDictionary alloc] initWithCapacity:m_maximumNumberOfLogEntries];
 
     // move to an initial root log entry
     BOOL success = [self moveToLogEntry:[self logEntryWithParentLogEntry:nil]];
