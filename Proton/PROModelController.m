@@ -688,6 +688,22 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     return oldModel;
 }
 
+- (NSArray *)modelControllerModelsWithTransformationLogEntries:(NSArray *)logEntries; {
+    NSMutableArray *models = [[NSMutableArray alloc] initWithCapacity:logEntries.count];
+
+    for (PROModelControllerTransformationLogEntry *logEntry in logEntries) {
+        PROModelController *subController = [self modelControllerWithIdentifier:logEntry.modelControllerIdentifier];
+        PROModel *model = [subController modelWithTransformationLogEntry:logEntry];
+
+        if (!model)
+            return nil;
+
+        [models addObject:model];
+    }
+
+    return models;
+}
+
 - (BOOL)restoreModelFromTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
 
