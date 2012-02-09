@@ -114,7 +114,7 @@
 
     Class ownedModelControllerClass = [[[modelController class] modelControllerClassesByKey] objectForKey:ownedModelControllersKey];
 
-    NSArray *newControllers = [self.outputValue mapWithOptions:NSEnumerationConcurrent usingBlock:^(id model){
+    NSArray *newControllers = [self.outputValue mapUsingBlock:^(id model){
         return [[ownedModelControllerClass alloc] initWithModel:model];
     }];
 
