@@ -86,14 +86,17 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
 /**
  * Contains <PROKeyValueObserver> objects observing each model controller
- * managed by the receiver (in no particular order).
+ * managed by the receiver.
  *
  * Notifications from these observers will be posted synchronously.
  *
- * @warning **Important:** This array should only be mutated while on the
+ * This is a `CFDictionary` because the keys -- which are model controllers --
+ * should not be copied, which `NSDictionary` would do.
+ *
+ * @warning **Important:** This dictionary should only be mutated while on the
  * `PROModelControllerConcurrentQueue`.
  */
-@property (nonatomic, strong) NSMutableArray *modelControllerObservers;
+@property (nonatomic, readonly) CFMutableDictionaryRef modelControllerObservers;
 
 /**
  * Whether <performTransformation:error:> is currently being executed on the
@@ -301,6 +304,13 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     // this must be set up before the transformation log is created
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
 
+    m_modelControllerObservers = CFDictionaryCreateMutable(
+        NULL,
+        0,
+        &kCFTypeDictionaryKeyCallBacks,
+        &kCFTypeDictionaryValueCallBacks
+    );
+
     m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
     m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
 
@@ -322,7 +332,10 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
 - (void)dealloc {
     // make sure to tear down model controller observers first thing
-    self.modelControllerObservers = nil;
+    if (m_modelControllerObservers) {
+        CFRelease(m_modelControllerObservers);
+        m_modelControllerObservers = NULL;
+    }
 }
 
 #pragma mark Model controllers
@@ -461,11 +474,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
             [modelControllersArray(self) insertObject:controller atIndex:index];
             controller.parentModelController = self;
 
-            if (!self.modelControllerObservers)
-                self.modelControllerObservers = [[NSMutableArray alloc] init];
-
-            // this array is unordered
-            [self.modelControllerObservers addObject:observer];
+            CFDictionarySetValue(self.modelControllerObservers, (__bridge void *)controller, (__bridge void *)observer);
         }];
     };
 
@@ -487,16 +496,8 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
             NSMutableArray *controllers = modelControllersArray(self);
             PROModelController *controller = [controllers objectAtIndex:index];
 
-            // find and tear down the observer first
-            NSUInteger observerIndex = [self.modelControllerObservers
-                indexOfObjectWithOptions:NSEnumerationConcurrent
-                passingTest:^ BOOL (PROKeyValueObserver *observer, NSUInteger index, BOOL *stop){
-                    return observer.target == controller;
-                }
-            ];
-
-            if (observerIndex != NSNotFound)
-                [self.modelControllerObservers removeObjectAtIndex:observerIndex];
+            // tear down the observer first
+            CFDictionaryRemoveValue(self.modelControllerObservers, (__bridge void *)controller);
 
             [controllers removeObjectAtIndex:index];
             controller.parentModelController = nil;
