@@ -35,7 +35,6 @@ SpecBegin(PROModelController)
         expect(controller).not.toBeNil();
 
         expect(controller.model).toBeNil();
-        expect(controller.dispatchQueue).not.toBeNil();
         expect(controller.performingTransformation).toBeFalsy();
         expect(controller.uniqueIdentifier).not.toBeNil();
     });
@@ -47,7 +46,6 @@ SpecBegin(PROModelController)
         expect(controller).not.toBeNil();
 
         expect(controller.model).toEqual(model);
-        expect(controller.dispatchQueue).not.toBeNil();
         expect(controller.performingTransformation).toBeFalsy();
         expect(controller.uniqueIdentifier).not.toBeNil();
     });

@@ -66,22 +66,6 @@
 @property (nonatomic, copy, readonly) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
- * @name Synchronization
- */
-
-/**
- * An automatically-created custom dispatch queue, used by the instance to
- * synchronize itself.
- *
- * In particular, this is used by the <model> property and
- * <performTransformation:error:> method to guarantee thread-safety.
- *
- * This queue is exposed so that subclasses may also use it for any additional
- * synchronization they require.
- */
-@property (nonatomic, strong, readonly) SDQueue *dispatchQueue;
-
-/**
  * @name Managing Model Controllers
  */
 
