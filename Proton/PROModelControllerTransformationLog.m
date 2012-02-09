@@ -25,6 +25,22 @@
 @synthesize modelControllersByLogEntry = m_modelControllersByLogEntry;
 @synthesize modelControllerLogEntriesByLogEntry = m_modelControllerLogEntriesByLogEntry;
 
+- (NSMutableDictionary *)modelControllersByLogEntry {
+    if (!m_modelControllersByLogEntry) {
+        m_modelControllersByLogEntry = [NSMutableDictionary dictionary];
+    }
+
+    return m_modelControllersByLogEntry;
+}
+
+- (NSMutableDictionary *)modelControllerLogEntriesByLogEntry {
+    if (!m_modelControllerLogEntriesByLogEntry) {
+        m_modelControllerLogEntriesByLogEntry = [NSMutableDictionary dictionary];
+    }
+
+    return m_modelControllerLogEntriesByLogEntry;
+}
+
 #pragma mark Initialization
 
 - (id)initWithModelController:(PROModelController *)modelController; {
@@ -35,9 +51,6 @@
         return nil;
 
     m_modelController = modelController;
-    m_modelControllersByLogEntry = [[NSMutableDictionary alloc] init];
-    m_modelControllerLogEntriesByLogEntry = [[NSMutableDictionary alloc] init];
-
     return self;
 }
 
