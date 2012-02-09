@@ -32,6 +32,14 @@ SpecBegin(PROTransformationLog)
             expect(log.latestLogEntry.parentLogEntry).toBeNil();
         });
 
+        it(@"should initialize with a custom log entry", ^{
+            PROTransformationLogEntry *anotherEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:log.latestLogEntry];
+
+            log = [[PROTransformationLog alloc] initWithLogEntry:anotherEntry];
+            expect(log).not.toBeNil();
+            expect(log.latestLogEntry).toEqual(anotherEntry);
+        });
+
         it(@"should default to not having an in-memory limit", ^{
             expect(log.maximumNumberOfLogEntries).toEqual(0);
         });

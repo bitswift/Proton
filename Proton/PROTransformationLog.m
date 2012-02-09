@@ -75,13 +75,19 @@
 #pragma mark Initialization
 
 - (id)init {
+    return [self initWithLogEntry:[self logEntryWithParentLogEntry:nil]];
+}
+
+- (id)initWithLogEntry:(PROTransformationLogEntry *)logEntry; {
+    NSParameterAssert(logEntry != nil);
+
     self = [super init];
     if (!self)
         return nil;
 
-    // move to an initial root log entry, deferring creation of the collections
+    // move to the initial log entry, but defer creation of the collections
     // until we actually need to mutate them
-    self.latestLogEntry = [self logEntryWithParentLogEntry:nil];
+    self.latestLogEntry = logEntry;
 
     return self;
 }

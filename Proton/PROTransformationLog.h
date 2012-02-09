@@ -25,6 +25,25 @@
 @interface PROTransformationLog : NSObject <NSCoding, NSCopying>
 
 /**
+ * @name Initialization
+ */
+
+/**
+ * Initializes the receiver with a default root log entry.
+ */
+- (id)init;
+
+/**
+ * Initializes the receiver with the given log entry as the first item in the
+ * log.
+ *
+ * This is the designated initializer for this class.
+ *
+ * @param logEntry The first entry for the log.
+ */
+- (id)initWithLogEntry:(PROTransformationLogEntry *)logEntry;
+
+/**
  * @name Reading the Log
  */
 
