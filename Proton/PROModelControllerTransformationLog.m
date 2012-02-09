@@ -45,8 +45,6 @@
 
 - (void)addOrReplaceLogEntry:(PROModelControllerTransformationLogEntry *)logEntry; {
     [super addOrReplaceLogEntry:logEntry];
-    [self.modelControllersByLogEntry removeObjectForKey:logEntry];
-    [self.modelControllerLogEntriesByLogEntry removeObjectForKey:logEntry];
 }
 
 - (PROModelControllerTransformationLogEntry *)logEntryWithParentLogEntry:(PROModelControllerTransformationLogEntry *)parentLogEntry; {

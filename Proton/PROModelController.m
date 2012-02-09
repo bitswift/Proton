@@ -792,13 +792,11 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
 
     NSAssert([savedModelControllerLogEntries count] == [savedModelControllers count], @"Log entries %@ do not match controllers %@", savedModelControllerLogEntries, savedModelControllers);
 
-    if (savedModelControllers.count) {
-        NSDictionary *controllers = [savedModelControllers copy];
-        [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:logEntry];
+    NSDictionary *controllers = [savedModelControllers copy];
+    [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:logEntry];
 
-        NSDictionary *entries = [savedModelControllerLogEntries copy];
-        [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:entries forKey:logEntry];
-    }
+    NSDictionary *entries = [savedModelControllerLogEntries copy];
+    [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:entries forKey:logEntry];
 }
 
 #pragma mark Synchronization
