@@ -432,17 +432,17 @@ static NSString * const PROModelControllerPerformingTransformationKey = @"PROMod
                         return;
                     }
 
-                    [self willChangeValueForKey:PROKeyForObject(self, model)];
+                    [weakSelf willChangeValueForKey:PROKeyForObject(self, model)];
                     @onExit {
-                        [self didChangeValueForKey:PROKeyForObject(self, model)];
+                        [weakSelf didChangeValueForKey:PROKeyForObject(self, model)];
                     };
 
                     // the model controllers are already up-to-date; we just
                     // want to drop in the new model object and record the
                     // transformation in the log
-                    [self.transformationLog appendTransformation:modelTransformation];
-                    [self setModel:newModel replacingModelControllers:NO];
-                    [self captureInLatestLogEntry];
+                    [weakSelf.transformationLog appendTransformation:modelTransformation];
+                    [weakSelf setModel:newModel replacingModelControllers:NO];
+                    [weakSelf captureInLatestLogEntry];
                 }];
             }
         ];
