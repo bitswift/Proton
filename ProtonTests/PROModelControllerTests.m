@@ -436,6 +436,19 @@ SpecBegin(PROModelController)
                 expect(model).not.toEqual(controller.model);
             });
 
+            it(@"should return past sub-model given past log entry to sub-model controller", ^{
+                expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+
+                TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+                TestSubModel *subModel = subController.model;
+                PROModelControllerTransformationLogEntry *subEntry = [subController transformationLogEntryWithModelPointer:NULL];
+
+                PROTransformation *subTransformation = [subController.model transformationForKey:@"name" value:@"this is a new name"];
+                expect([subController performTransformation:subTransformation error:NULL]).toBeTruthy();
+
+                expect([subController modelWithTransformationLogEntry:subEntry]).toEqual(subModel);
+            });
+
             it(@"should restore past model given past log entry", ^{
                 PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
@@ -479,6 +492,72 @@ SpecBegin(PROModelController)
                 }];
 
                 expect(controllerIDs).toEqual(newIDs);
+            });
+
+            describe(@"model controller models with log entries", ^{
+                __block NSMutableArray *logEntries;
+                __block NSMutableArray *models;
+
+                before(^{
+                    logEntries = [[NSMutableArray alloc] init];
+                    models = [[NSMutableArray alloc] init];
+
+                    for (unsigned i = 0; i < 10; ++i) {
+                        expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+                    }
+
+                    for (unsigned i = 0; i < 10; ++i) {
+                        PROModel *model = nil;
+                        PROModelControllerTransformationLogEntry *logEntry = [[controller.subModelControllers objectAtIndex:i] transformationLogEntryWithModelPointer:&model];
+
+                        expect(logEntry).not.toBeNil();
+                        expect(model).not.toBeNil();
+
+                        [logEntries addObject:logEntry];
+                        [models addObject:model];
+                    }
+                });
+
+                it(@"should return an array of models with valid references", ^{
+                    NSArray *controllerModels = [controller modelControllerModelsWithTransformationLogEntries:logEntries];
+                    expect(controllerModels).toEqual(models);
+                });
+
+                it(@"should return nil with any log entries not on a sub-model controller", ^{
+                    PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+                    expect(logEntry).not.toBeNil();
+
+                    [logEntries addObject:logEntry];
+
+                    NSArray *controllerModels = [controller modelControllerModelsWithTransformationLogEntries:logEntries];
+                    expect(controllerModels).toBeNil();
+                });
+
+                it(@"should return nil with any log entries no longer valid", ^{
+                    TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+                    subController.archivedTransformationLogLimit = 1;
+
+                    PROTransformation *subTransformation = [subController.model transformationForKey:@"name" value:@"this is a new name"];
+                    expect([subController performTransformation:subTransformation error:NULL]).toBeTruthy();
+
+                    PROModelControllerTransformationLogEntry *subEntry = [logEntries objectAtIndex:0];
+                    expect([subController modelWithTransformationLogEntry:subEntry]).toEqual([models objectAtIndex:0]);
+
+                    // archive and un-archive the super controller, and make
+                    // sure it invalidates 'subEntry'
+                    {
+                        NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:controller];
+
+                        controller = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+                        expect(controller).not.toBeNil();
+
+                        subController = [controller.subModelControllers objectAtIndex:0];
+                        expect([subController modelWithTransformationLogEntry:subEntry]).toBeNil();
+                    }
+
+                    NSArray *controllerModels = [controller modelControllerModelsWithTransformationLogEntries:logEntries];
+                    expect(controllerModels).toBeNil();
+                });
             });
         });
 
