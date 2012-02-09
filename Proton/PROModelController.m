@@ -704,6 +704,9 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     NSMutableArray *models = [[NSMutableArray alloc] initWithCapacity:logEntries.count];
 
     for (PROModelControllerTransformationLogEntry *logEntry in logEntries) {
+        if (!logEntry.modelControllerIdentifier)
+            return nil;
+
         PROModelController *subController = [self modelControllerWithIdentifier:logEntry.modelControllerIdentifier];
         PROModel *model = [subController modelWithTransformationLogEntry:logEntry];
 
