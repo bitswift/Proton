@@ -75,13 +75,19 @@
 #pragma mark Initialization
 
 - (id)init {
+    return [self initWithLogEntry:[self logEntryWithParentLogEntry:nil]];
+}
+
+- (id)initWithLogEntry:(PROTransformationLogEntry *)logEntry; {
+    NSParameterAssert(logEntry != nil);
+
     self = [super init];
     if (!self)
         return nil;
 
-    // move to an initial root log entry, deferring creation of the collections
+    // move to the initial log entry, but defer creation of the collections
     // until we actually need to mutate them
-    self.latestLogEntry = [self logEntryWithParentLogEntry:nil];
+    self.latestLogEntry = logEntry;
 
     return self;
 }
@@ -202,6 +208,21 @@
 
     NSArray *entriesToRemove = [self.logEntries objectsAtIndexes:indexesToRemove];
     [entriesToRemove enumerateObjectsUsingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
+        [self removeLogEntry:entry];
+    }];
+}
+
+- (void)removeAllLogEntries; {
+    NSRange entireRange = NSMakeRange(0, self.logEntries.count);
+    NSMutableIndexSet *indexesToRemove = [NSMutableIndexSet indexSetWithIndexesInRange:entireRange];
+
+    NSUInteger latestEntryIndex = [self.logEntries indexOfObject:self.latestLogEntry];
+    if (PROAssert(latestEntryIndex != NSNotFound, @"Could not find latest log entry %@ in log %@", self.latestLogEntry, self)) {
+        [indexesToRemove removeIndex:latestEntryIndex];
+    }
+
+    NSArray *logEntries = [self.logEntries objectsAtIndexes:indexesToRemove];
+    [logEntries enumerateObjectsUsingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
         [self removeLogEntry:entry];
     }];
 }
