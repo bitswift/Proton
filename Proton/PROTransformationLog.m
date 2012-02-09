@@ -56,6 +56,15 @@
 @synthesize maximumNumberOfArchivedLogEntries = m_maximumNumberOfArchivedLogEntries;
 @synthesize willRemoveLogEntryBlock = m_willRemoveLogEntryBlock;
 
+- (NSOrderedSet *)archivableLogEntries {
+    if (self.maximumNumberOfArchivedLogEntries && self.logEntries.count > self.maximumNumberOfArchivedLogEntries) {
+        NSRange range = NSMakeRange(self.logEntries.count - self.maximumNumberOfArchivedLogEntries, self.maximumNumberOfArchivedLogEntries);
+        return [[NSOrderedSet alloc] initWithOrderedSet:self.logEntries range:range copyItems:NO];
+    } else {
+        return [self.logEntries copy];
+    }
+}
+
 - (void)setMaximumNumberOfLogEntries:(NSUInteger)maximum {
     m_maximumNumberOfLogEntries = maximum;
 
@@ -141,25 +150,34 @@
 - (void)appendTransformation:(PROTransformation *)transformation; {
     NSParameterAssert(transformation != nil);
 
-    [self prepareForAdditionalEntries:1];
-
     PROTransformationLogEntry *newEntry = [self logEntryWithParentLogEntry:self.latestLogEntry];
-    [self.logEntries addObject:newEntry];
+    [self addOrReplaceLogEntry:newEntry];
     [self.transformationsByLogEntry setObject:transformation forKey:newEntry];
+}
 
-    self.latestLogEntry = newEntry;
+- (void)addOrReplaceLogEntry:(PROTransformationLogEntry *)logEntry; {
+    NSParameterAssert(logEntry != nil);
+
+    if (![self.logEntries containsObject:logEntry]) {
+        [self prepareForAdditionalEntries:1];
+        [self.logEntries addObject:logEntry];
+    }
+
+    [self.transformationsByLogEntry removeObjectForKey:logEntry];
+    self.latestLogEntry = logEntry;
 }
 
 - (BOOL)moveToLogEntry:(PROTransformationLogEntry *)logEntry; {
-    if (logEntry.parentLogEntry) {
-        // this entry must already exist in the log
-        if (![self.logEntries containsObject:logEntry])
-            return NO;
-    } else {
-        [self prepareForAdditionalEntries:1];
-        [self.logEntries addObject:logEntry];
-        [self.transformationsByLogEntry removeObjectForKey:logEntry];
+    NSParameterAssert(logEntry != nil);
+
+    if (!logEntry.parentLogEntry) {
+        [self addOrReplaceLogEntry:logEntry];
+        return YES;
     }
+        
+    // if this isn't a root, this entry must already exist in the log
+    if (![self.logEntries containsObject:logEntry])
+        return NO;
 
     self.latestLogEntry = logEntry;
     return YES;
@@ -174,14 +192,24 @@
     NSRange rangeToRemove = NSMakeRange(0, self.logEntries.count + additionalEntries - self.maximumNumberOfLogEntries);
     NSIndexSet *indexesToRemove = [NSIndexSet indexSetWithIndexesInRange:rangeToRemove];
 
-    [self.logEntries enumerateObjectsAtIndexes:indexesToRemove options:0 usingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
-        if (self.willRemoveLogEntryBlock)
-            self.willRemoveLogEntryBlock(entry);
-
-        [self.transformationsByLogEntry removeObjectForKey:entry];
+    NSArray *entriesToRemove = [self.logEntries objectsAtIndexes:indexesToRemove];
+    [entriesToRemove enumerateObjectsUsingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
+        [self removeLogEntry:entry];
     }];
+}
 
-    [self.logEntries removeObjectsInRange:rangeToRemove];
+- (void)removeLogEntry:(PROTransformationLogEntry *)logEntry; {
+    NSParameterAssert(logEntry != nil);
+
+    NSUInteger entryIndex = [self.logEntries indexOfObject:logEntry];
+    if (entryIndex == NSNotFound)
+        return;
+
+    if (self.willRemoveLogEntryBlock)
+        self.willRemoveLogEntryBlock(logEntry);
+
+    [self.logEntries removeObjectAtIndex:entryIndex];
+    [self.transformationsByLogEntry removeObjectForKey:logEntry];
 }
 
 #pragma mark Subclassing
@@ -239,21 +267,14 @@
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.latestLogEntry forKey:PROKeyForObject(self, latestLogEntry)];
 
-    NSDictionary *limitedTransformations = self.transformationsByLogEntry;
-    NSOrderedSet *limitedEntries = self.logEntries;
+    NSOrderedSet *limitedEntries = self.archivableLogEntries;
+    [coder encodeObject:limitedEntries forKey:PROKeyForObject(self, logEntries)];
 
-    if (self.maximumNumberOfArchivedLogEntries && limitedEntries.count > self.maximumNumberOfArchivedLogEntries) {
-        NSRange range = NSMakeRange(limitedEntries.count - self.maximumNumberOfArchivedLogEntries, self.maximumNumberOfArchivedLogEntries);
-
-        limitedEntries = [[NSOrderedSet alloc] initWithOrderedSet:self.logEntries range:range copyItems:NO];
-
-        limitedTransformations = [self.transformationsByLogEntry filterEntriesUsingBlock:^(PROTransformationLogEntry *logEntry, PROTransformation *transformation){
-            return [limitedEntries containsObject:logEntry];
-        }];
-    }
+    NSDictionary *limitedTransformations = [self.transformationsByLogEntry filterEntriesUsingBlock:^(PROTransformationLogEntry *logEntry, PROTransformation *transformation){
+        return [limitedEntries containsObject:logEntry];
+    }];
 
     [coder encodeObject:limitedTransformations forKey:PROKeyForObject(self, transformationsByLogEntry)];
-    [coder encodeObject:limitedEntries forKey:PROKeyForObject(self, logEntries)];
 
     [coder encodeInteger:self.maximumNumberOfLogEntries forKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
     [coder encodeInteger:self.maximumNumberOfArchivedLogEntries forKey:PROKeyForObject(self, maximumNumberOfArchivedLogEntries)];

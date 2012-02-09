@@ -29,6 +29,21 @@
 @interface PROModelControllerTransformationLogEntry : PROTransformationLogEntry
 
 /**
+ * @name Initialization
+ */
+
+/**
+ * Initializes the receiver with the given log entry as its parent, and the
+ * given unique identifier for the associated model controller.
+ *
+ * @param parentLogEntry The log entry which the receiver will be defined
+ * relative to.
+ * @param modelControllerIdentifier The unique identifier of the model
+ * controller that this log entry is associated with.
+ */
+- (id)initWithParentLogEntry:(PROTransformationLogEntry *)parentLogEntry modelControllerIdentifier:(PROUniqueIdentifier *)modelControllerIdentifier;
+
+/**
  * @name Model Controller
  */
 
