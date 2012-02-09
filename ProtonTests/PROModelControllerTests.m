@@ -436,6 +436,19 @@ SpecBegin(PROModelController)
                 expect(model).not.toEqual(controller.model);
             });
 
+            it(@"should return past sub-model given past log entry to sub-model controller", ^{
+                expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+
+                TestSubModelController *subController = [controller.subModelControllers objectAtIndex:0];
+                TestSubModel *subModel = subController.model;
+                PROModelControllerTransformationLogEntry *subEntry = [subController transformationLogEntryWithModelPointer:NULL];
+
+                PROTransformation *subTransformation = [subController.model transformationForKey:@"name" value:@"this is a new name"];
+                expect([subController performTransformation:subTransformation error:NULL]).toBeTruthy();
+
+                expect([subController modelWithTransformationLogEntry:subEntry]).toEqual(subModel);
+            });
+
             it(@"should restore past model given past log entry", ^{
                 PROModelControllerTransformationLogEntry *logEntry = [controller transformationLogEntryWithModelPointer:NULL];
 
