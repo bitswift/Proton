@@ -116,6 +116,18 @@ SpecBegin(PROTransformationLog)
                 expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry]).toBeNil();
             });
 
+            it(@"should remove all log entries", ^{
+                [log appendTransformation:firstTransformation];
+                [log appendTransformation:secondTransformation];
+                [log removeAllLogEntries];
+
+                // should not have destroyed the latestLogEntry
+                expect(log.latestLogEntry).not.toBeNil();
+                expect([log multipleTransformationFromLogEntry:log.latestLogEntry toLogEntry:log.latestLogEntry]).not.toBeNil();
+
+                expect([log multipleTransformationFromLogEntry:rootEntry toLogEntry:log.latestLogEntry]).toBeNil();
+            });
+
             it(@"should not do anything to remove a log entry not in the log", ^{
                 PROTransformationLogEntry *anotherEntry = [[PROTransformationLogEntry alloc] initWithParentLogEntry:rootEntry];
                 [log removeLogEntry:anotherEntry];

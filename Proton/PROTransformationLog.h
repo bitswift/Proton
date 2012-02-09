@@ -93,6 +93,12 @@
 - (BOOL)moveToLogEntry:(PROTransformationLogEntry *)logEntry;
 
 /**
+ * Removes all log entries _except the <latestLogEntry>_, and destroys any data
+ * that was associated with the removed log entries.
+ */
+- (void)removeAllLogEntries;
+
+/**
  * Removes the given log entry and any associated data. If the entry does not
  * exist in the log, nothing happens.
  *

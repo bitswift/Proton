@@ -206,6 +206,21 @@
     }];
 }
 
+- (void)removeAllLogEntries; {
+    NSRange entireRange = NSMakeRange(0, self.logEntries.count);
+    NSMutableIndexSet *indexesToRemove = [NSMutableIndexSet indexSetWithIndexesInRange:entireRange];
+
+    NSUInteger latestEntryIndex = [self.logEntries indexOfObject:self.latestLogEntry];
+    if (PROAssert(latestEntryIndex != NSNotFound, @"Could not find latest log entry %@ in log %@", self.latestLogEntry, self)) {
+        [indexesToRemove removeIndex:latestEntryIndex];
+    }
+
+    NSArray *logEntries = [self.logEntries objectsAtIndexes:indexesToRemove];
+    [logEntries enumerateObjectsUsingBlock:^(PROTransformationLogEntry *entry, NSUInteger index, BOOL *stop){
+        [self removeLogEntry:entry];
+    }];
+}
+
 - (void)removeLogEntry:(PROTransformationLogEntry *)logEntry; {
     NSParameterAssert(logEntry != nil);
 
