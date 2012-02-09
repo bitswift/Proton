@@ -238,10 +238,8 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
             }
         };
 
-        PROModelControllerTransformationLogEntry *logEntry = [[PROModelControllerTransformationLogEntry alloc] initWithParentLogEntry:nil modelControllerIdentifier:self.uniqueIdentifier];
-        if (!PROAssert([self.transformationLog moveToLogEntry:logEntry], @"Could not move transformation log %@ to new root %@", self.transformationLog, logEntry)) {
-            return;
-        }
+        PROUniqueTransformation *modelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:m_model outputValue:newModel];
+        [self.transformationLog appendTransformation:modelTransformation];
 
         [self setModel:newModel replacingModelControllers:YES];
         [self captureInLatestLogEntry];
