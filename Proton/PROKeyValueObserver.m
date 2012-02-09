@@ -68,8 +68,10 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
     NSAssert(object == self.target, @"%@ should not be receiving change notifications for an object other than its own", self);
     NSAssert(context == PROKeyValueObserverContext, @"%@ should not be receiving change notifications for a context other than its own", self);
 
+    PROKeyValueObserverBlock block = self.block;
+
     void (^trampoline)(void) = ^{
-        self.block(changes);
+        block(changes);
     };
 
     SDQueue *queue = self.queue;
