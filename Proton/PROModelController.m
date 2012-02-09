@@ -86,14 +86,17 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
 /**
  * Contains <PROKeyValueObserver> objects observing each model controller
- * managed by the receiver (in no particular order).
+ * managed by the receiver.
  *
  * Notifications from these observers will be posted synchronously.
  *
- * @warning **Important:** This array should only be mutated while on the
+ * This is a `CFDictionary` because the keys -- which are model controllers --
+ * should not be copied, which `NSDictionary` would do.
+ *
+ * @warning **Important:** This dictionary should only be mutated while on the
  * `PROModelControllerConcurrentQueue`.
  */
-@property (nonatomic, strong) NSMutableArray *modelControllerObservers;
+@property (nonatomic, readonly) CFMutableDictionaryRef modelControllerObservers;
 
 /**
  * Whether <performTransformation:error:> is currently being executed on the
@@ -291,6 +294,19 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     }];
 }
 
+- (CFMutableDictionaryRef)modelControllerObservers {
+    if (!m_modelControllerObservers) {
+        m_modelControllerObservers = CFDictionaryCreateMutable(
+            NULL,
+            0,
+            &kCFTypeDictionaryKeyCallBacks,
+            &kCFTypeDictionaryValueCallBacks
+        );
+    }
+
+    return m_modelControllerObservers;
+}
+
 #pragma mark Lifecycle
 
 - (id)init {
@@ -316,13 +332,21 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     if (!self)
         return nil;
 
-    self.model = model;
+    [PROModelControllerConcurrentQueue runBarrierSynchronously:^{
+        // don't need to grow the transformation log yet
+        [self setModel:model replacingModelControllers:YES];
+        [self captureInLatestLogEntry];
+    }];
+
     return self;
 }
 
 - (void)dealloc {
     // make sure to tear down model controller observers first thing
-    self.modelControllerObservers = nil;
+    if (m_modelControllerObservers) {
+        CFRelease(m_modelControllerObservers);
+        m_modelControllerObservers = NULL;
+    }
 }
 
 #pragma mark Model controllers
@@ -365,7 +389,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
         NSMutableArray *array = objc_getAssociatedObject(self, getterSelector);
         if (!array) {
-            array = [[NSMutableArray alloc] init];
+            array = [NSMutableArray array];
 
             objc_setAssociatedObject(self, getterSelector, array, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
@@ -461,11 +485,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
             [modelControllersArray(self) insertObject:controller atIndex:index];
             controller.parentModelController = self;
 
-            if (!self.modelControllerObservers)
-                self.modelControllerObservers = [[NSMutableArray alloc] init];
-
-            // this array is unordered
-            [self.modelControllerObservers addObject:observer];
+            CFDictionarySetValue(self.modelControllerObservers, (__bridge void *)controller, (__bridge void *)observer);
         }];
     };
 
@@ -487,16 +507,8 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
             NSMutableArray *controllers = modelControllersArray(self);
             PROModelController *controller = [controllers objectAtIndex:index];
 
-            // find and tear down the observer first
-            NSUInteger observerIndex = [self.modelControllerObservers
-                indexOfObjectWithOptions:NSEnumerationConcurrent
-                passingTest:^ BOOL (PROKeyValueObserver *observer, NSUInteger index, BOOL *stop){
-                    return observer.target == controller;
-                }
-            ];
-
-            if (observerIndex != NSNotFound)
-                [self.modelControllerObservers removeObjectAtIndex:observerIndex];
+            // tear down the observer first
+            CFDictionaryRemoveValue(self.modelControllerObservers, (__bridge void *)controller);
 
             [controllers removeObjectAtIndex:index];
             controller.parentModelController = nil;
@@ -794,14 +806,21 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
     PROModelControllerTransformationLogEntry *logEntry = self.transformationLog.latestLogEntry;
 
-    NSMutableDictionary *savedModelControllers = [NSMutableDictionary dictionary];
-    NSMutableDictionary *savedModelControllerLogEntries = [NSMutableDictionary dictionary];
+    NSArray *modelControllerKeys = [[[self class] modelControllerKeysByModelKeyPath] allValues];
 
-    [self enumerateModelControllersWithMutableArrays:NO usingBlock:^(NSArray *modelControllers, NSString *modelKeyPath, NSString *modelControllerKey, BOOL *stop){
-        if (!modelControllers.count)
-            return;
+    NSUInteger modelControllerKeyCount = modelControllerKeys.count;
+    if (!modelControllerKeyCount) {
+        [self.transformationLog.modelControllersByLogEntry removeObjectForKey:logEntry];
+        [self.transformationLog.modelControllerLogEntriesByLogEntry removeObjectForKey:logEntry];
+        return;
+    }
 
-        [savedModelControllers setObject:modelControllers forKey:modelControllerKey];
+    NSMutableArray *savedModelControllersArrays = [NSMutableArray arrayWithCapacity:modelControllerKeyCount];
+    NSMutableArray *savedModelControllerLogEntriesArrays = [NSMutableArray arrayWithCapacity:modelControllerKeyCount];
+
+    [modelControllerKeys enumerateObjectsUsingBlock:^(NSString *modelControllerKey, NSUInteger index, BOOL *stop){
+        NSArray *modelControllers = [self valueForKey:modelControllerKey];
+        [savedModelControllersArrays addObject:modelControllers];
 
         NSArray *savedLogEntries = [modelControllers mapUsingBlock:^ id (PROModelController *controller){
             PROModelControllerTransformationLogEntry *controllerEntry = [controller transformationLogEntryWithModelPointer:NULL];
@@ -813,16 +832,16 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
             }
         }];
 
-        [savedModelControllerLogEntries setObject:savedLogEntries forKey:modelControllerKey];
+        [savedModelControllerLogEntriesArrays addObject:savedLogEntries];
     }];
 
-    NSAssert([savedModelControllerLogEntries count] == [savedModelControllers count], @"Log entries %@ do not match controllers %@", savedModelControllerLogEntries, savedModelControllers);
+    NSAssert([savedModelControllerLogEntriesArrays count] == [savedModelControllersArrays count], @"Log entries %@ do not match controllers %@", savedModelControllerLogEntriesArrays, savedModelControllersArrays);
 
-    NSDictionary *controllers = [savedModelControllers copy];
-    [self.transformationLog.modelControllersByLogEntry setObject:controllers forKey:logEntry];
+    NSDictionary *savedModelControllers = [NSDictionary dictionaryWithObjects:savedModelControllersArrays forKeys:modelControllerKeys];
+    [self.transformationLog.modelControllersByLogEntry setObject:savedModelControllers forKey:logEntry];
 
-    NSDictionary *entries = [savedModelControllerLogEntries copy];
-    [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:entries forKey:logEntry];
+    NSDictionary *savedModelControllerLogEntries = [NSDictionary dictionaryWithObjects:savedModelControllerLogEntriesArrays forKeys:modelControllerKeys];
+    [self.transformationLog.modelControllerLogEntriesByLogEntry setObject:savedModelControllerLogEntries forKey:logEntry];
 }
 
 #pragma mark NSCoding

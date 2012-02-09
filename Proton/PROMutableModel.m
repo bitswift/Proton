@@ -553,7 +553,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!self)
         return nil;
 
-    m_transformations = [[NSMutableArray alloc] init];
+    m_transformations = [NSMutableArray array];
     return self;
 }
 

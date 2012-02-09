@@ -158,7 +158,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
 }
 
 + (NSArray *)propertyKeys {
-	NSMutableArray *names = [[NSMutableArray alloc] init];
+	NSMutableArray *names = [NSMutableArray array];
 
 	[self enumeratePropertiesUsingBlock:^(objc_property_t property){
 		const char *cName = property_getName(property);
@@ -174,7 +174,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
 }
 
 + (NSDictionary *)propertyClassesByKey; {
-    NSMutableDictionary *classesByKey = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *classesByKey = [NSMutableDictionary dictionary];
 
     [self enumeratePropertiesUsingBlock:^(objc_property_t property){
         ext_propertyAttributes *attributes = ext_copyPropertyAttributes(property);
