@@ -77,8 +77,10 @@ provide no implementation, like so:
     @synthesize someString = m_someString;
     @end
 
-@warning **Important:** This class is currently not thread-safe, and so should
-only be used from the main thread.
+Changes to instances of this class are performed atomically. Note, however,
+that this is not composable. This means that changes to multiple
+properties at a time may not be committed atomically with respect to other
+threads.
 
  */
 @interface PROMutableModel : NSObject <NSCoding, NSCopying, NSMutableCopying>
