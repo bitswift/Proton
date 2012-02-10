@@ -425,14 +425,6 @@ SpecBegin(PROMutableModel)
             expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
         });
 
-        it(@"should not change when the model controller changes", ^{
-            PROTransformation *nameTransformation = [immutableModel transformationForKey:@"name" value:@"fuzz"];
-            expect([modelController performTransformation:nameTransformation error:NULL]).toBeTruthy();
-
-            // the mutable model should still have the old value
-            expect([model name]).toEqual(immutableModel.name);
-        });
-
         it(@"should save multiple changes to model controller", ^{
             [model setName:@"fizzbuzz"];
 
@@ -445,6 +437,94 @@ SpecBegin(PROMutableModel)
 
             expect([modelController.model name]).toEqual(@"fizzbuzz");
             expect([modelController.model subModels]).toEqual(newSubModels);
+        });
+
+        describe(@"rebasing", ^{
+            __block BOOL rebaseSucceeded;
+            __block NSError *rebaseError;
+
+            __block id successObserver;
+            __block id failureObserver;
+
+            before(^{
+                rebaseSucceeded = NO;
+                rebaseError = nil;
+
+                successObserver = [[NSNotificationCenter defaultCenter]
+                    addObserverForName:PROMutableModelDidRebaseFromModelControllerNotification
+                    object:model
+                    queue:nil
+                    usingBlock:^(NSNotification *notification){
+                        expect(rebaseError).toBeNil();
+                        expect(notification.object).toEqual(model);
+
+                        rebaseSucceeded = YES;
+                    }
+                ];
+
+                failureObserver = [[NSNotificationCenter defaultCenter]
+                    addObserverForName:PROMutableModelRebaseFromModelControllerFailedNotification
+                    object:model
+                    queue:nil
+                    usingBlock:^(NSNotification *notification){
+                        expect(rebaseSucceeded).toBeFalsy();
+                        expect(notification.object).toEqual(model);
+
+                        rebaseError = [notification.userInfo objectForKey:PROMutableModelRebaseErrorKey];
+                        expect(rebaseError).not.toBeNil();
+                    }
+                ];
+            });
+
+            after(^{
+                [[NSNotificationCenter defaultCenter] removeObserver:successObserver];
+                successObserver = nil;
+
+                [[NSNotificationCenter defaultCenter] removeObserver:failureObserver];
+                failureObserver = nil;
+            });
+
+            it(@"should rebase from model controller without any changes", ^{
+                NSString *newName = @"this is a new name";
+                PROTransformation *transformation = [modelController.model transformationForKey:@"name" value:newName];
+                expect([modelController performTransformation:transformation error:NULL]).toBeTruthy();
+
+                expect(rebaseSucceeded).toBeTruthy();
+                expect([model valueForKey:@"name"]).toEqual(newName);
+                expect([[modelController model] name]).toEqual(newName);
+            });
+
+            it(@"should rebase from model controller with non-conflicting changes", ^{
+                NSSet *strings = [NSSet setWithObject:@"this is a new string set"];
+                [model setValue:strings forKey:@"strings"];
+
+                NSString *newName = @"this is a new name";
+                PROTransformation *transformation = [modelController.model transformationForKey:@"name" value:newName];
+                expect([modelController performTransformation:transformation error:NULL]).toBeTruthy();
+
+                expect(rebaseSucceeded).toBeTruthy();
+                expect([model valueForKey:@"name"]).toEqual(newName);
+                expect([model valueForKey:@"strings"]).toEqual(strings);
+
+                expect([[modelController model] name]).toEqual(newName);
+                expect([[modelController model] strings]).toEqual([NSSet set]);
+            });
+
+            it(@"should not rebase from model controller with conflicting changes", ^{
+                NSString *conflictingName = @"this is a conflicting name";
+                [model setName:@"this is a conflicting name"];
+
+                NSString *newName = @"this is a new name";
+                PROTransformation *transformation = [modelController.model transformationForKey:@"name" value:newName];
+                expect([modelController performTransformation:transformation error:NULL]).toBeTruthy();
+
+                expect(rebaseSucceeded).toBeFalsy();
+                expect(rebaseError.domain).toEqual([PROTransformation errorDomain]);
+                expect(rebaseError.code).toEqual(PROTransformationErrorMismatchedInput);
+
+                expect([model valueForKey:@"name"]).toEqual(conflictingName);
+                expect([[modelController model] name]).toEqual(newName);
+            });
         });
     });
 
