@@ -47,6 +47,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  */
 @interface PROMutableModel () {
     /**
+     * A private dispatch queue used to synchronize modifications to this
+     * object.
+     */
+    SDQueue *m_dispatchQueue;
+
+    /**
      * The model managed by this object, as transformed by everything in
      * <m_transformationLog> after <m_originalModelLogEntry>.
      */
@@ -70,6 +76,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
      */
     PROTransformationLog *m_transformationLog;
 }
+
+/**
+ * Atomic getter for the <m_latestModel> instance variable.
+ */
+@property (copy, readonly) PROModel *latestModel;
 
 /**
  * Given a subclass of <PROModel>, this will create or return
@@ -139,6 +150,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark Properties
 
 @synthesize modelController = m_modelController;
+
+- (PROModel *)latestModel {
+    __block PROModel *model;
+
+    [m_dispatchQueue runSynchronously:^{
+        model = [m_latestModel copy];
+    }];
+
+    return model;
+}
 
 #pragma mark Reflection
 
@@ -261,7 +282,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // count of objects
     id countOfMethodBlock = ^(PROMutableModel *self){
-        return [[self->m_latestModel valueForKey:key] count];
+        return [[self.latestModel valueForKey:key] count];
     };
 
     installBlockMethod(countOfSelector, countOfMethodBlock, [NSString stringWithFormat:
@@ -274,7 +295,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // objects at indexes
     id objectsAtIndexesBlock = ^(PROMutableModel *self, NSIndexSet *indexes){
-        return [[self->m_latestModel valueForKey:key] objectsAtIndexes:indexes];
+        return [[self.latestModel valueForKey:key] objectsAtIndexes:indexes];
     };
 
     installBlockMethod(objectsAtIndexesSelector, objectsAtIndexesBlock, [NSString stringWithFormat:
@@ -295,7 +316,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             [self didChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
         };
 
-        [self performTransformation:transformation forKey:key];
+        [self->m_dispatchQueue runSynchronously:^{
+            [self performTransformation:transformation forKey:key];
+        }];
     };
 
     installBlockMethod(insertSelector, insertMethodBlock, [NSString stringWithFormat:
@@ -310,15 +333,17 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // removal
     id removeMethodBlock = ^(PROMutableModel *self, NSIndexSet *indexes){
-        NSArray *expectedObjects = [self->m_latestModel valueForKey:key];
+        [self->m_dispatchQueue runSynchronously:^{
+            NSArray *expectedObjects = [self->m_latestModel valueForKey:key];
 
-        [self willChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
-        @onExit {
-            [self didChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
-        };
+            [self willChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+            @onExit {
+                [self didChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+            };
 
-        PROTransformation *transformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexes expectedObjects:expectedObjects];
-        [self performTransformation:transformation forKey:key];
+            PROTransformation *transformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexes expectedObjects:expectedObjects];
+            [self performTransformation:transformation forKey:key];
+        }];
     };
 
     installBlockMethod(removeSelector, removeMethodBlock, [NSString stringWithFormat:
@@ -332,23 +357,25 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // replacement
     id replaceMethodBlock = ^(PROMutableModel *self, NSIndexSet *indexes, NSArray *newObjects){
-        NSArray *originalObjects = [[self->m_latestModel valueForKey:key] objectsAtIndexes:indexes];
-        NSMutableArray *uniqueTransformations = [[NSMutableArray alloc] initWithCapacity:[indexes count]];
+        [self->m_dispatchQueue runSynchronously:^{
+            NSArray *originalObjects = [[self->m_latestModel valueForKey:key] objectsAtIndexes:indexes];
+            NSMutableArray *uniqueTransformations = [[NSMutableArray alloc] initWithCapacity:[indexes count]];
 
-        [newObjects enumerateObjectsUsingBlock:^(id newObject, NSUInteger arrayIndex, BOOL *stop){
-            id originalObject = [originalObjects objectAtIndex:arrayIndex];
-            PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:newObject];
+            [newObjects enumerateObjectsUsingBlock:^(id newObject, NSUInteger arrayIndex, BOOL *stop){
+                id originalObject = [originalObjects objectAtIndex:arrayIndex];
+                PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:newObject];
 
-            [uniqueTransformations addObject:uniqueTransformation];
+                [uniqueTransformations addObject:uniqueTransformation];
+            }];
+
+            [self willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+            @onExit {
+                [self didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+            };
+
+            PROTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:indexes transformations:uniqueTransformations];
+            [self performTransformation:transformation forKey:key];
         }];
-
-        [self willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
-        @onExit {
-            [self didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
-        };
-
-        PROTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:indexes transformations:uniqueTransformations];
-        [self performTransformation:transformation forKey:key];
     };
 
     installBlockMethod(replaceSelector, replaceMethodBlock, [NSString stringWithFormat:
@@ -579,6 +606,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark Initialization
 
+- (id)init {
+    self = [super init];
+    if (!self)
+        return nil;
+    
+    m_dispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:NO label:@"com.bitswift.Proton.PROMutableModel"];
+    return self;
+}
+
 - (id)initWithModel:(PROModel *)model; {
     if (!model)
         return nil;
@@ -639,6 +675,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         }
     ];
 
+    // dispatch to our queue
+    m_modelControllerObserver.queue = m_dispatchQueue;
+
     return self;
 }
 
@@ -653,6 +692,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)performTransformation:(PROTransformation *)transformation forKey:(NSString *)key; {
     NSParameterAssert(transformation != nil);
     NSParameterAssert(key != nil);
+
+    NSAssert(m_dispatchQueue.currentQueue, @"%s should only be invoked while on the dispatch queue", __func__);
 
     PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:key];
 
@@ -669,69 +710,93 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark Rebase
 
 - (BOOL)rebaseFromModelController:(NSError **)error; {
-    PROMultipleTransformation *transformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
+    __block BOOL success = YES;
+    __block NSError *strongError = nil;
 
-    PROModel *newModel = m_modelController.model;
-    if (!newModel)
-        return NO;
+    [m_dispatchQueue runSynchronously:^{
+        PROMultipleTransformation *transformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
 
-    PROModel *rebasedModel = [transformation transform:newModel error:error];
-    if (!rebasedModel)
-        return NO;
+        PROModel *newModel = m_modelController.model;
+        if (!newModel) {
+            success = NO;
+            return;
+        }
 
-    m_latestModel = rebasedModel;
-    return YES;
+        PROModel *rebasedModel = [transformation transform:newModel error:&strongError];
+        if (!rebasedModel) {
+            success = NO;
+            return;
+        }
+
+        m_latestModel = rebasedModel;
+    }];
+
+    if (strongError && error)
+        *error = strongError;
+
+    return success;
 }
 
 #pragma mark Saving
 
 - (BOOL)save:(NSError **)error; {
-    if (!m_modelController)
-        return YES;
+    __block BOOL success = YES;
+    __block NSError *strongError = nil;
 
-    id latestLogEntry = m_transformationLog.latestLogEntry;
+    [m_dispatchQueue runSynchronously:^{
+        if (!m_modelController)
+            return;
 
-    // try restoring the model on the model controller first (if the log entry
-    // is compatible)
-    if (![latestLogEntry isKindOfClass:[PROModelControllerTransformationLogEntry class]] || ![m_modelController restoreModelFromTransformationLogEntry:latestLogEntry]) {
-        PROMultipleTransformation *transformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:latestLogEntry];
-        if (![m_modelController performTransformation:transformation error:error]) {
-            return NO;
+        id latestLogEntry = m_transformationLog.latestLogEntry;
+
+        // try restoring the model on the model controller first (if the log entry
+        // is compatible)
+        if (![latestLogEntry isKindOfClass:[PROModelControllerTransformationLogEntry class]] || ![m_modelController restoreModelFromTransformationLogEntry:latestLogEntry]) {
+            PROMultipleTransformation *transformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:latestLogEntry];
+            if (![m_modelController performTransformation:transformation error:&strongError]) {
+                success = NO;
+                return;
+            }
         }
-    }
 
-    // "flush" our model object, to get the latest version, and empty our
-    // transformation log
-    PROModel *newModel = nil;
-    PROTransformationLogEntry *newLogEntry = [m_modelController transformationLogEntryWithModelPointer:&newModel];
-    if (!PROAssert(newLogEntry, @"Could not get transformation log entry from controller %@", m_modelController))
-        return NO;
+        // "flush" our model object, to get the latest version, and empty our
+        // transformation log
+        PROModel *newModel = nil;
+        PROTransformationLogEntry *newLogEntry = [m_modelController transformationLogEntryWithModelPointer:&newModel];
+        if (!PROAssert(newLogEntry, @"Could not get transformation log entry from controller %@", m_modelController)) {
+            success = NO;
+            return;
+        }
 
-    m_latestModel = newModel;
-    m_originalModelLogEntry = newLogEntry;
+        m_latestModel = newModel;
+        m_originalModelLogEntry = newLogEntry;
 
-    [m_transformationLog addOrReplaceLogEntry:m_originalModelLogEntry];
-    [m_transformationLog removeAllLogEntries];
+        [m_transformationLog addOrReplaceLogEntry:m_originalModelLogEntry];
+        [m_transformationLog removeAllLogEntries];
+    }];
 
-    return YES;
+    if (strongError && error)
+        *error = strongError;
+
+    return success;
 }
 
 #pragma mark Forwarding
 
 - (BOOL)respondsToSelector:(SEL)selector {
-    return [m_latestModel respondsToSelector:selector];
+    return [self.latestModel respondsToSelector:selector];
 }
 
 - (id)forwardingTargetForSelector:(SEL)selector {
-    return m_latestModel;
+    return self.latestModel;
 }
 
 - (void)forwardInvocation:(NSInvocation *)invocation {
-    [invocation invokeWithTarget:m_latestModel];
+    [invocation invokeWithTarget:self.latestModel];
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
-    return [m_latestModel methodSignatureForSelector:selector];
+    return [self.latestModel methodSignatureForSelector:selector];
 }
 
 #pragma mark NSCoding
@@ -770,7 +835,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSCopying
 
 - (id)copyWithZone:(NSZone *)zone; {
-    return [m_latestModel copy];
+    return self.latestModel;
 }
 
 #pragma mark NSMutableCopying
@@ -778,10 +843,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (id)mutableCopyWithZone:(NSZone *)zone; {
     PROMutableModel *model = [[[self class] alloc] init];
 
-    model->m_latestModel = [m_latestModel copy];
-    model->m_modelController = self.modelController;
-    model->m_transformationLog = [m_transformationLog copy];
-    model->m_originalModelLogEntry = [m_originalModelLogEntry copy];
+    [m_dispatchQueue runSynchronously:^{
+        model->m_latestModel = [m_latestModel copy];
+        model->m_modelController = self.modelController;
+        model->m_transformationLog = [m_transformationLog copy];
+        model->m_originalModelLogEntry = [m_originalModelLogEntry copy];
+    }];
 
     return model;
 }
@@ -789,19 +856,21 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSKeyValueCoding
 
 - (id)valueForKey:(NSString *)key {
-    return [m_latestModel valueForKey:key];
+    return [self.latestModel valueForKey:key];
 }
 
 - (void)setValue:(id)value forKey:(NSString *)key {
-    id currentValue = [m_latestModel valueForKey:key];
-    PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentValue outputValue:value];
+    [m_dispatchQueue runSynchronously:^{
+        id currentValue = [m_latestModel valueForKey:key];
+        PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentValue outputValue:value];
 
-    [self willChangeValueForKey:key];
-    @onExit {
-        [self didChangeValueForKey:key];
-    };
+        [self willChangeValueForKey:key];
+        @onExit {
+            [self didChangeValueForKey:key];
+        };
 
-    [self performTransformation:transformation forKey:key];
+        [self performTransformation:transformation forKey:key];
+    }];
 }
 
 - (NSMutableOrderedSet *)mutableOrderedSetValueForKey:(NSString *)key {
@@ -823,15 +892,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSObject protocol
 
 - (NSUInteger)hash {
-    return [m_latestModel hash];
+    return [self.latestModel hash];
 }
 
 - (BOOL)isEqual:(id)model {
     if ([model isKindOfClass:[PROModel class]]) {
-        return [m_latestModel isEqual:model];
+        return [self.latestModel isEqual:model];
     } else if ([model isKindOfClass:[PROMutableModel class]]) {
         PROMutableModel *mutableModel = model;
-        return [m_latestModel isEqual:mutableModel->m_latestModel];
+        return [self.latestModel isEqual:mutableModel.latestModel];
     } else {
         return NO;
     }
