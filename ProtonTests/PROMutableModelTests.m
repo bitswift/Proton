@@ -533,9 +533,9 @@ SpecBegin(PROMutableModel)
                 PROTransformation *transformation = [modelController.model transformationForKey:@"name" value:newName];
                 expect([modelController performTransformation:transformation error:NULL]).toBeTruthy();
 
-                expect(rebaseSucceeded).toBeTruthy();
-                expect([model valueForKey:@"name"]).toEqual(newName);
-                expect([[modelController model] name]).toEqual(newName);
+                expect(rebaseSucceeded).isGoing.toBeTruthy();
+                expect([model valueForKey:@"name"]).isGoing.toEqual(newName);
+                expect([[modelController model] name]).isGoing.toEqual(newName);
             });
 
             it(@"should rebase from model controller with non-conflicting changes", ^{
@@ -546,12 +546,12 @@ SpecBegin(PROMutableModel)
                 PROTransformation *transformation = [modelController.model transformationForKey:@"name" value:newName];
                 expect([modelController performTransformation:transformation error:NULL]).toBeTruthy();
 
-                expect(rebaseSucceeded).toBeTruthy();
-                expect([model valueForKey:@"name"]).toEqual(newName);
-                expect([model valueForKey:@"strings"]).toEqual(strings);
-
                 expect([[modelController model] name]).toEqual(newName);
                 expect([[modelController model] strings]).toEqual([NSSet set]);
+
+                expect(rebaseSucceeded).isGoing.toBeTruthy();
+                expect([model valueForKey:@"name"]).isGoing.toEqual(newName);
+                expect([model valueForKey:@"strings"]).isGoing.toEqual(strings);
             });
 
             it(@"should not rebase from model controller with conflicting changes", ^{
@@ -562,12 +562,12 @@ SpecBegin(PROMutableModel)
                 PROTransformation *transformation = [modelController.model transformationForKey:@"name" value:newName];
                 expect([modelController performTransformation:transformation error:NULL]).toBeTruthy();
 
-                expect(rebaseSucceeded).toBeFalsy();
-                expect(rebaseError.domain).toEqual([PROTransformation errorDomain]);
-                expect(rebaseError.code).toEqual(PROTransformationErrorMismatchedInput);
-
-                expect([model valueForKey:@"name"]).toEqual(conflictingName);
                 expect([[modelController model] name]).toEqual(newName);
+                expect([model valueForKey:@"name"]).isGoing.toEqual(conflictingName);
+
+                expect(rebaseSucceeded).isGoing.toBeFalsy();
+                expect(rebaseError.domain).isGoing.toEqual([PROTransformation errorDomain]);
+                expect(rebaseError.code).isGoing.toEqual(PROTransformationErrorMismatchedInput);
             });
         });
     });
