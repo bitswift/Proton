@@ -11,6 +11,31 @@
 @class PROModel;
 @class PROModelController;
 
+/**
+ * A notification posted when a <PROMutableModel> has updated to the latest
+ * <[PROModelController model]> from its model controller, and then successfully
+ * reapplied its own changes on top.
+ */
+extern NSString * const PROMutableModelDidRebaseFromModelControllerNotification;
+
+/**
+ * A notification posted when a <PROMutableModel> attempted to update to the
+ * latest <[PROModelController model]> from its model controller, but failed to
+ * apply its own changes on top.
+ *
+ * The <PROMutableModel> is left unchanged.
+ *
+ * The user info dictionary for this notification will contain
+ * a <PROMutableModelRebaseErrorKey>.
+ */
+extern NSString * const PROMutableModelRebaseFromModelControllerFailedNotification;
+
+/**
+ * Notification user info key associated with the `NSError` that occurred when
+ * attempting to rebase a <PROMutableModel>.
+ */
+extern NSString * const PROMutableModelRebaseErrorKey;
+
 // the documentation below uses a different comment style so that code blocks
 // are properly included in the generated documentation
 
@@ -52,7 +77,8 @@ provide no implementation, like so:
     @synthesize someString = m_someString;
     @end
 
-@warning **Important:** This class is not thread-safe.
+@warning **Important:** This class is currently not thread-safe, and so should
+only be used from the main thread.
 
  */
 @interface PROMutableModel : NSObject <NSCoding, NSCopying, NSMutableCopying>
@@ -78,6 +104,14 @@ provide no implementation, like so:
  *
  * Invoking <save:> after making changes to the receiver will attempt to
  * propagate those changes back to the model controller.
+ *
+ * Initializing the mutable model in this way will automatically set it up to
+ * observe the <[PROModelController model]> of the given controller. When the
+ * model controller replaces its model, the receiver will attempt to "rebase"
+ * onto it, by updating its underlying model and reapplying any changes on top.
+ * `PROMutableModelDidRebaseFromModelControllerNotification` or
+ * `PROMutableModelRebaseFromModelControllerFailedNotification` will be posted
+ * if the automatic rebasing succeeded or failed, respectively.
  *
  * @param modelController The model controller that owns the model which should
  * be proxied.
