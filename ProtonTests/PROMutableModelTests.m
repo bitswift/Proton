@@ -372,6 +372,50 @@ SpecBegin(PROMutableModel)
                 [model setFrame:newRect];
             });
         });
+
+        describe(@"thread safety", ^{
+            before(^{
+                [[model mutableArrayValueForKey:@"subModels"] removeAllObjects];
+            });
+
+            it(@"should serialize sub-model insertions", ^{
+                NSArray *newSubModels = [NSArray arrayWithObjects:
+                    [MutabilityTestSubModel enabledSubModel],
+                    [MutabilityTestSubModel enabledSubModel],
+                    [[MutabilityTestSubModel alloc] init],
+                    [MutabilityTestSubModel enabledSubModel],
+                    [[MutabilityTestSubModel alloc] init],
+                    [[MutabilityTestSubModel alloc] init],
+                    [[MutabilityTestSubModel alloc] init],
+                    [MutabilityTestSubModel enabledSubModel],
+                    [[MutabilityTestSubModel alloc] init],
+                    [MutabilityTestSubModel enabledSubModel],
+                    [MutabilityTestSubModel enabledSubModel],
+                    [[MutabilityTestSubModel alloc] init],
+                    [[MutabilityTestSubModel alloc] init],
+                    nil
+                ];
+
+                NSMutableArray *mutableSubModels = [model mutableArrayValueForKey:@"subModels"];
+
+                dispatch_apply(newSubModels.count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i){
+                    MutabilityTestSubModel *subModel = [newSubModels objectAtIndex:i];
+                    [mutableSubModels addObject:subModel];
+
+                    expect([model subModels]).toContain(subModel);
+                    expect(mutableSubModels).toContain(subModel);
+                });
+
+                NSArray *subModels = [model subModels];
+                expect(subModels.count).toEqual(newSubModels.count);
+                expect(mutableSubModels.count).toEqual(newSubModels.count);
+
+                for (id subModel in newSubModels) {
+                    expect(subModels).toContain(subModel);
+                    expect(mutableSubModels).toContain(subModel);
+                }
+            });
+        });
     });
 
     describe(@"mutable model with model controller", ^{
