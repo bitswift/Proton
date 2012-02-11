@@ -8,6 +8,7 @@
 
 #import "PRORemovalTransformation.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROInsertionTransformation.h"
 #import "PROModelController.h"
 
@@ -140,6 +141,20 @@
     [associatedControllers removeObjectsAtIndexes:self.removalIndexes];
 
     return YES;
+}
+
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSParameterAssert(result != nil);
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
+        return;
+
+    if (!PROAssert(keyPath, @"No key path to pass to %@", PROTransformationMutableArrayForKeyPathBlockKey))
+        return;
+
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    [mutableArray removeObjectsAtIndexes:self.removalIndexes];
 }
 
 #pragma mark NSCoding
