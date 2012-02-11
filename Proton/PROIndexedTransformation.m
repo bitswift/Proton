@@ -236,6 +236,42 @@
     return YES;
 }
 
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSParameterAssert(result != nil);
+
+    PROTransformationBlocksForIndexAtKeyPathBlock blocksForIndexBlock = [blocks objectForKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
+    if (!PROAssert(blocksForIndexBlock, @"%@ not provided", PROTransformationBlocksForIndexAtKeyPathBlockKey))
+        return;
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
+        return;
+
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    NSUInteger indexCount = [self.indexes count];
+    
+    // we have to copy the indexes into a C array, since there's no way to
+    // retrieve values from it one-by-one
+    NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+    if (!indexes) {
+        return;
+    }
+
+    @onExit {
+        free(indexes);
+    };
+
+    [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
+        NSUInteger index = indexes[setIndex];
+        id object = [result objectAtIndex:index];
+
+        NSDictionary *newBlocks = blocksForIndexBlock(index, keyPath, blocks);
+        [transformation applyBlocks:newBlocks transformationResult:object keyPath:nil];
+    }];
+}
+
 - (PROTransformation *)reverseTransformation {
     NSMutableArray *reversedTransformations = [[NSMutableArray alloc] initWithCapacity:self.transformations.count];
 
