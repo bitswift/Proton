@@ -9,6 +9,7 @@
 #import "PROInsertionTransformation.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROModelController.h"
 #import "PRORemovalTransformation.h"
 
@@ -135,6 +136,28 @@
     [mutableControllers insertObjects:newControllers atIndexes:self.insertionIndexes];
 
     return YES;
+}
+
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSParameterAssert(result != nil);
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
+        return;
+    
+    PROTransformationWrappedValueForKeyPathBlock wrappedValueBlock = [blocks objectForKey:PROTransformationWrappedValueForKeyPathBlockKey];
+    if (!PROAssert(wrappedValueBlock, @"%@ not provided", PROTransformationWrappedValueForKeyPathBlockKey))
+        return;
+
+    if (!PROAssert(keyPath, @"No key path to pass to %@", PROTransformationMutableArrayForKeyPathBlockKey))
+        return;
+
+    NSArray *newObjects = [self.objects mapUsingBlock:^(id obj){
+        return wrappedValueBlock(obj, keyPath);
+    }];
+
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    [mutableArray insertObjects:newObjects atIndexes:self.insertionIndexes];
 }
 
 #pragma mark NSCoding
