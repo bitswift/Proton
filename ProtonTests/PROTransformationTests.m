@@ -1212,10 +1212,9 @@ SpecBegin(PROTransformation)
             expect(newValueBlockInvoked).toBeFalsy();
         });
 
-        it(@"should fall back to unique transformation if nested new value block fails", ^{
+        it(@"should fall back to replacement if nested new value block fails", ^{
             id blocksForIndexBlock = [^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
                 id newValueBlock = [^(id value, NSString *keyPath){
-                    NSLog(@"inner keyPath: %@", keyPath);
                     return NO;
                 } copy];
 
@@ -1226,13 +1225,12 @@ SpecBegin(PROTransformation)
 
             [blocks setObject:blocksForIndexBlock forKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
 
-            id newValueBlock = [^(id value, NSString *keyPath){
-                NSLog(@"outer keyPath: %@", keyPath);
-                newValueBlockInvoked = YES;
-                return YES;
+            id wrappedValueBlock = [^(id value, NSString *keyPath){
+                expect(value).toBeKindOf([NSDictionary class]);
+                return [value allKeys];
             } copy];
 
-            [blocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+            [blocks setObject:wrappedValueBlock forKey:PROTransformationWrappedValueForKeyPathBlockKey];
 
             PROUniqueTransformation *barTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foo" outputValue:@"fizzbuzz"];
             PROKeyedTransformation *dictionaryTransformation = [[PROKeyedTransformation alloc] initWithTransformation:barTransformation forKey:@"bar"];
@@ -1244,9 +1242,10 @@ SpecBegin(PROTransformation)
             expect(result).not.toBeNil();
 
             expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
-            expect(newValueBlockInvoked).toBeTruthy();
-            expect(nestedNewValueBlockInvoked).toBeFalsy();
-            expect(mutableArray).not.toEqual(result.array);
+
+            // the replaced dictionary should have been "wrapped" as an NSArray
+            NSArray *expectedArray = [NSArray arrayWithObject:[NSArray arrayWithObject:@"bar"]];
+            expect(mutableArray).toEqual(expectedArray);
         });
     });
 

@@ -221,13 +221,15 @@
 
         BOOL success = [transformation applyBlocks:newBlocks transformationResult:object keyPath:nil];
         if (!success) {
-            // fall back to updating the top-level object
-            PROTransformationNewValueForKeyPathBlock newValueBlock = [newBlocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
-            if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
-                allModelUpdatesSuccessful &= newValueBlock(object, nil);
-            } else {
+            PROTransformationWrappedValueForKeyPathBlock wrappedValueBlock = [newBlocks objectForKey:PROTransformationWrappedValueForKeyPathBlockKey];
+            if (!PROAssert(wrappedValueBlock, @"%@ not provided", PROTransformationWrappedValueForKeyPathBlockKey)) {
                 allModelUpdatesSuccessful = NO;
+                return;
             }
+
+            // perform a replacement in the array
+            id newObject = wrappedValueBlock(object, nil);
+            [mutableArray replaceObjectAtIndex:index withObject:newObject];
         }
     }];
 
