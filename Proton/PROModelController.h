@@ -15,6 +15,39 @@
 @class SDQueue;
 
 /**
+ * A notification posted when a <PROModelController> has successfully performed
+ * a transformation upon its model.
+ *
+ * The user info dictionary for this notification will contain the following
+ * keys:
+ *
+ *  - <PROModelControllerTransformationKey>
+ *  - <PROModelControllerOldModelKey>
+ *  - <PROModelControllerNewModelKey>
+ *
+ * This notification may be posted on a background thread.
+ */
+extern NSString * const PROModelControllerDidPerformTransformationNotification;
+
+/**
+ * Notification user info key associated with the <PROTransformation> that was
+ * performed.
+ */
+extern NSString * const PROModelControllerTransformationKey;
+
+/**
+ * Notification user info key associated with the original version of the
+ * <[PROModelController model]>, before any transformation has occurred.
+ */
+extern NSString * const PROModelControllerOldModelKey;
+
+/**
+ * Notification user info key associated with the new version of the
+ * <[PROModelController model]>, after a transformation has occurred.
+ */
+extern NSString * const PROModelControllerNewModelKey;
+
+/**
  * A base class for controller objects that manage <PROModel> references over
  * time.
  */
@@ -142,6 +175,7 @@
 
 /**
  * Asks the controller to perform the given transformation upon its <model>,
+ * posting a `PROModelControllerDidPerformTransformationNotification` and
  * returning `YES` upon success. If the transformation fails, `NO` is returned
  * and `error` is set to the error that occurred.
  *
@@ -226,6 +260,11 @@
  * Atomically replaces the receiver's <model> with the version that corresponds
  * to the given log entry. Returns `YES` on success, or `NO` if the entry no
  * longer exists in the log.
+ *
+ * This method will post one
+ * `PROModelControllerDidPerformTransformationNotification` upon success, with
+ * the transformation being a <PROMultipleTransformation> that contains every
+ * transformation that was performed to restore the model to its previous state.
  *
  * This method is better suited to undo and redo than
  * <modelWithTransformationLogEntry:>, since this method can rewind or

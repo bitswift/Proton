@@ -15,6 +15,8 @@
  * A notification posted when a <PROMutableModel> has updated to the latest
  * <[PROModelController model]> from its model controller, and then successfully
  * reapplied its own changes on top.
+ *
+ * This notification may be posted on a background thread.
  */
 extern NSString * const PROMutableModelDidRebaseFromModelControllerNotification;
 
@@ -27,6 +29,8 @@ extern NSString * const PROMutableModelDidRebaseFromModelControllerNotification;
  *
  * The user info dictionary for this notification will contain
  * a <PROMutableModelRebaseErrorKey>.
+ *
+ * This notification may be posted on a background thread.
  */
 extern NSString * const PROMutableModelRebaseFromModelControllerFailedNotification;
 
