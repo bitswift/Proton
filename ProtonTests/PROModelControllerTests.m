@@ -671,6 +671,84 @@ SpecBegin(PROModelController)
                 }
             });
         });
+
+        describe(@"transformation notifications", ^{
+            __block id performedTransformationObserver;
+            __block BOOL performedTransformation;
+
+            __block PROModel *expectedOldModel;
+            __block TestSuperModel *outputValue;
+
+            before(^{
+                outputValue = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
+                expectedOldModel = nil;
+
+                performedTransformationObserver = [[NSNotificationCenter defaultCenter]
+                    addObserverForName:PROModelControllerDidPerformTransformationNotification
+                    object:controller
+                    queue:nil
+                    usingBlock:^(NSNotification *notification){
+                        expect(notification.object).toEqual(controller);
+                        expect([notification.userInfo objectForKey:PROModelControllerTransformationKey]).not.toBeNil();
+                        expect([notification.userInfo objectForKey:PROModelControllerOldModelKey]).toEqual(expectedOldModel);
+                        expect([notification.userInfo objectForKey:PROModelControllerNewModelKey]).toEqual(controller.model);
+
+                        performedTransformation = YES;
+                    }
+                ];
+
+                performedTransformation = NO;
+            });
+
+            after(^{
+                [[NSNotificationCenter defaultCenter] removeObserver:performedTransformationObserver];
+                performedTransformationObserver = nil;
+            });
+
+            it(@"should post a notification after a successful transformation", ^{
+                expectedOldModel = controller.model;
+                PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:expectedOldModel outputValue:outputValue];
+
+                expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+                expect(performedTransformation).toBeTruthy();
+            });
+
+            it(@"should not post a notification after a failing transformation", ^{
+                PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:outputValue outputValue:controller.model];
+
+                expect([controller performTransformation:transformation error:NULL]).toBeFalsy();
+                expect(performedTransformation).toBeFalsy();
+            });
+
+            describe(@"restoring models", ^{
+                __block PROModelControllerTransformationLogEntry *logEntry;
+
+                before(^{
+                    logEntry = [controller transformationLogEntryWithModelPointer:NULL];
+
+                    expectedOldModel = controller.model;
+
+                    PROTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:controller.model outputValue:outputValue];
+                    expect([controller performTransformation:transformation error:NULL]).toBeTruthy();
+
+                    performedTransformation = NO;
+                });
+
+                it(@"should post a notification after a successful unwind", ^{
+                    expectedOldModel = outputValue;
+
+                    expect([controller restoreModelFromTransformationLogEntry:logEntry]).toBeTruthy();
+                    expect(performedTransformation).toBeTruthy();
+                });
+
+                it(@"should not post a notification after a failing unwind", ^{
+                    logEntry = [[PROModelControllerTransformationLogEntry alloc] initWithParentLogEntry:logEntry];
+
+                    expect([controller restoreModelFromTransformationLogEntry:logEntry]).toBeFalsy();
+                    expect(performedTransformation).toBeFalsy();
+                });
+            });
+        });
     });
 
 SpecEnd
