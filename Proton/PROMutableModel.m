@@ -94,7 +94,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 /**
  * Creates, on `mutableModelClass`, the methods necessary for instances to be
  * mutable proxies for the given property.
- * 
+ *
  * @param property The property for which to synthesize setter and mutator
  * methods.
  * @param mutableModelClass The <PROMutableModel> subclass for which to
@@ -233,7 +233,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     }
 
     NSString *propertyKey = [[NSString alloc] initWithUTF8String:property_getName(property)];
-    
+
     IMP setterIMP = [self synthesizedSetterForPropertyKey:propertyKey attributes:attributes];
     if (setterIMP) {
         NSString *setterType = [[NSString alloc] initWithFormat:
@@ -436,60 +436,60 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         case 'c':
             NSNUMBER_METHOD_BLOCK(char, Char);
             break;
-        
+
         case 'i':
             NSNUMBER_METHOD_BLOCK(int, Int);
             break;
-        
+
         case 's':
             NSNUMBER_METHOD_BLOCK(short, Short);
             break;
-        
+
         case 'l':
             NSNUMBER_METHOD_BLOCK(long, Long);
             break;
-        
+
         case 'q':
             NSNUMBER_METHOD_BLOCK(long long, LongLong);
             break;
-        
+
         case 'C':
             NSNUMBER_METHOD_BLOCK(unsigned char, UnsignedChar);
             break;
-        
+
         case 'I':
             NSNUMBER_METHOD_BLOCK(unsigned int, UnsignedInt);
             break;
-        
+
         case 'S':
             NSNUMBER_METHOD_BLOCK(unsigned short, UnsignedShort);
             break;
-        
+
         case 'L':
             NSNUMBER_METHOD_BLOCK(unsigned long, UnsignedLong);
             break;
-        
+
         case 'Q':
             NSNUMBER_METHOD_BLOCK(unsigned long long, UnsignedLongLong);
             break;
-        
+
         case 'f':
             NSNUMBER_METHOD_BLOCK(float, Float);
             break;
-        
+
         case 'd':
             NSNUMBER_METHOD_BLOCK(double, Double);
             break;
-        
+
         case 'B':
             NSNUMBER_METHOD_BLOCK(_Bool, Bool);
             break;
-        
+
         case '^':
         case '*':
             NSVALUE_METHOD_BLOCK(void *);
             break;
-        
+
         case '#':
         case '@':
             {
@@ -499,19 +499,19 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             }
 
             break;
-        
+
         case ':':
             NSVALUE_METHOD_BLOCK(SEL);
             break;
-        
+
         case '[':
             NSAssert(NO, @"*** Cannot generate setter for array with type code \"%s\"", type);
             break;
-        
+
         case 'b':
             NSAssert(NO, @"*** Cannot generate setter for bitfield with type code \"%s\"", type);
             break;
-        
+
         case '{':
             if (strcmp(type, @encode(CGRect)) == 0
             #ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
@@ -532,7 +532,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
                 break;
             }
-            
+
             if (strcmp(type, @encode(CGSize)) == 0
             #ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
                 || strcmp(type, @encode(NSSize)) == 0
@@ -552,7 +552,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
                 break;
             }
-            
+
             if (strcmp(type, @encode(CGPoint)) == 0
             #ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
                 || strcmp(type, @encode(NSPoint)) == 0
@@ -572,7 +572,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
                 break;
             }
-            
+
             if (strcmp(type, @encode(NSRange)) == 0) {
                 NSVALUE_METHOD_BLOCK(NSRange);
                 break;
@@ -580,16 +580,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
             NSAssert(NO, @"*** Cannot generate setter for struct with type code \"%s\"", type);
             break;
-            
+
         case '(':
             NSAssert(NO, @"*** Cannot generate setter for union with type code \"%s\"", type);
             break;
-        
+
         case '?':
             // this is PROBABLY a function pointer, but the documentation
             // leaves room open for uncertainty, so fall through to the error
             // case
-            
+
         default:
             NSAssert(NO, @"*** Cannot generate setter for type code \"%s\"", type);
     }
@@ -611,7 +611,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     self = [super init];
     if (!self)
         return nil;
-    
+
     m_dispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:NO label:@"com.bitswift.Proton.PROMutableModel"];
     return self;
 }
@@ -857,23 +857,17 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSKeyValueCoding
 
 - (id)valueForKey:(NSString *)key {
-    if (!self.modelController || ![[self.latestModel valueForKey:key] isKindOfClass:[NSArray class]])
-        return [self.latestModel valueForKey:key];
-    
     NSDictionary *modelControllerKeys = [[self.modelController class] modelControllerKeysByModelKeyPath];
-    
-    NSArray *mutableModels;
     NSString *modelControllersKey = [modelControllerKeys objectForKey:key];
 
-    if (modelControllersKey) {
-        NSArray *modelControllers = [self.modelController valueForKey:modelControllersKey];
+    if (!modelControllersKey)
+        return [self.latestModel valueForKey:key];
 
-        mutableModels = [modelControllers mapUsingBlock:^(id modelController) {
-            return [[PROMutableModel alloc] initWithModelController:modelController];
-        }];
-    }
+    NSArray *modelControllers = [self.modelController valueForKey:modelControllersKey];
 
-    return mutableModels;
+    return [modelControllers mapUsingBlock:^(id modelController) {
+        return [[PROMutableModel alloc] initWithModelController:modelController];
+    }];
 }
 
 - (void)setValue:(id)value forKey:(NSString *)key {
