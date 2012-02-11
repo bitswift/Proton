@@ -56,11 +56,6 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
     return NO;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
-    return NO;
-}
-
 #pragma mark Error Handling
 
 + (NSString *)errorDomain {

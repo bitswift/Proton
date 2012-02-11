@@ -106,49 +106,6 @@
     }
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
-
-    /*
-     * Unfortunately, for a multiple transformation, we have to redo the
-     * actual work of the transformation in order to properly update the model
-     * controller step-by-step. It would be unsafe to update it just with the
-     * final result, because the child transformations may be granular and
-     * independent enough that they need to be separately applied one-by-one.
-     */
-
-    // obtain the key path to the model, relative to the model controller, so
-    // that we can read the existing value
-    NSString *fullModelKeyPath = PROKeyForObject(modelController, model);
-    if (modelKeyPath)
-        fullModelKeyPath = [fullModelKeyPath stringByAppendingFormat:@".%@", modelKeyPath];
-
-    id currentValue = [modelController valueForKeyPath:fullModelKeyPath];
-    if (!currentValue)
-        return NO;
-
-    NSAssert([currentValue isEqual:result], @"Current value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
-
-    // rewind the current model value to what it was before the change
-    currentValue = [self.reverseTransformation transform:currentValue error:NULL];
-
-    for (PROTransformation *transformation in self.transformations) {
-        currentValue = [transformation transform:currentValue error:NULL];
-
-        NSAssert(currentValue != nil, @"Transformation %@ should not have failed on %@ on the way to original result %@", transformation, currentValue, result);
-
-        if (![transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath]) {
-            // some model propagation failed, so just set the top-level object
-            // after all
-            modelController.model = result;
-            break;
-        }
-    }
-
-    return YES;
-}
-
 - (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 

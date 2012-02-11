@@ -112,32 +112,6 @@
     return YES;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
-    NSParameterAssert(result != nil);
-
-    /*
-     * An order transformation means that we're going to be reordering objects
-     * in an array of the model (e.g., model.submodels), so we need to reorder
-     * the model controllers identically.
-     */
-
-    if (!modelKeyPath)
-        return NO;
-
-    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
-    if (!ownedModelControllersKey)
-        return NO;
-
-    NSMutableArray *associatedControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
-
-    NSArray *movedControllers = [associatedControllers objectsAtIndexes:self.startIndexes];
-    [associatedControllers removeObjectsAtIndexes:self.startIndexes];
-    [associatedControllers insertObjects:movedControllers atIndexes:self.endIndexes];
-
-    return YES;
-}
-
 - (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
     
