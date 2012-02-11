@@ -8,6 +8,7 @@
 
 #import "PROMultipleTransformation.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROModelController.h"
 
@@ -146,6 +147,32 @@
     }
 
     return YES;
+}
+
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSParameterAssert(result != nil);
+
+    /*
+     * Unfortunately, for a multiple transformation, we have to redo the
+     * actual work of the transformation in order to properly update
+     * step-by-step. It would be unsafe to apply the blocks just with the final
+     * result, because the child transformations may be granular and independent
+     * enough that they need to be separately applied one-by-one.
+     */
+
+    // rewind the value to what it was before the transformation
+    NSError *error = nil;
+    id currentValue = [self.reverseTransformation transform:result error:&error];
+    if (!PROAssert(currentValue, @"Reverse transformation of previous result %@ failed: %@", result, error))
+        return;
+
+    for (PROTransformation *transformation in self.transformations) {
+        currentValue = [transformation transform:currentValue error:&error];
+        if (!PROAssert(currentValue, @"Transformation %@ failed on the way to the original result: %@", transformation, error))
+            return;
+
+        [transformation applyBlocks:blocks transformationResult:currentValue keyPath:keyPath];
+    }
 }
 
 #pragma mark NSCoding
