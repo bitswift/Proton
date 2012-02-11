@@ -287,6 +287,39 @@ extern NSString * const PROTransformationFailingTransformationPathErrorKey;
 - (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath;
 
 /**
+ * Invokes <applyBlocks:transformationResult:keyPath:> with a `nil` key path.
+ */
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result;
+
+/**
+ * Enumerates through this transformation and all of its <transformations>,
+ * applying the given blocks using the result of each transformation.
+ *
+ * `blocks` should contain at least the following keys:
+ *  
+ *  - `PROTransformationNewValueForKeyPathBlockKey`
+ *  - `PROTransformationMutableArrayForKeyPathBlockKey`
+ *  - `PROTransformationWrappedValueForKeyPathBlockKey`
+ *  - `PROTransformationBlocksForIndexAtKeyPathBlockKey`
+ *
+ * This method can be used to recreate the effect of a transformation on
+ * another object (such as a controller).
+ *
+ * @param blocks A dictionary of blocks that will be invoked at each step of the
+ * transformation.
+ * @param result A value previously returned from an invocation of
+ * <transform:error:> on the receiver.
+ * @param keyPath The key path, relative to the last array, at which the
+ * `result` exists. This is the key path that will be passed into each block.
+ * Typically this is provided only during a recursive call -- the first
+ * invocation should provide `nil`.
+ *
+ * @warning **Important:** This method must be implemented by subclasses. You
+ * should not call the superclass implementation.
+ */
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath;
+
+/**
  * @name Compound Transformations
  */
 
