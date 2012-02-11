@@ -9,6 +9,7 @@
 #import "PROUniqueTransformation.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROModelController.h"
 
 @implementation PROUniqueTransformation
@@ -126,6 +127,16 @@
     [mutableControllers replaceObjectsInRange:NSMakeRange(0, count) withObjectsFromArray:newControllers];
 
     return YES;
+}
+
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSParameterAssert(result != nil);
+
+    PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+    if (!PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey, __func__))
+        return;
+
+    newValueBlock(result, keyPath);
 }
 
 #pragma mark NSCoding
