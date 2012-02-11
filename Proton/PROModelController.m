@@ -27,6 +27,11 @@
 #import "SDQueue.h"
 #import <objc/runtime.h>
 
+NSString * const PROModelControllerDidPerformTransformationNotification = @"PROModelControllerDidPerformTransformationNotification";
+NSString * const PROModelControllerTransformationKey = @"PROModelControllerTransformation";
+NSString * const PROModelControllerOldModelKey = @"PROModelControllerOldModel";
+NSString * const PROModelControllerNewModelKey = @"PROModelControllerNewModelKey";
+
 /**
  * A key into the thread dictionary, associated with an `NSNumber` indicating
  * whether the current thread is performing a transformation.
