@@ -12,6 +12,100 @@
 @class PROTransformation;
 
 /**
+ * Type for a block that is invoked to indicate that a new value has been set at
+ * a given key path.
+ *
+ * This type of block should be associated with
+ * <PROTransformationNewValueForKeyPathBlockKey>.
+ *
+ * @param value The value that was set.
+ * @param keyPath The key path of the value, relative to the last array. This
+ * will be `nil` if the value is at the top level or directly contained in an
+ * array.
+ */
+typedef void (^PROTransformationNewValueForKeyPathBlock)(id value, NSString *keyPath);
+
+/**
+ * Associated with a <PROTransformationNewValueForKeyPathBlock> in the
+ * dictionary passed to <[PROTransformation
+ * applyBlocks:transformationResult:keyPath:]>.
+ */
+extern NSString * const PROTransformationNewValueForKeyPathBlockKey;
+
+/**
+ * Type for a block that is invoked to get a mutable array value corresponding
+ * to the given key path.
+ *
+ * The array returned from this block will be mutated to match the changes that
+ * occurred at `keyPath`.
+ *
+ * This type of block should be associated with
+ * <PROTransformationMutableArrayForKeyPathBlockKey>.
+ *
+ * @param keyPath A key path containing an array, which had a transformation
+ * applied to it. This key path is relative to the last array.
+ */
+typedef NSMutableArray *(^PROTransformationMutableArrayForKeyPathBlock)(NSString *keyPath);
+
+/**
+ * Associated with a <PROTransformationMutableArrayForKeyPathBlock> in the
+ * dictionary passed to <[PROTransformation
+ * applyBlocks:transformationResult:keyPath:]>.
+ */
+extern NSString * const PROTransformationMutableArrayForKeyPathBlockKey;
+
+/**
+ * Type for a block that is invoked to "wrap" the value from a given key path in
+ * a new object.
+ *
+ * This method is invoked to create new objects to insert into the mutable array
+ * previously returned by a <PROTransformationMutableArrayForKeyPathBlock>.
+ *
+ * This type of block should be associated with
+ * <PROTransformationWrappedValueForKeyPathBlockKey>.
+ *
+ * @param value The value object to wrap.
+ * @param keyPath The key path of the value, relative to the last array. This
+ * will be `nil` if the value is at the top level or directly contained in an
+ * array.
+ */
+typedef id (^PROTransformationWrappedValueForKeyPathBlock)(id value, NSString *keyPath);
+
+/**
+ * Associated with a <PROTransformationWrappedValueForKeyPathBlock> in the
+ * dictionary passed to <[PROTransformation
+ * applyBlocks:transformationResult:keyPath:]>.
+ */
+extern NSString * const PROTransformationWrappedValueForKeyPathBlockKey;
+
+/**
+ * Type for a block that is invoked to return new blocks for a recursive call to
+ * <[PROTransformation updateObject:withTransformationResult:usingBlocks:]>.
+ *
+ * This block type is basically used to circumvent the limitation of key-value
+ * paths not supporting array indexing. The dictionary of blocks returned by
+ * _this_ block should be properly adjusted to index into the specified array.
+ *
+ * This type of block should be associated with
+ * <PROTransformationBlocksForIndexAtKeyPathBlockKey>.
+ *
+ * @param index The index that the blocks returned should be defined relative
+ * to.
+ * @param keyPath The key path of the array containing `index`, relative to the
+ * last array.
+ * @param originalBlocks The original dictionary of blocks, including this
+ * block.
+ */
+typedef NSDictionary *(^PROTransformationBlocksForIndexAtKeyPathBlock)(NSUInteger index, NSString *keyPath, NSDictionary *originalBlocks);
+
+/**
+ * Associated with a <PROTransformationBlocksForIndexAtKeyPathBlock> in the
+ * dictionary passed to <[PROTransformation
+ * applyBlocks:transformationResult:keyPath:]>.
+ */
+extern NSString * const PROTransformationBlocksForIndexAtKeyPathBlockKey;
+
+/**
  * An error code in <[PROTransformation errorDomain]> returned when
  * a transformation applies to one or more indexes that are out of bounds for
  * the input array.

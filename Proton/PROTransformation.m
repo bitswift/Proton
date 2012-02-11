@@ -9,6 +9,11 @@
 #import "PROTransformation.h"
 #import "PROModelController.h"
 
+NSString * const PROTransformationNewValueForKeyPathBlockKey = @"PROTransformationNewValueForKeyPathBlock";
+NSString * const PROTransformationMutableArrayForKeyPathBlockKey = @"PROTransformationMutableArrayForKeyPathBlock";
+NSString * const PROTransformationWrappedValueForKeyPathBlockKey = @"PROTransformationWrappedValueForKeyPathBlock";
+NSString * const PROTransformationBlocksForIndexAtKeyPathBlockKey = @"PROTransformationBlocksForIndexAtKeyPathBlock";
+
 NSString * const PROTransformationFailingTransformationsErrorKey = @"PROTransformationFailingTransformations";
 NSString * const PROTransformationFailingTransformationPathErrorKey = @"PROTransformationFailingTransformationPath";
 
