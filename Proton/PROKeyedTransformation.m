@@ -9,6 +9,7 @@
 #import "PROKeyedTransformation.h"
 #import "NSDictionary+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROKeyedObject.h"
 #import "PROModel.h"
 #import "PROModelController.h"
@@ -236,8 +237,10 @@
     return allModelUpdatesSuccessful;
 }
 
-- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
+
+    BOOL allModelUpdatesSuccessful = YES;
 
     for (NSString *key in self.valueTransformations) {
         PROTransformation *transformation = [self.valueTransformations objectForKey:key];
@@ -257,8 +260,19 @@
             value = [NSNull null];
         }
 
-        [transformation applyBlocks:blocks transformationResult:value keyPath:newKeyPath];
+        allModelUpdatesSuccessful &= [transformation applyBlocks:blocks transformationResult:value keyPath:newKeyPath];
     }
+
+    if (!allModelUpdatesSuccessful) {
+        // not all changes correctly propagated, so fall back to a replacement
+        // at the top level
+        PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+        if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
+            allModelUpdatesSuccessful = newValueBlock(result, keyPath);
+        }
+    }
+
+    return allModelUpdatesSuccessful;
 }
 
 #pragma mark NSCoding

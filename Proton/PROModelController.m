@@ -674,13 +674,13 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
         if (!keyPath) {
             // this was a change or replacement of a top-level model property
             self.model = value;
-            return;
+            return YES;
         }
 
         NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
         if (!controllersKey) {
             // this was a change to some nested property we don't care about
-            return;
+            return NO;
         }
 
         // this was a replacement of a model array
@@ -695,6 +695,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
         // replace the controllers outright, since we replaced the associated models
         // outright
         [mutableControllers setArray:newControllers];
+        return YES;
     };
 
     PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^ id (NSString *keyPath){

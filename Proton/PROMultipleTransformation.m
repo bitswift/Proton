@@ -149,7 +149,7 @@
     return YES;
 }
 
-- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
     /*
@@ -164,15 +164,24 @@
     NSError *error = nil;
     id currentValue = [self.reverseTransformation transform:result error:&error];
     if (!PROAssert(currentValue, @"Reverse transformation of previous result %@ failed: %@", result, error))
-        return;
+        return NO;
 
     for (PROTransformation *transformation in self.transformations) {
         currentValue = [transformation transform:currentValue error:&error];
         if (!PROAssert(currentValue, @"Transformation %@ failed on the way to the original result: %@", transformation, error))
-            return;
+            return NO;
 
-        [transformation applyBlocks:blocks transformationResult:currentValue keyPath:keyPath];
+        if (![transformation applyBlocks:blocks transformationResult:currentValue keyPath:keyPath]) {
+            PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+            if (!PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
+                return NO;
+            } else {
+                return newValueBlock(result, keyPath);
+            }
+        }
     }
+
+    return YES;
 }
 
 #pragma mark NSCoding

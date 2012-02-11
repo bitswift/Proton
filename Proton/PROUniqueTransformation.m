@@ -129,14 +129,14 @@
     return YES;
 }
 
-- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
     PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
     if (!PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey, __func__))
-        return;
+        return NO;
 
-    newValueBlock(result, keyPath);
+    return newValueBlock(result, keyPath);
 }
 
 #pragma mark NSCoding

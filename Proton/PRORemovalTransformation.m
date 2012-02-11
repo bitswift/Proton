@@ -143,18 +143,20 @@
     return YES;
 }
 
-- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
     
     PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
     if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
-        return;
+        return NO;
 
-    if (!PROAssert(keyPath, @"No key path to pass to %@", PROTransformationMutableArrayForKeyPathBlockKey))
-        return;
+    if (!PROAssert(keyPath, @"No key path for %@", self))
+        return NO;
 
     NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
     [mutableArray removeObjectsAtIndexes:self.removalIndexes];
+    
+    return YES;
 }
 
 #pragma mark NSCoding

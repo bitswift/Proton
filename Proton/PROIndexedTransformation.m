@@ -236,16 +236,19 @@
     return YES;
 }
 
-- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
+
+    if (!PROAssert(keyPath, @"No key path for %@", self))
+        return NO;
 
     PROTransformationBlocksForIndexAtKeyPathBlock blocksForIndexBlock = [blocks objectForKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
     if (!PROAssert(blocksForIndexBlock, @"%@ not provided", PROTransformationBlocksForIndexAtKeyPathBlockKey))
-        return;
+        return NO;
     
     PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
     if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
-        return;
+        return NO;
 
     NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
     NSUInteger indexCount = [self.indexes count];
@@ -253,8 +256,8 @@
     // we have to copy the indexes into a C array, since there's no way to
     // retrieve values from it one-by-one
     NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
-    if (!indexes) {
-        return;
+    if (!PROAssert(indexes, @"Could not allocate space for %lu indexes", (unsigned long)indexCount)) {
+        return NO;
     }
 
     @onExit {
@@ -268,8 +271,16 @@
         id object = [result objectAtIndex:index];
 
         NSDictionary *newBlocks = blocksForIndexBlock(index, keyPath, blocks);
-        [transformation applyBlocks:newBlocks transformationResult:object keyPath:nil];
+        if (![transformation applyBlocks:newBlocks transformationResult:object keyPath:nil]) {
+            // fall back to updating the top-level object
+            PROTransformationNewValueForKeyPathBlock newValueBlock = [newBlocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+            if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
+                newValueBlock(object, nil);
+            }
+        }
     }];
+
+    return YES;
 }
 
 - (PROTransformation *)reverseTransformation {

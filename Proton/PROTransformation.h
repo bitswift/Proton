@@ -13,7 +13,8 @@
 
 /**
  * Type for a block that is invoked to indicate that a new value has been set at
- * a given key path.
+ * a given key path. This block may return `NO` to indicate an invalid
+ * application.
  *
  * This type of block should be associated with
  * <PROTransformationNewValueForKeyPathBlockKey>.
@@ -23,7 +24,7 @@
  * will be `nil` if the value is at the top level or directly contained in an
  * array.
  */
-typedef void (^PROTransformationNewValueForKeyPathBlock)(id value, NSString *keyPath);
+typedef BOOL (^PROTransformationNewValueForKeyPathBlock)(id value, NSString *keyPath);
 
 /**
  * Associated with a <PROTransformationNewValueForKeyPathBlock> in the
@@ -288,12 +289,18 @@ extern NSString * const PROTransformationFailingTransformationPathErrorKey;
 
 /**
  * Invokes <applyBlocks:transformationResult:keyPath:> with a `nil` key path.
+ *
+ * @param blocks A dictionary of blocks that will be invoked at each step of the
+ * transformation.
+ * @param result A value previously returned from an invocation of
+ * <transform:error:> on the receiver.
  */
-- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result;
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result;
 
 /**
  * Enumerates through this transformation and all of its <transformations>,
- * applying the given blocks using the result of each transformation.
+ * applying the given blocks using the result of each transformation. Returns
+ * whether the transformation was validly applied.
  *
  * `blocks` should contain at least the following keys:
  *  
@@ -317,7 +324,7 @@ extern NSString * const PROTransformationFailingTransformationPathErrorKey;
  * @warning **Important:** This method must be implemented by subclasses. You
  * should not call the superclass implementation.
  */
-- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath;
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath;
 
 /**
  * @name Compound Transformations
