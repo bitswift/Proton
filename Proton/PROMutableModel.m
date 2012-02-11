@@ -25,6 +25,7 @@
 #import "PROTransformationLog.h"
 #import "PROTransformationLogEntry.h"
 #import "PROUniqueTransformation.h"
+#import "NSArray+HigherOrderAdditions.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
 
@@ -856,7 +857,23 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSKeyValueCoding
 
 - (id)valueForKey:(NSString *)key {
-    return [self.latestModel valueForKey:key];
+    if (!self.modelController || ![[self.latestModel valueForKey:key] isKindOfClass:[NSArray class]])
+        return [self.latestModel valueForKey:key];
+    
+    NSDictionary *modelControllerKeys = [[self.modelController class] modelControllerKeysByModelKeyPath];
+    
+    NSArray *mutableModels;
+    NSString *modelControllersKey = [modelControllerKeys objectForKey:key];
+
+    if (modelControllersKey) {
+        NSArray *modelControllers = [self.modelController valueForKey:modelControllersKey];
+
+        mutableModels = [modelControllers mapUsingBlock:^(id modelController) {
+            return [[PROMutableModel alloc] initWithModelController:modelController];
+        }];
+    }
+
+    return mutableModels;
 }
 
 - (void)setValue:(id)value forKey:(NSString *)key {
