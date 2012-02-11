@@ -211,21 +211,36 @@
 
     [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
 
+    __block BOOL allModelUpdatesSuccessful = YES;
+
     [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
         NSUInteger index = indexes[setIndex];
         id object = [result objectAtIndex:index];
 
         NSDictionary *newBlocks = blocksForIndexBlock(index, keyPath, blocks);
-        if (![transformation applyBlocks:newBlocks transformationResult:object keyPath:nil]) {
+
+        BOOL success = [transformation applyBlocks:newBlocks transformationResult:object keyPath:nil];
+        if (!success) {
             // fall back to updating the top-level object
             PROTransformationNewValueForKeyPathBlock newValueBlock = [newBlocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
             if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
-                newValueBlock(object, nil);
+                allModelUpdatesSuccessful &= newValueBlock(object, nil);
+            } else {
+                allModelUpdatesSuccessful = NO;
             }
         }
     }];
 
-    return YES;
+    if (!allModelUpdatesSuccessful) {
+        // not all changes correctly propagated, so fall back to a replacement
+        // at the top level
+        PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+        if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
+            allModelUpdatesSuccessful = newValueBlock(result, keyPath);
+        }
+    }
+
+    return allModelUpdatesSuccessful;
 }
 
 - (PROTransformation *)reverseTransformation {
