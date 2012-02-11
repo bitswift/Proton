@@ -9,6 +9,7 @@
 #import "PROOrderTransformation.h"
 #import "EXTScope.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROModelController.h"
 
 @implementation PROOrderTransformation
@@ -135,6 +136,23 @@
     [associatedControllers insertObjects:movedControllers atIndexes:self.endIndexes];
 
     return YES;
+}
+
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSParameterAssert(result != nil);
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
+        return;
+
+    if (!PROAssert(keyPath, @"No key path to pass to %@", PROTransformationMutableArrayForKeyPathBlockKey))
+        return;
+
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    NSArray *movedObjects = [mutableArray objectsAtIndexes:self.startIndexes];
+
+    [mutableArray removeObjectsAtIndexes:self.startIndexes];
+    [mutableArray insertObjects:movedObjects atIndexes:self.endIndexes];
 }
 
 #pragma mark NSCoding
