@@ -738,14 +738,15 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     __block BOOL success = NO;
 
     [PROModelControllerConcurrentQueue runBarrierSynchronously:^{
-        PROTransformation *transformationFromOldModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
-        if (!transformationFromOldModel)
+        PROTransformation *transformationFromLogEntryModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
+        if (!transformationFromLogEntryModel)
             return;
 
-        PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
+        PROTransformation *transformationToLogEntryModel = transformationFromLogEntryModel.reverseTransformation;
 
-        PROModel *newModel = [transformationToOldModel transform:self.model error:NULL];
-        if (!PROAssert(newModel, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToOldModel))
+        PROModel *oldModel = self.model;
+        PROModel *newModel = [transformationToLogEntryModel transform:oldModel error:NULL];
+        if (!PROAssert(newModel, @"Transformation from current model %@ to previous model should never fail: %@", self.model, transformationToLogEntryModel))
             return;
 
         [self willChangeValueForKey:PROKeyForObject(self, model)];
@@ -760,6 +761,15 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
         [self restoreModelControllersWithTransformationLogEntry:transformationLogEntry];
 
         success = YES;
+
+        NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+            transformationToLogEntryModel, PROModelControllerTransformationKey,
+            oldModel, PROModelControllerOldModelKey,
+            newModel, PROModelControllerNewModelKey,
+            nil
+        ];
+
+        [[NSNotificationCenter defaultCenter] postNotificationName:PROModelControllerDidPerformTransformationNotification object:self userInfo:userInfo];
     }];
 
     return success;
