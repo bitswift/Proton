@@ -139,12 +139,20 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * This method does not post any notifications.
  *
  * @param newModel The model to rebase onto.
+ * @param oldModel The original model, on which `transformation` was applied,
+ * resulting in `newModel`.
  * @param transformation A transformation that describes what changed between
  * the previous version of the model and `newModel`.
  * @param error If this is not `NULL` and the method returns `NO`, this may be
  * set to the error that occurred.
  */
-- (BOOL)rebaseOntoModel:(PROModel *)newModel transformation:(PROTransformation *)transformation error:(NSError **)error;
+- (BOOL)rebaseOntoModel:(PROModel *)newModel oldModel:(PROModel *)oldModel transformation:(PROTransformation *)transformation error:(NSError **)error;
+
+/**
+ * A set of blocks to pass to <[PROTransformation
+ * applyBlocks:transformationResult:keyPath:]> to implement rebasing behavior.
+ */
+- (NSDictionary *)rebasingTransformationBlocks;
 
 @end
 
@@ -688,20 +696,76 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark Rebasing
 
-- (BOOL)rebaseOntoModel:(PROModel *)newModel transformation:(PROTransformation *)transformation error:(NSError **)error; {
+- (NSDictionary *)rebasingTransformationBlocks; {
+    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(id value, NSString *keyPath){
+        if (!keyPath) {
+            // we can set a new value for 'self' (by setting the latest model),
+            // but we can't generate KVO for it
+            m_latestModel = value;
+            return NO;
+        }
+
+        [self setValue:value forKeyPath:keyPath];
+        return YES;
+    };
+
+    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^(NSString *keyPath){
+        return [self mutableArrayValueForKeyPath:keyPath];
+    };
+
+    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^(id value, NSString *keyPath){
+        // we don't need to wrap values
+        return value;
+    };
+
+    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+        id value = [[self valueForKeyPath:keyPath] objectAtIndex:index];
+        if ([value isKindOfClass:[PROMutableModel class]])
+            return [value rebasingTransformationBlocks];
+        else
+            return blocks;
+    };
+
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        [transformationNewValueForKeyPathBlock copy], PROTransformationNewValueForKeyPathBlockKey,
+        [transformationMutableArrayForKeyPathBlock copy], PROTransformationMutableArrayForKeyPathBlockKey,
+        [transformationWrappedValueForKeyPathBlock copy], PROTransformationWrappedValueForKeyPathBlockKey,
+        [transformationBlocksForIndexAtKeyPathBlock copy], PROTransformationBlocksForIndexAtKeyPathBlockKey,
+        nil
+    ];
+}
+
+- (BOOL)rebaseOntoModel:(PROModel *)newModel oldModel:(PROModel *)oldModel transformation:(PROTransformation *)transformation error:(NSError **)error; {
     NSParameterAssert(newModel != nil);
+    NSParameterAssert(oldModel != nil);
     NSParameterAssert(transformation != nil);
 
     NSAssert(m_dispatchQueue.currentQueue, @"%s should only be invoked while on the dispatch queue", __func__);
 
-    PROMultipleTransformation *logTransformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
+    // the easiest case is this object not having any outstanding changes when
+    // a rebase occurs
+    if ([m_originalModelLogEntry isEqual:m_transformationLog.latestLogEntry]) {
+        m_latestModel = oldModel;
 
-    PROModel *rebasedModel = [logTransformation transform:newModel error:error];
-    if (!rebasedModel) {
-        return NO;
+        PROAssert([transformation applyBlocks:[self rebasingTransformationBlocks] transformationResult:newModel], @"Could not apply transformation %@ to %@", transformation, self);
+        
+        m_latestModel = newModel;
+    } else {
+        // TODO: otherwise, we need to make sure the transformation applies,
+        // then unwind back to the original model, then play back the
+        // transformation with KVO, then apply our own transformations on top
+        // (also with KVO)
+        
+        PROMultipleTransformation *logTransformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
+
+        PROModel *rebasedModel = [logTransformation transform:newModel error:error];
+        if (!rebasedModel) {
+            return NO;
+        }
+
+        m_latestModel = rebasedModel;
     }
 
-    m_latestModel = rebasedModel;
     return YES;
 }
 
@@ -711,12 +775,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         if (!PROAssert(newModel, @"Notification did not contain a new model object: %@", notification))
             return;
 
+        PROModel *oldModel = [notification.userInfo objectForKey:PROModelControllerOldModelKey];
+        if (!PROAssert(oldModel, @"Notification did not contain an old model object: %@", notification))
+            return;
+
         PROTransformation *transformation = [notification.userInfo objectForKey:PROModelControllerTransformationKey];
         if (!PROAssert(transformation, @"Notification did not contain a transformation: %@", notification))
             return;
 
         NSError *error = nil;
-        if ([self rebaseOntoModel:newModel transformation:transformation error:&error]) {
+        if ([self rebaseOntoModel:newModel oldModel:oldModel transformation:transformation error:&error]) {
             [[NSNotificationCenter defaultCenter]
                 postNotificationName:PROMutableModelDidRebaseFromModelControllerNotification
                 object:self
