@@ -742,30 +742,44 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     NSAssert(m_dispatchQueue.currentQueue, @"%s should only be invoked while on the dispatch queue", __func__);
 
-    // the easiest case is this object not having any outstanding changes when
-    // a rebase occurs
-    if ([m_originalModelLogEntry isEqual:m_transformationLog.latestLogEntry]) {
-        m_latestModel = oldModel;
+    // if we have any transformations, we need to unwind before attempting to
+    // rebase
+    BOOL needsUnwind = ![m_originalModelLogEntry isEqual:m_transformationLog.latestLogEntry];
+    PROModel *rebasedModel;
 
-        PROAssert([transformation applyBlocks:[self rebasingTransformationBlocks] transformationResult:newModel], @"Could not apply transformation %@ to %@", transformation, self);
-        
-        m_latestModel = newModel;
+    if (!needsUnwind) {
+        rebasedModel = newModel;
     } else {
-        // TODO: otherwise, we need to make sure the transformation applies,
-        // then unwind back to the original model, then play back the
-        // transformation with KVO, then apply our own transformations on top
-        // (also with KVO)
-        
         PROMultipleTransformation *logTransformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
 
-        PROModel *rebasedModel = [logTransformation transform:newModel error:error];
-        if (!rebasedModel) {
+        // unwind all the way back to our original model
+        NSError *localError = nil; 
+        oldModel = [logTransformation.reverseTransformation transform:m_latestModel error:&localError];
+        if (!PROAssert(oldModel, @"Could not unwind latest model of %@: %@", self, localError)) {
+            if (error)
+                *error = localError;
+
             return NO;
         }
 
-        m_latestModel = rebasedModel;
+        NSArray *newTransformations = [NSArray arrayWithObjects:transformation, logTransformation, nil];
+        transformation = [[PROMultipleTransformation alloc] initWithTransformations:newTransformations];
+
+        // make sure we can actually apply everything together
+        rebasedModel = [transformation transform:oldModel error:error];
+        if (!rebasedModel) {
+            return NO;
+        }
     }
 
+    m_latestModel = oldModel;
+
+    NSDictionary *blocks = [self rebasingTransformationBlocks];
+
+    // apply the new transformation from the model controller
+    PROAssert([transformation applyBlocks:blocks transformationResult:rebasedModel], @"Could not apply transformation %@ to %@", transformation, self);
+    
+    m_latestModel = rebasedModel;
     return YES;
 }
 
