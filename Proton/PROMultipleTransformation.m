@@ -8,6 +8,7 @@
 
 #import "PROMultipleTransformation.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROModelController.h"
 
@@ -105,43 +106,35 @@
     }
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
     /*
      * Unfortunately, for a multiple transformation, we have to redo the
-     * actual work of the transformation in order to properly update the model
-     * controller step-by-step. It would be unsafe to update it just with the
-     * final result, because the child transformations may be granular and
-     * independent enough that they need to be separately applied one-by-one.
+     * actual work of the transformation in order to properly update
+     * step-by-step. It would be unsafe to apply the blocks just with the final
+     * result, because the child transformations may be granular and independent
+     * enough that they need to be separately applied one-by-one.
      */
 
-    // obtain the key path to the model, relative to the model controller, so
-    // that we can read the existing value
-    NSString *fullModelKeyPath = PROKeyForObject(modelController, model);
-    if (modelKeyPath)
-        fullModelKeyPath = [fullModelKeyPath stringByAppendingFormat:@".%@", modelKeyPath];
-
-    id currentValue = [modelController valueForKeyPath:fullModelKeyPath];
-    if (!currentValue)
+    // rewind the value to what it was before the transformation
+    NSError *error = nil;
+    id currentValue = [self.reverseTransformation transform:result error:&error];
+    if (!PROAssert(currentValue, @"Reverse transformation of previous result %@ failed: %@", result, error))
         return NO;
 
-    NSAssert([currentValue isEqual:result], @"Current value %@ at model key path \"%@\" on %@ does not match original result %@", currentValue, modelKeyPath, modelController, result);
-
-    // rewind the current model value to what it was before the change
-    currentValue = [self.reverseTransformation transform:currentValue error:NULL];
-
     for (PROTransformation *transformation in self.transformations) {
-        currentValue = [transformation transform:currentValue error:NULL];
+        currentValue = [transformation transform:currentValue error:&error];
+        if (!PROAssert(currentValue, @"Transformation %@ failed on the way to the original result: %@", transformation, error))
+            return NO;
 
-        NSAssert(currentValue != nil, @"Transformation %@ should not have failed on %@ on the way to original result %@", transformation, currentValue, result);
-
-        if (![transformation updateModelController:modelController transformationResult:currentValue forModelKeyPath:modelKeyPath]) {
-            // some model propagation failed, so just set the top-level object
-            // after all
-            modelController.model = result;
-            break;
+        if (![transformation applyBlocks:blocks transformationResult:currentValue keyPath:keyPath]) {
+            PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+            if (!PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
+                return NO;
+            } else {
+                return newValueBlock(result, keyPath);
+            }
         }
     }
 

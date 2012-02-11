@@ -9,6 +9,7 @@
 #import "PROKeyedTransformation.h"
 #import "NSDictionary+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROKeyedObject.h"
 #import "PROModel.h"
 #import "PROModelController.h"
@@ -191,14 +192,8 @@
     return YES;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
-
-    /*
-     * A keyed transformation is simply a descent into the model, so we just
-     * need to keep updating the model key path.
-     */
 
     BOOL allModelUpdatesSuccessful = YES;
 
@@ -207,30 +202,29 @@
 
         NSString *newKeyPath;
 
-        if (modelKeyPath) {
-            newKeyPath = [modelKeyPath stringByAppendingFormat:@".%@", key];
+        if (keyPath) {
+            newKeyPath = [keyPath stringByAppendingFormat:@".%@", key];
         } else {
-            // a nil modelKeyPath means that we're at the top level (i.e., the
-            // model itself), so we need to start keeping track of the
-            // properties we're going into
+            // a nil key path means that we're at the top level, so we need to
+            // start keeping track of the properties we're going into
             newKeyPath = key;
         }
 
         id value = [result valueForKey:key];
         if (!value) {
-            // convert to NSNull, to match the -dictionaryValue method
             value = [NSNull null];
         }
 
-        allModelUpdatesSuccessful &= [transformation updateModelController:modelController transformationResult:value forModelKeyPath:newKeyPath];
+        allModelUpdatesSuccessful &= [transformation applyBlocks:blocks transformationResult:value keyPath:newKeyPath];
     }
 
-    if (!modelKeyPath && !allModelUpdatesSuccessful) {
-        // not all changes correctly propagated, so we just need to set the
-        // top-level object
-        modelController.model = result;
-
-        allModelUpdatesSuccessful = YES;
+    if (!allModelUpdatesSuccessful) {
+        // not all changes correctly propagated, so fall back to a replacement
+        // at the top level
+        PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+        if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
+            allModelUpdatesSuccessful = newValueBlock(result, keyPath);
+        }
     }
 
     return allModelUpdatesSuccessful;

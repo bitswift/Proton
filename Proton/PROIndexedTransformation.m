@@ -181,33 +181,27 @@
     return success;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
-    /*
-     * An indexed transformation usually means that we're starting to get to
-     * a nested model (e.g., model.submodels[index]), so we need to descend into
-     * the specific model controller associated with that nested model (e.g.,
-     * modelControllers[index]).
-     */
-
-    if (!modelKeyPath)
+    if (!PROAssert(keyPath, @"No key path for %@", self))
         return NO;
 
-    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
-    if (!ownedModelControllersKey)
+    PROTransformationBlocksForIndexAtKeyPathBlock blocksForIndexBlock = [blocks objectForKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
+    if (!PROAssert(blocksForIndexBlock, @"%@ not provided", PROTransformationBlocksForIndexAtKeyPathBlockKey))
+        return NO;
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
         return NO;
 
-    NSArray *associatedControllers = [modelController valueForKey:ownedModelControllersKey];
-    NSAssert([associatedControllers count] == [result count], @"Should be exactly as many model controllers at key path \"%@\" from %@ as models at key path \"%@\": %@", ownedModelControllersKey, modelController, modelKeyPath, result);
-
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
     NSUInteger indexCount = [self.indexes count];
     
     // we have to copy the indexes into a C array, since there's no way to
     // retrieve values from it one-by-one
     NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
-    if (!indexes) {
+    if (!PROAssert(indexes, @"Could not allocate space for %lu indexes", (unsigned long)indexCount)) {
         return NO;
     }
 
@@ -217,23 +211,38 @@
 
     [self.indexes getIndexes:indexes maxCount:indexCount inIndexRange:nil];
 
-    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
-        /*
-         * For each sub-transformation, update the nested model controller with
-         * that transformation's result.
-         */
+    __block BOOL allModelUpdatesSuccessful = YES;
 
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger setIndex, BOOL *stop){
         NSUInteger index = indexes[setIndex];
         id object = [result objectAtIndex:index];
 
-        PROModelController *controller = [associatedControllers objectAtIndex:index];
-        if (![transformation updateModelController:controller transformationResult:object forModelKeyPath:nil]) {
-            // no model below here, so update the top-level object
-            controller.model = object;
+        NSDictionary *newBlocks = blocksForIndexBlock(index, keyPath, blocks);
+
+        BOOL success = [transformation applyBlocks:newBlocks transformationResult:object keyPath:nil];
+        if (!success) {
+            PROTransformationWrappedValueForKeyPathBlock wrappedValueBlock = [newBlocks objectForKey:PROTransformationWrappedValueForKeyPathBlockKey];
+            if (!PROAssert(wrappedValueBlock, @"%@ not provided", PROTransformationWrappedValueForKeyPathBlockKey)) {
+                allModelUpdatesSuccessful = NO;
+                return;
+            }
+
+            // perform a replacement in the array
+            id newObject = wrappedValueBlock(object, nil);
+            [mutableArray replaceObjectAtIndex:index withObject:newObject];
         }
     }];
 
-    return YES;
+    if (!allModelUpdatesSuccessful) {
+        // not all changes correctly propagated, so fall back to a replacement
+        // at the top level
+        PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+        if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
+            allModelUpdatesSuccessful = newValueBlock(result, keyPath);
+        }
+    }
+
+    return allModelUpdatesSuccessful;
 }
 
 - (PROTransformation *)reverseTransformation {

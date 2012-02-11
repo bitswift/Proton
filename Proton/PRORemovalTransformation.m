@@ -8,6 +8,7 @@
 
 #import "PRORemovalTransformation.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROInsertionTransformation.h"
 #import "PROModelController.h"
 
@@ -119,26 +120,19 @@
     return YES;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
-
-    /*
-     * A removal transformation means that we're going to be removing objects
-     * from an array of the model (e.g., model.submodels), so we need to remove
-     * the associated model controllers from the same indexes.
-     */
-
-    if (!modelKeyPath)
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
         return NO;
 
-    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
-    if (!ownedModelControllersKey)
+    if (!PROAssert(keyPath, @"No key path for %@", self))
         return NO;
 
-    NSMutableArray *associatedControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
-    [associatedControllers removeObjectsAtIndexes:self.removalIndexes];
-
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    [mutableArray removeObjectsAtIndexes:self.removalIndexes];
+    
     return YES;
 }
 

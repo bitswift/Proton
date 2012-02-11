@@ -9,6 +9,7 @@
 #import "PROOrderTransformation.h"
 #import "EXTScope.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROModelController.h"
 
 @implementation PROOrderTransformation
@@ -111,28 +112,21 @@
     return YES;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
-
-    /*
-     * An order transformation means that we're going to be reordering objects
-     * in an array of the model (e.g., model.submodels), so we need to reorder
-     * the model controllers identically.
-     */
-
-    if (!modelKeyPath)
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
         return NO;
 
-    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
-    if (!ownedModelControllersKey)
+    if (!PROAssert(keyPath, @"No key path for %@", self))
         return NO;
 
-    NSMutableArray *associatedControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    NSArray *movedObjects = [mutableArray objectsAtIndexes:self.startIndexes];
 
-    NSArray *movedControllers = [associatedControllers objectsAtIndexes:self.startIndexes];
-    [associatedControllers removeObjectsAtIndexes:self.startIndexes];
-    [associatedControllers insertObjects:movedControllers atIndexes:self.endIndexes];
+    [mutableArray removeObjectsAtIndexes:self.startIndexes];
+    [mutableArray insertObjects:movedObjects atIndexes:self.endIndexes];
 
     return YES;
 }

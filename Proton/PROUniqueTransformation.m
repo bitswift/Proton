@@ -9,6 +9,7 @@
 #import "PROUniqueTransformation.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROModelController.h"
 
 @implementation PROUniqueTransformation
@@ -84,48 +85,14 @@
     return YES;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
-    /*
-     * A unique transformation can mean one of two things:
-     *
-     *  1. We're replacing the entire model of the model controller. In this
-     *  case, we simply replace its 'model' property, and depend on the model
-     *  controller to reset its own model controllers as necessary.
-     *
-     *  2. We're replacing a property or sub-model of the top-level model
-     *  object. In this case, we need to update the reference held by the
-     *  associated model controller.
-     */
-
-    if (!modelKeyPath) {
-        // update the top-level model
-        modelController.model = result;
-        return YES;
-    }
-
-    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
-    if (!ownedModelControllersKey)
+    PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
+    if (!PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey, __func__))
         return NO;
 
-    NSAssert([self.outputValue isKindOfClass:[NSArray class]], @"Model controller %@ key \"%@\" doesn't make any sense without an array at model key path \"%@\"", modelController, ownedModelControllersKey, modelKeyPath);
-
-    Class ownedModelControllerClass = [[[modelController class] modelControllerClassesByKey] objectForKey:ownedModelControllersKey];
-
-    NSArray *newControllers = [self.outputValue mapUsingBlock:^(id model){
-        return [[ownedModelControllerClass alloc] initWithModel:model];
-    }];
-
-    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
-    NSUInteger count = [mutableControllers count];
-
-    // replace the controllers outright, since we replaced the associated models
-    // outright
-    [mutableControllers replaceObjectsInRange:NSMakeRange(0, count) withObjectsFromArray:newControllers];
-
-    return YES;
+    return newValueBlock(result, keyPath);
 }
 
 #pragma mark NSCoding

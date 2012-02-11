@@ -9,6 +9,7 @@
 #import "PROInsertionTransformation.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "PROAssert.h"
 #import "PROModelController.h"
 #import "PRORemovalTransformation.h"
 
@@ -108,32 +109,27 @@
     return YES;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSParameterAssert(modelController != nil);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
-
-    /*
-     * An insertion transformation means that we're going to be inserting
-     * objects into an array of the model (e.g., model.submodels), so we need to
-     * create and insert a new model controller for each such insertion.
-     */
-
-    if (!modelKeyPath)
+    
+    PROTransformationMutableArrayForKeyPathBlock mutableArrayBlock = [blocks objectForKey:PROTransformationMutableArrayForKeyPathBlockKey];
+    if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
+        return NO;
+    
+    PROTransformationWrappedValueForKeyPathBlock wrappedValueBlock = [blocks objectForKey:PROTransformationWrappedValueForKeyPathBlockKey];
+    if (!PROAssert(wrappedValueBlock, @"%@ not provided", PROTransformationWrappedValueForKeyPathBlockKey))
         return NO;
 
-    NSString *ownedModelControllersKey = [[[modelController class] modelControllerKeysByModelKeyPath] objectForKey:modelKeyPath];
-    if (!ownedModelControllersKey)
+    if (!PROAssert(keyPath, @"No key path for %@", self))
         return NO;
 
-    Class ownedModelControllerClass = [[[modelController class] modelControllerClassesByKey] objectForKey:ownedModelControllersKey];
-
-    NSArray *newControllers = [self.objects mapUsingBlock:^(id model){
-        return [[ownedModelControllerClass alloc] initWithModel:model];
+    NSArray *newObjects = [self.objects mapUsingBlock:^(id obj){
+        return wrappedValueBlock(obj, keyPath);
     }];
 
-    NSMutableArray *mutableControllers = [modelController mutableArrayValueForKey:ownedModelControllersKey];
-    [mutableControllers insertObjects:newControllers atIndexes:self.insertionIndexes];
-
+    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    [mutableArray insertObjects:newObjects atIndexes:self.insertionIndexes];
+    
     return YES;
 }
 
