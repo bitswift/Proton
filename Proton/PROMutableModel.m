@@ -84,6 +84,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @property (copy, readonly) PROModel *latestModel;
 
 /**
+ * Per the documentation for `<NSKeyValueObserving>`, this property is
+ * overridden for improved performance.
+ */
+@property (assign) void *observationInfo;
+
+/**
  * Given a subclass of <PROModel>, this will create or return
  * a <PROMutableModel> subclass appropriate for proxying it.
  *
@@ -151,6 +157,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark Properties
 
 @synthesize modelController = m_modelController;
+@synthesize observationInfo = m_observationInfo;
 
 - (PROModel *)latestModel {
     __block PROModel *model;
