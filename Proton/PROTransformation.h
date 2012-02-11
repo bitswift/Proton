@@ -66,9 +66,9 @@ extern NSString * const PROTransformationMutableArrayForKeyPathBlockKey;
  * <PROTransformationWrappedValueForKeyPathBlockKey>.
  *
  * @param value The value object to wrap.
- * @param keyPath The key path of the value, relative to the last array. This
- * will be `nil` if the value is at the top level or directly contained in an
- * array.
+ * @param keyPath The key path of the mutable array being inserted into,
+ * relative to the array previous from it. This will be `nil` if the mutable
+ * array is at the top level or itself directly contained in an array.
  */
 typedef id (^PROTransformationWrappedValueForKeyPathBlock)(id value, NSString *keyPath);
 
