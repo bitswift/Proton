@@ -236,6 +236,31 @@
     return allModelUpdatesSuccessful;
 }
 
+- (void)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSParameterAssert(result != nil);
+
+    for (NSString *key in self.valueTransformations) {
+        PROTransformation *transformation = [self.valueTransformations objectForKey:key];
+
+        NSString *newKeyPath;
+
+        if (keyPath) {
+            newKeyPath = [keyPath stringByAppendingFormat:@".%@", key];
+        } else {
+            // a nil key path means that we're at the top level, so we need to
+            // start keeping track of the properties we're going into
+            newKeyPath = key;
+        }
+
+        id value = [result valueForKey:key];
+        if (!value) {
+            value = [NSNull null];
+        }
+
+        [transformation applyBlocks:blocks transformationResult:value keyPath:newKeyPath];
+    }
+}
+
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
