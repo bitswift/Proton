@@ -26,10 +26,19 @@
 
 @interface MutabilityTestModel : PROModel
 @property (nonatomic, copy) NSArray *subModels;
+@property (nonatomic, copy) NSArray *subArray;
 @property (nonatomic, copy) NSSet *strings;
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, assign) long longValue;
 @property (nonatomic, assign) CGRect frame;
+@end
+
+@interface MutabilityTestModelController : PROModelController
+@property (copy) MutabilityTestModel *model;
+@property (nonatomic, strong) NSArray *subModelControllers;
+@end
+
+@interface MutabilityTestSubModelController : PROModelController
 @end
 
 SpecBegin(PROMutableModel)
@@ -75,7 +84,7 @@ SpecBegin(PROMutableModel)
 
             MutabilityTestModel *copied = [model copy];
             expect(copied).toEqual(immutableModel);
-            
+
             // this copy should not be a PROMutableModel
             expect(copied).toBeKindOf([PROModel class]);
         });
@@ -419,11 +428,11 @@ SpecBegin(PROMutableModel)
     });
 
     describe(@"mutable model with model controller", ^{
-        __block PROModelController *modelController = nil;
+        __block MutabilityTestModelController *modelController = nil;
         __block id model = nil;
 
         before(^{
-            modelController = [[PROModelController alloc] initWithModel:immutableModel];
+            modelController = [[MutabilityTestModelController alloc] initWithModel:immutableModel];
 
             model = [[PROMutableModel alloc] initWithModelController:modelController];
             expect(model).not.toBeNil();
@@ -448,7 +457,7 @@ SpecBegin(PROMutableModel)
 
         it(@"should save to model controller", ^{
             [model setName:@"fizzbuzz"];
-            
+
             __block NSError *error = nil;
             expect([model save:&error]).toBeTruthy();
             expect(error).toBeNil();
@@ -461,7 +470,7 @@ SpecBegin(PROMutableModel)
 
             PROTransformation *nameTransformation = [immutableModel transformationForKey:@"name" value:@"fuzz"];
             expect([modelController performTransformation:nameTransformation error:NULL]).toBeTruthy();
-            
+
             __block NSError *error = nil;
             expect([model save:&error]).toBeFalsy();
 
@@ -472,15 +481,15 @@ SpecBegin(PROMutableModel)
         it(@"should save multiple changes to model controller", ^{
             [model setName:@"fizzbuzz"];
 
-            NSArray *newSubModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
-            [model setSubModels:newSubModels];
-            
+            NSArray *newSubArray = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            [model setSubArray:newSubArray];
+
             __block NSError *error = nil;
             expect([model save:&error]).toBeTruthy();
             expect(error).toBeNil();
 
             expect([modelController.model name]).toEqual(@"fizzbuzz");
-            expect([modelController.model subModels]).toEqual(newSubModels);
+            expect([modelController.model subArray]).toEqual(newSubArray);
         });
 
         describe(@"rebasing", ^{
@@ -570,6 +579,15 @@ SpecBegin(PROMutableModel)
                 expect(rebaseError.code).isGoing.toEqual(PROTransformationErrorMismatchedInput);
             });
         });
+
+        describe(@"with submodels", ^{
+            it(@"should return an array with sub-mutable models", ^{
+                expect([model subModels]).toEqual([immutableModel subModels]);
+                [[model valueForKey:@"subModels"] enumerateObjectsUsingBlock:^(id subModel, NSUInteger idx, BOOL *stop) {
+                    expect(subModel).toBeKindOf([PROMutableModel class]);
+                }];
+            });
+        });
     });
 
 SpecEnd
@@ -585,8 +603,33 @@ SpecEnd
 
 @implementation MutabilityTestModel
 @synthesize subModels = m_subModels;
+@synthesize subArray = m_subArray;
 @synthesize name = m_name;
 @synthesize longValue = m_longValue;
 @synthesize frame = m_frame;
 @synthesize strings = m_strings;
+@end
+
+@implementation MutabilityTestModelController
+@dynamic model;
+@dynamic subModelControllers;
+
++ (NSDictionary *)modelControllerClassesByKey {
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        [MutabilityTestSubModelController class],
+        PROKeyForClass(MutabilityTestModelController, subModelControllers),
+        nil
+    ];
+}
+
++ (NSDictionary *)modelControllerKeysByModelKeyPath {
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        PROKeyForClass(MutabilityTestModelController, subModelControllers),
+        PROKeyForClass(MutabilityTestModel, subModels),
+        nil
+    ];
+}
+@end
+
+@implementation MutabilityTestSubModelController
 @end
