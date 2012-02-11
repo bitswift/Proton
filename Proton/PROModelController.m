@@ -180,6 +180,12 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
  * `PROModelControllerConcurrentQueue`.
  */
 - (void)captureInLatestLogEntry;
+
+/**
+ * The set of blocks that the receiver will pass to <[PROTransformation
+ * applyBlocks:transformationResult:keyPath:]>.
+ */
+- (NSDictionary *)transformationBlocks;
 @end
 
 @implementation PROModelController
@@ -594,7 +600,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     return matchingController;
 }
 
-#pragma mark Transformations
+#pragma mark Performing Transformations
 
 - (BOOL)performTransformation:(PROTransformation *)transformation error:(NSError **)error; {
     __block BOOL success = NO;
@@ -644,16 +650,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     }
 
     [self setModel:newModel replacingModelControllers:NO];
-
-    if (!PROAssert([transformation updateModelController:self transformationResult:newModel forModelKeyPath:nil], @"Transformation %@ failed to update %@ with new model object %@", transformation, self, newModel)) {
-        // try to back out of that failure -- this won't be 100%, since
-        // model controllers may already have updated references
-        if (shouldAppendTransformation)
-            [self.transformationLog moveToLogEntry:lastLogEntry];
-
-        [self setModel:oldModel replacingModelControllers:NO];
-        return NO;
-    }
+    [transformation applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil];
 
     // only capture 'self' in the log entry if it hasn't changed in the
     // interim
@@ -671,6 +668,71 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     [[NSNotificationCenter defaultCenter] postNotificationName:PROModelControllerDidPerformTransformationNotification object:self userInfo:userInfo];
     return YES;
 }
+
+- (NSDictionary *)transformationBlocks; {
+    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(id value, NSString *keyPath){
+        if (!keyPath) {
+            // this was a change or replacement of a top-level model property
+            self.model = value;
+            return;
+        }
+
+        NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
+        if (!controllersKey) {
+            // this was a change to some nested property we don't care about
+            return;
+        }
+
+        // this was a replacement of a model array
+        Class controllerClass = [[[self class] modelControllerClassesByKey] objectForKey:controllersKey];
+
+        NSArray *newControllers = [value mapUsingBlock:^(PROModel *model){
+            return [[controllerClass alloc] initWithModel:model];
+        }];
+
+        NSMutableArray *mutableControllers = [self mutableArrayValueForKey:controllersKey];
+
+        // replace the controllers outright, since we replaced the associated models
+        // outright
+        [mutableControllers setArray:newControllers];
+    };
+
+    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^ id (NSString *keyPath){
+        NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
+        if (!controllersKey)
+            return nil;
+
+        return [self mutableArrayValueForKey:controllersKey];
+    };
+
+    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^ id (id value, NSString *keyPath){
+        NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
+        if (!controllersKey)
+            return nil;
+
+        Class controllerClass = [[[self class] modelControllerClassesByKey] objectForKey:controllersKey];
+        return [[controllerClass alloc] initWithModel:value];
+    };
+
+    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+        NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
+        if (!controllersKey)
+            return blocks;
+
+        NSArray *controllers = [self valueForKey:controllersKey];
+        return [[controllers objectAtIndex:index] transformationBlocks];
+    };
+
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        [transformationNewValueForKeyPathBlock copy], PROTransformationNewValueForKeyPathBlockKey,
+        [transformationMutableArrayForKeyPathBlock copy], PROTransformationMutableArrayForKeyPathBlockKey,
+        [transformationWrappedValueForKeyPathBlock copy], PROTransformationWrappedValueForKeyPathBlockKey,
+        [transformationBlocksForIndexAtKeyPathBlock copy], PROTransformationBlocksForIndexAtKeyPathBlockKey,
+        nil
+    ];
+}
+
+#pragma mark Transformation Log
 
 - (PROModelControllerTransformationLogEntry *)transformationLogEntryWithModelPointer:(PROModel **)modelPointer; {
     __block PROModel *strongModel = nil;
