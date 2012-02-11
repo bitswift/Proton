@@ -660,7 +660,15 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     if (shouldAppendTransformation && NSEqualObjects(self.transformationLog.latestLogEntry, newLogEntry)) {
         [self captureInLatestLogEntry];
     }
-    
+
+    NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        transformation, PROModelControllerTransformationKey,
+        oldModel, PROModelControllerOldModelKey,
+        newModel, PROModelControllerNewModelKey,
+        nil
+    ];
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:PROModelControllerDidPerformTransformationNotification object:self userInfo:userInfo];
     return YES;
 }
 
