@@ -981,6 +981,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark NSObject protocol
 
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p>( modelController = %@, model = %@ )", [self class], (__bridge void *)self, self.modelController, self.latestModel];
+}
+
 - (NSUInteger)hash {
     return [self.latestModel hash];
 }
