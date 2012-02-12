@@ -9,6 +9,11 @@
 #import "PROTransformation.h"
 #import "PROModelController.h"
 
+NSString * const PROTransformationNewValueForKeyPathBlockKey = @"PROTransformationNewValueForKeyPathBlock";
+NSString * const PROTransformationMutableArrayForKeyPathBlockKey = @"PROTransformationMutableArrayForKeyPathBlock";
+NSString * const PROTransformationWrappedValueForKeyPathBlockKey = @"PROTransformationWrappedValueForKeyPathBlock";
+NSString * const PROTransformationBlocksForIndexAtKeyPathBlockKey = @"PROTransformationBlocksForIndexAtKeyPathBlock";
+
 NSString * const PROTransformationFailingTransformationsErrorKey = @"PROTransformationFailingTransformations";
 NSString * const PROTransformationFailingTransformationPathErrorKey = @"PROTransformationFailingTransformationPath";
 
@@ -42,8 +47,12 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
     return NO;
 }
 
-- (BOOL)updateModelController:(PROModelController *)modelController transformationResult:(id)result forModelKeyPath:(NSString *)modelKeyPath; {
-    NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result; {
+    return [self applyBlocks:blocks transformationResult:result keyPath:nil];
+}
+
+- (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
+    NSAssert(NO, @"%s should be implemented by a concrete subclass", __func__);
     return NO;
 }
 

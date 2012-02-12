@@ -1046,6 +1046,209 @@ SpecBegin(PROTransformation)
         });
     });
 
+    describe(@"applying blocks", ^{
+        __block TransformationTestModel *model;
+        __block NSMutableArray *mutableArray;
+        __block NSDictionary *dictionary;
+
+        __block NSMutableDictionary *blocks;
+        __block BOOL newValueBlockInvoked;
+        __block BOOL nestedNewValueBlockInvoked;
+
+        before(^{
+            newValueBlockInvoked = NO;
+            nestedNewValueBlockInvoked = NO;
+
+            dictionary = [NSDictionary dictionaryWithObject:@"foo" forKey:@"bar"];
+            mutableArray = [NSMutableArray arrayWithObject:dictionary];
+
+            model = [[TransformationTestModel alloc] init];
+            model.array = mutableArray;
+
+            // this will only get invoked for top level or the 'array' property,
+            // because we replace this block after diving down into the array
+            id newValueBlock = [^(id value, NSString *keyPath){
+                id transformedModel = [transformation transform:model error:NULL];
+
+                if (keyPath) {
+                    expect(keyPath).toEqual(@"array");
+                    expect(value).toEqual([transformedModel valueForKeyPath:keyPath]);
+                } else {
+                    expect(value).toEqual(transformedModel);
+                }
+
+                newValueBlockInvoked = YES;
+                return YES;
+            } copy];
+
+            id mutableArrayBlock = [^(NSString *keyPath){
+                expect(keyPath).toEqual(@"array");
+
+                return mutableArray;
+            } copy];
+
+            id wrappedValueBlock = [^(id value, NSString *keyPath){
+                expect(value).toBeKindOf([NSString class]);
+                expect(keyPath).toEqual(@"array");
+
+                return [NSNull null];
+            } copy];
+
+            id blocksForIndexBlock = [^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+                id transformedModel = [transformation transform:model error:NULL];
+
+                expect(keyPath).toEqual(@"array");
+                expect(index).toEqual(0);
+
+                PROTransformationNewValueForKeyPathBlock newValueBlock = [^(id value, NSString *keyPath){
+                    nestedNewValueBlockInvoked = YES;
+
+                    expect(keyPath).not.toBeNil();
+
+                    NSDictionary *transformedDictionary = [[transformedModel array] objectAtIndex:0];
+                    expect(value).toEqual([transformedDictionary valueForKeyPath:keyPath]);
+
+                    return YES;
+                } copy];
+
+                NSMutableDictionary *newBlocks = [blocks mutableCopy];
+                [newBlocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+
+                return newBlocks;
+            } copy];
+
+            blocks = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                newValueBlock, PROTransformationNewValueForKeyPathBlockKey,
+                mutableArrayBlock, PROTransformationMutableArrayForKeyPathBlockKey,
+                wrappedValueBlock, PROTransformationWrappedValueForKeyPathBlockKey,
+                blocksForIndexBlock, PROTransformationBlocksForIndexAtKeyPathBlockKey,
+                nil
+            ];
+        });
+
+        it(@"should apply new value block at top level", ^{
+            TransformationTestModel *newModel = [[TransformationTestModel alloc] init];
+            transformation = [[PROUniqueTransformation alloc] initWithInputValue:model outputValue:newModel];
+
+            TransformationTestModel *result = [transformation transform:model error:NULL];
+            expect(result).not.toBeNil();
+
+            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+            expect(newValueBlockInvoked).toBeTruthy();
+        });
+
+        it(@"should apply new value block at array level", ^{
+            transformation = [model transformationForKey:@"array" value:[NSArray array]];
+
+            TransformationTestModel *result = [transformation transform:model error:NULL];
+            expect(result).not.toBeNil();
+
+            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+            expect(newValueBlockInvoked).toBeTruthy();
+            expect(mutableArray).not.toEqual(result.array);
+        });
+
+        it(@"should perform array mutations", ^{
+            id expectedObject = [model.array objectAtIndex:0];
+
+            PROTransformation *arrayTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:expectedObject];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
+
+            TransformationTestModel *result = [transformation transform:model error:NULL];
+            expect(result).not.toBeNil();
+
+            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+            expect(newValueBlockInvoked).toBeFalsy();
+            expect(mutableArray).toEqual([NSArray array]);
+        });
+
+        it(@"should wrap inserted values", ^{
+            NSString *insertedObject = @"foobar";
+
+            PROTransformation *arrayTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:insertedObject];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
+
+            TransformationTestModel *result = [transformation transform:model error:NULL];
+            expect(result).not.toBeNil();
+
+            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+            expect(newValueBlockInvoked).toBeFalsy();
+
+            // the inserted object should've been "wrapped" as an NSNull
+            NSArray *expectedArray = [NSArray arrayWithObjects:[NSNull null], dictionary, nil];
+            expect(mutableArray).toEqual(expectedArray);
+        });
+
+        it(@"should retrieve blocks for nested indexes", ^{
+            PROUniqueTransformation *barTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foo" outputValue:@"fizzbuzz"];
+            PROKeyedTransformation *dictionaryTransformation = [[PROKeyedTransformation alloc] initWithTransformation:barTransformation forKey:@"bar"];
+
+            PROTransformation *arrayTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:dictionaryTransformation];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
+
+            TransformationTestModel *result = [transformation transform:model error:NULL];
+            expect(result).not.toBeNil();
+
+            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+            expect(newValueBlockInvoked).toBeFalsy();
+            expect(nestedNewValueBlockInvoked).toBeTruthy();
+            expect(mutableArray).not.toEqual(result.array);
+        });
+
+        it(@"should fail to apply unique transformation if new value block fails", ^{
+            id newValueBlock = [^(id value, NSString *keyPath){
+                return NO;
+            } copy];
+
+            [blocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+
+            TransformationTestModel *newModel = [[TransformationTestModel alloc] init];
+            transformation = [[PROUniqueTransformation alloc] initWithInputValue:model outputValue:newModel];
+
+            TransformationTestModel *result = [transformation transform:model error:NULL];
+            expect(result).not.toBeNil();
+
+            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeFalsy();
+            expect(newValueBlockInvoked).toBeFalsy();
+        });
+
+        it(@"should fall back to replacement if nested new value block fails", ^{
+            id blocksForIndexBlock = [^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+                id newValueBlock = [^(id value, NSString *keyPath){
+                    return NO;
+                } copy];
+
+                NSMutableDictionary *newBlocks = [blocks mutableCopy];
+                [newBlocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+                return newBlocks;
+            } copy];
+
+            [blocks setObject:blocksForIndexBlock forKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
+
+            id wrappedValueBlock = [^(id value, NSString *keyPath){
+                expect(value).toBeKindOf([NSDictionary class]);
+                return [value allKeys];
+            } copy];
+
+            [blocks setObject:wrappedValueBlock forKey:PROTransformationWrappedValueForKeyPathBlockKey];
+
+            PROUniqueTransformation *barTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foo" outputValue:@"fizzbuzz"];
+            PROKeyedTransformation *dictionaryTransformation = [[PROKeyedTransformation alloc] initWithTransformation:barTransformation forKey:@"bar"];
+
+            PROTransformation *arrayTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:dictionaryTransformation];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
+
+            TransformationTestModel *result = [transformation transform:model error:NULL];
+            expect(result).not.toBeNil();
+
+            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+
+            // the replaced dictionary should have been "wrapped" as an NSArray
+            NSArray *expectedArray = [NSArray arrayWithObject:[NSArray arrayWithObject:@"bar"]];
+            expect(mutableArray).toEqual(expectedArray);
+        });
+    });
+
     after(^{
         it(@"should not be equal to a generic transformation", ^{
             PROTransformation *inequalTransformation = [[PROTransformation alloc] init];
