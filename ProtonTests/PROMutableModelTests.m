@@ -588,6 +588,150 @@ SpecBegin(PROMutableModel)
                 }];
             });
         });
+
+        describe(@"key-value observing", ^{
+            __block PROKeyValueObserver *observer = nil;
+            __block BOOL observerInvoked;
+
+            before(^{
+                observerInvoked = NO;
+            });
+
+            after(^{
+                expect(observerInvoked).toBeTruthy();
+
+                observer = nil;
+            });
+
+            describe(@"array mutation via model controller", ^{
+                __block NSKeyValueChange change;
+                __block NSIndexSet *indexes;
+
+                __block PROTransformation *transformation;
+
+                before(^{
+                    indexes = nil;
+                    change = 0;
+
+                    observer = [[PROKeyValueObserver alloc]
+                        initWithTarget:model
+                        keyPath:@"subModels"
+                        options:NSKeyValueObservingOptionNew
+                        block:^(NSDictionary *changes){
+                            observerInvoked = YES;
+
+                            if (change != 0)
+                                expect([[changes objectForKey:NSKeyValueChangeKindKey] integerValue]).toEqual(change);
+
+                            if (indexes)
+                                expect([changes objectForKey:NSKeyValueChangeIndexesKey]).toEqual(indexes);
+                        }
+                    ];
+                });
+
+                after(^{
+                    expect([modelController performTransformation:transformation error:NULL]).toBeTruthy();
+
+                    if (![[model name] isEqual:@"fizzbuzzfoobar"]) {
+                        expect([model copy]).toEqual([transformation transform:immutableModel error:NULL]);
+                    }
+                });
+
+                it(@"should generate set notification for unique transformation", ^{
+                    change = NSKeyValueChangeSetting;
+
+                    NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+                    transformation = [model transformationForKey:@"subModels" value:subModels];
+                });
+
+                it(@"should generate set notification for unique transformation with unsaved changes", ^{
+                    [model setName:@"fizzbuzzfoobar"];
+
+                    change = NSKeyValueChangeSetting;
+
+                    NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+                    transformation = [model transformationForKey:@"subModels" value:subModels];
+                });
+
+                it(@"should generate insertion notification for insertion transformation", ^{
+                    NSUInteger index = [[model subModels] count];
+
+                    indexes = [NSIndexSet indexSetWithIndex:index];
+                    change = NSKeyValueChangeInsertion;
+
+                    id insertedObject = [MutabilityTestSubModel enabledSubModel];
+                    PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:index object:insertedObject];
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+                });
+
+                it(@"should generate insertion notification for insertion transformation with unsaved changes", ^{
+                    [model setName:@"fizzbuzzfoobar"];
+
+                    NSUInteger index = [[model subModels] count];
+
+                    indexes = [NSIndexSet indexSetWithIndex:index];
+                    change = NSKeyValueChangeInsertion;
+
+                    id insertedObject = [MutabilityTestSubModel enabledSubModel];
+                    PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:index object:insertedObject];
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+                });
+
+                it(@"should generate removal notification for removal transformation", ^{
+                    NSUInteger index = 0;
+
+                    indexes = [NSIndexSet indexSetWithIndex:index];
+                    change = NSKeyValueChangeRemoval;
+
+                    id removedObject = [[model subModels] objectAtIndex:0];
+                    PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:index expectedObject:removedObject];
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+                });
+
+                it(@"should generate removal notification for removal transformation with unsaved changes", ^{
+                    [model setName:@"fizzbuzzfoobar"];
+
+                    NSUInteger index = 0;
+
+                    indexes = [NSIndexSet indexSetWithIndex:index];
+                    change = NSKeyValueChangeRemoval;
+
+                    id removedObject = [[model subModels] objectAtIndex:0];
+                    PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:index expectedObject:removedObject];
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+                });
+
+                it(@"should generate replacement notification for indexed transformation", ^{
+                    NSUInteger index = 0;
+
+                    indexes = [NSIndexSet indexSetWithIndex:index];
+                    change = NSKeyValueChangeReplacement;
+
+                    id originalObject = [[model subModels] objectAtIndex:0];
+                    id replacementObject = [MutabilityTestSubModel enabledSubModel];
+
+                    PROUniqueTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:replacementObject];
+                    PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+                });
+
+                it(@"should generate replacement notification for indexed transformation with unsaved changes", ^{
+                    [model setName:@"fizzbuzzfoobar"];
+
+                    NSUInteger index = 0;
+
+                    indexes = [NSIndexSet indexSetWithIndex:index];
+                    change = NSKeyValueChangeReplacement;
+
+                    id originalObject = [[model subModels] objectAtIndex:0];
+                    id replacementObject = [MutabilityTestSubModel enabledSubModel];
+
+                    PROUniqueTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:replacementObject];
+                    PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+                });
+            });
+        });
     });
 
 SpecEnd
