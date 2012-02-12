@@ -54,6 +54,12 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 @property (nonatomic, copy, readwrite) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
+ * Per the documentation for `<NSKeyValueObserving>`, this property is
+ * overridden for improved performance.
+ */
+@property (assign) void *observationInfo;
+
+/**
  * Automatically implements the appropriate KVC-compliant model controller
  * methods on the receiver for the given model controller key.
  *
@@ -219,6 +225,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 
 #pragma mark Properties
 
+@synthesize observationInfo = m_observationInfo;
 @synthesize model = m_model;
 @synthesize modelControllerObservers = m_modelControllerObservers;
 @synthesize parentModelController = m_parentModelController;
