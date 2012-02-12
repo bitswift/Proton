@@ -45,84 +45,25 @@ extern NSString * const PROMutableModelRebaseErrorKey;
 
 /**
 
-Proxies a <PROModel> and provides the illusion of mutability, to make certain
-usage patterns easier.
+Represents a mutable model object.
 
-This class will automatically provide setters for any properties that exist
-on the underlying <PROModel>, and will support key-value coding and key-value
-observing on all of the model object's properties. Note that other <PROModel>
-instances are not automatically made mutable when using this class (though
-any collection containing them may be).
+Typically, this protocol is applied to <PROModel> variables or properties to
+indicate that they actually hold <PROMutableModel> instances, and are simply duck
+typed to <PROModel>:
 
-Internally, a record of <PROTransformation> objects is kept that describes
-the changes being made to the <PROModel>. When <save:> is invoked, it will
-attempt to propagate those changes back to a <PROModelController>.
-
-If an instance of this class receives a message it does not understand, the
-message is automatically forwarded to the underlying <PROModel> object.
-
-You should not subclass this class. If you want to make access to setters
-more convenient, declare a category on <PROMutableModel> to expose them, but
-provide no implementation, like so:
-    
     // MyModel.h
     
     @interface MyModel : PROModel
     @property (nonatomic, copy, readonly) NSString *someString;
     @end
 
-    @interface PROMutableModel (MyMutableModel)
-    @property (nonatomic, copy, readwrite) NSString *someString;
-    @end
-
-    // MyModel.m
+    // MyView.h
     
-    @implementation MyModel
-    @synthesize someString = m_someString;
-    @end
+    @property (nonatomic, strong) MyModel<PROMutableModel> *mutableModel;
 
-Changes to instances of this class are performed atomically. Note, however,
-that this is not composable. This means that changes to multiple
-properties at a time may not be committed atomically with respect to other
-threads.
-
- */
-@interface PROMutableModel : NSObject <NSCoding, NSCopying, NSMutableCopying>
-
-/**
- * @name Initialization
- */
-
-/**
- * Initializes the receiver to proxy the given model object. Returns `nil` if
- * the given model is `nil`.
- *
- * Any changes made to the receiver will not be propagated back to any model
- * controller. Invoking <save:> will have no effect.
- *
- * @param model The model object that the receiver should proxy.
- */
-- (id)initWithModel:(PROModel *)model;
-
-/**
- * Initializes the receiver to proxy the model object of the given controller.
- * Returns `nil` if the given model is `nil`.
- *
- * Invoking <save:> after making changes to the receiver will attempt to
- * propagate those changes back to the model controller.
- *
- * Initializing the mutable model in this way will automatically set it up to
- * observe the <[PROModelController model]> of the given controller. When the
- * model controller replaces its model, the receiver will attempt to "rebase"
- * onto it, by updating its underlying model and reapplying any changes on top.
- * `PROMutableModelDidRebaseFromModelControllerNotification` or
- * `PROMutableModelRebaseFromModelControllerFailedNotification` will be posted
- * if the automatic rebasing succeeded or failed, respectively.
- *
- * @param modelController The model controller that owns the model which should
- * be proxied.
- */
-- (id)initWithModelController:(PROModelController *)modelController;
+*/
+@protocol PROMutableModel <NSCoding, NSCopying, NSMutableCopying>
+@required
 
 /**
  * @name Model Controller
@@ -169,5 +110,86 @@ threads.
  * the error that occurred.
  */
 - (BOOL)save:(NSError **)error;
+@end
 
+/**
+
+Proxies a <PROModel> and provides the illusion of mutability, to make certain
+usage patterns easier.
+
+This class will automatically provide setters for any properties that exist
+on the underlying <PROModel>, and will support key-value coding and key-value
+observing on all of the model object's properties. Note that other <PROModel>
+instances are not automatically made mutable when using this class (though
+any collection containing them may be).
+
+Internally, a record of <PROTransformation> objects is kept that describes
+the changes being made to the <PROModel>. When <save:> is invoked, it will
+attempt to propagate those changes back to a <PROModelController>.
+
+If an instance of this class receives a message it does not understand, the
+message is automatically forwarded to the underlying <PROModel> object.
+
+You should not subclass this class. If you want to make access to setters
+more convenient, declare a category on <PROMutableModel> to expose them, but
+provide no implementation, like so:
+    
+    // MyModel.h
+    
+    @interface MyModel : PROModel
+    @property (nonatomic, copy, readonly) NSString *someString;
+    @end
+
+    @interface PROMutableModel (MyMutableModel)
+    @property (nonatomic, copy, readwrite) NSString *someString;
+    @end
+
+    // MyModel.m
+    
+    @implementation MyModel
+    @synthesize someString = m_someString;
+    @end
+
+Changes to instances of this class are performed atomically. Note, however,
+that this is not composable. This means that changes to multiple
+properties at a time may not be committed atomically with respect to other
+threads.
+
+ */
+@interface PROMutableModel : NSObject <PROMutableModel>
+
+/**
+ * @name Initialization
+ */
+
+/**
+ * Initializes the receiver to proxy the given model object. Returns `nil` if
+ * the given model is `nil`.
+ *
+ * Any changes made to the receiver will not be propagated back to any model
+ * controller. Invoking <save:> will have no effect.
+ *
+ * @param model The model object that the receiver should proxy.
+ */
+- (id)initWithModel:(PROModel *)model;
+
+/**
+ * Initializes the receiver to proxy the model object of the given controller.
+ * Returns `nil` if the given model is `nil`.
+ *
+ * Invoking <save:> after making changes to the receiver will attempt to
+ * propagate those changes back to the model controller.
+ *
+ * Initializing the mutable model in this way will automatically set it up to
+ * observe the <[PROModelController model]> of the given controller. When the
+ * model controller replaces its model, the receiver will attempt to "rebase"
+ * onto it, by updating its underlying model and reapplying any changes on top.
+ * `PROMutableModelDidRebaseFromModelControllerNotification` or
+ * `PROMutableModelRebaseFromModelControllerFailedNotification` will be posted
+ * if the automatic rebasing succeeded or failed, respectively.
+ *
+ * @param modelController The model controller that owns the model which should
+ * be proxied.
+ */
+- (id)initWithModelController:(PROModelController *)modelController;
 @end
