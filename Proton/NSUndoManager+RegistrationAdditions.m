@@ -80,12 +80,23 @@ static char * const PROUndoManagerBlockActionsKey = "PROUndoManagerBlockActions"
     }
 }
 
-- (void)performBlock:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock; {
-    [self performWithTarget:self block:block registeringUndoWithBlock:undoBlock];
+- (void)registerUndoWithBlock:(void (^)(void))block; {
+    [self registerUndoWithTarget:self block:block];
 }
 
-- (void)performWithTarget:(id)target block:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock; {
-    BOOL (^copiedRedoBlock)(void) = [block copy];
+- (void)registerUndoWithTarget:(id)target block:(void (^)(void))block; {
+    NSAssert([target isKindOfClass:[NSObject class]], @"%@ must be an NSObject to be registered as the target for an undo block", target);
+    NSParameterAssert(block != nil);
+
+    [self registerUndoWithTarget:target selector:@selector(performUndoBlock:) object:[block copy]];
+}
+
+- (void)registerUndoWithBlock:(void (^)(void))undoBlock redoBlock:(void (^)(void))redoBlock; {
+    [self registerUndoWithTarget:self block:undoBlock redoBlock:redoBlock];
+}
+
+- (void)registerUndoWithTarget:(id)target block:(void (^)(void))undoBlock redoBlock:(void (^)(void))redoBlock; {
+    void (^copiedRedoBlock)(void) = [redoBlock copy];
     void (^copiedUndoBlock)(void) = [undoBlock copy];
 
     __block __unsafe_unretained id weakRecursiveRedoBlock;
@@ -100,7 +111,7 @@ static char * const PROUndoManagerBlockActionsKey = "PROUndoManagerBlockActions"
         copiedUndoBlock();
     } copy];
 
-    void (^recursiveRedoBlock)(void) = [^{
+    id recursiveRedoBlock = [^{
         [weakSelf registerUndoWithTarget:weakTarget block:weakRecursiveUndoBlock];
 
         copiedRedoBlock();
@@ -119,19 +130,7 @@ static char * const PROUndoManagerBlockActionsKey = "PROUndoManagerBlockActions"
     PROUndoManagerBlockAction *action = [[PROUndoManagerBlockAction alloc] initWithTarget:target undoBlock:recursiveUndoBlock redoBlock:recursiveRedoBlock];
     [actions addObject:action];
 
-    // start it off with a redo
-    recursiveRedoBlock();
-}
-
-- (void)registerUndoWithBlock:(void (^)(void))block; {
-    [self registerUndoWithTarget:self block:block];
-}
-
-- (void)registerUndoWithTarget:(id)target block:(void (^)(void))block; {
-    NSAssert([target isKindOfClass:[NSObject class]], @"%@ must be an NSObject to be registered as the target for an undo block", target);
-    NSParameterAssert(block != nil);
-
-    [self registerUndoWithTarget:target selector:@selector(performUndoBlock:) object:[block copy]];
+    [self registerUndoWithTarget:target block:recursiveUndoBlock];
 }
 
 @end
