@@ -996,7 +996,24 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return [self.latestModel hash];
 }
 
+- (BOOL)isKindOfClass:(Class)class {
+    if ([super isKindOfClass:class])
+        return YES;
+
+    return [self.latestModel isKindOfClass:class];
+}
+
+- (BOOL)isMemberOfClass:(Class)class {
+    if ([super isMemberOfClass:class])
+        return YES;
+
+    return [self.latestModel isMemberOfClass:class];
+}
+
 - (BOOL)isEqual:(id)model {
+    if (model == self)
+        return YES;
+
     if ([model isKindOfClass:[PROModel class]]) {
         return [self.latestModel isEqual:model];
     } else if ([model isKindOfClass:[PROMutableModel class]]) {
