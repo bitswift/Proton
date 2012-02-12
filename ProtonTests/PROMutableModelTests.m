@@ -60,15 +60,15 @@ SpecBegin(PROMutableModel)
     });
 
     describe(@"mutable model with model", ^{
-        __block id model = nil;
+        __block MutabilityTestModel<PROMutableModel> *model = nil;
 
         before(^{
-            model = [[PROMutableModel alloc] initWithModel:immutableModel];
+            model = (id)[[PROMutableModel alloc] initWithModel:immutableModel];
             expect(model).not.toBeNil();
         });
 
         it(@"should not have a model controller", ^{
-            expect([model modelController]).toBeNil();
+            expect(model.modelController).toBeNil();
         });
 
         it(@"should consider model in equality", ^{
@@ -146,7 +146,7 @@ SpecBegin(PROMutableModel)
                 expect(model).toRespondTo(@selector(setSubModels:));
 
                 NSArray *subModels = [NSArray arrayWithObject:[[MutabilityTestSubModel alloc] init]];
-                [model setSubModels:subModels];
+                model.subModels = subModels;
 
                 expect([model subModels]).toEqual(subModels);
             });
@@ -154,7 +154,7 @@ SpecBegin(PROMutableModel)
             it(@"should copy a mutable array", ^{
                 MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] init];
                 NSMutableArray *subModels = [NSMutableArray arrayWithObject:subModel];
-                [model setSubModels:subModels];
+                model.subModels = subModels;
 
                 [subModels removeAllObjects];
                 expect([model subModels]).toContain(subModel);
@@ -163,13 +163,13 @@ SpecBegin(PROMutableModel)
             it(@"should set a string", ^{
                 expect(model).toRespondTo(@selector(setName:));
 
-                [model setName:@"foo"];
+                model.name = @"foo";
                 expect([model name]).toEqual(@"foo");
             });
 
             it(@"should copy a mutable string", ^{
                 NSMutableString *name = [@"fizz" mutableCopy];
-                [model setName:name];
+                model.name = name;
 
                 [name appendString:@"buzz"];
                 expect([model name]).toEqual(@"fizz");
@@ -178,14 +178,14 @@ SpecBegin(PROMutableModel)
             it(@"should set a primitive", ^{
                 expect(model).toRespondTo(@selector(setLongValue:));
 
-                [model setLongValue:-20];
+                model.longValue = -20;
                 expect([model longValue]).toEqual(-20);
             });
 
             it(@"should set a structure", ^{
                 expect(model).toRespondTo(@selector(setFrame:));
 
-                [model setFrame:CGRectInfinite];
+                model.frame = CGRectInfinite;
                 expect([model frame]).toEqual(CGRectInfinite);
             });
         });
@@ -305,7 +305,7 @@ SpecBegin(PROMutableModel)
                     change = NSKeyValueChangeSetting;
 
                     NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
-                    [model setSubModels:subModels];
+                    model.subModels = subModels;
                 });
 
                 it(@"should generate notification for inserting", ^{
@@ -344,7 +344,7 @@ SpecBegin(PROMutableModel)
                     }
                 ];
 
-                [model setName:newName];
+                model.name = newName;
             });
 
             it(@"should generate KVO notification for setting a primitive", ^{
@@ -361,7 +361,7 @@ SpecBegin(PROMutableModel)
                     }
                 ];
 
-                [model setLongValue:newValue];
+                model.longValue = newValue;
             });
 
             it(@"should generate KVO notification for setting a structure", ^{
@@ -378,7 +378,7 @@ SpecBegin(PROMutableModel)
                     }
                 ];
 
-                [model setFrame:newRect];
+                model.frame = newRect;
             });
         });
 
@@ -429,12 +429,12 @@ SpecBegin(PROMutableModel)
 
     describe(@"mutable model with model controller", ^{
         __block MutabilityTestModelController *modelController = nil;
-        __block id model = nil;
+        __block MutabilityTestModel<PROMutableModel> *model = nil;
 
         before(^{
             modelController = [[MutabilityTestModelController alloc] initWithModel:immutableModel];
 
-            model = [[PROMutableModel alloc] initWithModelController:modelController];
+            model = (id)[[PROMutableModel alloc] initWithModelController:modelController];
             expect(model).not.toBeNil();
         });
 
@@ -456,7 +456,7 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should save to model controller", ^{
-            [model setName:@"fizzbuzz"];
+            model.name = @"fizzbuzz";
 
             __block NSError *error = nil;
             expect([model save:&error]).toBeTruthy();
@@ -466,7 +466,7 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should fail to save if model controller conflicts", ^{
-            [model setName:@"fizzbuzz"];
+            model.name = @"fizzbuzz";
 
             PROTransformation *nameTransformation = [immutableModel transformationForKey:@"name" value:@"fuzz"];
             expect([modelController performTransformation:nameTransformation error:NULL]).toBeTruthy();
@@ -479,10 +479,10 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should save multiple changes to model controller", ^{
-            [model setName:@"fizzbuzz"];
+            model.name = @"fizzbuzz";
 
             NSArray *newSubArray = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
-            [model setSubArray:newSubArray];
+            model.subArray = newSubArray;
 
             __block NSError *error = nil;
             expect([model save:&error]).toBeTruthy();
@@ -645,7 +645,7 @@ SpecBegin(PROMutableModel)
                 });
 
                 it(@"should generate set notification for unique transformation with unsaved changes", ^{
-                    [model setName:@"fizzbuzzfoobar"];
+                    model.name = @"fizzbuzzfoobar";
 
                     change = NSKeyValueChangeSetting;
 
@@ -665,7 +665,7 @@ SpecBegin(PROMutableModel)
                 });
 
                 it(@"should generate insertion notification for insertion transformation with unsaved changes", ^{
-                    [model setName:@"fizzbuzzfoobar"];
+                    model.name = @"fizzbuzzfoobar";
 
                     NSUInteger index = [[model subModels] count];
 
@@ -689,7 +689,7 @@ SpecBegin(PROMutableModel)
                 });
 
                 it(@"should generate removal notification for removal transformation with unsaved changes", ^{
-                    [model setName:@"fizzbuzzfoobar"];
+                    model.name = @"fizzbuzzfoobar";
 
                     NSUInteger index = 0;
 
@@ -716,7 +716,7 @@ SpecBegin(PROMutableModel)
                 });
 
                 it(@"should generate replacement notification for indexed transformation with unsaved changes", ^{
-                    [model setName:@"fizzbuzzfoobar"];
+                    model.name = @"fizzbuzzfoobar";
 
                     NSUInteger index = 0;
 
