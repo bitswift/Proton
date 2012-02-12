@@ -9,12 +9,12 @@
 #import "PROMutableModel.h"
 #import "EXTRuntimeExtensions.h"
 #import "EXTScope.h"
+#import "NSArray+HigherOrderAdditions.h"
 #import "PROAssert.h"
 #import "PROIndexedTransformation.h"
 #import "PROInsertionTransformation.h"
-#import "PROKeyedTransformation.h"
 #import "PROKeyValueCodingMacros.h"
-#import "PROKeyValueObserver.h"
+#import "PROKeyedTransformation.h"
 #import "PROLogging.h"
 #import "PROModel.h"
 #import "PROModelController.h"
@@ -25,7 +25,6 @@
 #import "PROTransformationLog.h"
 #import "PROTransformationLogEntry.h"
 #import "PROUniqueTransformation.h"
-#import "NSArray+HigherOrderAdditions.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
 
@@ -58,12 +57,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
      * <m_transformationLog> after <m_originalModelLogEntry>.
      */
     PROModel *m_latestModel;
-
-    /**
-     * Observes the receiver's <modelController> for changes to its
-     * <[PROModelController model]>.
-     */
-    PROKeyValueObserver *m_modelControllerObserver;
 
     /**
      * The log entry corresponding to the version of the model that was
@@ -134,15 +127,32 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)performTransformation:(PROTransformation *)transformation forKey:(NSString *)key;
 
 /**
- * Attempts to rebase onto the latest version of the <modelController>'s model.
- * Returns whether the rebase succeeded.
+ * Invoked when the receiver's <modelController> just completed
+ * a transformation.
+ */
+- (void)modelControllerDidPerformTransformation:(NSNotification *)notification;
+
+/**
+ * Attempts to rebase the receiver's changes on top of the given model. Returns
+ * whether the rebase succeeded.
  *
  * This method does not post any notifications.
  *
+ * @param newModel The model to rebase onto.
+ * @param oldModel The original model, on which `transformation` was applied,
+ * resulting in `newModel`.
+ * @param transformation A transformation that describes what changed between
+ * the previous version of the model and `newModel`.
  * @param error If this is not `NULL` and the method returns `NO`, this may be
  * set to the error that occurred.
  */
-- (BOOL)rebaseFromModelController:(NSError **)error;
+- (BOOL)rebaseOntoModel:(PROModel *)newModel oldModel:(PROModel *)oldModel transformation:(PROTransformation *)transformation error:(NSError **)error;
+
+/**
+ * A set of blocks to pass to <[PROTransformation
+ * applyBlocks:transformationResult:keyPath:]> to implement rebasing behavior.
+ */
+- (NSDictionary *)rebasingTransformationBlocks;
 
 @end
 
@@ -650,42 +660,18 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     m_modelController = modelController;
     m_transformationLog = [[PROTransformationLog alloc] initWithLogEntry:m_originalModelLogEntry];
 
-    __weak PROMutableModel *weakSelf = self;
-
-    m_modelControllerObserver = [[PROKeyValueObserver alloc]
-        initWithTarget:m_modelController
-        keyPath:PROKeyForObject(m_modelController, model)
-        block:^(NSDictionary *changes){
-            NSError *error = nil;
-            if ([weakSelf rebaseFromModelController:&error]) {
-                [[NSNotificationCenter defaultCenter]
-                    postNotificationName:PROMutableModelDidRebaseFromModelControllerNotification
-                    object:weakSelf
-                ];
-            } else {
-                NSDictionary *userInfo = nil;
-                if (error)
-                    userInfo = [NSDictionary dictionaryWithObject:error forKey:PROMutableModelRebaseErrorKey];
-
-                [[NSNotificationCenter defaultCenter]
-                    postNotificationName:PROMutableModelRebaseFromModelControllerFailedNotification
-                    object:weakSelf
-                    userInfo:userInfo
-                ];
-            }
-        }
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+        selector:@selector(modelControllerDidPerformTransformation:)
+        name:PROModelControllerDidPerformTransformationNotification
+        object:modelController
     ];
-
-    // dispatch to our queue
-    m_modelControllerObserver.queue = m_dispatchQueue;
 
     return self;
 }
 
 - (void)dealloc {
-    // tear down the observer before the controller
-    m_modelControllerObserver = nil;
-    m_modelController = nil;
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark Transformation
@@ -708,34 +694,127 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     m_latestModel = [newModel copy];
 }
 
-#pragma mark Rebase
+#pragma mark Rebasing
 
-- (BOOL)rebaseFromModelController:(NSError **)error; {
-    __block BOOL success = YES;
-    __block NSError *strongError = nil;
-
-    [m_dispatchQueue runSynchronously:^{
-        PROMultipleTransformation *transformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
-
-        PROModel *newModel = m_modelController.model;
-        if (!newModel) {
-            success = NO;
-            return;
+- (NSDictionary *)rebasingTransformationBlocks; {
+    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(id value, NSString *keyPath){
+        if (!keyPath) {
+            // we can set a new value for 'self' (by setting the latest model),
+            // but we can't generate KVO for it
+            m_latestModel = value;
+            return NO;
         }
 
-        PROModel *rebasedModel = [transformation transform:newModel error:&strongError];
+        [self setValue:value forKeyPath:keyPath];
+        return YES;
+    };
+
+    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^(NSString *keyPath){
+        return [self mutableArrayValueForKeyPath:keyPath];
+    };
+
+    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^(id value, NSString *keyPath){
+        // we don't need to wrap values
+        return value;
+    };
+
+    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+        id value = [[self valueForKeyPath:keyPath] objectAtIndex:index];
+        if ([value isKindOfClass:[PROMutableModel class]])
+            return [value rebasingTransformationBlocks];
+        else
+            return blocks;
+    };
+
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+        [transformationNewValueForKeyPathBlock copy], PROTransformationNewValueForKeyPathBlockKey,
+        [transformationMutableArrayForKeyPathBlock copy], PROTransformationMutableArrayForKeyPathBlockKey,
+        [transformationWrappedValueForKeyPathBlock copy], PROTransformationWrappedValueForKeyPathBlockKey,
+        [transformationBlocksForIndexAtKeyPathBlock copy], PROTransformationBlocksForIndexAtKeyPathBlockKey,
+        nil
+    ];
+}
+
+- (BOOL)rebaseOntoModel:(PROModel *)newModel oldModel:(PROModel *)oldModel transformation:(PROTransformation *)transformation error:(NSError **)error; {
+    NSParameterAssert(newModel != nil);
+    NSParameterAssert(oldModel != nil);
+    NSParameterAssert(transformation != nil);
+
+    NSAssert(m_dispatchQueue.currentQueue, @"%s should only be invoked while on the dispatch queue", __func__);
+
+    // if we have any transformations, we need to unwind before attempting to
+    // rebase
+    BOOL needsUnwind = ![m_originalModelLogEntry isEqual:m_transformationLog.latestLogEntry];
+    PROModel *rebasedModel;
+
+    if (!needsUnwind) {
+        rebasedModel = newModel;
+    } else {
+        PROMultipleTransformation *logTransformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
+
+        // unwind all the way back to our original model
+        NSError *localError = nil; 
+        oldModel = [logTransformation.reverseTransformation transform:m_latestModel error:&localError];
+        if (!PROAssert(oldModel, @"Could not unwind latest model of %@: %@", self, localError)) {
+            if (error)
+                *error = localError;
+
+            return NO;
+        }
+
+        NSArray *newTransformations = [NSArray arrayWithObjects:transformation, logTransformation, nil];
+        transformation = [[PROMultipleTransformation alloc] initWithTransformations:newTransformations];
+
+        // make sure we can actually apply everything together
+        rebasedModel = [transformation transform:oldModel error:error];
         if (!rebasedModel) {
-            success = NO;
-            return;
+            return NO;
         }
+    }
 
-        m_latestModel = rebasedModel;
+    m_latestModel = oldModel;
+
+    NSDictionary *blocks = [self rebasingTransformationBlocks];
+
+    // apply the new transformation from the model controller
+    PROAssert([transformation applyBlocks:blocks transformationResult:rebasedModel], @"Could not apply transformation %@ to %@", transformation, self);
+    
+    m_latestModel = rebasedModel;
+    return YES;
+}
+
+- (void)modelControllerDidPerformTransformation:(NSNotification *)notification; {
+    [m_dispatchQueue runSynchronously:^{
+        PROModel *newModel = [notification.userInfo objectForKey:PROModelControllerNewModelKey];
+        if (!PROAssert(newModel, @"Notification did not contain a new model object: %@", notification))
+            return;
+
+        PROModel *oldModel = [notification.userInfo objectForKey:PROModelControllerOldModelKey];
+        if (!PROAssert(oldModel, @"Notification did not contain an old model object: %@", notification))
+            return;
+
+        PROTransformation *transformation = [notification.userInfo objectForKey:PROModelControllerTransformationKey];
+        if (!PROAssert(transformation, @"Notification did not contain a transformation: %@", notification))
+            return;
+
+        NSError *error = nil;
+        if ([self rebaseOntoModel:newModel oldModel:oldModel transformation:transformation error:&error]) {
+            [[NSNotificationCenter defaultCenter]
+                postNotificationName:PROMutableModelDidRebaseFromModelControllerNotification
+                object:self
+            ];
+        } else {
+            NSDictionary *userInfo = nil;
+            if (error)
+                userInfo = [NSDictionary dictionaryWithObject:error forKey:PROMutableModelRebaseErrorKey];
+
+            [[NSNotificationCenter defaultCenter]
+                postNotificationName:PROMutableModelRebaseFromModelControllerFailedNotification
+                object:self
+                userInfo:userInfo
+            ];
+        }
     }];
-
-    if (strongError && error)
-        *error = strongError;
-
-    return success;
 }
 
 #pragma mark Saving
@@ -901,6 +980,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 #pragma mark NSObject protocol
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p>( modelController = %@, model = %@ )", [self class], (__bridge void *)self, self.modelController, self.latestModel];
+}
 
 - (NSUInteger)hash {
     return [self.latestModel hash];
