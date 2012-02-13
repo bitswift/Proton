@@ -190,9 +190,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 + (Class)mutableModelClassForModelClass:(Class)modelClass; {
-    NSParameterAssert([modelClass isSubclassOfClass:[PROModel class]] || [modelClass isSubclassOfClass:[PROMutableModel class]]);
+    NSParameterAssert([modelClass isSubclassOfClass:[PROModel class]]);
 
-    if ([modelClass isEqual:[PROModel class]] || [modelClass isEqual:[PROMutableModel class]]) {
+    if ([modelClass isEqual:[PROModel class]]) {
         return [PROMutableModel class];
     }
 
