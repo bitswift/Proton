@@ -216,7 +216,7 @@ SpecBegin(NSUndoManagerAdditions)
 
             @autoreleasepool {
                 [undoManager addGroupingWithActionName:nil usingBlock:^{
-                    [weakManager performBlock:block registeringUndoWithBlock:block];
+                    [weakManager registerUndoWithBlock:block redoBlock:block];
                     return YES;
                 }];
 
@@ -235,7 +235,7 @@ SpecBegin(NSUndoManagerAdditions)
 
                 @autoreleasepool {
                     [undoManager addGroupingWithActionName:nil usingBlock:^{
-                        [weakManager performWithTarget:weakObject block:block registeringUndoWithBlock:block];
+                        [weakManager registerUndoWithTarget:weakObject block:block redoBlock:block];
                         return YES;
                     }];
 
@@ -253,7 +253,7 @@ SpecBegin(NSUndoManagerAdditions)
 
                 @autoreleasepool {
                     [undoManager addGroupingWithActionName:nil usingBlock:^{
-                        [weakManager performWithTarget:weakObject block:block registeringUndoWithBlock:block];
+                        [weakManager registerUndoWithTarget:weakObject block:block redoBlock:block];
                         return YES;
                     }];
 
@@ -288,19 +288,19 @@ SpecBegin(NSUndoManagerAdditions)
         describe(@"without target", ^{
             before(^{
                 [undoManager addGroupingWithActionName:nil usingBlock:^{
-                    [weakManager performBlock:incrementBlock registeringUndoWithBlock:decrementBlock];
+                    [weakManager registerUndoWithBlock:incrementBlock redoBlock:decrementBlock];
                     return YES;
                 }];
             });
 
             it(@"should be undoable", ^{
-                expect(changeCount).toEqual(1);
+                expect(changeCount).toEqual(0);
                 expect(undoManager.canUndo).toBeTruthy();
                 expect(undoManager.canRedo).toBeFalsy();
 
                 [undoManager undo];
 
-                expect(changeCount).toEqual(0);
+                expect(changeCount).toEqual(1);
             });
 
             it(@"should be redoable", ^{
@@ -311,7 +311,7 @@ SpecBegin(NSUndoManagerAdditions)
 
                 [undoManager redo];
 
-                expect(changeCount).toEqual(1);
+                expect(changeCount).toEqual(0);
             });
 
             it(@"should be undoable after redo", ^{
@@ -323,26 +323,26 @@ SpecBegin(NSUndoManagerAdditions)
 
                 [undoManager undo];
 
-                expect(changeCount).toEqual(0);
+                expect(changeCount).toEqual(1);
             });
         });
 
         describe(@"with target", ^{
             before(^{
                 [undoManager addGroupingWithActionName:nil usingBlock:^{
-                    [weakManager performWithTarget:incrementBlock block:incrementBlock registeringUndoWithBlock:decrementBlock];
+                    [weakManager registerUndoWithTarget:incrementBlock block:incrementBlock redoBlock:decrementBlock];
                     return YES;
                 }];
             });
 
             it(@"should be undoable", ^{
-                expect(changeCount).toEqual(1);
+                expect(changeCount).toEqual(0);
                 expect(undoManager.canUndo).toBeTruthy();
                 expect(undoManager.canRedo).toBeFalsy();
 
                 [undoManager undo];
 
-                expect(changeCount).toEqual(0);
+                expect(changeCount).toEqual(1);
             });
 
             it(@"should be redoable", ^{
@@ -353,7 +353,7 @@ SpecBegin(NSUndoManagerAdditions)
 
                 [undoManager redo];
 
-                expect(changeCount).toEqual(1);
+                expect(changeCount).toEqual(0);
             });
 
             it(@"should be undoable after redo", ^{
@@ -365,7 +365,7 @@ SpecBegin(NSUndoManagerAdditions)
 
                 [undoManager undo];
 
-                expect(changeCount).toEqual(0);
+                expect(changeCount).toEqual(1);
             });
 
             it(@"should be removable with target", ^{
@@ -382,24 +382,23 @@ SpecBegin(NSUndoManagerAdditions)
                 expect(testObj).not.toBeNil();
 
                 [undoManager addGroupingWithActionName:nil usingBlock:^{
-                    [testObj incrementChangeCountWithUndoManager:weakManager];
-
-                    [weakManager performWithTarget:incrementBlock block:incrementBlock registeringUndoWithBlock:decrementBlock];
+                    [weakManager registerUndoWithTarget:testObj selector:@selector(incrementChangeCountWithUndoManager:) object:weakManager];
+                    [weakManager registerUndoWithTarget:incrementBlock block:incrementBlock redoBlock:decrementBlock];
                     return YES;
                 }];
             });
 
             it(@"should be undoable", ^{
-                expect(changeCount).toEqual(1);
-                expect(testObj.changeCount).toEqual(1);
+                expect(changeCount).toEqual(0);
+                expect(testObj.changeCount).toEqual(0);
 
                 expect(undoManager.canUndo).toBeTruthy();
                 expect(undoManager.canRedo).toBeFalsy();
 
                 [undoManager undo];
 
-                expect(changeCount).toEqual(0);
-                expect(testObj.changeCount).toEqual(0);
+                expect(changeCount).toEqual(1);
+                expect(testObj.changeCount).toEqual(1);
             });
 
             it(@"should be redoable", ^{
@@ -410,8 +409,8 @@ SpecBegin(NSUndoManagerAdditions)
 
                 [undoManager redo];
 
-                expect(changeCount).toEqual(1);
-                expect(testObj.changeCount).toEqual(1);
+                expect(changeCount).toEqual(0);
+                expect(testObj.changeCount).toEqual(0);
             });
 
             it(@"should be undoable after redo", ^{
@@ -423,8 +422,8 @@ SpecBegin(NSUndoManagerAdditions)
 
                 [undoManager undo];
 
-                expect(changeCount).toEqual(0);
-                expect(testObj.changeCount).toEqual(0);
+                expect(changeCount).toEqual(1);
+                expect(testObj.changeCount).toEqual(1);
             });
         });
     });
