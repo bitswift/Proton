@@ -18,6 +18,11 @@
     #define rectValue CGRectValue
 #endif
 
+@interface MutabilityTestSubModel : PROModel
+@property (nonatomic, assign, getter = isEnabled) BOOL enabled;
+
++ (id)enabledSubModel;
+@end
 
 @interface MutabilityTestModel : PROModel
 @property (nonatomic, copy) NSArray *subModels;
@@ -28,30 +33,12 @@
 @property (nonatomic, assign) CGRect frame;
 @end
 
-@interface MutabilityTestSubModel : MutabilityTestModel
-@property (nonatomic, assign, getter = isEnabled) BOOL enabled;
-
-+ (id)enabledSubModel;
-@end
-
-@interface MutabilityTestSubSubModel : MutabilityTestModel
-@property (nonatomic, strong) NSNumber *number;
-
-+ (id)enabledSubSubModel;
-@end
-
-
 @interface MutabilityTestModelController : PROModelController
 @property (copy) MutabilityTestModel *model;
 @property (nonatomic, strong) NSArray *subModelControllers;
 @end
 
 @interface MutabilityTestSubModelController : PROModelController
-@property (copy) MutabilityTestSubModel *model;
-@end
-
-@interface MutabilityTestSubSubModelController :PROModelController
-@property (copy) MutabilityTestSubSubModel *model;
 @end
 
 SpecBegin(PROMutableModel)
@@ -478,36 +465,6 @@ SpecBegin(PROMutableModel)
             expect([modelController.model name]).toEqual(@"fizzbuzz");
         });
 
-        it(@"should save to model controller while the model controller's model is observed", ^{
-            id subSubModel = [[PROMutableModel alloc] initWithModel:[[MutabilityTestSubSubModel alloc] init]];
-            NSArray *subSubModels = [NSArray arrayWithObject:[[PROMutableModel alloc] initWithModel:subSubModel]];
-
-            id subModel = [[MutabilityTestSubModel alloc] init];
-            [subModel setSubModels:subSubModels];
-            NSArray *subModels = [NSArray arrayWithObject:subModel];
-            [model setSubModels:subModels];
-
-            model = (id)[[PROMutableModel alloc] initWithModelController:[model modelController]];
-
-            __attribute__((objc_precise_lifetime, unused)) PROKeyValueObserver *observer = [[PROKeyValueObserver alloc]
-                initWithTarget:modelController
-                keyPath:@"model"
-                options:NSKeyValueObservingOptionNew
-                block:^(NSDictionary *changes) {
-                    expect([subSubModel number]).toEqual(1);
-                    expect([modelController.model name]).toEqual([model name]);
-                }
-            ];
-
-            [subSubModel setNumber:[NSNumber numberWithInt:1]];
-
-            __block NSError *error = nil;
-            expect([subSubModel save:&error]).toBeTruthy();
-            expect(error).toBeNil();
-
-            expect([subModel number]).isGoing.toEqual(1);
-        });
-
         it(@"should fail to save if model controller conflicts", ^{
             model.name = @"fizzbuzz";
 
@@ -624,8 +581,11 @@ SpecBegin(PROMutableModel)
         });
 
         describe(@"with submodels", ^{
-            it(@"should return an array with sub models", ^{
+            it(@"should return an array with sub-mutable models", ^{
                 expect([model subModels]).toEqual([immutableModel subModels]);
+                [[model valueForKey:@"subModels"] enumerateObjectsUsingBlock:^(id subModel, NSUInteger idx, BOOL *stop) {
+                    expect(subModel).toBeKindOf([PROMutableModel class]);
+                }];
             });
         });
 
@@ -776,15 +736,6 @@ SpecBegin(PROMutableModel)
 
 SpecEnd
 
-@implementation MutabilityTestSubSubModel
-@synthesize number = m_number;
-
-+ (id)enabledSubSubModel; {
-    NSDictionary *subModelDictionary = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:0] forKey:@"number"];
-    return [[self alloc] initWithDictionary:subModelDictionary error:NULL];
-}
-@end
-
 @implementation MutabilityTestSubModel
 @synthesize enabled = m_enabled;
 
@@ -825,5 +776,4 @@ SpecEnd
 @end
 
 @implementation MutabilityTestSubModelController
-@dynamic model;
 @end
