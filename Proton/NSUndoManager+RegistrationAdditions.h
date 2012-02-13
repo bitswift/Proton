@@ -27,40 +27,6 @@
 - (BOOL)addGroupingWithActionName:(NSString *)actionName usingBlock:(BOOL (^)(void))block;
 
 /**
- * Executes `block`, and registers `undoBlock` for undoing it. If undone,
- * `block` will automatically be registered as the redo operation as well.
- *
- * Blocks added through this method cannot be removed with
- * `removeAllActionsWithTarget:`. If you will need to unregister the block
- * later, use <performWithTarget:block:registeringUndoWithBlock:> instead.
- *
- * @param block A block to execute. This will also be the redo action.
- * @param undoBlock The block representing the actions required to undo `block`.
- *
- * @warning **Important:** Because of how undo managers work, you cannot embed
- * `NSInvocation`-based undo registration within `block` or `undoBlock`.
- * Instead, to register blocks alongside or with invocations, register them
- * separately, but put them into the same undo group.
- */
-- (void)performBlock:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock;
-
-/**
- * Executes `block`, and registers `undoBlock` for undoing it. If undone,
- * `block` will automatically be registered as the redo operation as well.
- *
- * @param target A target with which to associate the block. This is only used
- * to support a later call to `removeAllActionsWithTarget:`.
- * @param block A block to execute. This will also be the redo action.
- * @param undoBlock The block representing the actions required to undo `block`.
- *
- * @warning **Important:** Because of how undo managers work, you cannot embed
- * `NSInvocation`-based undo registration within `block` or `undoBlock`.
- * Instead, to register blocks alongside or with invocations, register them
- * separately, but put them into the same undo group.
- */
-- (void)performWithTarget:(id)target block:(void (^)(void))block registeringUndoWithBlock:(void (^)(void))undoBlock;
-
-/**
  * Registers a single undo operation, such that performing an undo will invoke
  * `block`.
  *
@@ -68,11 +34,11 @@
  * `removeAllActionsWithTarget:`. If you will need to unregister the block
  * later, use <registerUndoWithTarget:block:> instead.
  *
- * @param block The block representing the actions required to undo the last
+ * @param block A block representing the actions required to undo the last
  * operation.
  *
  * @warning **Important:** Because of how undo managers work, you cannot embed
- * `NSInvocation`-based undo registration within `block`. * Instead, to register
+ * `NSInvocation`-based undo registration within `block`. Instead, to register
  * blocks alongside or with invocations, register them separately, but put them
  * into the same undo group.
  */
@@ -84,7 +50,7 @@
  *
  * @param target A target with which to associate the block. This is only used
  * to support a later call to `removeAllActionsWithTarget:`.
- * @param block The block representing the actions required to undo the last
+ * @param block A block representing the actions required to undo the last
  * operation.
  *
  * @warning **Important:** Because of how undo managers work, you cannot embed
@@ -93,5 +59,43 @@
  * into the same undo group.
  */
 - (void)registerUndoWithTarget:(id)target block:(void (^)(void))block;
+
+/**
+ * Registers a single undo operation, such that performing an undo will invoke
+ * `undoBlock`, and then register `redoBlock` for redo.
+ *
+ * Blocks added through this method cannot be removed with
+ * `removeAllActionsWithTarget:`. If you will need to unregister the block
+ * later, use <registerUndoWithTarget:block:redoBlock:> instead.
+ *
+ * @param undoBlock A block representing the actions required to undo the last
+ * operation.
+ * @param redoBlock A block representing the actions required to redo the last
+ * operation (i.e., after already having undone it).
+ *
+ * @warning **Important:** Because of how undo managers work, you cannot embed
+ * `NSInvocation`-based undo registration within `block`. Instead, to register
+ * blocks alongside or with invocations, register them separately, but put them
+ * into the same undo group.
+ */
+- (void)registerUndoWithBlock:(void (^)(void))undoBlock redoBlock:(void (^)(void))redoBlock;
+
+/**
+ * Registers a single undo operation, such that performing an undo will invoke
+ * `undoBlock`, and then register `redoBlock` for redo.
+ *
+ * @param target A target with which to associate the blocks. This is only used
+ * to support a later call to `removeAllActionsWithTarget:`.
+ * @param undoBlock A block representing the actions required to undo the last
+ * operation.
+ * @param redoBlock A block representing the actions required to redo the last
+ * operation (i.e., after already having undone it).
+ *
+ * @warning **Important:** Because of how undo managers work, you cannot embed
+ * `NSInvocation`-based undo registration within `block`. Instead, to register
+ * blocks alongside or with invocations, register them separately, but put them
+ * into the same undo group.
+ */
+- (void)registerUndoWithTarget:(id)target block:(void (^)(void))undoBlock redoBlock:(void (^)(void))redoBlock;
 
 @end
