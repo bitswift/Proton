@@ -195,7 +195,7 @@
     if (!PROAssert(mutableArrayBlock, @"%@ not provided", PROTransformationMutableArrayForKeyPathBlockKey))
         return NO;
 
-    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    NSMutableArray *mutableArray = mutableArrayBlock(self, keyPath);
     NSUInteger indexCount = [self.indexes count];
     
     // we have to copy the indexes into a C array, since there's no way to
@@ -217,7 +217,7 @@
         NSUInteger index = indexes[setIndex];
         id object = [result objectAtIndex:index];
 
-        NSDictionary *newBlocks = blocksForIndexBlock(index, keyPath, blocks);
+        NSDictionary *newBlocks = blocksForIndexBlock(self, index, keyPath, blocks);
 
         BOOL success = [transformation applyBlocks:newBlocks transformationResult:object keyPath:nil];
         if (!success) {
@@ -228,7 +228,7 @@
             }
 
             // perform a replacement in the array
-            id newObject = wrappedValueBlock(object, nil);
+            id newObject = wrappedValueBlock(transformation, object, nil);
             [mutableArray replaceObjectAtIndex:index withObject:newObject];
         }
     }];
@@ -238,7 +238,7 @@
         // at the top level
         PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
         if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
-            allModelUpdatesSuccessful = newValueBlock(result, keyPath);
+            allModelUpdatesSuccessful = newValueBlock(self, result, keyPath);
         }
     }
 

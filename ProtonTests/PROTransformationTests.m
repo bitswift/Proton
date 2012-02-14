@@ -1067,43 +1067,49 @@ SpecBegin(PROTransformation)
 
             // this will only get invoked for top level or the 'array' property,
             // because we replace this block after diving down into the array
-            id newValueBlock = [^(id value, NSString *keyPath){
+            id newValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
                 id transformedModel = [transformation transform:model error:NULL];
 
                 if (keyPath) {
                     expect(keyPath).toEqual(@"array");
                     expect(value).toEqual([transformedModel valueForKeyPath:keyPath]);
+                    expect(localTransformation).not.toBeNil();
                 } else {
                     expect(value).toEqual(transformedModel);
+                    expect(localTransformation).toBeKindOf([PROUniqueTransformation class]);
                 }
 
                 newValueBlockInvoked = YES;
                 return YES;
             } copy];
 
-            id mutableArrayBlock = [^(NSString *keyPath){
+            id mutableArrayBlock = [^(PROTransformation *localTransformation, NSString *keyPath){
                 expect(keyPath).toEqual(@"array");
+                expect(localTransformation).not.toBeNil();
 
                 return mutableArray;
             } copy];
 
-            id wrappedValueBlock = [^(id value, NSString *keyPath){
+            id wrappedValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
                 expect(value).toBeKindOf([NSString class]);
                 expect(keyPath).toEqual(@"array");
+                expect(localTransformation).toBeKindOf([PROInsertionTransformation class]);
 
                 return [NSNull null];
             } copy];
 
-            id blocksForIndexBlock = [^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+            id blocksForIndexBlock = [^(PROTransformation *localTransformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
                 id transformedModel = [transformation transform:model error:NULL];
 
                 expect(keyPath).toEqual(@"array");
                 expect(index).toEqual(0);
+                expect(localTransformation).toBeKindOf([PROIndexedTransformation class]);
 
-                PROTransformationNewValueForKeyPathBlock newValueBlock = [^(id value, NSString *keyPath){
+                PROTransformationNewValueForKeyPathBlock newValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
                     nestedNewValueBlockInvoked = YES;
 
                     expect(keyPath).not.toBeNil();
+                    expect(localTransformation).not.toBeNil();
 
                     NSDictionary *transformedDictionary = [[transformedModel array] objectAtIndex:0];
                     expect(value).toEqual([transformedDictionary valueForKeyPath:keyPath]);
@@ -1196,7 +1202,7 @@ SpecBegin(PROTransformation)
         });
 
         it(@"should fail to apply unique transformation if new value block fails", ^{
-            id newValueBlock = [^(id value, NSString *keyPath){
+            id newValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
                 return NO;
             } copy];
 
@@ -1213,8 +1219,8 @@ SpecBegin(PROTransformation)
         });
 
         it(@"should fall back to replacement if nested new value block fails", ^{
-            id blocksForIndexBlock = [^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
-                id newValueBlock = [^(id value, NSString *keyPath){
+            id blocksForIndexBlock = [^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+                id newValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
                     return NO;
                 } copy];
 
@@ -1225,7 +1231,7 @@ SpecBegin(PROTransformation)
 
             [blocks setObject:blocksForIndexBlock forKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
 
-            id wrappedValueBlock = [^(id value, NSString *keyPath){
+            id wrappedValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
                 expect(value).toBeKindOf([NSDictionary class]);
                 return [value allKeys];
             } copy];

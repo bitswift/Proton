@@ -223,7 +223,7 @@
         // at the top level
         PROTransformationNewValueForKeyPathBlock newValueBlock = [blocks objectForKey:PROTransformationNewValueForKeyPathBlockKey];
         if (PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
-            allModelUpdatesSuccessful = newValueBlock(result, keyPath);
+            allModelUpdatesSuccessful = newValueBlock(self, result, keyPath);
         }
     }
 

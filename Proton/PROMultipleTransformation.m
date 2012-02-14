@@ -133,7 +133,7 @@
             if (!PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey)) {
                 return NO;
             } else {
-                return newValueBlock(result, keyPath);
+                return newValueBlock(transformation, result, keyPath);
             }
         }
     }

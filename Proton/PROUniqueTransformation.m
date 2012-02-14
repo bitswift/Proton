@@ -92,7 +92,7 @@
     if (!PROAssert(newValueBlock, @"%@ not provided", PROTransformationNewValueForKeyPathBlockKey, __func__))
         return NO;
 
-    return newValueBlock(result, keyPath);
+    return newValueBlock(self, result, keyPath);
 }
 
 #pragma mark NSCoding
