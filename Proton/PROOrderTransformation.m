@@ -122,7 +122,7 @@
     if (!PROAssert(keyPath, @"No key path for %@", self))
         return NO;
 
-    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    NSMutableArray *mutableArray = mutableArrayBlock(self, keyPath);
     NSArray *movedObjects = [mutableArray objectsAtIndexes:self.startIndexes];
 
     [mutableArray removeObjectsAtIndexes:self.startIndexes];

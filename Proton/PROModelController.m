@@ -677,7 +677,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
 }
 
 - (NSDictionary *)transformationBlocks; {
-    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(id value, NSString *keyPath){
+    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
         if (!keyPath) {
             // this was a change or replacement of a top-level model property
             self.model = value;
@@ -705,7 +705,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
         return YES;
     };
 
-    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^ id (NSString *keyPath){
+    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^ id (PROTransformation *transformation, NSString *keyPath){
         NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
         if (!controllersKey)
             return nil;
@@ -713,7 +713,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
         return [self mutableArrayValueForKey:controllersKey];
     };
 
-    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^ id (id value, NSString *keyPath){
+    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^ id (PROTransformation *transformation, id value, NSString *keyPath){
         NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
         if (!controllersKey)
             return nil;
@@ -722,7 +722,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
         return [[controllerClass alloc] initWithModel:value];
     };
 
-    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
         NSString *controllersKey = [[[self class] modelControllerKeysByModelKeyPath] objectForKey:keyPath];
         if (!controllersKey)
             return blocks;

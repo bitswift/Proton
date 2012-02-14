@@ -19,12 +19,13 @@
  * This type of block should be associated with
  * <PROTransformationNewValueForKeyPathBlockKey>.
  *
+ * @param transformation The transformation currently being performed.
  * @param value The value that was set.
  * @param keyPath The key path of the value, relative to the last array. This
  * will be `nil` if the value is at the top level or directly contained in an
  * array.
  */
-typedef BOOL (^PROTransformationNewValueForKeyPathBlock)(id value, NSString *keyPath);
+typedef BOOL (^PROTransformationNewValueForKeyPathBlock)(PROTransformation *transformation, id value, NSString *keyPath);
 
 /**
  * Associated with a <PROTransformationNewValueForKeyPathBlock> in the
@@ -43,10 +44,11 @@ extern NSString * const PROTransformationNewValueForKeyPathBlockKey;
  * This type of block should be associated with
  * <PROTransformationMutableArrayForKeyPathBlockKey>.
  *
+ * @param transformation The transformation currently being performed.
  * @param keyPath A key path containing an array, which had a transformation
  * applied to it. This key path is relative to the last array.
  */
-typedef NSMutableArray *(^PROTransformationMutableArrayForKeyPathBlock)(NSString *keyPath);
+typedef NSMutableArray *(^PROTransformationMutableArrayForKeyPathBlock)(PROTransformation *transformation, NSString *keyPath);
 
 /**
  * Associated with a <PROTransformationMutableArrayForKeyPathBlock> in the
@@ -65,12 +67,13 @@ extern NSString * const PROTransformationMutableArrayForKeyPathBlockKey;
  * This type of block should be associated with
  * <PROTransformationWrappedValueForKeyPathBlockKey>.
  *
+ * @param transformation The transformation currently being performed.
  * @param value The value object to wrap.
  * @param keyPath The key path of the mutable array being inserted into,
  * relative to the array previous from it. This will be `nil` if the mutable
  * array is at the top level or itself directly contained in an array.
  */
-typedef id (^PROTransformationWrappedValueForKeyPathBlock)(id value, NSString *keyPath);
+typedef id (^PROTransformationWrappedValueForKeyPathBlock)(PROTransformation *transformation, id value, NSString *keyPath);
 
 /**
  * Associated with a <PROTransformationWrappedValueForKeyPathBlock> in the
@@ -90,6 +93,7 @@ extern NSString * const PROTransformationWrappedValueForKeyPathBlockKey;
  * This type of block should be associated with
  * <PROTransformationBlocksForIndexAtKeyPathBlockKey>.
  *
+ * @param transformation The transformation currently being performed.
  * @param index The index that the blocks returned should be defined relative
  * to.
  * @param keyPath The key path of the array containing `index`, relative to the
@@ -97,7 +101,7 @@ extern NSString * const PROTransformationWrappedValueForKeyPathBlockKey;
  * @param originalBlocks The original dictionary of blocks, including this
  * block.
  */
-typedef NSDictionary *(^PROTransformationBlocksForIndexAtKeyPathBlock)(NSUInteger index, NSString *keyPath, NSDictionary *originalBlocks);
+typedef NSDictionary *(^PROTransformationBlocksForIndexAtKeyPathBlock)(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *originalBlocks);
 
 /**
  * Associated with a <PROTransformationBlocksForIndexAtKeyPathBlock> in the

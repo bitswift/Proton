@@ -704,7 +704,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark Rebasing
 
 - (NSDictionary *)rebasingTransformationBlocks; {
-    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(id value, NSString *keyPath){
+    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
         if (!keyPath) {
             // we can set a new value for 'self' (by setting the latest model),
             // but we can't generate KVO for it
@@ -716,16 +716,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         return YES;
     };
 
-    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^(NSString *keyPath){
+    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^(PROTransformation *transformation, NSString *keyPath){
         return [self mutableArrayValueForKeyPath:keyPath];
     };
 
-    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^(id value, NSString *keyPath){
+    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
         // we don't need to wrap values
         return value;
     };
 
-    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
         id value = [[self valueForKeyPath:keyPath] objectAtIndex:index];
         if ([value isKindOfClass:[PROMutableModel class]])
             return [value rebasingTransformationBlocks];
