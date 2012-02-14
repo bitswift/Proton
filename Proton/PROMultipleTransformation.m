@@ -10,7 +10,6 @@
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
-#import "PROModelController.h"
 
 @implementation PROMultipleTransformation
 

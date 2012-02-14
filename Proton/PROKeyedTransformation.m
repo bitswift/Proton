@@ -12,7 +12,6 @@
 #import "PROAssert.h"
 #import "PROKeyedObject.h"
 #import "PROModel.h"
-#import "PROModelController.h"
 
 @implementation PROKeyedTransformation
 

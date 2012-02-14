@@ -7,7 +7,6 @@
 //
 
 #import "PROTransformation.h"
-#import "PROModelController.h"
 
 NSString * const PROTransformationNewValueForKeyPathBlockKey = @"PROTransformationNewValueForKeyPathBlock";
 NSString * const PROTransformationMutableArrayForKeyPathBlockKey = @"PROTransformationMutableArrayForKeyPathBlock";

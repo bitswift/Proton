@@ -18,8 +18,6 @@
 
 #pragma mark Properties
 
-@dynamic latestLogEntry;
-
 @synthesize transformationResultInfoByLogEntry = m_transformationResultInfoByLogEntry;
 
 - (NSMutableDictionary *)transformationResultInfoByLogEntry {
@@ -44,17 +42,12 @@
     if (!self)
         return nil;
 
-    m_modelController = [coder decodeObjectForKey:PROKeyForObject(self, modelController)];
     m_transformationResultInfoByLogEntry = [[coder decodeObjectForKey:PROKeyForObject(self, transformationResultInfoByLogEntry)] mutableCopy];
-
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
     [super encodeWithCoder:coder];
-
-    if (self.modelController)
-        [coder encodeObject:self.modelController forKey:PROKeyForObject(self, modelController)];
 
     NSOrderedSet *archivableEntries = self.archivableLogEntries;
 
