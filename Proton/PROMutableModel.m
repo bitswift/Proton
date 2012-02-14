@@ -206,6 +206,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (NSDictionary *)transformationBlocks;
 
 /**
+ * Enumerates over a value obtained from <childMutableModelsByKey>, which may be
+ * a single object or one of a few collection types, in a uniform way.
+ *
+ * @param childModels A value from <childMutableModelsByKey>.
+ * @param block A block to apply to every element in `childModels` (or
+ * `childModels` itself, if it's a single object).
+ */
+- (void)enumerateChildMutableModels:(id)childModels usingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block;
+
+/**
  * Creates new <PROMutableModel> objects to correspond to those at the given key
  * path in the given model.
  *
@@ -226,6 +236,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * @param logEntry The log entry that the result info should be associated with.
  */
 - (void)saveTransformationResultInfoForLogEntry:(PROTransformationLogEntry *)logEntry;
+
+/**
+ * Reverts each child mutable model to the log entry corresponding to the given
+ * log entry.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
+ */
+- (void)restoreMutableModelsWithTransformationLogEntry:(PROTransformationLogEntry *)logEntry;
 
 /**
  * Generates a KVO "will change" notification for the receiver being replaced in
@@ -942,22 +961,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)dealloc {
     [self.dispatchQueue runBarrierSynchronously:^{
         // detach all children
-        void (^detachChild)(PROMutableModel *) = ^(PROMutableModel *mutableModel){
-            mutableModel.indexFromParentMutableModel = NSNotFound;
-            mutableModel.keyFromParentMutableModel = nil;
-            mutableModel.parentMutableModel = nil;
-        };
-        
         [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
-            if ([value respondsToSelector:@selector(enumerateObjectsUsingBlock:)]) {
-                [value enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
-                    detachChild(mutableModel);
-                }];
-            } else if ([value isKindOfClass:[PROMutableModel class]]) {
-                detachChild(value);
-            }
-
-            // TODO: add support for other collections
+            [self enumerateChildMutableModels:value usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+                mutableModel.indexFromParentMutableModel = NSNotFound;
+                mutableModel.keyFromParentMutableModel = nil;
+                mutableModel.parentMutableModel = nil;
+            }];
         }];
 
         [self.childMutableModelsByKey removeAllObjects];
@@ -1038,7 +1047,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         PROTransformationLogEntry *newLogEntry = self.transformationLog.latestLogEntry;
         self.immutableBackingModel = newModel;
 
-        [transformation applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil];
+        PROAssert([transformation applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil], @"Block application should never fail at top level");
         [self saveTransformationResultInfoForLogEntry:newLogEntry];
     }];
 
@@ -1046,123 +1055,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         *error = strongError;
 
     return success;
-}
-
-- (void)saveTransformationResultInfoForLogEntry:(PROTransformationLogEntry *)logEntry; {
-    // TODO
-}
-
-- (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
-    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
-
-    // replace the key with a future, so we don't perform the work of the setup
-    // unless we need it
-    PROFuture *future = nil;
-
-    // this should already be immutable, but let's make doubly-sure, since we're
-    // going to be sticking it into a future
-    value = [value copy];
-
-    id previousValue = [self.childMutableModelsByKey objectForKey:key];
-
-    // this isn't __weak because it's only referenced in the resolution of the
-    // futures below, and the futures themselves will be destroyed when we are
-    // (also, weak variables are surprisingly expensive)
-    __unsafe_unretained PROMutableModel *weakSelf = self;
-
-    if ([value isKindOfClass:[NSArray class]]) {
-        future = [PROFuture futureWithBlock:^{
-            NSMutableArray *mutableValues = [NSMutableArray arrayWithCapacity:[value count]];
-
-            [value enumerateObjectsUsingBlock:^(PROModel *model, NSUInteger index, BOOL *stop){
-                // with an array, we can also future each object, since futures
-                // are cheaper than instances of this class
-                id mutableModelFuture = [PROFuture futureWithBlock:^{
-                    PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
-
-                    mutableModel.parentMutableModel = weakSelf;
-                    mutableModel.keyFromParentMutableModel = key;
-                    mutableModel.indexFromParentMutableModel = index;
-
-                    return mutableModel;
-                }];
-
-                [mutableValues addObject:mutableModelFuture];
-            }];
-
-            return mutableValues;
-        }];
-
-        if (![previousValue isKindOfClass:[PROFuture class]]) {
-            // detach the previous models that were here
-            //
-            // TODO: this could be optimized/refactored
-            [[self mutableArrayValueForKey:key] removeAllObjects];
-        }
-    } else if ([value isKindOfClass:[NSOrderedSet class]]) {
-        future = [PROFuture futureWithBlock:^{
-            NSMutableOrderedSet *mutableValues = [NSMutableOrderedSet orderedSetWithCapacity:[value count]];
-
-            [value enumerateObjectsUsingBlock:^(PROModel *model, NSUInteger index, BOOL *stop){
-                PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
-
-                mutableModel.parentMutableModel = weakSelf;
-                mutableModel.keyFromParentMutableModel = key;
-                mutableModel.indexFromParentMutableModel = index;
-
-                [mutableValues addObject:mutableModel];
-            }];
-
-            return mutableValues;
-        }];
-
-        if (![previousValue isKindOfClass:[PROFuture class]]) {
-            // detach the previous models that were here
-            //
-            // TODO: this could be optimized/refactored
-            [[self mutableOrderedSetValueForKey:key] removeAllObjects];
-        }
-    } else if ([value isKindOfClass:[NSDictionary class]]) {
-        // TODO 
-        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
-    } else if ([value isKindOfClass:[NSSet class]]) {
-        // TODO
-        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
-    } else {
-        if (!PROAssert([value isKindOfClass:[PROModel class]], @"Unrecognized value %@ to make mutable for key \"%@\"", value, key))
-            return;
-
-        future = [PROFuture futureWithBlock:^{
-            PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:value];
-            mutableModel.parentMutableModel = weakSelf;
-            mutableModel.keyFromParentMutableModel = key;
-            mutableModel.indexFromParentMutableModel = NSNotFound;
-
-            return mutableModel;
-        }];
-
-        if (![previousValue isKindOfClass:[PROFuture class]]) {
-            PROMutableModel *previousModel = previousValue;
-
-            [previousModel->m_dispatchQueue runBarrierSynchronously:^{
-                // TODO: this code seems to repeat a lot -- refactor that shit,
-                // yo
-                previousModel.keyFromParentMutableModel = nil;
-                previousModel.indexFromParentMutableModel = NSNotFound;
-                previousModel.parentMutableModel = nil;
-            }];
-        }
-    }
-
-    [self willChangeValueForKey:key];
-    @onExit {
-        [self didChangeValueForKey:key];
-    };
-
-    if (future)
-        [self.childMutableModelsByKey setObject:future forKey:key];
-    else if (previousValue)
-        [self.childMutableModelsByKey removeObjectForKey:future];
 }
 
 - (NSDictionary *)transformationBlocks; {
@@ -1239,16 +1131,261 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     ];
 }
 
+#pragma mark Child Models
+
+- (void)enumerateChildMutableModels:(id)childModels usingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block; {
+    NSParameterAssert(childModels != nil);
+    NSParameterAssert(block != nil);
+
+    if ([childModels isKindOfClass:[NSDictionary class]]) {
+        // TODO
+        PROAssert(NO, @"A dictionary of child models is not currently supported: %@", childModels);
+    } else if ([childModels conformsToProtocol:@protocol(NSFastEnumeration)]) {
+        BOOL stop = NO;
+
+        for (PROMutableModel *mutableModel in childModels) {
+            NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"%@ should be a PROMutableModel in collection %@", mutableModel, childModels);
+
+            block(mutableModel, &stop);
+            if (stop)
+                break;
+        }
+    } else {
+        if (!PROAssert([childModels isKindOfClass:[PROMutableModel class]], @"Unknown child models object: %@", childModels))
+            return;
+
+        BOOL unused;
+        block(childModels, &unused);
+    }
+}
+
+- (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    // replace the key with a future, so we don't perform the work of the setup
+    // unless we need it
+    PROFuture *future = nil;
+
+    // this should already be immutable, but let's make doubly-sure, since we're
+    // going to be sticking it into a future
+    value = [value copy];
+
+    id previousValue = [self.childMutableModelsByKey objectForKey:key];
+    if (previousValue && ![previousValue isKindOfClass:[PROFuture class]]) {
+        // detach all previous values at this key
+        [self enumerateChildMutableModels:previousValue usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            [mutableModel->m_dispatchQueue runBarrierSynchronously:^{
+                // TODO: this code seems to repeat a lot -- refactor that shit,
+                // yo
+                mutableModel.keyFromParentMutableModel = nil;
+                mutableModel.indexFromParentMutableModel = NSNotFound;
+                mutableModel.parentMutableModel = nil;
+            }];
+        }];
+    }
+
+    // this isn't __weak because it's only referenced in the resolution of the
+    // futures below, and the futures themselves will be destroyed when we are
+    // (also, weak variables are surprisingly expensive)
+    __unsafe_unretained PROMutableModel *weakSelf = self;
+
+    if ([value isKindOfClass:[NSArray class]]) {
+        future = [PROFuture futureWithBlock:^{
+            NSMutableArray *mutableValues = [NSMutableArray arrayWithCapacity:[value count]];
+
+            [value enumerateObjectsUsingBlock:^(PROModel *model, NSUInteger index, BOOL *stop){
+                // with an array, we can also future each object, since futures
+                // are cheaper than instances of this class
+                id mutableModelFuture = [PROFuture futureWithBlock:^{
+                    PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
+
+                    mutableModel.parentMutableModel = weakSelf;
+                    mutableModel.keyFromParentMutableModel = key;
+                    mutableModel.indexFromParentMutableModel = index;
+
+                    return mutableModel;
+                }];
+
+                [mutableValues addObject:mutableModelFuture];
+            }];
+
+            return mutableValues;
+        }];
+    } else if ([value isKindOfClass:[NSOrderedSet class]]) {
+        future = [PROFuture futureWithBlock:^{
+            NSMutableOrderedSet *mutableValues = [NSMutableOrderedSet orderedSetWithCapacity:[value count]];
+
+            [value enumerateObjectsUsingBlock:^(PROModel *model, NSUInteger index, BOOL *stop){
+                PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
+
+                mutableModel.parentMutableModel = weakSelf;
+                mutableModel.keyFromParentMutableModel = key;
+                mutableModel.indexFromParentMutableModel = index;
+
+                [mutableValues addObject:mutableModel];
+            }];
+
+            return mutableValues;
+        }];
+    } else if ([value isKindOfClass:[NSDictionary class]]) {
+        // TODO 
+        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
+    } else if ([value isKindOfClass:[NSSet class]]) {
+        // TODO
+        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
+    } else {
+        if (!PROAssert([value isKindOfClass:[PROModel class]], @"Unrecognized value %@ to make mutable for key \"%@\"", value, key))
+            return;
+
+        future = [PROFuture futureWithBlock:^{
+            PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:value];
+            mutableModel.parentMutableModel = weakSelf;
+            mutableModel.keyFromParentMutableModel = key;
+            mutableModel.indexFromParentMutableModel = NSNotFound;
+
+            return mutableModel;
+        }];
+    }
+
+    [self willChangeValueForKey:key];
+    @onExit {
+        [self didChangeValueForKey:key];
+    };
+
+    if (future)
+        [self.childMutableModelsByKey setObject:future forKey:key];
+    else if (previousValue)
+        [self.childMutableModelsByKey removeObjectForKey:future];
+}
+
 #pragma mark Transformation Log
 
 - (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
-    // TODO
-    return nil;
+    NSParameterAssert(transformationLogEntry != nil);
+
+    __block PROModel *currentModel = nil;
+    __block PROTransformation *transformationFromOldModel = nil;
+
+    [self.dispatchQueue runSynchronously:^{
+        transformationFromOldModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
+        if (transformationFromOldModel)
+            currentModel = self.immutableBackingModel;
+    }];
+
+    if (!transformationFromOldModel)
+        return nil;
+
+    PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
+    PROModel *oldModel = [transformationToOldModel transform:currentModel error:NULL];
+    NSAssert(oldModel != nil, @"Transformation from current model %@ to previous model should never fail: %@", currentModel, transformationToOldModel);
+
+    return oldModel;
 }
 
 - (BOOL)restoreTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
-    // TODO
-    return NO;
+    NSParameterAssert(transformationLogEntry != nil);
+
+    __block BOOL success = NO;
+
+    [self.dispatchQueue runBarrierSynchronously:^{
+        PROTransformation *transformationFromLogEntryModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
+        if (!transformationFromLogEntryModel)
+            return;
+
+        PROTransformation *transformationToLogEntryModel = transformationFromLogEntryModel.reverseTransformation;
+
+        PROMutableModel *parent = self.parentMutableModel;
+        if (parent) {
+            // restoration needs to be delegated to the parent, just like
+            // transformation
+            PROTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
+
+            if (parentLogEntry) {
+                success = [parent restoreTransformationLogEntry:parentLogEntry];
+            } else {
+                // don't really think this is an erroneous case, but we need to
+                // make sure it gets handled properly (i.e., doesn't cause
+                // problems with child models), so add some obnoxious logging for now
+                DDLogError(@"Could not find parent log entry for log entry %@ from %@", transformationLogEntry, self);
+
+                // if this parent doesn't have a corresponding log entry, its
+                // log either got trimmed sooner than ours, or we switched
+                // parents at some point -- fall back to just applying
+                // a transformation up through the parent (if it would be valid
+                // to do so)
+                success = [self applyTransformation:transformationToLogEntryModel error:NULL];
+            }
+
+            return;
+        }
+
+        PROModel *currentModel = self.immutableBackingModel;
+        PROModel *newModel = [transformationToLogEntryModel transform:currentModel error:NULL];
+        if (!PROAssert(newModel, @"Transformation from current model %@ to previous model should never fail: %@", currentModel, transformationToLogEntryModel))
+            return;
+
+        if (![self.transformationLog moveToLogEntry:transformationLogEntry])
+            return;
+
+        self.immutableBackingModel = newModel;
+        PROAssert([transformationToLogEntryModel applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil], @"Block application should never fail at top level");
+
+        [self restoreMutableModelsWithTransformationLogEntry:transformationLogEntry];
+
+        success = YES;
+    }];
+
+    return success;
+}
+
+- (void)restoreMutableModelsWithTransformationLogEntry:(PROTransformationLogEntry *)logEntry {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be invoked while running on the dispatch queue", __func__);
+
+    PROMutableModelTransformationResultInfo *resultInfo = [self.transformationLog.transformationResultInfoByLogEntry objectForKey:logEntry];
+    if (!PROAssert(resultInfo.mutableModelsByKey.count == resultInfo.logEntriesByMutableModel.count, @"Models %@ do not match log entries %@", resultInfo.mutableModelsByKey, resultInfo.logEntriesByMutableModel))
+        return;
+
+    [resultInfo.mutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id restoredModels, BOOL *stop){
+        // TODO: this won't work with other collection types
+        NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
+        [existingMutableModels removeAllObjects];
+
+        [self enumerateChildMutableModels:restoredModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
+            if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
+                return;
+
+            if (!PROAssert([mutableModel.transformationLog moveToLogEntry:childLogEntry], @"Could not move model %@ to log entry %@", mutableModel, childLogEntry))
+                return;
+
+            [mutableModel restoreMutableModelsWithTransformationLogEntry:childLogEntry];
+            [existingMutableModels addObject:mutableModel];
+        }];
+    }];
+}
+
+- (void)saveTransformationResultInfoForLogEntry:(PROTransformationLogEntry *)logEntry; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    PROMutableModelTransformationResultInfo *resultInfo = [[PROMutableModelTransformationResultInfo alloc] init];
+    resultInfo.mutableModelsByKey = self.childMutableModelsByKey;
+
+    NSMutableArray *mutableModels = [NSMutableArray array];
+    NSMutableArray *logEntries = [NSMutableArray array];
+
+    [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
+        [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            id modelEntry = mutableModel.transformationLogEntry;
+            if (!PROAssert(modelEntry, @"Could not retrieve log entry from model %@", mutableModel))
+                modelEntry = [EXTNil null];
+
+            [mutableModels addObject:mutableModel];
+            [logEntries addObject:modelEntry];
+        }];
+    }];
+
+    [resultInfo setLogEntries:logEntries forMutableModels:mutableModels];
+    [self.transformationLog.transformationResultInfoByLogEntry setObject:resultInfo forKey:logEntry];
 }
 
 #pragma mark Forwarding
@@ -1328,6 +1465,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 #pragma mark NSKeyValueCoding
+
++ (BOOL)accessInstanceVariablesDirectly {
+    return NO;
+}
 
 - (id)valueForKey:(NSString *)key {
     __block id value;
