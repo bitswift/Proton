@@ -790,8 +790,8 @@ SpecBegin(PROMutableModel)
         it(@"should reuse model pointers when restoring a future log entry", ^{
             id pastLogEntry = model.transformationLogEntry;
 
-            MutabilityTestSubModel *subModel = [MutabilityTestSubModel enabledSubModel];
-            model.subModels = [NSArray arrayWithObject:subModel];
+            model.subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:0];
 
             id futureLogEntry = model.transformationLogEntry;
 
