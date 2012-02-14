@@ -541,6 +541,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             __block NSUInteger setIndex = 0;
             [indexes enumerateIndexesWithOptions:NSEnumerationConcurrent usingBlock:^(NSUInteger finalIndex, BOOL *stop){
                 PROMutableModel *mutableModel = [objects objectAtIndex:setIndex++];
+                NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Object to insert %@ at \"%@\" on %@ is not a PROMutableModel", mutableModel, key, self);
 
                 // make sure this model finishes anything currently in progress
                 [mutableModel->m_dispatchQueue runBarrierSynchronously:^{
@@ -593,6 +594,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
             NSArray *objectsBeingRemoved = [mutableCollection objectsAtIndexes:indexes];
             [objectsBeingRemoved enumerateObjectsWithOptions:NSEnumerationConcurrent usingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
+                NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Object to insert %@ at \"%@\" on %@ is not a PROMutableModel", mutableModel, key, self);
+
                 // take over this model's queue until we've successfully
                 // detached it, to avoid any race conditions from it being used
                 // in the tiny window when it won't use our queue anymore
