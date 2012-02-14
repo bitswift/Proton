@@ -59,43 +59,6 @@ typed to <PROModel>:
  */
 - (id)mutableCopyWithZone:(NSZone *)zone;
 
-#if 0
-/**
- * @name Transactions
- */
-
-/**
- * Atomically executes a transaction, returning `YES` upon success. If the
- * transaction fails, `NO` is returned and `error` is set to the error that
- * occurred.
- *
- * Transactions can be used to group modifications to the receiver (and/or other
- * models in its hierarchy) and perform them all atomically, thus avoiding race
- * conditions where other threads might make modifications during the same
- * period of time.
- *
- * If any mutation performed during the transaction would result in an invalid
- * model object, the rest of the transaction block executes, but `NO` is
- * returned, and all of the models are left untouched.
- *
- * If the transaction succeeds, a <PROMultipleTransformation> is added to an
- * internal "transformation log," which can be used to replay transformations in
- * reverse and retrieve an older copy of the receiver. See
- * <transformationLogEntry> for more information.
- *
- * @param error If not `NULL`, this is set to any error that occurs. This
- * argument will only be set if the method returns `NO`.
- * @param block A block containing modifications to apply to the receiver or
- * other models in its same hierarchy.
- *
- * @warning **Important:** This method briefly synchronizes with the main thread
- * before committing the transformation, to make strong guarantees about data
- * consistency on the main thread. This means that invoking this method from
- * a background thread may block the caller for an indeterminate period of time.
- */
-- (BOOL)performTransactionWithError:(NSError **)error usingBlock:(void (^)(void))block;
-#endif
-
 /**
  * @name Applying Transformations
  */
@@ -181,8 +144,6 @@ usage patterns easier.
 This class will automatically provide setters for any properties that exist
 on the underlying <PROModel>, and will support key-value coding and key-value
 observing on all of the model object's properties.
-
-TODO: describe transactions and the threading model
 
 Internally, a record of <PROTransformation> objects is kept that describes
 the changes being made to the <PROModel>. Entries from this log can be retrieved
