@@ -40,8 +40,8 @@ SpecBegin(PROModel)
             expect([PROModel defaultValuesForKeys]).toEqual([NSDictionary dictionary]);
         });
 
-        it(@"has no modelClassesByKeyPath", ^{
-            expect([PROModel modelClassesByKeyPath]).toEqual([NSDictionary dictionary]);
+        it(@"has no modelClassesByKey", ^{
+            expect([PROModel modelClassesByKey]).toEqual([NSDictionary dictionary]);
         });
     });
 

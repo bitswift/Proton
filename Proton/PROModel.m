@@ -193,7 +193,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
     return classesByKey;
 }
 
-+ (NSDictionary *)modelClassesByKeyPath; {
++ (NSDictionary *)modelClassesByKey; {
     return [NSDictionary dictionary];
 }
 
