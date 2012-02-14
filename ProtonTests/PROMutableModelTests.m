@@ -116,7 +116,7 @@ SpecBegin(PROMutableModel)
         it(@"should set an array", ^{
             expect(model).toRespondTo(@selector(setSubModels:));
 
-            NSArray *subModels = [NSArray arrayWithObject:[[MutabilityTestSubModel alloc] init]];
+            NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
             model.subModels = subModels;
 
             expect([model subModels]).toEqual(subModels);
