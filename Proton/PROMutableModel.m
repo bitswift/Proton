@@ -71,6 +71,14 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @property (nonatomic, strong, readonly) SDQueue *dispatchQueue;
 
 /**
+ * The dispatch queue directly owned by the receiver.
+ *
+ * This should be used instead of the <dispatchQueue> property when
+ * transitioning the receiver between parents.
+ */
+@property (nonatomic, strong, readonly) SDQueue *localDispatchQueue;
+
+/**
  * The immutable model underlying the receiver, as transformed by everything in
  * the <transformationLog>.
  *
@@ -276,7 +284,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark Properties
 
-@synthesize dispatchQueue = m_dispatchQueue;
+@synthesize localDispatchQueue = m_localDispatchQueue;
 @synthesize immutableBackingModel = m_immutableBackingModel;
 @synthesize transformationLog = m_transformationLog;
 @synthesize parentMutableModel = m_parentMutableModel;
@@ -328,7 +336,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (parent)
         return parent.dispatchQueue;
     else
-        return m_dispatchQueue;
+        return self.localDispatchQueue;
 }
 
 #pragma mark Reflection
@@ -544,7 +552,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Object to insert %@ at \"%@\" on %@ is not a PROMutableModel", mutableModel, key, self);
 
                 // make sure this model finishes anything currently in progress
-                [mutableModel->m_dispatchQueue runBarrierSynchronously:^{
+                [mutableModel.localDispatchQueue runBarrierSynchronously:^{
                     mutableModel.parentMutableModel = self;
                     mutableModel.keyFromParentMutableModel = key;
                     mutableModel.indexFromParentMutableModel = finalIndex;
@@ -599,7 +607,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 // take over this model's queue until we've successfully
                 // detached it, to avoid any race conditions from it being used
                 // in the tiny window when it won't use our queue anymore
-                [mutableModel->m_dispatchQueue runBarrierSynchronously:^{
+                [mutableModel.localDispatchQueue runBarrierSynchronously:^{
                     mutableModel.indexFromParentMutableModel = NSNotFound;
                     mutableModel.keyFromParentMutableModel = nil;
                     mutableModel.parentMutableModel = nil;
@@ -662,11 +670,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             NSMutableSet *allQueues = [NSMutableSet setWithCapacity:[mutableCollection count] + [newObjects count]];
 
             [allQueues addObjectsFromArray:[objectsBeingRemoved mapUsingBlock:^(PROMutableModel *mutableModel){
-                return mutableModel->m_dispatchQueue;
+                return mutableModel.localDispatchQueue;
             }]];
 
             [allQueues addObjectsFromArray:[newObjects mapUsingBlock:^(PROMutableModel *mutableModel){
-                return mutableModel->m_dispatchQueue;
+                return mutableModel.localDispatchQueue;
             }]];
 
             [SDQueue synchronizeQueues:allQueues.allObjects runSynchronously:^{
@@ -936,7 +944,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!self)
         return nil;
 
-    m_dispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:YES label:@"com.bitswift.Proton.PROMutableModel"];
+    m_localDispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:YES label:@"com.bitswift.Proton.PROMutableModel"];
+    if (!PROAssert(m_localDispatchQueue, @"Could not initialize new custom GCD queue for %@", self))
+        return nil;
+
     m_immutableBackingModel = [model copy];
     m_indexFromParentMutableModel = NSNotFound;
 
@@ -953,7 +964,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     m_childMutableModelsByKey = [NSMutableDictionary dictionary];
 
     // set up all of our child mutable models
-    [m_dispatchQueue runBarrierSynchronously:^{
+    [self.localDispatchQueue runBarrierSynchronously:^{
         [[m_immutableBackingModel.class modelClassesByKey] enumerateKeysAndObjectsUsingBlock:^(NSString *key, Class modelClass, BOOL *stop){
             id value = [m_immutableBackingModel valueForKey:key];
             [self replaceChildMutableModelsAtKey:key usingValue:value];
@@ -964,7 +975,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 - (void)dealloc {
-    [self.dispatchQueue runBarrierSynchronously:^{
+    [self.localDispatchQueue runBarrierSynchronously:^{
         // detach all children
         [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
             [self enumerateChildMutableModels:value usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
@@ -979,7 +990,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 - (id)initWithMutableModel:(PROMutableModel *)model; {
-    NSParameterAssert([model isKindOfClass:[PROMutableModel class]]);
+    NSParameterAssert(!model || [model isKindOfClass:[PROMutableModel class]]);
+
+    if (!model)
+        return nil;
 
     __block PROModel *immutableModel;
     __block PROMutableModelTransformationLog *transformationLog;
@@ -1183,7 +1197,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (previousValue && ![previousValue isKindOfClass:[PROFuture class]]) {
         // detach all previous values at this key
         [self enumerateChildMutableModels:previousValue usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-            [mutableModel->m_dispatchQueue runBarrierSynchronously:^{
+            // skip any unresolved futures
+            if ([mutableModel isKindOfClass:[PROFuture class]])
+                return;
+
+            [mutableModel.localDispatchQueue runBarrierSynchronously:^{
                 // TODO: this code seems to repeat a lot -- refactor that shit,
                 // yo
                 mutableModel.keyFromParentMutableModel = nil;
