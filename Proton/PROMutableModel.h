@@ -7,9 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "PROKeyedObject.h"
 
 @class PROModel;
+@class PROTransformation;
 @class PROTransformationLogEntry;
 
 // the documentation below uses a different comment style so that code blocks
@@ -168,7 +168,7 @@ typed to <PROModel>:
  * @param transformationLogEntry An object previously returned from
  * <transformationLogEntry>.
  */
-- (BOOL)restoreTransformationLogEntry:(PROModelControllerTransformationLogEntry *)transformationLogEntry;
+- (BOOL)restoreTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
 
 @end
 
@@ -213,7 +213,7 @@ provide no implementation, like so:
     @end
 
  */
-@interface PROMutableModel : NSObject <PROKeyedObject, PROMutableModel>
+@interface PROMutableModel : NSObject <PROMutableModel>
 
 /**
  * @name Initialization
@@ -232,7 +232,8 @@ provide no implementation, like so:
  * `nil` if the given object is `nil`.
  *
  * @param model The model object that the receiver should be a mutable copy of.
+ * This should be an instance of <PROMutableModel>.
  */
-- (id)initWithMutableModel:(id<PROMutableModel> *)model;
+- (id)initWithMutableModel:(id<PROMutableModel>)model;
 
 @end
