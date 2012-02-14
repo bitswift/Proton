@@ -99,7 +99,7 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 
 /**
  * Returns an array containing the names of all of the properties on the
- * receiver, or `nil` if no properties have been declared.
+ * receiver. The array will be empty if no properties have been declared.
  *
  * This will only include `@property` declarations (i.e., Objective-C 2.0
  * properties), not any methods that look like accessors.

@@ -29,15 +29,15 @@ SpecBegin(PROModel)
 
     describe(@"base class", ^{
         it(@"has no propertyKeys", ^{
-            expect([PROModel propertyKeys]).toBeNil();
+            expect([PROModel propertyKeys]).toEqual([NSArray array]);
         });
 
         it(@"has no propertyClassesByKey", ^{
-            expect([[PROModel propertyClassesByKey] count]).toEqual(0);
+            expect([PROModel propertyClassesByKey]).toEqual([NSDictionary dictionary]);
         });
 
         it(@"has no defaultValuesForKeys", ^{
-            expect([[PROModel defaultValuesForKeys] count]).toEqual(0);
+            expect([PROModel defaultValuesForKeys]).toEqual([NSDictionary dictionary]);
         });
     });
 

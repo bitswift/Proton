@@ -167,10 +167,7 @@ const NSInteger PROModelErrorValidationFailed = 2;
 		[names addObject:str];
 	}];
 
-    if ([names count])
-        return names;
-    else
-        return nil;
+    return names;
 }
 
 + (NSDictionary *)propertyClassesByKey; {
