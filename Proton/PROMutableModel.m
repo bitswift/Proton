@@ -956,6 +956,14 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return nil;
 }
 
+- (id)initWithDictionary:(NSDictionary *)dictionary error:(NSError **)error {
+    PROModel *model = [[[self.class modelClass] alloc] initWithDictionary:dictionary error:error];
+    if (model)
+        return [self initWithModel:model];
+    else
+        return nil;
+}
+
 - (id)initWithModel:(PROModel *)model; {
     if (!model)
         return nil;
@@ -994,21 +1002,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return self;
 }
 
-- (void)dealloc {
-    [self.localDispatchQueue runBarrierSynchronously:^{
-        // detach all children
-        [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
-            [self enumerateChildMutableModels:value usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-                mutableModel.indexFromParentMutableModel = NSNotFound;
-                mutableModel.keyFromParentMutableModel = nil;
-                mutableModel.parentMutableModel = nil;
-            }];
-        }];
-
-        [self.childMutableModelsByKey removeAllObjects];
-    }];
-}
-
 - (id)initWithMutableModel:(PROMutableModel *)model; {
     NSParameterAssert(!model || [model isKindOfClass:[PROMutableModel class]]);
 
@@ -1033,6 +1026,21 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     m_transformationLog = transformationLog;
     return self;
+}
+
+- (void)dealloc {
+    [self.localDispatchQueue runBarrierSynchronously:^{
+        // detach all children
+        [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
+            [self enumerateChildMutableModels:value usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+                mutableModel.indexFromParentMutableModel = NSNotFound;
+                mutableModel.keyFromParentMutableModel = nil;
+                mutableModel.parentMutableModel = nil;
+            }];
+        }];
+
+        [self.childMutableModelsByKey removeAllObjects];
+    }];
 }
 
 #pragma mark Performing Transformations
@@ -1451,6 +1459,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
     return [self.immutableBackingModel methodSignatureForSelector:selector];
+}
+
+#pragma mark PROKeyedObject
+
+- (NSDictionary *)dictionaryValue {
+    return [self.copy dictionaryValue];
 }
 
 #pragma mark NSCoding

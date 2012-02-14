@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "PROKeyedObject.h"
 
 @class PROModel;
 @class PROTransformation;
@@ -34,7 +35,7 @@ typed to <PROModel>:
     @property (nonatomic, strong) MyModel<PROMutableModel> *mutableModel;
 
 */
-@protocol PROMutableModel <NSCoding, NSCopying, NSMutableCopying>
+@protocol PROMutableModel <PROKeyedObject, NSCoding, NSCopying, NSMutableCopying>
 @required
 
 /**
