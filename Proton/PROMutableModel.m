@@ -237,6 +237,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value;
 
 /**
+ * Replaces all of the objects in <childMutableModelsByKey> with new mutable
+ * model objects created to represent the receiver's <immutableBackingModel>.
+ */
+- (void)replaceAllChildMutableModels;
+
+/**
  * Creates an instance of <PROMutableModelTransformationResultInfo>, fills it in
  * with the current state of the receiver, and then associates it with the given
  * log entry in the <transformationLog>.
@@ -993,10 +999,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // set up all of our child mutable models
     [self.localDispatchQueue runBarrierSynchronously:^{
-        [[m_immutableBackingModel.class modelClassesByKey] enumerateKeysAndObjectsUsingBlock:^(NSString *key, Class modelClass, BOOL *stop){
-            id value = [m_immutableBackingModel valueForKey:key];
-            [self replaceChildMutableModelsAtKey:key usingValue:value];
-        }];
+        [self replaceAllChildMutableModels];
     }];
 
     return self;
@@ -1073,8 +1076,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
             parentTransformation = [[PROKeyedTransformation alloc] initWithTransformation:parentTransformation forKey:self.keyFromParentMutableModel];
 
-            NSLog(@"parentTransformation: %@", parentTransformation);
-
             success = [parentModel applyTransformation:parentTransformation error:&strongError];
             return;
         }
@@ -1086,7 +1087,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
         PROModel *newModel = [transformation transform:oldModel error:&strongError];
         if (!newModel) {
-            NSLog(@"transformation failed to new model: %@", transformation);
             // fail immediately, before any side effects
             success = NO;
             return;
@@ -1116,9 +1116,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // this was a change or replacement of the whole model
             // TODO: perhaps this should actually replace 'self' in the parent?
             [self willChangeInParentMutableModel];
-            self.immutableBackingModel = value;
-            [self didChangeInParentMutableModel];
 
+            self.immutableBackingModel = value;
+            [self replaceAllChildMutableModels];
+
+            [self didChangeInParentMutableModel];
             return YES;
         }
 
@@ -1208,6 +1210,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         BOOL unused;
         block(childModels, &unused);
     }
+}
+
+- (void)replaceAllChildMutableModels {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    [[self.immutableBackingModel.class modelClassesByKey] enumerateKeysAndObjectsUsingBlock:^(NSString *key, Class modelClass, BOOL *stop){
+        id value = [self.immutableBackingModel valueForKey:key];
+        [self replaceChildMutableModelsAtKey:key usingValue:value];
+    }];
 }
 
 - (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
