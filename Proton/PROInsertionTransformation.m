@@ -124,10 +124,10 @@
         return NO;
 
     NSArray *newObjects = [self.objects mapUsingBlock:^(id obj){
-        return wrappedValueBlock(obj, keyPath);
+        return wrappedValueBlock(self, obj, keyPath);
     }];
 
-    NSMutableArray *mutableArray = mutableArrayBlock(keyPath);
+    NSMutableArray *mutableArray = mutableArrayBlock(self, keyPath);
     [mutableArray insertObjects:newObjects atIndexes:self.insertionIndexes];
     
     return YES;
