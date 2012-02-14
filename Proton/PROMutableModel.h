@@ -18,6 +18,37 @@
 
 /**
 
+`@mutable` starts declaring **but does not define** a mutable subclass of an immutable
+<PROModel> subclass. This macro should be closed with `@end`.
+
+This can be used to help the compiler out with static typing and make property declarations
+clearer. To use this macro, redeclare any `readonly` properties as `readwrite` inside the
+interface block, and simply give variables the generated `MUTABLE_SUBCLASS` type:
+
+    // MyModel.h
+    
+    @interface MyModel : PROModel
+    @property (nonatomic, copy, readonly) NSString *someString;
+    @end
+
+    @mutable(MyMutableModel, MyModel)
+    @property (nonatomic, copy, readwrite) NSString *someString;
+    @end
+
+    // MyView.h
+
+    @property (nonatomic, strong) MyMutableModel *mutableModel;
+
+@warning **Important:** The class declared by this macro **should not be implemented**.
+Instead, use instances of <PROMutableModel>, which will automatically implement the correct
+properties and behaviors behind-the-scenes.
+
+*/
+#define mutable(MUTABLE_SUBCLASS, IMMUTABLE_SUPERCLASS) \
+    interface MUTABLE_SUBCLASS : IMMUTABLE_SUPERCLASS <PROMutableModel>
+
+/**
+
 Represents a mutable model object.
 
 Typically, this protocol is applied to <PROModel> variables or properties to
@@ -33,6 +64,8 @@ typed to <PROModel>:
     // MyView.h
     
     @property (nonatomic, strong) MyModel<PROMutableModel> *mutableModel;
+
+Also see the `@mutable` macro, which makes this even more useful.
 
 */
 @protocol PROMutableModel <PROKeyedObject, NSCoding, NSCopying, NSMutableCopying>
@@ -154,25 +187,9 @@ restoreTransformationLogEntry:]>.
 If an instance of this class receives a message it does not understand, the
 message is automatically forwarded to the underlying <PROModel> object.
 
-You should not subclass this class. If you want to make access to setters
-more convenient, declare a category on <PROMutableModel> to expose them, but
-provide no implementation, like so:
-    
-    // MyModel.h
-    
-    @interface MyModel : PROModel
-    @property (nonatomic, copy, readonly) NSString *someString;
-    @end
-
-    @interface PROMutableModel (MyMutableModel)
-    @property (nonatomic, copy, readwrite) NSString *someString;
-    @end
-
-    // MyModel.m
-    
-    @implementation MyModel
-    @synthesize someString = m_someString;
-    @end
+@warning **Important:** You should not subclass this class. If you want to make
+access to setters more convenient, make use of the <PROMutableModel> protocol or
+the `@mutable` macro.
 
  */
 @interface PROMutableModel : NSObject <PROMutableModel>

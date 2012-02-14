@@ -18,27 +18,40 @@
     #define rectValue CGRectValue
 #endif
 
-@interface MutabilityTestSubModel : PROModel
-@property (nonatomic, copy) NSString *name;
-@property (nonatomic, assign, getter = isEnabled) BOOL enabled;
+@interface TestSubModel : PROModel
+@property (nonatomic, copy, readonly) NSString *name;
+@property (nonatomic, getter = isEnabled, readonly) BOOL enabled;
 
 + (id)enabledSubModel;
 - (id)initWithName:(NSString *)name;
 @end
 
-@interface MutabilityTestModel : PROModel
-@property (nonatomic, copy) NSArray *subModels;
-@property (nonatomic, copy) NSArray *subArray;
-@property (nonatomic, copy) NSString *name;
-@property (nonatomic, assign) long longValue;
-@property (nonatomic, assign) CGRect frame;
+@interface TestSuperModel : PROModel
+@property (nonatomic, copy, readonly) NSArray *subModels;
+@property (nonatomic, copy, readonly) NSArray *subArray;
+@property (nonatomic, copy, readonly) NSString *name;
+@property (nonatomic, assign, readonly) long longValue;
+@property (nonatomic, assign, readonly) CGRect frame;
 
-- (id)initWithSubModel:(MutabilityTestSubModel *)subModel;
+- (id)initWithSubModel:(TestSubModel *)subModel;
+@end
+
+@mutable(TestMutableSubModel, TestSubModel)
+@property (nonatomic, copy, readwrite) NSString *name;
+@property (nonatomic, getter = isEnabled, readwrite) BOOL enabled;
+@end
+
+@mutable(TestMutableSuperModel, TestSuperModel)
+@property (nonatomic, copy, readwrite) NSArray *subModels;
+@property (nonatomic, copy, readwrite) NSArray *subArray;
+@property (nonatomic, copy, readwrite) NSString *name;
+@property (nonatomic, assign, readwrite) long longValue;
+@property (nonatomic, assign, readwrite) CGRect frame;
 @end
 
 SpecBegin(PROMutableModel)
 
-    __block MutabilityTestModel *immutableModel = nil;
+    __block TestSuperModel *immutableModel = nil;
 
     CGRect initialFrame = CGRectMake(0, 0, 20, 20);
 
@@ -47,14 +60,14 @@ SpecBegin(PROMutableModel)
             @"foobar", @"name",
             [NSNumber numberWithLong:42], @"longValue",
             [NSValue valueWithRect:initialFrame], @"frame",
-            [NSArray arrayWithObject:[[MutabilityTestSubModel alloc] init]], @"subModels",
+            [NSArray arrayWithObject:[[TestSubModel alloc] init]], @"subModels",
             nil
         ];
 
-        immutableModel = [[MutabilityTestModel alloc] initWithDictionary:initializationDictionary error:NULL];
+        immutableModel = [[TestSuperModel alloc] initWithDictionary:initializationDictionary error:NULL];
     });
 
-    __block MutabilityTestModel<PROMutableModel> *model = nil;
+    __block TestMutableSuperModel *model = nil;
 
     before(^{
         model = (id)[[PROMutableModel alloc] initWithModel:immutableModel];
@@ -65,14 +78,14 @@ SpecBegin(PROMutableModel)
         PROMutableModel *equalModel = [[PROMutableModel alloc] initWithModel:immutableModel];
         expect(equalModel).toEqual(model);
 
-        PROMutableModel *otherModel = [[PROMutableModel alloc] initWithModel:[MutabilityTestSubModel enabledSubModel]];
+        PROMutableModel *otherModel = [[PROMutableModel alloc] initWithModel:[TestSubModel enabledSubModel]];
         expect(otherModel).not.toEqual(model);
     });
 
     it(@"should implement <NSCopying>", ^{
         expect(model).toConformTo(@protocol(NSCopying));
 
-        MutabilityTestModel *copied = [model copy];
+        TestSuperModel *copied = [model copy];
         expect(copied).toEqual(immutableModel);
 
         // this copy should not be a PROMutableModel
@@ -129,14 +142,14 @@ SpecBegin(PROMutableModel)
         it(@"should set an array", ^{
             expect(model).toRespondTo(@selector(setSubModels:));
 
-            NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            NSArray *subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
             model.subModels = subModels;
 
             expect([model subModels]).toEqual(subModels);
         });
 
         it(@"should copy a mutable array", ^{
-            MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] init];
+            TestSubModel *subModel = [[TestSubModel alloc] init];
             NSMutableArray *subModels = [NSMutableArray arrayWithObject:subModel];
             model.subModels = subModels;
 
@@ -192,7 +205,7 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should set an array", ^{
-            NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            NSArray *subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
             [model setValue:subModels forKey:@"subModels"];
 
             expect([model subModels]).toEqual(subModels);
@@ -203,8 +216,8 @@ SpecBegin(PROMutableModel)
             NSMutableArray *subModelsProxy = [model mutableArrayValueForKey:@"subModels"];
             expect(subModelsProxy).toEqual(subModels);
 
-            [subModels insertObject:[MutabilityTestSubModel enabledSubModel] atIndex:0];
-            [subModelsProxy insertObject:[MutabilityTestSubModel enabledSubModel] atIndex:0];
+            [subModels insertObject:[TestSubModel enabledSubModel] atIndex:0];
+            [subModelsProxy insertObject:[TestSubModel enabledSubModel] atIndex:0];
 
             expect([model subModels]).toEqual(subModels);
         });
@@ -225,8 +238,8 @@ SpecBegin(PROMutableModel)
             NSMutableArray *subModels = [[model subModels] mutableCopy];
             expect(subModelsProxy).toEqual(subModels);
 
-            [subModels replaceObjectAtIndex:0 withObject:[MutabilityTestSubModel enabledSubModel]];
-            [subModelsProxy replaceObjectAtIndex:0 withObject:[MutabilityTestSubModel enabledSubModel]];
+            [subModels replaceObjectAtIndex:0 withObject:[TestSubModel enabledSubModel]];
+            [subModelsProxy replaceObjectAtIndex:0 withObject:[TestSubModel enabledSubModel]];
 
             expect([model subModels]).toEqual(subModels);
         });
@@ -257,8 +270,8 @@ SpecBegin(PROMutableModel)
         });
 
         after(^{
-            MutabilityTestModel *originalModel = model.copy;
-            MutabilityTestModel *expectedModel = [transformation transform:originalModel error:NULL];
+            TestSuperModel *originalModel = model.copy;
+            TestSuperModel *expectedModel = [transformation transform:originalModel error:NULL];
             expect(expectedModel).not.toBeNil();
 
             __block NSError *error = nil;
@@ -270,33 +283,33 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should perform a unique transformation", ^{
-            MutabilityTestModel *newModel = [[MutabilityTestModel alloc] initWithSubModel:[[MutabilityTestSubModel alloc] init]];
+            TestSuperModel *newModel = [[TestSuperModel alloc] initWithSubModel:[[TestSubModel alloc] init]];
 
             transformation = [[PROUniqueTransformation alloc] initWithInputValue:immutableModel outputValue:newModel];
         });
         
         it(@"should perform a keyed transformation", ^{
-            NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            NSArray *subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
 
             transformation = [immutableModel transformationForKey:PROKeyForObject(immutableModel, subModels) value:subModels];
         });
 
         it(@"should perform an insertion transformation", ^{
-            MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] init];
+            TestSubModel *subModel = [[TestSubModel alloc] init];
 
             PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
             transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
         });
 
         it(@"should perform a removal transformation", ^{
-            MutabilityTestSubModel *subModel = [model.subModels objectAtIndex:0];
+            TestSubModel *subModel = [model.subModels objectAtIndex:0];
 
             PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
             transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
         });
 
         it(@"should perform a multiple transformation", ^{
-            MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] init];
+            TestSubModel *subModel = [[TestSubModel alloc] init];
 
             PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
             PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
@@ -308,8 +321,8 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should perform an order transformation", ^{
-            MutabilityTestSubModel *firstSubModel = [[MutabilityTestSubModel alloc] init];
-            MutabilityTestSubModel *secondSubModel = [[MutabilityTestSubModel alloc] initWithName:@"foobar"];
+            TestSubModel *firstSubModel = [[TestSubModel alloc] init];
+            TestSubModel *secondSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
 
             // set up the model with SubModels that we can reorder
             model.subModels = [NSArray arrayWithObjects:firstSubModel, secondSubModel, nil];
@@ -319,7 +332,7 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should perform a keyed + indexed transformation", ^{
-            MutabilityTestSubModel *subModel = [model.subModels objectAtIndex:0];
+            TestSubModel *subModel = [model.subModels objectAtIndex:0];
 
             PROTransformation *subModelTransformation = [subModel transformationForKey:PROKeyForObject(subModel, name) value:@"foobar"];
             PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
@@ -328,9 +341,9 @@ SpecBegin(PROMutableModel)
         });
 
         it(@"should perform a keyed + indexed + unique transformation", ^{
-            MutabilityTestSubModel *subModel = [model.subModels objectAtIndex:0];
+            TestSubModel *subModel = [model.subModels objectAtIndex:0];
 
-            MutabilityTestSubModel *newSubModel = [[MutabilityTestSubModel alloc] initWithName:@"foobar"];
+            TestSubModel *newSubModel = [[TestSubModel alloc] initWithName:@"foobar"];
             PROTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:subModel outputValue:newSubModel];
 
             PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
@@ -339,15 +352,15 @@ SpecBegin(PROMutableModel)
 
         it(@"should perform an insertion transformation followed by a removal transformation", ^{
             model.subModels = [NSArray arrayWithObjects:
-                [[MutabilityTestSubModel alloc] init],
-                [[MutabilityTestSubModel alloc] initWithName:@"foobar"],
+                [[TestSubModel alloc] init],
+                [[TestSubModel alloc] initWithName:@"foobar"],
                 nil
             ];
 
             NSArray *originalSubModels = [model.subModels copy];
 
             // insertion
-            MutabilityTestSubModel *newModel = [[MutabilityTestSubModel alloc] initWithName:@"fizzbuzz"];
+            TestSubModel *newModel = [[TestSubModel alloc] initWithName:@"fizzbuzz"];
             PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
             PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:insertionTransformation forKey:PROKeyForObject(immutableModel, subModels)];
 
@@ -407,7 +420,7 @@ SpecBegin(PROMutableModel)
             it(@"should generate notification for setting", ^{
                 change = NSKeyValueChangeSetting;
 
-                NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+                NSArray *subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
                 model.subModels = subModels;
             });
 
@@ -415,7 +428,7 @@ SpecBegin(PROMutableModel)
                 indexes = [NSIndexSet indexSetWithIndex:[[model subModels] count]];
                 change = NSKeyValueChangeInsertion;
 
-                [[model mutableArrayValueForKey:@"subModels"] addObject:[MutabilityTestSubModel enabledSubModel]];
+                [[model mutableArrayValueForKey:@"subModels"] addObject:[TestSubModel enabledSubModel]];
             });
 
             it(@"should generate notification for removing", ^{
@@ -429,7 +442,7 @@ SpecBegin(PROMutableModel)
                 indexes = [NSIndexSet indexSetWithIndex:0];
                 change = NSKeyValueChangeReplacement;
 
-                [[model mutableArrayValueForKey:@"subModels"] replaceObjectAtIndex:0 withObject:[MutabilityTestSubModel enabledSubModel]];
+                [[model mutableArrayValueForKey:@"subModels"] replaceObjectAtIndex:0 withObject:[TestSubModel enabledSubModel]];
             });
         });
 
@@ -470,7 +483,7 @@ SpecBegin(PROMutableModel)
             it(@"should generate set notification for unique transformation", ^{
                 change = NSKeyValueChangeSetting;
 
-                NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+                NSArray *subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
                 transformation = [model transformationForKey:@"subModels" value:subModels];
             });
 
@@ -479,7 +492,7 @@ SpecBegin(PROMutableModel)
 
                 change = NSKeyValueChangeSetting;
 
-                NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+                NSArray *subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
                 transformation = [model transformationForKey:@"subModels" value:subModels];
             });
 
@@ -489,7 +502,7 @@ SpecBegin(PROMutableModel)
                 indexes = [NSIndexSet indexSetWithIndex:index];
                 change = NSKeyValueChangeInsertion;
 
-                id insertedObject = [MutabilityTestSubModel enabledSubModel];
+                id insertedObject = [TestSubModel enabledSubModel];
                 PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:index object:insertedObject];
                 transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
             });
@@ -502,7 +515,7 @@ SpecBegin(PROMutableModel)
                 indexes = [NSIndexSet indexSetWithIndex:index];
                 change = NSKeyValueChangeInsertion;
 
-                id insertedObject = [MutabilityTestSubModel enabledSubModel];
+                id insertedObject = [TestSubModel enabledSubModel];
                 PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:index object:insertedObject];
                 transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
             });
@@ -538,7 +551,7 @@ SpecBegin(PROMutableModel)
                 change = NSKeyValueChangeReplacement;
 
                 id originalObject = [[model subModels] objectAtIndex:0];
-                id replacementObject = [MutabilityTestSubModel enabledSubModel];
+                id replacementObject = [TestSubModel enabledSubModel];
 
                 PROUniqueTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:replacementObject];
                 PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
@@ -554,7 +567,7 @@ SpecBegin(PROMutableModel)
                 change = NSKeyValueChangeReplacement;
 
                 id originalObject = [[model subModels] objectAtIndex:0];
-                id replacementObject = [MutabilityTestSubModel enabledSubModel];
+                id replacementObject = [TestSubModel enabledSubModel];
 
                 PROUniqueTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:replacementObject];
                 PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
@@ -621,26 +634,26 @@ SpecBegin(PROMutableModel)
 
         it(@"should serialize sub-model insertions", ^{
             NSArray *newSubModels = [NSArray arrayWithObjects:
-                [MutabilityTestSubModel enabledSubModel],
-                [MutabilityTestSubModel enabledSubModel],
-                [[MutabilityTestSubModel alloc] init],
-                [MutabilityTestSubModel enabledSubModel],
-                [[MutabilityTestSubModel alloc] init],
-                [[MutabilityTestSubModel alloc] init],
-                [[MutabilityTestSubModel alloc] init],
-                [MutabilityTestSubModel enabledSubModel],
-                [[MutabilityTestSubModel alloc] init],
-                [MutabilityTestSubModel enabledSubModel],
-                [MutabilityTestSubModel enabledSubModel],
-                [[MutabilityTestSubModel alloc] init],
-                [[MutabilityTestSubModel alloc] init],
+                [TestSubModel enabledSubModel],
+                [TestSubModel enabledSubModel],
+                [[TestSubModel alloc] init],
+                [TestSubModel enabledSubModel],
+                [[TestSubModel alloc] init],
+                [[TestSubModel alloc] init],
+                [[TestSubModel alloc] init],
+                [TestSubModel enabledSubModel],
+                [[TestSubModel alloc] init],
+                [TestSubModel enabledSubModel],
+                [TestSubModel enabledSubModel],
+                [[TestSubModel alloc] init],
+                [[TestSubModel alloc] init],
                 nil
             ];
 
             NSMutableArray *mutableSubModels = [model mutableArrayValueForKey:@"subModels"];
 
             dispatch_apply(newSubModels.count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i){
-                MutabilityTestSubModel *subModel = [newSubModels objectAtIndex:i];
+                TestSubModel *subModel = [newSubModels objectAtIndex:i];
                 [mutableSubModels addObject:subModel];
 
                 expect([model subModels]).toContain(subModel);
@@ -667,7 +680,7 @@ SpecBegin(PROMutableModel)
         before(^{
             originalModel = immutableModel;
 
-            PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:[[MutabilityTestSubModel alloc] init]];
+            PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:[[TestSubModel alloc] init]];
             transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
 
             expect([transformation transform:immutableModel error:NULL]).not.toEqual(originalModel);
@@ -685,21 +698,21 @@ SpecBegin(PROMutableModel)
         it(@"should return a different transformation log entry after updating", ^{
             PROTransformationLogEntry *logEntry = model.transformationLogEntry;
 
-            model.subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            model.subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
             expect(model.transformationLogEntry).not.toEqual(logEntry);
         });
 
         it(@"should return an immutable model from a log entry", ^{
             PROTransformationLogEntry *logEntry = model.transformationLogEntry;
             
-            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
+            TestSuperModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
             expect(restoredModel).not.toBeKindOf([PROMutableModel class]);
         });
 
         it(@"should return current model given current log entry", ^{
             PROTransformationLogEntry *logEntry = model.transformationLogEntry;
             
-            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
+            TestSuperModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
             expect(restoredModel).toEqual(immutableModel);
         });
 
@@ -710,7 +723,7 @@ SpecBegin(PROMutableModel)
             NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:logEntry];
             PROTransformationLogEntry *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
             
-            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:decoded];
+            TestSuperModel *restoredModel = [model modelWithTransformationLogEntry:decoded];
             expect(restoredModel).toEqual(immutableModel);
         });
 
@@ -718,7 +731,7 @@ SpecBegin(PROMutableModel)
             PROTransformationLogEntry *logEntry = model.transformationLogEntry;
             expect(logEntry).toSupportCopying();
             
-            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry.copy];
+            TestSuperModel *restoredModel = [model modelWithTransformationLogEntry:logEntry.copy];
             expect(restoredModel).toEqual(immutableModel);
         });
 
@@ -726,9 +739,9 @@ SpecBegin(PROMutableModel)
             PROTransformationLogEntry *logEntry = model.transformationLogEntry;
 
             NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:model];
-            MutabilityTestModel<PROMutableModel> *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+            TestMutableSuperModel *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
             
-            MutabilityTestModel *restoredModel = [decoded modelWithTransformationLogEntry:logEntry];
+            TestSuperModel *restoredModel = [decoded modelWithTransformationLogEntry:logEntry];
             expect(restoredModel).toEqual(immutableModel);
             expect(restoredModel).toEqual(decoded.copy);
         });
@@ -740,16 +753,16 @@ SpecBegin(PROMutableModel)
             
             // we should get back the model that existed at the time of the
             // log entry retrieval
-            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
+            TestSuperModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
             expect(restoredModel).toEqual(originalModel);
             expect(restoredModel).not.toEqual(model);
         });
 
         it(@"should return past sub-model given past log entry to sub-model", ^{
-            MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:0];
+            TestMutableSubModel *subModel = [model.subModels objectAtIndex:0];
             PROTransformationLogEntry *subEntry = subModel.transformationLogEntry;
 
-            MutabilityTestSubModel *originalSubModel = [subModel copy];
+            TestSubModel *originalSubModel = [subModel copy];
 
             subModel.enabled = YES;
             expect(subModel.enabled).toBeTruthy();
@@ -772,7 +785,7 @@ SpecBegin(PROMutableModel)
             id pastLogEntry = model.transformationLogEntry;
 
             model.name = @"fizzbuzz";
-            MutabilityTestModel *futureModel = [model copy];
+            TestSuperModel *futureModel = [model copy];
 
             id futureLogEntry = model.transformationLogEntry;
 
@@ -790,8 +803,8 @@ SpecBegin(PROMutableModel)
         it(@"should reuse model pointers when restoring a future log entry", ^{
             id pastLogEntry = model.transformationLogEntry;
 
-            model.subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
-            MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:0];
+            model.subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
+            TestMutableSubModel *subModel = [model.subModels objectAtIndex:0];
 
             id futureLogEntry = model.transformationLogEntry;
 
@@ -812,7 +825,7 @@ SpecBegin(PROMutableModel)
 
             for (unsigned i = 0; i < concurrentOperations; ++i) {
                 NSString *name = [NSString stringWithFormat:@"Sub model %u", i];
-                MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] initWithName:name];
+                TestSubModel *subModel = [[TestSubModel alloc] initWithName:name];
                 expect(subModel).not.toBeNil();
 
                 [mutableSubModels addObject:subModel];
@@ -851,7 +864,7 @@ SpecBegin(PROMutableModel)
             dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
                 NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
                 
-                MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:index];
+                TestMutableSubModel *subModel = [model.subModels objectAtIndex:index];
                 PROTransformation *subModelTransformation = [subModel transformationForKey:@"name" value:newName];
 
                 expect([subModel applyTransformation:subModelTransformation error:NULL]).toBeTruthy();
@@ -875,7 +888,7 @@ SpecBegin(PROMutableModel)
             dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
                 NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
                 
-                MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:index];
+                TestMutableSubModel *subModel = [model.subModels objectAtIndex:index];
                 PROTransformation *subModelTransformation = [subModel transformationForKey:@"name" value:newName];
 
                 if (index % 2 == 0) {
@@ -906,7 +919,12 @@ SpecBegin(PROMutableModel)
 
 SpecEnd
 
-@implementation MutabilityTestSubModel
+@interface TestSubModel ()
+@property (nonatomic, copy, readwrite) NSString *name;
+@property (nonatomic, getter = isEnabled, readwrite) BOOL enabled;
+@end
+
+@implementation TestSubModel
 @synthesize enabled = m_enabled;
 @synthesize name = m_name;
 
@@ -921,20 +939,28 @@ SpecEnd
 }
 @end
 
-@implementation MutabilityTestModel
+@interface TestSuperModel ()
+@property (nonatomic, copy, readwrite) NSArray *subModels;
+@property (nonatomic, copy, readwrite) NSArray *subArray;
+@property (nonatomic, copy, readwrite) NSString *name;
+@property (nonatomic, assign, readwrite) long longValue;
+@property (nonatomic, assign, readwrite) CGRect frame;
+@end
+
+@implementation TestSuperModel
 @synthesize subModels = m_subModels;
 @synthesize subArray = m_subArray;
 @synthesize name = m_name;
 @synthesize longValue = m_longValue;
 @synthesize frame = m_frame;
 
-- (id)initWithSubModel:(MutabilityTestSubModel *)subModel; {
+- (id)initWithSubModel:(TestSubModel *)subModel; {
     NSDictionary *dictionary = [NSDictionary dictionaryWithObject:[NSArray arrayWithObject:subModel] forKey:@"subModels"];
     return [self initWithDictionary:dictionary error:NULL];
 }
 
 + (NSDictionary *)modelClassesByKey {
-    return [NSDictionary dictionaryWithObject:[MutabilityTestSubModel class] forKey:PROKeyForClass(MutabilityTestModel, subModels)];
+    return [NSDictionary dictionaryWithObject:[TestSubModel class] forKey:PROKeyForClass(TestSuperModel, subModels)];
 }
 
 @end
