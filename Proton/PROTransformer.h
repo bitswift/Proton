@@ -18,10 +18,7 @@
  * Implementors of this protocol do not need to actually apply the
  * <PROTransformation> themselves. Typically, views and view controllers will
  * implement this protocol to form a "transformer chain," which is similar to
- * a responder chain, but for the propagation of model changes. Such
- * a transformer chain would ultimately end at a <PROModelController>, which is
- * capable of applying the transformation to the model and notifying the rest of
- * the application of the change.
+ * a responder chain, but for the propagation of model changes.
  */
 @protocol PROTransformer <NSObject>
 @required
