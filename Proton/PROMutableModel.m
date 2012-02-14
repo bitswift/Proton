@@ -979,11 +979,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         return nil;
 }
 
-- (id)initWithModel:(PROModel *)model; {
+- (id)initWithModel:(id)model; {
     if (!model)
         return nil;
-
-    NSAssert([model isKindOfClass:[PROModel class]], @"Cannot initialize PROMutableModel with %@, as it is not a PROModel", model);
 
     self = [super init];
     if (!self)
@@ -993,14 +991,26 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!PROAssert(m_localDispatchQueue, @"Could not initialize new custom GCD queue for %@", self))
         return nil;
 
-    m_immutableBackingModel = [model copy];
+    if ([model isKindOfClass:[PROMutableModel class]]) {
+        [[model dispatchQueue] runSynchronously:^{
+            m_immutableBackingModel = [[model immutableBackingModel] copy];
+
+            // we need to copy the transformation log to make sure we can unwind as
+            // far back as the given model
+            m_transformationLog = [[model transformationLog] copy];
+        }];
+    } else {
+        NSAssert([model isKindOfClass:[PROModel class]], @"Cannot initialize PROMutableModel with %@, as it is not a PROModel", model);
+        m_immutableBackingModel = [model copy];
+
+        m_transformationLog = [[PROMutableModelTransformationLog alloc] init];
+        m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
+    }
+
     m_indexFromParentMutableModel = NSNotFound;
 
-    m_transformationLog = [[PROMutableModelTransformationLog alloc] init];
-    m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
-
-    Class mutableModelClass = [[self class] mutableModelClassForModelClass:[model class]];
-    if (PROAssert(mutableModelClass, @"Mutable model class should've been created for %@", [model class])) {
+    Class mutableModelClass = [[self class] mutableModelClassForModelClass:[m_immutableBackingModel class]];
+    if (PROAssert(mutableModelClass, @"Mutable model class should've been created for %@", [m_immutableBackingModel class])) {
         // dynamically become the subclass appropriate for this model, to
         // have the proper setter and mutation methods
         object_setClass(self, mutableModelClass);
@@ -1013,32 +1023,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         [self replaceAllChildMutableModels];
     }];
 
-    return self;
-}
-
-- (id)initWithMutableModel:(PROMutableModel *)model; {
-    NSParameterAssert(!model || [model isKindOfClass:[PROMutableModel class]]);
-
-    if (!model)
-        return nil;
-
-    __block PROModel *immutableModel;
-    __block PROMutableModelTransformationLog *transformationLog;
-
-    [model.dispatchQueue runSynchronously:^{
-        immutableModel = model.immutableBackingModel;
-
-        // we need to copy the transformation log to make sure we can unwind as
-        // far back as the given model
-        transformationLog = [model.transformationLog copy];
-    }];
-
-    // this should properly recreate most of the bookkeeping data we need
-    self = [self initWithModel:immutableModel];
-    if (!self)
-        return nil;
-
-    m_transformationLog = transformationLog;
     return self;
 }
 
@@ -1610,7 +1594,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSMutableCopying
 
 - (id)mutableCopyWithZone:(NSZone *)zone; {
-    return [[[self class] allocWithZone:zone] initWithMutableModel:self];
+    return [[[self class] allocWithZone:zone] initWithModel:self];
 }
 
 #pragma mark NSKeyValueCoding

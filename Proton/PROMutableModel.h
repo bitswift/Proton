@@ -224,17 +224,9 @@ provide no implementation, like so:
  * Initializes the receiver with the given model object. Returns `nil` if the
  * given model is `nil`.
  *
- * @param model The model object that the receiver should be a mutable copy of.
+ * @param model The <PROModel> or <PROMutableModel> object that the receiver
+ * should be a mutable copy of.
  */
-- (id)initWithModel:(PROModel *)model;
-
-/**
- * Initializes the receiver as a copy of the given mutable model object. Returns
- * `nil` if the given object is `nil`.
- *
- * @param model The model object that the receiver should be a mutable copy of.
- * This should be an instance of <PROMutableModel>.
- */
-- (id)initWithMutableModel:(id<PROMutableModel>)model;
+- (id)initWithModel:(id)model;
 
 @end
