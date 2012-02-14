@@ -214,6 +214,19 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (NSDictionary *)transformationBlocks;
 
 /**
+ * Given a transformation relative to the receiver, this will return a new
+ * transformation which is relative to its <parentMutableModel>. If the receiver
+ * does not have a parent, returns `nil`.
+ *
+ * @param transformation A transformation that is defined relative to the
+ * receiver.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
+ */
+- (PROTransformation *)extendTransformationToParent:(PROTransformation *)transformation;
+
+/**
  * Enumerates over a value obtained from <childMutableModelsByKey>, which may be
  * a single object or one of a few collection types, in a uniform way.
  *
@@ -1069,14 +1082,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
         // if we have a parent, apply this directly to the parent instead
         if (parentModel && PROAssert(self.keyFromParentMutableModel, @"Should have a key from parent model %@", parentModel)) {
-            PROTransformation *parentTransformation = transformation;
-
-            if (self.indexFromParentMutableModel != NSNotFound)
-                parentTransformation = [[PROIndexedTransformation alloc] initWithIndex:self.indexFromParentMutableModel transformation:parentTransformation];
-
-            parentTransformation = [[PROKeyedTransformation alloc] initWithTransformation:parentTransformation forKey:self.keyFromParentMutableModel];
-
-            success = [parentModel applyTransformation:parentTransformation error:&strongError];
+            success = [parentModel applyTransformation:[self extendTransformationToParent:transformation] error:&strongError];
             return;
         }
 
@@ -1108,19 +1114,46 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return success;
 }
 
+- (PROTransformation *)extendTransformationToParent:(PROTransformation *)transformation; {
+    NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationNewValueForKeyPathBlock should only be executed while running on the dispatch queue");
+
+    if (!self.keyFromParentMutableModel)
+        return nil;
+
+    if (self.indexFromParentMutableModel != NSNotFound)
+        transformation = [[PROIndexedTransformation alloc] initWithIndex:self.indexFromParentMutableModel transformation:transformation];
+
+    return [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:self.keyFromParentMutableModel];
+}
+
 - (NSDictionary *)transformationBlocks; {
     PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
         NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationNewValueForKeyPathBlock should only be executed while running on the dispatch queue");
 
         if (!keyPath) {
-            // this was a change or replacement of the whole model
-            // TODO: perhaps this should actually replace 'self' in the parent?
-            [self willChangeInParentMutableModel];
+            if (!PROAssert([value isKindOfClass:[PROModel class]], @"%@ is not a PROModel, don't know how to update from it", value))
+                return NO;
 
+            // this was a change or replacement of the whole model
             self.immutableBackingModel = value;
             [self replaceAllChildMutableModels];
 
-            [self didChangeInParentMutableModel];
+            // replace ourselves in our parent as well
+            PROMutableModel *parentModel = self.parentMutableModel;
+
+            if (parentModel && PROAssert(self.keyFromParentMutableModel, @"Should have a key from parent model %@", parentModel)) {
+                PROMutableModel *replacementModel = [[[self class] alloc] initWithModel:value];
+
+                if (self.indexFromParentMutableModel != NSNotFound) {
+                    // TODO: ordered set support
+                    id parentCollection = [parentModel mutableArrayValueForKey:self.keyFromParentMutableModel];
+                    [parentCollection replaceObjectAtIndex:self.indexFromParentMutableModel withObject:replacementModel];
+                }
+                
+                // TODO: unordered collections
+                // TODO: to-one relationships
+            }
+
             return YES;
         }
 
@@ -1133,17 +1166,22 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         else
             firstKey = keyPath;
 
+        // TODO: the willChange notification needs to occur _before_ the
+        // transformation
+        [self willChangeValueForKey:firstKey];
+        @onExit {
+            [self didChangeValueForKey:firstKey];
+        };
+
         id childModels = [self.childMutableModelsByKey objectForKey:keyPath];
         if (childModels) {
             // this was a replacement of a whole collection of child models
             [self replaceChildMutableModelsAtKey:firstKey usingValue:value];
+            return YES;
+        } else {
+            // some property we don't care about
+            return NO;
         }
-
-        // TODO: the willChange notification needs to occur _before_ the
-        // transformation
-        [self willChangeValueForKey:firstKey];
-        [self didChangeValueForKey:firstKey];
-        return YES;
     };
 
     PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^ id (PROTransformation *transformation, NSString *keyPath){
