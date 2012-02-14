@@ -950,9 +950,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     m_childMutableModelsByKey = [NSMutableDictionary dictionary];
 
     // set up all of our child mutable models
-    [[m_immutableBackingModel.class modelClassesByKey] enumerateKeysAndObjectsUsingBlock:^(NSString *key, Class modelClass, BOOL *stop){
-        id value = [m_immutableBackingModel valueForKey:key];
-        [self replaceChildMutableModelsAtKey:key usingValue:value];
+    [m_dispatchQueue runBarrierSynchronously:^{
+        [[m_immutableBackingModel.class modelClassesByKey] enumerateKeysAndObjectsUsingBlock:^(NSString *key, Class modelClass, BOOL *stop){
+            id value = [m_immutableBackingModel valueForKey:key];
+            [self replaceChildMutableModelsAtKey:key usingValue:value];
+        }];
     }];
 
     return self;
