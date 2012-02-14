@@ -142,8 +142,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @property (nonatomic, strong, readonly) NSMutableDictionary *childMutableModelsByKey;
 
 /**
- * Whether the receiver is currently executing the <applyTransformation:error:>
- * method.
+ * Whether the receiver is currently transforming itself, whether via the
+ * <applyTransformation:error:> method, restoring from the transformation log,
+ * or some other mechanism.
  *
  * @warning **Important:** This property should only be set or read while
  * running on the <dispatchQueue>.
@@ -985,6 +986,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!model)
         return nil;
 
+    NSAssert([model isKindOfClass:[PROModel class]], @"Cannot initialize PROMutableModel with %@, as it is not a PROModel", model);
+
     self = [super init];
     if (!self)
         return nil;
@@ -1462,16 +1465,27 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)restoreMutableModelsWithTransformationLogEntry:(PROTransformationLogEntry *)logEntry {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be invoked while running on the dispatch queue", __func__);
 
+    self.applyingTransformation = YES;
+    @onExit {
+        self.applyingTransformation = NO;
+    };
+
     PROMutableModelTransformationResultInfo *resultInfo = [self.transformationLog.transformationResultInfoByLogEntry objectForKey:logEntry];
     if (!PROAssert(resultInfo.mutableModelsByKey.count == resultInfo.logEntriesByMutableModel.count, @"Models %@ do not match log entries %@", resultInfo.mutableModelsByKey, resultInfo.logEntriesByMutableModel))
         return;
 
     [resultInfo.mutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id restoredModels, BOOL *stop){
+        // collect all the models we're going to replace our existing ones with
+        NSMutableArray *replacementModels = [NSMutableArray array];
+        [self enumerateChildMutableModels:restoredModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            [replacementModels addObject:mutableModel];
+        }];
+
         // TODO: this won't work with other collection types
         NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
-        [existingMutableModels removeAllObjects];
+        [existingMutableModels setArray:replacementModels];
 
-        [self enumerateChildMutableModels:restoredModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+        [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
             PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
             if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
                 return;
@@ -1480,7 +1494,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 return;
 
             [mutableModel restoreMutableModelsWithTransformationLogEntry:childLogEntry];
-            [existingMutableModels addObject:mutableModel];
         }];
     }];
 }
