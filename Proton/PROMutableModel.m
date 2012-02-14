@@ -1132,26 +1132,14 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             if (!PROAssert([value isKindOfClass:[PROModel class]], @"%@ is not a PROModel, don't know how to update from it", value))
                 return NO;
 
-            // this was a change or replacement of the whole model
+            // this was a change or replacement of the whole model -- send
+            // a notification indicating that we got "replaced" in our parent
+            [self willChangeInParentMutableModel];
+
             self.immutableBackingModel = value;
             [self replaceAllChildMutableModels];
 
-            // replace ourselves in our parent as well
-            PROMutableModel *parentModel = self.parentMutableModel;
-
-            if (parentModel && PROAssert(self.keyFromParentMutableModel, @"Should have a key from parent model %@", parentModel)) {
-                PROMutableModel *replacementModel = [[[self class] alloc] initWithModel:value];
-
-                if (self.indexFromParentMutableModel != NSNotFound) {
-                    // TODO: ordered set support
-                    id parentCollection = [parentModel mutableArrayValueForKey:self.keyFromParentMutableModel];
-                    [parentCollection replaceObjectAtIndex:self.indexFromParentMutableModel withObject:replacementModel];
-                }
-                
-                // TODO: unordered collections
-                // TODO: to-one relationships
-            }
-
+            [self didChangeInParentMutableModel];
             return YES;
         }
 
