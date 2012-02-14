@@ -1478,6 +1478,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!self)
         return nil;
 
+    m_localDispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:YES label:@"com.bitswift.Proton.PROMutableModel"];
+    if (!PROAssert(m_localDispatchQueue, @"Could not initialize new custom GCD queue for %@", self))
+        return nil;
+
     m_immutableBackingModel = [model copy];
     m_transformationLog = [coder decodeObjectForKey:PROKeyForObject(self, transformationLog)];
 
