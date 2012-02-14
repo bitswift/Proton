@@ -1007,7 +1007,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     __block BOOL success = YES;
 
     [self.dispatchQueue runBarrierSynchronously:^{
-        if (PROAssert(!self.applyingTransformation, @"%s should not be invoked recursively", __func__)) {
+        if (!PROAssert(!self.applyingTransformation, @"%s should not be invoked recursively", __func__)) {
             success = NO;
             return;
         }
@@ -1027,6 +1027,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 parentTransformation = [[PROIndexedTransformation alloc] initWithIndex:self.indexFromParentMutableModel transformation:parentTransformation];
 
             parentTransformation = [[PROKeyedTransformation alloc] initWithTransformation:parentTransformation forKey:self.keyFromParentMutableModel];
+
+            NSLog(@"parentTransformation: %@", parentTransformation);
+
             success = [parentModel applyTransformation:parentTransformation error:&strongError];
             return;
         }
@@ -1038,6 +1041,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
         PROModel *newModel = [transformation transform:oldModel error:&strongError];
         if (!newModel) {
+            NSLog(@"transformation failed to new model: %@", transformation);
             // fail immediately, before any side effects
             success = NO;
             return;
