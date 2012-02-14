@@ -19,9 +19,11 @@
 #endif
 
 @interface MutabilityTestSubModel : PROModel
+@property (nonatomic, copy) NSString *name;
 @property (nonatomic, assign, getter = isEnabled) BOOL enabled;
 
 + (id)enabledSubModel;
+- (id)initWithName:(NSString *)name;
 @end
 
 @interface MutabilityTestModel : PROModel
@@ -30,6 +32,8 @@
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, assign) long longValue;
 @property (nonatomic, assign) CGRect frame;
+
+- (id)initWithSubModel:(MutabilityTestSubModel *)subModel;
 @end
 
 SpecBegin(PROMutableModel)
@@ -109,6 +113,15 @@ SpecBegin(PROMutableModel)
 
         it(@"should return a structure", ^{
             expect([model frame]).toEqual([immutableModel frame]);
+        });
+
+        it(@"should return an array with sub-mutable models", ^{
+            expect([model subModels]).toEqual([immutableModel subModels]);
+
+            [model.subModels enumerateObjectsUsingBlock:^(id subModel, NSUInteger idx, BOOL *stop) {
+                expect(subModel).toBeKindOf([PROMutableModel class]);
+                expect(subModel).toEqual([immutableModel.subModels objectAtIndex:idx]);
+            }];
         });
     });
 
@@ -233,6 +246,125 @@ SpecBegin(PROMutableModel)
 
             [model setValue:[NSValue valueWithRect:newRect] forKey:@"frame"];
             expect([model frame]).toEqual(newRect);
+        });
+    });
+
+    describe(@"successful transformations", ^{
+        __block PROTransformation *transformation;
+
+        before(^{
+            transformation = nil;
+        });
+
+        after(^{
+            MutabilityTestModel *originalModel = model.copy;
+            MutabilityTestModel *expectedModel = [transformation transform:originalModel error:NULL];
+            expect(expectedModel).not.toBeNil();
+
+            __block NSError *error = nil;
+            expect([model applyTransformation:transformation error:&error]).toBeTruthy();
+            expect(error).toBeNil();
+
+            expect(model).toEqual(expectedModel);
+            expect(model.subModels).toEqual(expectedModel.subModels);
+        });
+
+        it(@"should perform a unique transformation", ^{
+            MutabilityTestModel *newModel = [[MutabilityTestModel alloc] initWithSubModel:[[MutabilityTestSubModel alloc] init]];
+
+            transformation = [[PROUniqueTransformation alloc] initWithInputValue:immutableModel outputValue:newModel];
+        });
+        
+        it(@"should perform a keyed transformation", ^{
+            NSArray *subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+
+            transformation = [immutableModel transformationForKey:PROKeyForObject(immutableModel, subModels) value:subModels];
+        });
+
+        it(@"should perform an insertion transformation", ^{
+            MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] init];
+
+            PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+        });
+
+        it(@"should perform a removal transformation", ^{
+            MutabilityTestSubModel *subModel = [model.subModels objectAtIndex:0];
+
+            PRORemovalTransformation *subModelsTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+        });
+
+        it(@"should perform a multiple transformation", ^{
+            MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] init];
+
+            PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:subModel];
+            PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:subModel];
+
+            NSArray *transformations = [NSArray arrayWithObjects:insertionTransformation, removalTransformation, nil];
+            PROMultipleTransformation *subModelsTransformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
+
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+        });
+
+        it(@"should perform an order transformation", ^{
+            MutabilityTestSubModel *firstSubModel = [[MutabilityTestSubModel alloc] init];
+            MutabilityTestSubModel *secondSubModel = [[MutabilityTestSubModel alloc] initWithName:@"foobar"];
+
+            // set up the model with SubModels that we can reorder
+            model.subModels = [NSArray arrayWithObjects:firstSubModel, secondSubModel, nil];
+
+            PROOrderTransformation *subModelsTransformation = [[PROOrderTransformation alloc] initWithStartIndex:0 endIndex:1];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+        });
+
+        it(@"should perform a keyed + indexed transformation", ^{
+            MutabilityTestSubModel *subModel = [model.subModels objectAtIndex:0];
+
+            PROTransformation *subModelTransformation = [subModel transformationForKey:PROKeyForObject(subModel, name) value:@"foobar"];
+            PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
+
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+        });
+
+        it(@"should perform a keyed + indexed + unique transformation", ^{
+            MutabilityTestSubModel *subModel = [model.subModels objectAtIndex:0];
+
+            MutabilityTestSubModel *newSubModel = [[MutabilityTestSubModel alloc] initWithName:@"foobar"];
+            PROTransformation *subModelTransformation = [[PROUniqueTransformation alloc] initWithInputValue:subModel outputValue:newSubModel];
+
+            PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:subModelTransformation];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+        });
+
+        it(@"should perform an insertion transformation followed by a removal transformation", ^{
+            model.subModels = [NSArray arrayWithObjects:
+                [[MutabilityTestSubModel alloc] init],
+                [[MutabilityTestSubModel alloc] initWithName:@"foobar"],
+                nil
+            ];
+
+            NSArray *originalSubModels = [model.subModels copy];
+
+            // insertion
+            MutabilityTestSubModel *newModel = [[MutabilityTestSubModel alloc] initWithName:@"fizzbuzz"];
+            PROInsertionTransformation *insertionTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:newModel];
+            PROKeyedTransformation *modelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:insertionTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+
+            __block NSError *error = nil;
+            expect([model applyTransformation:modelTransformation error:&error]).toBeTruthy();
+            expect(error).toBeNil();
+
+            expect([model.subModels count]).toEqual(3);
+            expect([model.subModels objectAtIndex:1]).toEqual([originalSubModels objectAtIndex:0]);
+            expect([model.subModels objectAtIndex:2]).toEqual([originalSubModels objectAtIndex:1]);
+
+            // removal
+            NSIndexSet *indexSet = [[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, 2)];
+            NSArray *removedObjects = [model.subModels objectsAtIndexes:indexSet];
+
+            PRORemovalTransformation *removalTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexSet expectedObjects:removedObjects];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:removalTransformation forKey:PROKeyForObject(immutableModel, subModels)];
         });
     });
 
@@ -526,12 +658,249 @@ SpecBegin(PROMutableModel)
         });
     });
 
-    describe(@"with submodels", ^{
-        it(@"should return an array with sub-mutable models", ^{
-            expect([model subModels]).toEqual([immutableModel subModels]);
-            [[model valueForKey:@"subModels"] enumerateObjectsUsingBlock:^(id subModel, NSUInteger idx, BOOL *stop) {
-                expect(subModel).toBeKindOf([PROMutableModel class]);
-            }];
+    describe(@"transformation log", ^{
+        __block PROModel *originalModel;
+
+        // a transformation which can be performed to add to the log
+        __block PROTransformation *transformation;
+
+        before(^{
+            originalModel = immutableModel;
+
+            PROInsertionTransformation *subModelsTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:[[MutabilityTestSubModel alloc] init]];
+            transformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:PROKeyForObject(immutableModel, subModels)];
+
+            expect([transformation transform:immutableModel error:NULL]).not.toEqual(originalModel);
+        });
+
+        it(@"should default transformation log limit to 50", ^{
+            expect(model.archivedTransformationLogLimit).toEqual(50);
+        });
+
+        it(@"should return a transformation log entry", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+            expect(logEntry).not.toBeNil();
+        });
+
+        it(@"should return a different transformation log entry after updating", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+
+            model.subModels = [NSArray arrayWithObject:[MutabilityTestSubModel enabledSubModel]];
+            expect(model.transformationLogEntry).not.toEqual(logEntry);
+        });
+
+        it(@"should return an immutable model from a log entry", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+            
+            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
+            expect(restoredModel).not.toBeKindOf([PROMutableModel class]);
+        });
+
+        it(@"should return current model given current log entry", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+            
+            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
+            expect(restoredModel).toEqual(immutableModel);
+        });
+
+        it(@"should return model given archived log entry", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+            expect(logEntry).toSupportArchiving();
+
+            NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:logEntry];
+            PROTransformationLogEntry *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+            
+            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:decoded];
+            expect(restoredModel).toEqual(immutableModel);
+        });
+
+        it(@"should return model given copied log entry", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+            expect(logEntry).toSupportCopying();
+            
+            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry.copy];
+            expect(restoredModel).toEqual(immutableModel);
+        });
+
+        it(@"should return model given log entry after archiving", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+
+            NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:model];
+            MutabilityTestModel<PROMutableModel> *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+            
+            MutabilityTestModel *restoredModel = [decoded modelWithTransformationLogEntry:logEntry];
+            expect(restoredModel).toEqual(immutableModel);
+            expect(restoredModel).toEqual(decoded.copy);
+        });
+
+        it(@"should return past model given past log entry", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+
+            model.name = @"fizzbuzz";
+            
+            // we should get back the model that existed at the time of the
+            // log entry retrieval
+            MutabilityTestModel *restoredModel = [model modelWithTransformationLogEntry:logEntry];
+            expect(restoredModel).toEqual(originalModel);
+            expect(restoredModel).not.toEqual(model);
+        });
+
+        it(@"should return past sub-model given past log entry to sub-model", ^{
+            MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:0];
+            PROTransformationLogEntry *subEntry = subModel.transformationLogEntry;
+
+            MutabilityTestSubModel *originalSubModel = [subModel copy];
+
+            subModel.enabled = YES;
+            expect(subModel.enabled).toBeTruthy();
+            expect(originalSubModel.enabled).toBeFalsy();
+
+            expect([subModel modelWithTransformationLogEntry:subEntry]).toEqual(originalSubModel);
+        });
+
+        it(@"should restore past model given past log entry", ^{
+            PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+
+            model.name = @"fizzbuzz";
+            expect(model).not.toEqual(immutableModel);
+            
+            expect([model restoreTransformationLogEntry:logEntry]).toBeTruthy();
+            expect(model).toEqual(immutableModel);
+        });
+
+        it(@"should restore future model given future log entry", ^{
+            id pastLogEntry = model.transformationLogEntry;
+
+            model.name = @"fizzbuzz";
+            MutabilityTestModel *futureModel = [model copy];
+
+            id futureLogEntry = model.transformationLogEntry;
+
+            expect(pastLogEntry).not.toEqual(futureLogEntry);
+
+            expect([model restoreTransformationLogEntry:pastLogEntry]).toBeTruthy();
+            expect(model).toEqual(immutableModel);
+            expect(model).not.toEqual(futureModel);
+
+            expect([model restoreTransformationLogEntry:futureLogEntry]).toBeTruthy();
+            expect(model).not.toEqual(immutableModel);
+            expect(model).toEqual(futureModel);
+        });
+
+        it(@"should reuse model pointers when restoring a future log entry", ^{
+            id pastLogEntry = model.transformationLogEntry;
+
+            MutabilityTestSubModel *subModel = [MutabilityTestSubModel enabledSubModel];
+            model.subModels = [NSArray arrayWithObject:subModel];
+
+            id futureLogEntry = model.transformationLogEntry;
+
+            expect([model restoreTransformationLogEntry:pastLogEntry]).toBeTruthy();
+            expect([model.subModels objectAtIndex:0] == subModel).toBeFalsy();
+
+            expect([model restoreTransformationLogEntry:futureLogEntry]).toBeTruthy();
+            expect([model.subModels objectAtIndex:0] == subModel).toBeTruthy();
+        });
+    });
+
+    describe(@"concurrency", ^{
+        unsigned concurrentOperations = 10;
+
+        before(^{
+            NSMutableArray *mutableSubModels = [model mutableArrayValueForKey:@"subModels"];
+            [mutableSubModels removeAllObjects];
+
+            for (unsigned i = 0; i < concurrentOperations; ++i) {
+                NSString *name = [NSString stringWithFormat:@"Sub model %u", i];
+                MutabilityTestSubModel *subModel = [[MutabilityTestSubModel alloc] initWithName:name];
+                expect(subModel).not.toBeNil();
+
+                [mutableSubModels addObject:subModel];
+            }
+
+            model.subModels = mutableSubModels;
+        });
+
+        it(@"should serialize transformations from multiple threads", ^{
+            NSString *newNamePrefix = @"new name ";
+
+            dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+                NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
+                
+                PROTransformation *subModelTransformation = [[model.subModels objectAtIndex:index] transformationForKey:@"name" value:newName];
+                PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
+                PROKeyedTransformation *superModelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+
+                expect([model applyTransformation:superModelTransformation error:NULL]).toBeTruthy();
+                expect([[model.subModels objectAtIndex:index] name]).toEqual(newName);
+            });
+
+            // verify that every sub-model matches the name pattern after
+            // the fact
+            for (unsigned index = 0; index < concurrentOperations; ++index) {
+                NSString *name = [[model.subModels objectAtIndex:index] name];
+                NSString *newName = [newNamePrefix stringByAppendingFormat:@"%u", index];
+
+                expect(name).toEqual(newName);
+            }
+        });
+
+        it(@"should perform transformations on sub-models simultaneously", ^{
+            NSString *newNamePrefix = @"new name ";
+
+            dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+                NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
+                
+                MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:index];
+                PROTransformation *subModelTransformation = [subModel transformationForKey:@"name" value:newName];
+
+                expect([subModel applyTransformation:subModelTransformation error:NULL]).toBeTruthy();
+                expect(subModel.name).toEqual(newName);
+                expect([model.subModels objectAtIndex:index]).toEqual(subModel);
+            });
+
+            // verify that every sub-model matches the name pattern after
+            // the fact
+            for (unsigned index = 0; index < concurrentOperations; ++index) {
+                NSString *name = [[model.subModels objectAtIndex:index] name];
+                NSString *newName = [newNamePrefix stringByAppendingFormat:@"%u", index];
+
+                expect(name).toEqual(newName);
+            }
+        });
+
+        it(@"should perform transformations on super- and sub-models simultaneously", ^{
+            NSString *newNamePrefix = @"new name ";
+
+            dispatch_apply(concurrentOperations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+                NSString *newName = [newNamePrefix stringByAppendingFormat:@"%zu", index];
+                
+                MutabilityTestSubModel<PROMutableModel> *subModel = [model.subModels objectAtIndex:index];
+                PROTransformation *subModelTransformation = [subModel transformationForKey:@"name" value:newName];
+
+                if (index % 2 == 0) {
+                    // perform on super model
+                    PROIndexedTransformation *subModelsTransformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:subModelTransformation];
+                    PROKeyedTransformation *superModelTransformation = [[PROKeyedTransformation alloc] initWithTransformation:subModelsTransformation forKey:@"subModels"];
+
+                    expect([model applyTransformation:superModelTransformation error:NULL]).toBeTruthy();
+                } else {
+                    // perform on sub model
+                    expect([subModel applyTransformation:subModelTransformation error:NULL]).toBeTruthy();
+                }
+
+                expect(subModel.name).toEqual(newName);
+                expect([model.subModels objectAtIndex:index]).toEqual(subModel);
+            });
+
+            // verify that every sub-model matches the name pattern after
+            // the fact
+            for (unsigned index = 0; index < concurrentOperations; ++index) {
+                NSString *name = [[model.subModels objectAtIndex:index] name];
+                NSString *newName = [newNamePrefix stringByAppendingFormat:@"%u", index];
+
+                expect(name).toEqual(newName);
+            }
         });
     });
 
@@ -539,10 +908,16 @@ SpecEnd
 
 @implementation MutabilityTestSubModel
 @synthesize enabled = m_enabled;
+@synthesize name = m_name;
 
 + (id)enabledSubModel; {
     NSDictionary *subModelDictionary = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:@"enabled"];
     return [[self alloc] initWithDictionary:subModelDictionary error:NULL];
+}
+
+- (id)initWithName:(NSString *)name; {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObject:name forKey:@"name"];
+    return [self initWithDictionary:dictionary error:NULL];
 }
 @end
 
@@ -552,6 +927,11 @@ SpecEnd
 @synthesize name = m_name;
 @synthesize longValue = m_longValue;
 @synthesize frame = m_frame;
+
+- (id)initWithSubModel:(MutabilityTestSubModel *)subModel; {
+    NSDictionary *dictionary = [NSDictionary dictionaryWithObject:[NSArray arrayWithObject:subModel] forKey:@"subModels"];
+    return [self initWithDictionary:dictionary error:NULL];
+}
 
 + (NSDictionary *)modelClassesByKey {
     return [NSDictionary dictionaryWithObject:[MutabilityTestSubModel class] forKey:PROKeyForClass(MutabilityTestModel, subModels)];
