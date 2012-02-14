@@ -193,6 +193,10 @@ const NSInteger PROModelErrorValidationFailed = 2;
     return classesByKey;
 }
 
++ (NSDictionary *)modelClassesByKeyPath; {
+    return [NSDictionary dictionary];
+}
+
 #pragma mark Transformation
 
 - (PROKeyedTransformation *)transformationForKey:(NSString *)key value:(id)value; {

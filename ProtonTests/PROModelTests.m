@@ -39,6 +39,10 @@ SpecBegin(PROModel)
         it(@"has no defaultValuesForKeys", ^{
             expect([PROModel defaultValuesForKeys]).toEqual([NSDictionary dictionary]);
         });
+
+        it(@"has no modelClassesByKeyPath", ^{
+            expect([PROModel modelClassesByKeyPath]).toEqual([NSDictionary dictionary]);
+        });
     });
 
     describe(@"TestModel subclass", ^{

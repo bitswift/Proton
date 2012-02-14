@@ -48,10 +48,12 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  *  1. Declare and synthesize any properties desired. Properties should be
  *  `readwrite` (even if exposed as `readonly`) so that their values can be set
  *  with key-value coding.
- *  2. Implement key-value coding validation methods (per the semantics of
+ *  2. If the subclass will hold relationships to other model objects, override
+ *  <modelClassesByKeyPath> to indicate where they exist.
+ *  3. Implement key-value coding validation methods (per the semantics of
  *  `validateValue:forKey:error:`) as desired. These validation methods will be
  *  automatically invoked by <initWithDictionary:error:>.
- *  3. Override <initWithDictionary:error:> if you need to verify object
+ *  4. Override <initWithDictionary:error:> if you need to verify object
  *  consistency after it has been initialized.
  *
  * Subclasses do not need to implement `<NSCoding>`, `<NSCopying>`, `-hash`, or
@@ -142,6 +144,19 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  * validation.
  */
 + (NSDictionary *)defaultValuesForKeys;
+
+/**
+ * Overridden by subclasses to return a dictionary listing any <PROModel>
+ * classes that exist at key paths relative to the receiver.
+ *
+ * The dictionary returned from this method should list every "top level" key
+ * path from the receiver that contains a <PROModel> object, or a collection of
+ * such objects. The dictionary should _not_ include key paths that refer to
+ * properties on any of those top level objects.
+ *
+ * The default implementation of this method returns an empty dictionary.
+ */
++ (NSDictionary *)modelClassesByKeyPath;
 
 /**
  * Returns an immutable dictionary containing the properties of the receiver.
