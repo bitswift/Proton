@@ -372,7 +372,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 + (Class)mutableModelClassForModelClass:(Class)modelClass; {
-    NSParameterAssert([modelClass isSubclassOfClass:[PROModel class]]);
+    NSAssert([modelClass isSubclassOfClass:[PROModel class]], @"Cannot dynamically create a PROMutableModel subclass for %@, as it is not a PROModel subclass", modelClass);
 
     if ([modelClass isEqual:[PROModel class]]) {
         return [PROMutableModel class];
@@ -498,7 +498,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // array getter
     id getterBlock = ^(PROMutableModel *self){
-        __block NSArray *array;
+        __block NSArray *array = nil;
 
         [self.dispatchQueue runSynchronously:^{
             array = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
@@ -520,11 +520,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSUInteger count;
 
         [self.dispatchQueue runSynchronously:^{
-            id models = [self.childMutableModelsByKey objectForKey:key];
-            if (models)
-                count = [models count];
-            else
-                count = [[self.immutableBackingModel valueForKey:key] count];
+            count = [[self.immutableBackingModel valueForKey:key] count];
         }];
 
         return count;
@@ -544,6 +540,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
         [self.dispatchQueue runSynchronously:^{
             id collection = [self.childMutableModelsByKey objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
+
             objects = [collection objectsAtIndexes:indexes];
         }];
 
@@ -1379,7 +1376,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (future)
         [self.childMutableModelsByKey setObject:future forKey:key];
     else if (previousValue)
-        [self.childMutableModelsByKey removeObjectForKey:future];
+        [self.childMutableModelsByKey removeObjectForKey:key];
 }
 
 #pragma mark Transformation Log
