@@ -462,6 +462,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     [capitalizedKey appendString:[[key substringToIndex:1] uppercaseString]];
     [capitalizedKey appendString:[key substringFromIndex:1]];
 
+    SEL getterSelector = NSSelectorFromString(key);
     SEL countOfSelector = NSSelectorFromString([NSString stringWithFormat:@"countOf%@", capitalizedKey]);
     SEL objectsAtIndexesSelector = NSSelectorFromString([NSString stringWithFormat:@"%@AtIndexes:", key]);
 
@@ -476,6 +477,25 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         BOOL success = class_addMethod(mutableModelClass, selector, methodIMP, [typeEncoding UTF8String]);
         PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(selector), mutableModelClass);
     };
+
+    // array getter
+    id getterBlock = ^(PROMutableModel *self){
+        __block NSArray *array;
+
+        [self.dispatchQueue runSynchronously:^{
+            array = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
+        }];
+
+        return array;
+    };
+
+    installBlockMethod(getterSelector, getterBlock, [NSString stringWithFormat:
+        // NSArray *(PROMutableModel *self, SEL _cmd)
+        @"%s%s%s",
+        @encode(NSArray *),
+        @encode(PROMutableModel *),
+        @encode(SEL)
+    ]);
 
     // count of objects
     id countOfMethodBlock = ^(PROMutableModel *self){
