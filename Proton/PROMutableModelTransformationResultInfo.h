@@ -24,10 +24,10 @@
  * transformation.
  *
  * The keys of this dictionary should be some or all of those from <[PROModel
- * modelClassesByKeyPath]> on the <PROModel> underlying the mutable model that
- * was transformed.
+ * modelClassesByKey]> on the <PROModel> underlying the mutable model that was
+ * transformed.
  */
-@property (nonatomic, copy) NSDictionary *mutableModelsByKeyPath;
+@property (nonatomic, copy) NSDictionary *mutableModelsByKey;
 
 /**
  * @name Log Entries

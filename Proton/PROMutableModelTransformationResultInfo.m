@@ -35,7 +35,7 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
 
 #pragma mark Properties
 
-@synthesize mutableModelsByKeyPath = m_mutableModelsByKeyPath;
+@synthesize mutableModelsByKey = m_mutableModelsByKey;
 @synthesize logEntriesByMutableModel = m_logEntriesByMutableModel;
 
 - (void)setLogEntries:(NSArray *)logEntries forMutableModels:(NSArray *)mutableModels; {
@@ -97,7 +97,7 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
     if (!self)
         return nil;
 
-    self.mutableModelsByKeyPath = [coder decodeObjectForKey:PROKeyForObject(self, mutableModelsByKeyPath)];
+    self.mutableModelsByKey = [coder decodeObjectForKey:PROKeyForObject(self, mutableModelsByKey)];
     
     NSArray *logEntries = [coder decodeObjectForKey:@"logEntries"];
     NSArray *mutableModels = [coder decodeObjectForKey:@"mutableModels"];
@@ -109,8 +109,8 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    if (self.mutableModelsByKeyPath)
-        [coder encodeObject:self.mutableModelsByKeyPath forKey:PROKeyForObject(self, mutableModelsByKeyPath)];
+    if (self.mutableModelsByKey)
+        [coder encodeObject:self.mutableModelsByKey forKey:PROKeyForObject(self, mutableModelsByKey)];
 
     if (self.logEntriesByMutableModel) {
         NSArray *mutableModels = self.logEntriesByMutableModel.allKeys;
@@ -126,7 +126,7 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
 - (id)copyWithZone:(NSZone *)zone {
     PROMutableModelTransformationResultInfo *info = [[[self class] allocWithZone:zone] init];
 
-    info.mutableModelsByKeyPath = self.mutableModelsByKeyPath;
+    info.mutableModelsByKey = self.mutableModelsByKey;
 
     // this depends on the underlying CFDictionary being immutable -- i'm afraid
     // to call -copy here, since NSDictionary might screw with the callbacks for our keys
@@ -138,13 +138,13 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
 #pragma mark NSObject overrides
 
 - (NSString *)description {
-    NSDictionary *stringsByKeyPath = [self.mutableModelsByKeyPath mapValuesUsingBlock:^(NSString *keyPath, PROMutableModel *model){
+    NSDictionary *stringsByKey = [self.mutableModelsByKey mapValuesUsingBlock:^(NSString *key, PROMutableModel *model){
         PROTransformationLogEntry *logEntry = [self.logEntriesByMutableModel objectForKey:model];
 
         return [NSString stringWithFormat:@"<%@: %p> = %@", [model class], (__bridge void *)model, logEntry];
     }];
 
-    return [NSString stringWithFormat:@"<%@: %p> %@", [self class], (__bridge void *)self, stringsByKeyPath];
+    return [NSString stringWithFormat:@"<%@: %p> %@", [self class], (__bridge void *)self, stringsByKey];
 }
 
 - (NSUInteger)hash {
@@ -157,7 +157,7 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
     if (![info isKindOfClass:[PROMutableModelTransformationResultInfo class]])
         return NO;
 
-    if (!NSEqualObjects(self.mutableModelsByKeyPath, info.mutableModelsByKeyPath))
+    if (!NSEqualObjects(self.mutableModelsByKey, info.mutableModelsByKey))
         return NO;
 
     if (!NSEqualObjects(self.logEntriesByMutableModel, info.logEntriesByMutableModel))

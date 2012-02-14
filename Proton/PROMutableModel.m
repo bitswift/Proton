@@ -36,8 +36,6 @@
     #import <UIKit/UIKit.h>
 #endif
 
-// TODO: remove most mentions of key paths, since they're not really supported
-
 /**
  * Private serial queue used to synchronize the creation of dynamic
  * <PROMutableModel> subclasses at runtime.
@@ -103,18 +101,17 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @property (unsafe_unretained) PROMutableModel *parentMutableModel;
 
 /**
- * The key path at which the receiver exists relative to its
- * <parentMutableModel>, or `nil` if the receiver is the root of a model
- * hierarchy.
+ * The key at which the receiver exists relative to its <parentMutableModel>, or
+ * `nil` if the receiver is the root of a model hierarchy.
  *
  * @warning **Important:** This property should only be set or read while
  * running on the <dispatchQueue>, and is only updated _after_ a new
  * <parentMutableModel> is set.
  */
-@property (nonatomic, copy) NSString *keyPathFromParentMutableModel;
+@property (nonatomic, copy) NSString *keyFromParentMutableModel;
 
 /**
- * If the value corresponding to the <keyPathFromParentMutableModel> is an
+ * If the value corresponding to the <keyFromParentMutableModel> is an
  * indexed collection, this is the index at which the receiver exists in the
  * collection. Otherwise, this is `NSNotFound`.
  *
@@ -126,7 +123,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 /**
  * Contains any <PROMutableModel> instances that the receiver owns, keyed by
- * their corresponding key paths on the <immutableBackingModel>.
+ * their corresponding keys on the <immutableBackingModel>.
  *
  * If the corresponding <immutableBackingModel> property is a collection, the
  * value in this dictionary will be a collection of the same type.
@@ -134,7 +131,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * @warning **Important:** This collection should only be mutated while running
  * on the <dispatchQueue>.
  */
-@property (nonatomic, strong, readonly) NSMutableDictionary *childMutableModelsByKeyPath;
+@property (nonatomic, strong, readonly) NSMutableDictionary *childMutableModelsByKey;
 
 /**
  * Whether the receiver is currently executing the <applyTransformation:error:>
@@ -212,14 +209,14 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * Creates new <PROMutableModel> objects to correspond to those at the given key
  * path in the given model.
  *
- * This will replace any existing value in <childMutableModelsByKeyPath>.
+ * This will replace any existing value in <childMutableModelsByKey>.
  *
- * @param keyPath The key path at which to create mutable models, relative to
- * the receiver (and the receiver's <immutableBackingModel>).
- * @param value The new value being set at the specified key path, from which to
+ * @param key The key at which to create mutable models, relative to the
+ * receiver (and the receiver's <immutableBackingModel>).
+ * @param value The new value being set at the specified key, from which to
  * create mutable models.
  */
-- (void)replaceChildMutableModelsAtKeyPath:(NSString *)keyPath usingValue:(id)value;
+- (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value;
 
 /**
  * Creates an instance of <PROMutableModelTransformationResultInfo>, fills it in
@@ -259,8 +256,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @synthesize transformationLog = m_transformationLog;
 @synthesize parentMutableModel = m_parentMutableModel;
 @synthesize observationInfo = m_observationInfo;
-@synthesize childMutableModelsByKeyPath = m_childMutableModelsByKeyPath;
-@synthesize keyPathFromParentMutableModel = m_keyPathFromParentMutableModel;
+@synthesize childMutableModelsByKey = m_childMutableModelsByKey;
+@synthesize keyFromParentMutableModel = m_keyFromParentMutableModel;
 @synthesize indexFromParentMutableModel = m_indexFromParentMutableModel;
 
 - (BOOL)isApplyingTransformation {
@@ -452,7 +449,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSUInteger count;
 
         [self.dispatchQueue runSynchronously:^{
-            id models = [self.childMutableModelsByKeyPath objectForKey:key];
+            id models = [self.childMutableModelsByKey objectForKey:key];
             if (models)
                 count = [models count];
             else
@@ -475,7 +472,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSArray *objects;
 
         [self.dispatchQueue runSynchronously:^{
-            id collection = [self.childMutableModelsByKeyPath objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
+            id collection = [self.childMutableModelsByKey objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
             objects = [collection objectsAtIndexes:indexes];
         }];
 
@@ -507,7 +504,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
             // we're in the middle of applying a transformation, so we should
             // actually update our mutable collections
-            id mutableCollection = [self.childMutableModelsByKeyPath objectForKey:key];
+            id mutableCollection = [self.childMutableModelsByKey objectForKey:key];
             if (!PROAssert(mutableCollection, @"No mutable collection exists at \"%@\" on %@", key, self))
                 return;
 
@@ -523,7 +520,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 // make sure this model finishes anything currently in progress
                 [mutableModel->m_dispatchQueue runBarrierSynchronously:^{
                     mutableModel.parentMutableModel = self;
-                    mutableModel.keyPathFromParentMutableModel = key;
+                    mutableModel.keyFromParentMutableModel = key;
                     mutableModel.indexFromParentMutableModel = finalIndex;
                 }];
             }];
@@ -560,7 +557,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             
             // we're in the middle of applying a transformation, so we should
             // actually update our mutable collections
-            id mutableCollection = [self.childMutableModelsByKeyPath objectForKey:key];
+            id mutableCollection = [self.childMutableModelsByKey objectForKey:key];
             if (!PROAssert(mutableCollection, @"No mutable collection exists at \"%@\" on %@", key, self))
                 return;
 
@@ -576,7 +573,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 // in the tiny window when it won't use our queue anymore
                 [mutableModel->m_dispatchQueue runBarrierSynchronously:^{
                     mutableModel.indexFromParentMutableModel = NSNotFound;
-                    mutableModel.keyPathFromParentMutableModel = nil;
+                    mutableModel.keyFromParentMutableModel = nil;
                     mutableModel.parentMutableModel = nil;
                 }];
             }];
@@ -620,7 +617,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             
             // we're in the middle of applying a transformation, so we should
             // actually update our mutable collections
-            id mutableCollection = [self.childMutableModelsByKeyPath objectForKey:key];
+            id mutableCollection = [self.childMutableModelsByKey objectForKey:key];
             if (!PROAssert(mutableCollection, @"No mutable collection exists at \"%@\" on %@", key, self))
                 return;
 
@@ -650,7 +647,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 // common to both
                 [objectsBeingRemoved enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
                     mutableModel.indexFromParentMutableModel = NSNotFound;
-                    mutableModel.keyPathFromParentMutableModel = nil;
+                    mutableModel.keyFromParentMutableModel = nil;
                     mutableModel.parentMutableModel = nil;
                 }];
                 
@@ -661,7 +658,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                     NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Expected a mutable model to insert, got %@ at \"%@\" on %@", mutableModel, key, self);
 
                     mutableModel.parentMutableModel = self;
-                    mutableModel.keyPathFromParentMutableModel = key;
+                    mutableModel.keyFromParentMutableModel = key;
                     mutableModel.indexFromParentMutableModel = finalIndex;
                 }];
 
@@ -925,12 +922,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         object_setClass(self, mutableModelClass);
     }
 
-    m_childMutableModelsByKeyPath = [NSMutableDictionary dictionary];
+    m_childMutableModelsByKey = [NSMutableDictionary dictionary];
 
     // set up all of our child mutable models
-    [[m_immutableBackingModel.class modelClassesByKeyPath] enumerateKeysAndObjectsUsingBlock:^(NSString *keyPath, Class modelClass, BOOL *stop){
-        id value = [m_immutableBackingModel valueForKeyPath:keyPath];
-        [self replaceChildMutableModelsAtKeyPath:keyPath usingValue:value];
+    [[m_immutableBackingModel.class modelClassesByKey] enumerateKeysAndObjectsUsingBlock:^(NSString *key, Class modelClass, BOOL *stop){
+        id value = [m_immutableBackingModel valueForKey:key];
+        [self replaceChildMutableModelsAtKey:key usingValue:value];
     }];
 
     return self;
@@ -941,11 +938,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         // detach all children
         void (^detachChild)(PROMutableModel *) = ^(PROMutableModel *mutableModel){
             mutableModel.indexFromParentMutableModel = NSNotFound;
-            mutableModel.keyPathFromParentMutableModel = nil;
+            mutableModel.keyFromParentMutableModel = nil;
             mutableModel.parentMutableModel = nil;
         };
         
-        [self.childMutableModelsByKeyPath enumerateKeysAndObjectsUsingBlock:^(NSString *keyPath, id value, BOOL *stop){
+        [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
             if ([value respondsToSelector:@selector(enumerateObjectsUsingBlock:)]) {
                 [value enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
                     detachChild(mutableModel);
@@ -957,7 +954,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // TODO: add support for other collections
         }];
 
-        [self.childMutableModelsByKeyPath removeAllObjects];
+        [self.childMutableModelsByKey removeAllObjects];
     }];
 }
 
@@ -1006,13 +1003,13 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         PROMutableModel *parentModel = self.parentMutableModel;
 
         // if we have a parent, apply this directly to the parent instead
-        if (parentModel && PROAssert(self.keyPathFromParentMutableModel, @"Should have a key path from parent model %@", parentModel)) {
+        if (parentModel && PROAssert(self.keyFromParentMutableModel, @"Should have a key from parent model %@", parentModel)) {
             PROTransformation *parentTransformation = transformation;
 
             if (self.indexFromParentMutableModel != NSNotFound)
                 parentTransformation = [[PROIndexedTransformation alloc] initWithIndex:self.indexFromParentMutableModel transformation:parentTransformation];
 
-            parentTransformation = [[PROKeyedTransformation alloc] initWithTransformation:parentTransformation forKeyPath:self.keyPathFromParentMutableModel];
+            parentTransformation = [[PROKeyedTransformation alloc] initWithTransformation:parentTransformation forKey:self.keyFromParentMutableModel];
             success = [parentModel applyTransformation:parentTransformation error:&strongError];
             return;
         }
@@ -1049,18 +1046,18 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     // TODO
 }
 
-- (void)replaceChildMutableModelsAtKeyPath:(NSString *)keyPath usingValue:(id)value; {
+- (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
-    // replace the key path with a future, so we don't perform the work of the
-    // setup unless we need it
+    // replace the key with a future, so we don't perform the work of the setup
+    // unless we need it
     PROFuture *future = nil;
 
     // this should already be immutable, but let's make doubly-sure, since we're
     // going to be sticking it into a future
     value = [value copy];
 
-    id previousValue = [self.childMutableModelsByKeyPath objectForKey:keyPath];
+    id previousValue = [self.childMutableModelsByKey objectForKey:key];
 
     // this isn't __weak because it's only referenced in the resolution of the
     // futures below, and the futures themselves will be destroyed when we are
@@ -1078,7 +1075,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                     PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
 
                     mutableModel.parentMutableModel = weakSelf;
-                    mutableModel.keyPathFromParentMutableModel = keyPath;
+                    mutableModel.keyFromParentMutableModel = key;
                     mutableModel.indexFromParentMutableModel = index;
 
                     return mutableModel;
@@ -1094,7 +1091,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // detach the previous models that were here
             //
             // TODO: this could be optimized/refactored
-            [[self mutableArrayValueForKeyPath:keyPath] removeAllObjects];
+            [[self mutableArrayValueForKey:key] removeAllObjects];
         }
     } else if ([value isKindOfClass:[NSOrderedSet class]]) {
         future = [PROFuture futureWithBlock:^{
@@ -1104,7 +1101,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
 
                 mutableModel.parentMutableModel = weakSelf;
-                mutableModel.keyPathFromParentMutableModel = keyPath;
+                mutableModel.keyFromParentMutableModel = key;
                 mutableModel.indexFromParentMutableModel = index;
 
                 [mutableValues addObject:mutableModel];
@@ -1117,22 +1114,22 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // detach the previous models that were here
             //
             // TODO: this could be optimized/refactored
-            [[self mutableOrderedSetValueForKeyPath:keyPath] removeAllObjects];
+            [[self mutableOrderedSetValueForKey:key] removeAllObjects];
         }
     } else if ([value isKindOfClass:[NSDictionary class]]) {
         // TODO 
-        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key path \"%@\" will not be set", keyPath);
+        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
     } else if ([value isKindOfClass:[NSSet class]]) {
         // TODO
-        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key path \"%@\" will not be set", keyPath);
+        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
     } else {
-        if (!PROAssert([value isKindOfClass:[PROModel class]], @"Unrecognized value %@ to make mutable for key path \"%@\"", value, keyPath))
+        if (!PROAssert([value isKindOfClass:[PROModel class]], @"Unrecognized value %@ to make mutable for key \"%@\"", value, key))
             return;
 
         future = [PROFuture futureWithBlock:^{
             PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:value];
             mutableModel.parentMutableModel = weakSelf;
-            mutableModel.keyPathFromParentMutableModel = keyPath;
+            mutableModel.keyFromParentMutableModel = key;
 
             return mutableModel;
         }];
@@ -1143,22 +1140,22 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             [previousModel->m_dispatchQueue runBarrierSynchronously:^{
                 // TODO: this code seems to repeat a lot -- refactor that shit,
                 // yo
-                previousModel.keyPathFromParentMutableModel = nil;
+                previousModel.keyFromParentMutableModel = nil;
                 previousModel.indexFromParentMutableModel = NSNotFound;
                 previousModel.parentMutableModel = nil;
             }];
         }
     }
 
-    [self willChangeValueForKey:keyPath];
+    [self willChangeValueForKey:key];
     @onExit {
-        [self didChangeValueForKey:keyPath];
+        [self didChangeValueForKey:key];
     };
 
     if (future)
-        [self.childMutableModelsByKeyPath setObject:future forKey:keyPath];
+        [self.childMutableModelsByKey setObject:future forKey:key];
     else if (previousValue)
-        [self.childMutableModelsByKeyPath removeObjectForKey:future];
+        [self.childMutableModelsByKey removeObjectForKey:future];
 }
 
 - (NSDictionary *)transformationBlocks; {
@@ -1174,23 +1171,23 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             return YES;
         }
 
-        id childModels = [self.childMutableModelsByKeyPath objectForKey:keyPath];
-        if (childModels) {
-            // this was a replacement of a whole collection of child models
-            [self replaceChildMutableModelsAtKeyPath:keyPath usingValue:value];
-        }
-
         NSRange firstSeparatorRange = [keyPath rangeOfString:@"."];
         NSString *firstKey;
 
+        // TODO: implement change notifications on whole key paths?
         if (firstSeparatorRange.location != NSNotFound)
             firstKey = [keyPath substringToIndex:firstSeparatorRange.location];
         else
             firstKey = keyPath;
 
+        id childModels = [self.childMutableModelsByKey objectForKey:keyPath];
+        if (childModels) {
+            // this was a replacement of a whole collection of child models
+            [self replaceChildMutableModelsAtKey:firstKey usingValue:value];
+        }
+
         // TODO: the willChange notification needs to occur _before_ the
         // transformation
-        // TODO: implement change notifications on whole key paths?
         [self willChangeValueForKey:firstKey];
         [self didChangeValueForKey:firstKey];
         return YES;
@@ -1199,8 +1196,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^ id (PROTransformation *transformation, NSString *keyPath){
         NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationMutableArrayForKeyPathBlock should only be executed while running on the dispatch queue");
 
-        if ([self.childMutableModelsByKeyPath objectForKey:keyPath])
-            return [self mutableArrayValueForKeyPath:keyPath];
+        if ([self.childMutableModelsByKey objectForKey:keyPath])
+            return [self mutableArrayValueForKey:keyPath];
         else
             return nil;
     };
@@ -1208,7 +1205,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^ id (PROTransformation *transformation, id value, NSString *keyPath){
         NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationWrappedValueForKeyPathBlock should only be executed while running on the dispatch queue");
 
-        Class modelClass = [[self.immutableBackingModel.class modelClassesByKeyPath] objectForKey:keyPath];
+        Class modelClass = [[self.immutableBackingModel.class modelClassesByKey] objectForKey:keyPath];
         if (modelClass)
             return [[PROMutableModel alloc] initWithModel:value];
         else
@@ -1218,7 +1215,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
         NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationBlocksForIndexAtKeyPathBlock should only be executed while running on the dispatch queue");
 
-        id childModels = [self.childMutableModelsByKeyPath objectForKey:keyPath];
+        id childModels = [self.childMutableModelsByKey objectForKey:keyPath];
         if (!PROAssert([childModels respondsToSelector:@selector(objectAtIndex:)], @"%@ is not an indexed collection, cannot perform an indexed transformation on it", childModels))
             return blocks;
 
@@ -1280,11 +1277,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     m_parentMutableModel = [coder decodeObjectForKey:PROKeyForObject(self, parentMutableModel)];
     if (m_parentMutableModel) {
-        m_keyPathFromParentMutableModel = [coder decodeObjectForKey:PROKeyForObject(self, keyPathFromParentMutableModel)];
+        m_keyFromParentMutableModel = [coder decodeObjectForKey:PROKeyForObject(self, keyFromParentMutableModel)];
         m_indexFromParentMutableModel = [coder decodeIntegerForKey:PROKeyForObject(self, indexFromParentMutableModel)];
     }
 
-    m_childMutableModelsByKeyPath = [[coder decodeObjectForKey:PROKeyForObject(self, childMutableModelsByKeyPath)] mutableCopy];
+    m_childMutableModelsByKey = [[coder decodeObjectForKey:PROKeyForObject(self, childMutableModelsByKey)] mutableCopy];
 
     return self;
 }
@@ -1301,12 +1298,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             [coder encodeConditionalObject:parent forKey:PROKeyForObject(self, parentMutableModel)];
             [coder encodeInteger:self.indexFromParentMutableModel forKey:PROKeyForObject(self, indexFromParentMutableModel)];
 
-            if (self.keyPathFromParentMutableModel)
-                [coder encodeObject:self.keyPathFromParentMutableModel forKey:PROKeyForObject(self, keyPathFromParentMutableModel)];
+            if (self.keyFromParentMutableModel)
+                [coder encodeObject:self.keyFromParentMutableModel forKey:PROKeyForObject(self, keyFromParentMutableModel)];
         }
 
-        if (self.childMutableModelsByKeyPath)
-            [coder encodeObject:self.childMutableModelsByKeyPath forKey:PROKeyForObject(self, childMutableModelsByKeyPath)];
+        if (self.childMutableModelsByKey)
+            [coder encodeObject:self.childMutableModelsByKey forKey:PROKeyForObject(self, childMutableModelsByKey)];
     }];
 }
 
@@ -1325,32 +1322,24 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSKeyValueCoding
 
 - (id)valueForKey:(NSString *)key {
-    return [self valueForKeyPath:key];
-}
-
-- (id)valueForKeyPath:(NSString *)keyPath {
     __block id value;
 
     [self.dispatchQueue runSynchronously:^{
-        value = [self.childMutableModelsByKeyPath objectForKey:keyPath] ?: [self.immutableBackingModel valueForKeyPath:keyPath];
+        value = [self.childMutableModelsByKey objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
     }];
 
     return value;
 }
 
 - (void)setValue:(id)value forKey:(NSString *)key {
-    [self setValue:value forKeyPath:key];
-}
-
-- (void)setValue:(id)value forKeyPath:(NSString *)keyPath {
     [self.dispatchQueue runBarrierSynchronously:^{
-        id currentValue = [self.immutableBackingModel valueForKeyPath:keyPath];
+        id currentValue = [self.immutableBackingModel valueForKey:key];
 
         PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentValue outputValue:value];
-        PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:transformation forKeyPath:keyPath];
+        PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:key];
 
         NSError *error = nil;
-        PROAssert([self applyTransformation:keyedTransformation error:&error], @"Setting value %@ for key path \"%@\" on %@ failed: %@", value, keyPath, self, error);
+        PROAssert([self applyTransformation:keyedTransformation error:&error], @"Setting value %@ for key \"%@\" on %@ failed: %@", value, key, self, error);
     }];
 }
 
