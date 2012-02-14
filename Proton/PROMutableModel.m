@@ -1446,19 +1446,19 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark Forwarding
 
 - (BOOL)respondsToSelector:(SEL)selector {
-    return [self.immutableBackingModel respondsToSelector:selector];
+    return [self.copy respondsToSelector:selector];
 }
 
 - (id)forwardingTargetForSelector:(SEL)selector {
-    return self.immutableBackingModel;
+    return self.copy;
 }
 
 - (void)forwardInvocation:(NSInvocation *)invocation {
-    [invocation invokeWithTarget:self.immutableBackingModel];
+    [invocation invokeWithTarget:self.copy];
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
-    return [self.immutableBackingModel methodSignatureForSelector:selector];
+    return [self.copy methodSignatureForSelector:selector];
 }
 
 #pragma mark PROKeyedObject
@@ -1516,7 +1516,13 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 #pragma mark NSCopying
 
 - (id)copyWithZone:(NSZone *)zone; {
-    return self.immutableBackingModel;
+    __block PROModel *immutableModel;
+    
+    [self.dispatchQueue runSynchronously:^{
+        immutableModel = [self.immutableBackingModel copy];
+    }];
+
+    return immutableModel;
 }
 
 #pragma mark NSMutableCopying
