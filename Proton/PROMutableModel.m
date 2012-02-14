@@ -233,6 +233,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  *
  * This is used when the corresponding immutable model was replaced, but the
  * mutable model will continue to track the new value.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
  */
 - (void)willChangeInParentMutableModel;
 
@@ -242,6 +245,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  *
  * This is used when the corresponding immutable model was replaced, but the
  * mutable model will continue to track the new value.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
  */
 - (void)didChangeInParentMutableModel;
 
@@ -1130,6 +1136,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:value];
             mutableModel.parentMutableModel = weakSelf;
             mutableModel.keyFromParentMutableModel = key;
+            mutableModel.indexFromParentMutableModel = NSNotFound;
 
             return mutableModel;
         }];
@@ -1164,6 +1171,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
         if (!keyPath) {
             // this was a change or replacement of the whole model
+            // TODO: perhaps this should actually replace 'self' in the parent?
             [self willChangeInParentMutableModel];
             self.immutableBackingModel = value;
             [self didChangeInParentMutableModel];
@@ -1362,11 +1370,41 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 - (void)willChangeInParentMutableModel; {
-    // TODO
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    PROMutableModel *parent = self.parentMutableModel;
+    if (!parent)
+        return;
+
+    NSString *key = self.keyFromParentMutableModel;
+    if (!PROAssert(key, @"%@ does not have a key on to notify about on its parent %@", self, parent))
+        return;
+
+    if (self.indexFromParentMutableModel == NSNotFound) {
+        [parent willChangeValueForKey:key];
+    } else {
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:self.indexFromParentMutableModel];
+        [parent willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexSet forKey:key];
+    }
 }
 
 - (void)didChangeInParentMutableModel; {
-    // TODO
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    PROMutableModel *parent = self.parentMutableModel;
+    if (!parent)
+        return;
+
+    NSString *key = self.keyFromParentMutableModel;
+    if (!PROAssert(key, @"%@ does not have a key on to notify about on its parent %@", self, parent))
+        return;
+
+    if (self.indexFromParentMutableModel == NSNotFound) {
+        [parent didChangeValueForKey:key];
+    } else {
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:self.indexFromParentMutableModel];
+        [parent didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexSet forKey:key];
+    }
 }
 
 #pragma mark NSObject protocol
