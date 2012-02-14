@@ -405,7 +405,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // leak the block, since it's being used to implement a method
             IMP modelClassIMP = imp_implementationWithBlock((__bridge_retained void *)modelClassBlock);
             
-            BOOL success = class_addMethod(mutableModelClass, method_getName(originalModelClassMethod), modelClassIMP, method_getTypeEncoding(originalModelClassMethod));
+            BOOL success = class_addMethod(object_getClass(mutableModelClass), method_getName(originalModelClassMethod), modelClassIMP, method_getTypeEncoding(originalModelClassMethod));
             PROAssert(success, @"Could not add %s method to dynamic subclass %@", sel_getName(method_getName(originalModelClassMethod)), mutableModelClassName);
             
             // create setters for every property (but just on this subclass)
