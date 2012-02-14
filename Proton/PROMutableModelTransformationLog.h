@@ -8,6 +8,8 @@
 
 #import "PROTransformationLog.h"
 
+@class PROMutableModel;
+
 /**
  * Private transformation log class used by <PROMutableModel>.
  */
@@ -22,5 +24,17 @@
  * <PROTransformationLogEntry> in the log.
  */
 @property (nonatomic, strong, readonly) NSMutableDictionary *transformationResultInfoByLogEntry;
+
+/**
+ * Returns the newest entry from the log which has an associated
+ * <PROMutableModelTransformationResultInfo> object containing the given log
+ * entry, or `nil` if no such entry exists.
+ *
+ * @param mutableModel The <PROMutableModel> to which the given log entry
+ * belongs.
+ * @param logEntry A log entry to search for in
+ * <[PROMutableModelTransformationResultInfo logEntriesByMutableModel]>.
+ */
+- (PROTransformationLogEntry *)logEntryWithMutableModel:(PROMutableModel *)mutableModel childLogEntry:(PROTransformationLogEntry *)logEntry;
 
 @end
