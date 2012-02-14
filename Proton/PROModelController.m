@@ -18,7 +18,7 @@
 #import "PROKeyedTransformation.h"
 #import "PROLogging.h"
 #import "PROModel.h"
-#import "PROModelControllerTransformationLog.h"
+#import "PROMutableModelTransformationLog.h"
 #import "PROModelControllerTransformationLogEntry.h"
 #import "PROMultipleTransformation.h"
 #import "PROTransformation.h"
@@ -128,7 +128,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
  * @warning **Important:** This log should only be mutated while on the
  * `PROModelControllerConcurrentQueue`.
  */
-@property (nonatomic, strong, readonly) PROModelControllerTransformationLog *transformationLog;
+@property (nonatomic, strong, readonly) PROMutableModelTransformationLog *transformationLog;
 
 /**
  * Enumerates all model controllers on the receiver, passing each array of model
@@ -335,7 +335,7 @@ static SDQueue *PROModelControllerConcurrentQueue = nil;
     // this must be set up before the transformation log is created
     self.uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
 
-    m_transformationLog = [[PROModelControllerTransformationLog alloc] initWithModelController:self];
+    m_transformationLog = [[PROMutableModelTransformationLog alloc] initWithModelController:self];
     m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
 
     [PROModelControllerConcurrentQueue runBarrierSynchronously:^{
