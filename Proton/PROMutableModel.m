@@ -257,12 +257,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 /**
  * Creates an instance of <PROMutableModelTransformationResultInfo>, fills it in
- * with the current state of the receiver, and then associates it with the given
- * log entry in the <transformationLog>.
- *
- * @param logEntry The log entry that the result info should be associated with.
+ * with the current state of the receiver, and then associates it with the
+ * latest log entry in the <transformationLog>.
  */
-- (void)saveTransformationResultInfoForLogEntry:(PROTransformationLogEntry *)logEntry;
+- (void)saveTransformationResultInfoForLatestLogEntry;
 
 /**
  * Reverts each child mutable model to the log entry corresponding to the given
@@ -1105,7 +1103,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         self.immutableBackingModel = newModel;
 
         PROAssert([transformation applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil], @"Block application should never fail at top level");
-        [self saveTransformationResultInfoForLogEntry:newLogEntry];
+        [self saveTransformationResultInfoForLatestLogEntry];
     }];
 
     if (strongError && error)
@@ -1203,14 +1201,45 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             return value;
     };
 
-    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(id transformation, NSUInteger modelIndex, NSString *keyPath, NSDictionary *blocks){
         NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationBlocksForIndexAtKeyPathBlock should only be executed while running on the dispatch queue");
 
         id childModels = [self.childMutableModelsByKey objectForKey:keyPath];
         if (!PROAssert([childModels respondsToSelector:@selector(objectAtIndex:)], @"%@ is not an indexed collection, cannot perform an indexed transformation on it", childModels))
             return blocks;
 
-        return [[childModels objectAtIndex:index] transformationBlocks];
+        PROMutableModel *mutableModel = [childModels objectAtIndex:modelIndex];
+
+        if (PROAssert([transformation isKindOfClass:[PROIndexedTransformation class]], @"Transformation diving down into an index should be a PROIndexedTransformation: %@", transformation)) {
+            NSUInteger indexCount = [[transformation indexes] count];
+            NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+            if (PROAssert(indexes, @"Could not allocate space for %lu indexes", (unsigned long)indexCount)) {
+                @onExit {
+                    free(indexes);
+                };
+
+                [[transformation indexes] getIndexes:indexes maxCount:indexCount inIndexRange:nil];
+
+                PROTransformation *modelTransformation = nil;
+
+                // we need to find the index INTO the index set where the
+                // modelIndex is located, so we can pull out the corresponding
+                // transformation
+                for (NSUInteger setIndex = 0; setIndex < indexCount; ++setIndex) {
+                    if (indexes[setIndex] == modelIndex) {
+                        modelTransformation = [[transformation transformations] objectAtIndex:setIndex];
+                        break;
+                    }
+                }
+                
+                if (PROAssert(modelTransformation, @"Could not find the transformation being performed on %@ in %@", mutableModel, transformation)) {
+                    // append this transformation to the sub-model's log
+                    [mutableModel.transformationLog appendTransformation:modelTransformation];
+                }
+            }
+        }
+
+        return [mutableModel transformationBlocks];
     };
 
     return [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1468,7 +1497,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     }];
 }
 
-- (void)saveTransformationResultInfoForLogEntry:(PROTransformationLogEntry *)logEntry; {
+- (void)saveTransformationResultInfoForLatestLogEntry; {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
     PROMutableModelTransformationResultInfo *resultInfo = [[PROMutableModelTransformationResultInfo alloc] init];
@@ -1479,6 +1508,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
         [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            [mutableModel saveTransformationResultInfoForLatestLogEntry];
+        
             id modelEntry = mutableModel.transformationLogEntry;
             if (!PROAssert(modelEntry, @"Could not retrieve log entry from model %@", mutableModel))
                 modelEntry = [EXTNil null];
@@ -1489,7 +1520,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     }];
 
     [resultInfo setLogEntries:logEntries forMutableModels:mutableModels];
-    [self.transformationLog.transformationResultInfoByLogEntry setObject:resultInfo forKey:logEntry];
+    [self.transformationLog.transformationResultInfoByLogEntry setObject:resultInfo forKey:self.transformationLog.latestLogEntry];
 }
 
 #pragma mark Forwarding
