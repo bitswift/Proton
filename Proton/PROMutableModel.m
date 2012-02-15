@@ -543,7 +543,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSArray *objects;
 
         [self.dispatchQueue runSynchronously:^{
-            id collection = [self.childMutableModelsByKey objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
+            id collection = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
 
             objects = [collection objectsAtIndexes:indexes];
         }];
@@ -1033,17 +1033,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)dealloc {
     [self.localDispatchQueue runBarrierSynchronously:^{
         // detach all children
-        [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
-            [self enumerateChildMutableModels:value usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-                [mutableModel.localDispatchQueue runBarrierSynchronously:^{
-                    mutableModel.indexFromParentMutableModel = NSNotFound;
-                    mutableModel.keyFromParentMutableModel = nil;
-                    mutableModel.parentMutableModel = nil;
-                }];
-            }];
+        NSArray *allKeys = self.childMutableModelsByKey.allKeys;
+        [allKeys enumerateObjectsUsingBlock:^(NSString *key, NSUInteger index, BOOL *stop){
+            [self replaceChildMutableModelsAtKey:key usingValue:nil];
         }];
-
-        [self.childMutableModelsByKey removeAllObjects];
     }];
 }
 
@@ -1115,6 +1108,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 }
 
 - (NSDictionary *)transformationBlocks; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
     PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
         NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationNewValueForKeyPathBlock should only be executed while running on the dispatch queue");
 
@@ -1269,8 +1264,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
-    // this should already be immutable, but let's make doubly-sure, since we're
-    // going to be sticking it into a future
+    // this should be immutable, since we're going to be sticking it into a future
     value = [value copy];
 
     // the new value to set
@@ -1292,6 +1286,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 mutableModel.parentMutableModel = nil;
             }];
         }];
+
+        if ([previousValue respondsToSelector:@selector(removeAllObjects)])
+            [previousValue removeAllObjects];
     }
 
     // this isn't __weak because it's only referenced in the resolution of the
@@ -1304,6 +1301,17 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     // will exist
     PROMutableModel *(^mutableModelWithModel)(id, NSUInteger) = ^ id (id model, NSUInteger index){
         if ([model isKindOfClass:[PROMutableModel class]]) {
+            PROMutableModel *mutableModel = model;
+
+            [mutableModel.localDispatchQueue runBarrierSynchronously:^{
+                if (!PROAssert(!mutableModel.parentMutableModel || mutableModel.parentMutableModel == weakSelf, @"%@'s parent is not %@, will not take it over", mutableModel, self))
+                    return;
+
+                mutableModel.parentMutableModel = weakSelf;
+                mutableModel.keyFromParentMutableModel = key;
+                mutableModel.indexFromParentMutableModel = index;
+            }];
+
             return model;
         }
 
@@ -1323,36 +1331,38 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         }];
     };
 
-    if ([value isKindOfClass:[NSArray class]]) {
-        newValue = [PROFuture futureWithBlock:^{
-            NSMutableArray *mutableValues = [NSMutableArray arrayWithCapacity:[value count]];
+    if (value) {
+        if ([value isKindOfClass:[NSArray class]]) {
+            newValue = [PROFuture futureWithBlock:^{
+                NSMutableArray *mutableValues = [NSMutableArray arrayWithCapacity:[value count]];
 
-            [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
-                id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
-                [mutableValues addObject:mutableModel];
+                [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
+                    id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
+                    [mutableValues addObject:mutableModel];
+                }];
+
+                return mutableValues;
             }];
+        } else if ([value isKindOfClass:[NSOrderedSet class]]) {
+            newValue = [PROFuture futureWithBlock:^{
+                NSMutableOrderedSet *mutableValues = [NSMutableOrderedSet orderedSetWithCapacity:[value count]];
 
-            return mutableValues;
-        }];
-    } else if ([value isKindOfClass:[NSOrderedSet class]]) {
-        newValue = [PROFuture futureWithBlock:^{
-            NSMutableOrderedSet *mutableValues = [NSMutableOrderedSet orderedSetWithCapacity:[value count]];
+                [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
+                    id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
+                    [mutableValues addObject:mutableModel];
+                }];
 
-            [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
-                id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
-                [mutableValues addObject:mutableModel];
+                return mutableValues;
             }];
-
-            return mutableValues;
-        }];
-    } else if ([value isKindOfClass:[NSDictionary class]]) {
-        // TODO 
-        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
-    } else if ([value isKindOfClass:[NSSet class]]) {
-        // TODO
-        PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
-    } else {
-        newValue = mutableModelWithModel(value, NSNotFound);
+        } else if ([value isKindOfClass:[NSDictionary class]]) {
+            // TODO 
+            PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
+        } else if ([value isKindOfClass:[NSSet class]]) {
+            // TODO
+            PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
+        } else {
+            newValue = mutableModelWithModel(value, NSNotFound);
+        }
     }
 
     [self willChangeValueForKey:key];
@@ -1620,7 +1630,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     __block id value;
 
     [self.dispatchQueue runSynchronously:^{
-        value = [self.childMutableModelsByKey objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
+        value = [self.immutableBackingModel valueForKey:key];
     }];
 
     return value;
