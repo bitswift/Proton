@@ -37,9 +37,7 @@
  * Contains the <PROTransformationLogEntry> instances that each
  * <PROMutableModel> had after applying the transformation to the parent.
  *
- * This dictionary does _not_ copy its <PROMutableModel> keys, and uses pointer
- * equality to compare them, thus ensuring quick lookup without needlessly
- * allocating data.
+ * This dictionary does _not_ copy its <PROMutableModel> keys.
  */
 @property (nonatomic, copy, readonly) NSDictionary *logEntriesByMutableModel;
 

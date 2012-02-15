@@ -16,22 +16,6 @@
 #import "PROMutableModel.h"
 #import "PROTransformationLogEntry.h"
 
-/**
- * Stupid stub function for `CFDictionaryRetainCallBack`, since it doesn't match
- * the type signature of `CFRetain`.
- */
-static const void *allocatorRetain (CFAllocatorRef allocator, const void *value) {
-    return CFRetain((void *)value);
-}
-
-/**
- * Stupid stub function for `CFDictionaryReleaseCallBack`, since it doesn't match
- * the type signature of `CFRelease`.
- */
-static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
-    CFRelease((void *)value);
-}
-
 @implementation PROMutableModelTransformationResultInfo
 
 #pragma mark Properties
@@ -75,16 +59,7 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
         keys,
         values,
         (CFIndex)count,
-        &(CFDictionaryKeyCallBacks){
-            .version = 0,
-            .retain = &allocatorRetain,
-            .release = &allocatorRelease,
-            .copyDescription = &CFCopyDescription,
-
-            // compare and hash by pointer equality only
-            .equal = NULL,
-            .hash = NULL
-        },
+        &kCFTypeDictionaryKeyCallBacks,
         &kCFTypeDictionaryValueCallBacks
     );
 
