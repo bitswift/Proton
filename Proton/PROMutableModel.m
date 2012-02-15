@@ -1167,7 +1167,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationWrappedValueForKeyPathBlock should only be executed while running on the dispatch queue");
 
         Class modelClass = [[self.immutableBackingModel.class modelClassesByKey] objectForKey:keyPath];
-        if (modelClass)
+        if (modelClass && ![value isKindOfClass:[PROMutableModel class]])
             return [[PROMutableModel alloc] initWithModel:value];
         else
             return value;
@@ -1263,13 +1263,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
-    // replace the key with a future, so we don't perform the work of the setup
-    // unless we need it
-    PROFuture *future = nil;
-
     // this should already be immutable, but let's make doubly-sure, since we're
     // going to be sticking it into a future
     value = [value copy];
+
+    // the new value to set
+    id newValue = nil;
 
     id previousValue = [self.childMutableModelsByKey objectForKey:key];
     if (previousValue && ![previousValue isKindOfClass:[PROFuture class]]) {
@@ -1294,39 +1293,47 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     // (also, weak variables are surprisingly expensive)
     __unsafe_unretained PROMutableModel *weakSelf = self;
 
+    // creates and returns a new PROMutableModel (or a future for one), given an
+    // object which is some model class and the index at which the new model
+    // will exist
+    PROMutableModel *(^mutableModelWithModel)(id, NSUInteger) = ^ id (id model, NSUInteger index){
+        if ([model isKindOfClass:[PROMutableModel class]]) {
+            return model;
+        }
+
+        if (!PROAssert([model isKindOfClass:[PROModel class]], @"Object being wrapped %@ should be a PROModel", model)) {
+            return nil;
+        }
+
+        // futures are cheaper than instances of this class
+        return [PROFuture futureWithBlock:^{
+            PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
+
+            mutableModel.parentMutableModel = weakSelf;
+            mutableModel.keyFromParentMutableModel = key;
+            mutableModel.indexFromParentMutableModel = index;
+
+            return mutableModel;
+        }];
+    };
+
     if ([value isKindOfClass:[NSArray class]]) {
-        future = [PROFuture futureWithBlock:^{
+        newValue = [PROFuture futureWithBlock:^{
             NSMutableArray *mutableValues = [NSMutableArray arrayWithCapacity:[value count]];
 
-            [value enumerateObjectsUsingBlock:^(PROModel *model, NSUInteger index, BOOL *stop){
-                // with an array, we can also future each object, since futures
-                // are cheaper than instances of this class
-                id mutableModelFuture = [PROFuture futureWithBlock:^{
-                    PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
-
-                    mutableModel.parentMutableModel = weakSelf;
-                    mutableModel.keyFromParentMutableModel = key;
-                    mutableModel.indexFromParentMutableModel = index;
-
-                    return mutableModel;
-                }];
-
-                [mutableValues addObject:mutableModelFuture];
+            [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
+                id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
+                [mutableValues addObject:mutableModel];
             }];
 
             return mutableValues;
         }];
     } else if ([value isKindOfClass:[NSOrderedSet class]]) {
-        future = [PROFuture futureWithBlock:^{
+        newValue = [PROFuture futureWithBlock:^{
             NSMutableOrderedSet *mutableValues = [NSMutableOrderedSet orderedSetWithCapacity:[value count]];
 
-            [value enumerateObjectsUsingBlock:^(PROModel *model, NSUInteger index, BOOL *stop){
-                PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
-
-                mutableModel.parentMutableModel = weakSelf;
-                mutableModel.keyFromParentMutableModel = key;
-                mutableModel.indexFromParentMutableModel = index;
-
+            [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
+                id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
                 [mutableValues addObject:mutableModel];
             }];
 
@@ -1339,17 +1346,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         // TODO
         PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
     } else {
-        if (!PROAssert([value isKindOfClass:[PROModel class]], @"Unrecognized value %@ to make mutable for key \"%@\"", value, key))
-            return;
-
-        future = [PROFuture futureWithBlock:^{
-            PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:value];
-            mutableModel.parentMutableModel = weakSelf;
-            mutableModel.keyFromParentMutableModel = key;
-            mutableModel.indexFromParentMutableModel = NSNotFound;
-
-            return mutableModel;
-        }];
+        newValue = mutableModelWithModel(value, NSNotFound);
     }
 
     [self willChangeValueForKey:key];
@@ -1357,8 +1354,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         [self didChangeValueForKey:key];
     };
 
-    if (future)
-        [self.childMutableModelsByKey setObject:future forKey:key];
+    if (newValue)
+        [self.childMutableModelsByKey setObject:newValue forKey:key];
     else if (previousValue)
         [self.childMutableModelsByKey removeObjectForKey:key];
 }
