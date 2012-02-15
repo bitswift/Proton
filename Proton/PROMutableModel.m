@@ -1447,8 +1447,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     };
 
     PROMutableModelTransformationResultInfo *resultInfo = [self.transformationLog.transformationResultInfoByLogEntry objectForKey:logEntry];
-    if (!PROAssert(resultInfo.mutableModelsByKey.count == resultInfo.logEntriesByMutableModel.count, @"Models %@ do not match log entries %@", resultInfo.mutableModelsByKey, resultInfo.logEntriesByMutableModel))
-        return;
 
     [resultInfo.mutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id restoredModels, BOOL *stop){
         // collect all the models we're going to replace our existing ones with
