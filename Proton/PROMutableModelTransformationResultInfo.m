@@ -8,6 +8,7 @@
 
 #import "PROMutableModelTransformationResultInfo.h"
 #import "EXTScope.h"
+#import "NSArray+HigherOrderAdditions.h"
 #import "NSDictionary+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
@@ -138,10 +139,23 @@ static void allocatorRelease (CFAllocatorRef allocator, const void *value) {
 #pragma mark NSObject overrides
 
 - (NSString *)description {
-    NSDictionary *stringsByKey = [self.mutableModelsByKey mapValuesUsingBlock:^(NSString *key, PROMutableModel *model){
+    NSString *(^modelDescription)(PROMutableModel *) = ^(PROMutableModel *model){
         PROTransformationLogEntry *logEntry = [self.logEntriesByMutableModel objectForKey:model];
-
         return [NSString stringWithFormat:@"<%@: %p> = %@", [model class], (__bridge void *)model, logEntry];
+    };
+
+    NSDictionary *stringsByKey = [self.mutableModelsByKey mapValuesUsingBlock:^(NSString *key, id obj){
+        if ([obj isKindOfClass:[NSArray class]]) {
+            NSArray *modelDescriptions = [obj mapUsingBlock:^(PROMutableModel *model){
+                return modelDescription(model);
+            }];
+
+            return modelDescriptions.description;
+        } else if ([obj isKindOfClass:[PROMutableModel class]]) {
+            return modelDescription(obj);
+        } else {
+            return [obj description];
+        }
     }];
 
     return [NSString stringWithFormat:@"<%@: %p> %@", [self class], (__bridge void *)self, stringsByKey];
