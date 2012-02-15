@@ -582,7 +582,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             };
 
             __block NSUInteger setIndex = 0;
-            [indexes enumerateIndexesWithOptions:NSEnumerationConcurrent usingBlock:^(NSUInteger finalIndex, BOOL *stop){
+            [indexes enumerateIndexesUsingBlock:^(NSUInteger finalIndex, BOOL *stop){
                 PROMutableModel *mutableModel = [objects objectAtIndex:setIndex++];
                 NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Object to insert %@ at \"%@\" on %@ is not a PROMutableModel", mutableModel, key, self);
 
@@ -636,7 +636,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             };
 
             NSArray *objectsBeingRemoved = [mutableCollection objectsAtIndexes:indexes];
-            [objectsBeingRemoved enumerateObjectsWithOptions:NSEnumerationConcurrent usingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
+            [objectsBeingRemoved enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
                 NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Object to insert %@ at \"%@\" on %@ is not a PROMutableModel", mutableModel, key, self);
 
                 // take over this model's queue until we've successfully

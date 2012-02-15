@@ -40,12 +40,9 @@
     NSParameterAssert(childLogEntry != nil);
 
     // using the ivar to avoid automatically instantiating this dictionary
-    return [m_transformationResultInfoByLogEntry
-        keyOfEntryWithOptions:NSEnumerationConcurrent
-        passingTest:^ BOOL (PROTransformationLogEntry *testLogEntry, PROMutableModelTransformationResultInfo *resultInfo, BOOL *stop){
-            return [[resultInfo.logEntriesByMutableModel objectForKey:mutableModel] isEqual:childLogEntry];
-        }
-    ];
+    return [m_transformationResultInfoByLogEntry keyOfEntryPassingTest:^ BOOL (PROTransformationLogEntry *testLogEntry, PROMutableModelTransformationResultInfo *resultInfo, BOOL *stop){
+        return [[resultInfo.logEntriesByMutableModel objectForKey:mutableModel] isEqual:childLogEntry];
+    }];
 }
 
 #pragma mark NSCoding
