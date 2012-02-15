@@ -1457,10 +1457,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         NSMutableArray *replacementModels = [NSMutableArray array];
         NSMutableArray *queues = [NSMutableArray array];
 
-        [self enumerateChildMutableModels:restoredModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+        // TODO: this whole method is very ordered-collection-specific
+        if (!PROAssert([restoredModels respondsToSelector:@selector(objectAtIndex:)], @"Can only restore mutable collections, not %@", restoredModels))
+            return;
+
+        [restoredModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
             [replacementModels addObject:mutableModel];
             [queues addObject:mutableModel.localDispatchQueue];
         }];
+
+        NSArray *immutableModelsForKey = [self.immutableBackingModel valueForKey:key];
 
         [SDQueue synchronizeQueues:queues runSynchronously:^{
             // restore models on the new mutable models first, so that we generate
@@ -1474,11 +1480,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 if (!PROAssert([mutableModel.transformationLog moveToLogEntry:childLogEntry], @"Could not move model %@ to log entry %@", mutableModel, childLogEntry))
                     return;
 
+                mutableModel.immutableBackingModel = [immutableModelsForKey objectAtIndex:index];
                 [mutableModel restoreMutableModelsWithTransformationLogEntry:childLogEntry];
             }];
         }];
 
-        // TODO: this won't work with other collection types
         NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
         [existingMutableModels setArray:replacementModels];
     }];
