@@ -1264,9 +1264,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
-    // this should be immutable, since we're going to be sticking it into a future
-    value = [value copy];
-
     // the new value to set
     id newValue = nil;
 
@@ -1319,6 +1316,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             return nil;
         }
 
+        model = [model copy];
+
         // futures are cheaper than instances of this class
         return [PROFuture futureWithBlock:^{
             PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
@@ -1333,6 +1332,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     if (value) {
         if ([value isKindOfClass:[NSArray class]]) {
+            value = [value copy];
+
             newValue = [PROFuture futureWithBlock:^{
                 NSMutableArray *mutableValues = [NSMutableArray arrayWithCapacity:[value count]];
 
@@ -1344,6 +1345,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 return mutableValues;
             }];
         } else if ([value isKindOfClass:[NSOrderedSet class]]) {
+            value = [value copy];
+
             newValue = [PROFuture futureWithBlock:^{
                 NSMutableOrderedSet *mutableValues = [NSMutableOrderedSet orderedSetWithCapacity:[value count]];
 
