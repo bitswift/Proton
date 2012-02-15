@@ -1633,7 +1633,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     __block id value;
 
     [self.dispatchQueue runSynchronously:^{
-        value = [self.immutableBackingModel valueForKey:key];
+        value = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
     }];
 
     return value;
