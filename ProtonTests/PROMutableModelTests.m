@@ -106,6 +106,24 @@ SpecBegin(PROMutableModel)
         expect(model).toSupportArchiving();
     });
 
+    it(@"should have a unique identifier", ^{
+        expect(model.uniqueIdentifier).not.toBeNil();
+
+        // should be unique per instance
+        PROMutableModel *anotherModel = (id)[[PROMutableModel alloc] initWithModel:immutableModel];
+        expect(anotherModel.uniqueIdentifier).not.toEqual(model.uniqueIdentifier);
+    });
+
+    it(@"should not copy unique identifier", ^{
+        PROMutableModel *copied = [model mutableCopy];
+        expect(copied.uniqueIdentifier).not.toEqual(model.uniqueIdentifier);
+    });
+
+    it(@"should encode unique identifier", ^{
+        PROMutableModel *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:model]];
+        expect(decoded.uniqueIdentifier).toEqual(model.uniqueIdentifier);
+    });
+
     it(@"should forward unknown messages to the model", ^{
         PROKeyedTransformation *transformation = [model transformationForKey:@"name" value:@"fizzbuzz"];
         expect(transformation).not.toBeNil();
