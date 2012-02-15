@@ -1441,32 +1441,32 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)restoreMutableModelsWithTransformationLogEntry:(PROTransformationLogEntry *)logEntry {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be invoked while running on the dispatch queue", __func__);
 
-    self.applyingTransformation = YES;
-    @onExit {
-        self.applyingTransformation = NO;
-    };
-
     PROMutableModelTransformationResultInfo *resultInfo = [self.transformationLog.transformationResultInfoByLogEntry objectForKey:logEntry];
 
     [resultInfo.mutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id restoredModels, BOOL *stop){
         // collect all the models we're going to replace our existing ones with
         NSMutableArray *replacementModels = [NSMutableArray array];
+        NSMutableArray *queues = [NSMutableArray array];
+
         [self enumerateChildMutableModels:restoredModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
             [replacementModels addObject:mutableModel];
+            [queues addObject:mutableModel.localDispatchQueue];
         }];
 
-        // restore models on the new mutable models first, so that we generate
-        // all KVO notifications in one fell swoop with the -setArray: call
-        // below
-        [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
-            PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
-            if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
-                return;
+        [SDQueue synchronizeQueues:queues runSynchronously:^{
+            // restore models on the new mutable models first, so that we generate
+            // all KVO notifications in one fell swoop with the -setArray: call
+            // below
+            [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
+                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
+                if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
+                    return;
 
-            if (!PROAssert([mutableModel.transformationLog moveToLogEntry:childLogEntry], @"Could not move model %@ to log entry %@", mutableModel, childLogEntry))
-                return;
+                if (!PROAssert([mutableModel.transformationLog moveToLogEntry:childLogEntry], @"Could not move model %@ to log entry %@", mutableModel, childLogEntry))
+                    return;
 
-            [mutableModel restoreMutableModelsWithTransformationLogEntry:childLogEntry];
+                [mutableModel restoreMutableModelsWithTransformationLogEntry:childLogEntry];
+            }];
         }];
 
         // TODO: this won't work with other collection types
