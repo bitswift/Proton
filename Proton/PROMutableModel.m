@@ -1709,11 +1709,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if ([model isKindOfClass:[PROModel class]]) {
         return [self.copy isEqual:model];
     }
-    
-    if (![model isKindOfClass:[PROMutableModel class]])
-        return NO;
 
-    return [[self copy] isEqual:[model copy]];
+    // between PROMutableModels, compare only for identity
+    return NO;
 }
 
 - (BOOL)isProxy {
