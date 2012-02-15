@@ -25,6 +25,7 @@
 #import "PROMutableModelTransformationResultInfo.h"
 #import "PRORemovalTransformation.h"
 #import "PROTransformationLogEntry.h"
+#import "PROUniqueIdentifier.h"
 #import "PROUniqueTransformation.h"
 #import "SDQueue.h"
 #import <objc/runtime.h>
@@ -310,6 +311,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @synthesize childMutableModelsByKey = m_childMutableModelsByKey;
 @synthesize keyFromParentMutableModel = m_keyFromParentMutableModel;
 @synthesize indexFromParentMutableModel = m_indexFromParentMutableModel;
+@synthesize uniqueIdentifier = m_uniqueIdentifier;
 
 - (BOOL)isApplyingTransformation {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
@@ -995,6 +997,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!PROAssert(m_localDispatchQueue, @"Could not initialize new custom GCD queue for %@", self))
         return nil;
 
+    m_uniqueIdentifier = [[PROUniqueIdentifier alloc] init];
+
     if ([model isKindOfClass:[PROMutableModel class]]) {
         [[model dispatchQueue] runSynchronously:^{
             m_immutableBackingModel = [[model immutableBackingModel] copy];
@@ -1562,6 +1566,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!model)
         return nil;
 
+    PROUniqueIdentifier *identifier = [coder decodeObjectForKey:PROKeyForObject(self, uniqueIdentifier)];
+    if (!PROAssert(identifier, @"Could not decode UUID for model %@", model))
+        return nil;
+
     self = [super init];
     if (!self)
         return nil;
@@ -1570,6 +1578,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!PROAssert(m_localDispatchQueue, @"Could not initialize new custom GCD queue for %@", self))
         return nil;
 
+    m_uniqueIdentifier = [identifier copy];
     m_immutableBackingModel = [model copy];
     m_transformationLog = [coder decodeObjectForKey:PROKeyForObject(self, transformationLog)];
 
@@ -1587,6 +1596,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)encodeWithCoder:(NSCoder *)coder {
     [self.dispatchQueue runSynchronously:^{
         [coder encodeObject:self.immutableBackingModel forKey:PROKeyForObject(self, immutableBackingModel)];
+        [coder encodeObject:self.uniqueIdentifier forKey:PROKeyForObject(self, uniqueIdentifier)];
 
         if (self.transformationLog)
             [coder encodeObject:self.transformationLog forKey:PROKeyForObject(self, transformationLog)];
