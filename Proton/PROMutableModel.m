@@ -1430,8 +1430,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             return;
 
         self.immutableBackingModel = newModel;
-        PROAssert([transformationToLogEntryModel applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil], @"Block application should never fail at top level");
-
         [self restoreMutableModelsWithTransformationLogEntry:transformationLogEntry];
 
         success = YES;
@@ -1459,10 +1457,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             [replacementModels addObject:mutableModel];
         }];
 
-        // TODO: this won't work with other collection types
-        NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
-        [existingMutableModels setArray:replacementModels];
-
+        // restore models on the new mutable models first, so that we generate
+        // all KVO notifications in one fell swoop with the -setArray: call
+        // below
         [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
             PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
             if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
@@ -1473,6 +1470,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
             [mutableModel restoreMutableModelsWithTransformationLogEntry:childLogEntry];
         }];
+
+        // TODO: this won't work with other collection types
+        NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
+        [existingMutableModels setArray:replacementModels];
     }];
 }
 
