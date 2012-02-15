@@ -142,7 +142,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @property (nonatomic, strong, readonly) NSMutableDictionary *childMutableModelsByKey;
 
 /**
- * Whether the receiver is currently transforming itself, whether via the
+ * Whether the receiver is currently being transformed, whether via the
  * <applyTransformation:error:> method, restoring from the transformation log,
  * or some other mechanism.
  *
@@ -314,7 +314,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (BOOL)isApplyingTransformation {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
-    return m_flags.applyingTransformation;
+    PROMutableModel *parent = self.parentMutableModel;
+    if (parent)
+        return parent.applyingTransformation;
+    else
+        return m_flags.applyingTransformation;
 }
 
 - (void)setApplyingTransformation:(BOOL)applying {
@@ -1440,6 +1444,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 - (void)restoreMutableModelsWithTransformationLogEntry:(PROTransformationLogEntry *)logEntry {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be invoked while running on the dispatch queue", __func__);
+
+    self.applyingTransformation = YES;
+    @onExit {
+        self.applyingTransformation = NO;
+    };
 
     PROMutableModelTransformationResultInfo *resultInfo = [self.transformationLog.transformationResultInfoByLogEntry objectForKey:logEntry];
 
