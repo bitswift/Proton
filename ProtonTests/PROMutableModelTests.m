@@ -803,16 +803,14 @@ SpecBegin(PROMutableModel)
         it(@"should reuse model pointers when restoring a future log entry", ^{
             id pastLogEntry = model.transformationLogEntry;
 
-            model.subModels = [NSArray arrayWithObject:[TestSubModel enabledSubModel]];
-            TestMutableSubModel *subModel = [model.subModels objectAtIndex:0];
+            model.subModels = [NSArray arrayWithObjects:[TestSubModel enabledSubModel], [[TestSubModel alloc] initWithName:@"fizzbuzz"], nil];
+            TestMutableSubModel *subModel = [model.subModels objectAtIndex:1];
 
             id futureLogEntry = model.transformationLogEntry;
 
             expect([model restoreTransformationLogEntry:pastLogEntry]).toBeTruthy();
-            expect([model.subModels objectAtIndex:0] == subModel).toBeFalsy();
-
             expect([model restoreTransformationLogEntry:futureLogEntry]).toBeTruthy();
-            expect([model.subModels objectAtIndex:0] == subModel).toBeTruthy();
+            expect([model.subModels objectAtIndex:1] == subModel).toBeTruthy();
         });
     });
 
