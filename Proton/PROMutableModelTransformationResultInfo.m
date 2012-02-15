@@ -23,6 +23,20 @@
 @synthesize mutableModelsByKey = m_mutableModelsByKey;
 @synthesize logEntriesByMutableModel = m_logEntriesByMutableModel;
 
+- (void)setMutableModelsByKey:(NSDictionary *)modelsByKey {
+    if (modelsByKey == m_mutableModelsByKey)
+        return;
+
+    m_mutableModelsByKey = [modelsByKey mapValuesUsingBlock:^(NSString *key, id value){
+        if (![value isKindOfClass:[PROMutableModel class]]) {
+            // assume this is a collection which needs to be copied
+            return [value copy];
+        } else {
+            return value;
+        }
+    }];
+}
+
 - (void)setLogEntries:(NSArray *)logEntries forMutableModels:(NSArray *)mutableModels; {
     NSParameterAssert(logEntries.count == mutableModels.count);
 

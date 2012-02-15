@@ -26,6 +26,8 @@
  * The keys of this dictionary should be some or all of those from <[PROModel
  * modelClassesByKey]> on the <PROModel> underlying the mutable model that was
  * transformed.
+ *
+ * Setting this property will also copy any collection values.
  */
 @property (nonatomic, copy) NSDictionary *mutableModelsByKey;
 
