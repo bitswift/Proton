@@ -1035,9 +1035,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         // detach all children
         [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
             [self enumerateChildMutableModels:value usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-                mutableModel.indexFromParentMutableModel = NSNotFound;
-                mutableModel.keyFromParentMutableModel = nil;
-                mutableModel.parentMutableModel = nil;
+                [mutableModel.localDispatchQueue runBarrierSynchronously:^{
+                    mutableModel.indexFromParentMutableModel = NSNotFound;
+                    mutableModel.keyFromParentMutableModel = nil;
+                    mutableModel.parentMutableModel = nil;
+                }];
             }];
         }];
 
