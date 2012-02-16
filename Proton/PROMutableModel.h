@@ -12,6 +12,7 @@
 @class PROModel;
 @class PROTransformation;
 @class PROTransformationLogEntry;
+@class PROUniqueIdentifier;
 
 // the documentation below uses a different comment style so that code blocks
 // are properly included in the generated documentation
@@ -91,6 +92,18 @@ Also see the `@mutable` macro, which makes this even more useful.
  * @param zone Unused.
  */
 - (id)mutableCopyWithZone:(NSZone *)zone;
+
+/**
+ * @name Identification
+ */
+
+/**
+ * A unique identifier for this mutable model.
+ *
+ * Mutable copies of the receiver will have different UUIDs, but encoding and
+ * decoding the receiver will preserve this identifier.
+ */
+@property (nonatomic, copy, readonly) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
  * @name Applying Transformations
