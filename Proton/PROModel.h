@@ -73,6 +73,18 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 - (id)init;
 
 /**
+ * Initializes the receiver with the given <PROModel> or <PROMutableModel>
+ * instance.
+ *
+ * The receiver must be of the same <PROModel> class as the given object, or one
+ * of its subclasses.
+ *
+ * @param model A <PROModel> or <PROMutableModel> to initialize the receiver
+ * from.
+ */
+- (id)initWithModel:(id)model;
+
+/**
  * Initializes the properties of the receiver using the keys and values of
  * a dictionary. Sets `error` and returns `nil` if any error occurs.
  *

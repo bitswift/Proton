@@ -37,6 +37,10 @@ const NSInteger PROModelErrorValidationFailed = 2;
     return [self initWithDictionary:nil error:NULL];
 }
 
+- (id)initWithModel:(id)model; {
+    return [model copy];
+}
+
 - (id)initWithDictionary:(NSDictionary *)dictionary error:(NSError **)error {
     self = [super init];
     if (!self)
