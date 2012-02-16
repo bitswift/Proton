@@ -1453,22 +1453,42 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (NSArray *)modelsWithTransformationLogEntries:(NSArray *)logEntries; {
     NSParameterAssert(logEntries != nil);
 
-    __block NSMutableArray *immutableModels = [NSMutableArray arrayWithCapacity:logEntries.count];
+    /*
+     * This array will contain three types of objects as we progress through this method:
+     *
+     * 1. The PROUniqueIdentifiers for each log entry.
+     * 2. The PROMutableModels corresponding to each log entry.
+     * 3. The PROModels corresponding to each PROMutableModel (retrieved with the log entry).
+     *
+     * If the array in each step contains any objects from the previous step,
+     * this method should return nil.
+     */
+    __block NSMutableArray *modelsAndIDs = [NSMutableArray arrayWithCapacity:logEntries.count];
 
     [self.dispatchQueue runSynchronously:^{
-        // collect all mutable models by ID, so we can easily look them up
-        NSMutableDictionary *childrenByID = [NSMutableDictionary dictionary];
-
-        [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-            [childrenByID setObject:mutableModel forKey:mutableModel.uniqueIdentifier];
+        [logEntries enumerateObjectsUsingBlock:^(PROMutableModelTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
+            [modelsAndIDs addObject:logEntry.mutableModelUniqueIdentifier];
         }];
 
+        // then replace them one-by-one with the actual model objects
+        [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            PROUniqueIdentifier *identifier = mutableModel.uniqueIdentifier;
+            
+            NSUInteger arrayIndex = [modelsAndIDs indexOfObject:identifier];
+            if (arrayIndex == NSNotFound)
+                return;
+
+            [modelsAndIDs replaceObjectAtIndex:arrayIndex withObject:mutableModel];
+        }];
+
+        // then enumerate back through, and fill in the corresponding immutable
+        // models
         [logEntries enumerateObjectsUsingBlock:^(PROMutableModelTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
             NSAssert(logEntry.mutableModelUniqueIdentifier, @"%@ does not have a model UUID", logEntry);
 
-            PROMutableModel *subModel = [childrenByID objectForKey:logEntry.mutableModelUniqueIdentifier];
-            if (!subModel) {
-                immutableModels = nil;
+            PROMutableModel *subModel = [modelsAndIDs objectAtIndex:index];
+            if (![subModel isKindOfClass:[PROMutableModel class]]) {
+                modelsAndIDs = nil;
 
                 *stop = YES;
                 return;
@@ -1476,15 +1496,22 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
             PROModel *immutableModel = [subModel modelWithTransformationLogEntry:logEntry];
             if (immutableModel) {
-                [immutableModels addObject:immutableModel];
+                [modelsAndIDs replaceObjectAtIndex:index withObject:immutableModel];
             } else {
-                immutableModels = nil;
+                modelsAndIDs = nil;
                 *stop = YES;
             }
         }];
     }];
 
-    return immutableModels;
+    #ifdef DEBUG
+    // double-check the contents of the array -- it should be all PROModels now
+    [[modelsAndIDs copy] enumerateObjectsUsingBlock:^(id object, NSUInteger index, BOOL *stop){
+        PROAssert([object isKindOfClass:[PROModel class]], @"%@ should have been converted to a PROModel by now", object);
+    }];
+    #endif
+
+    return modelsAndIDs;
 }
 
 - (BOOL)restoreTransformationLogEntry:(PROMutableModelTransformationLogEntry *)transformationLogEntry; {
