@@ -27,14 +27,23 @@
     if (modelsByKey == m_mutableModelsByKey)
         return;
 
-    m_mutableModelsByKey = [modelsByKey mapValuesUsingBlock:^(NSString *key, id value){
-        if (![value isKindOfClass:[PROMutableModel class]]) {
-            // assume this is a collection which needs to be copied
-            return [value copy];
+    m_mutableModelsByKey = nil;
+    if (!modelsByKey) {
+        return;
+    }
+
+    NSMutableDictionary *mutableModelsByKey = [NSMutableDictionary dictionaryWithCapacity:modelsByKey.count];
+
+    [modelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
+        if ([value isKindOfClass:[PROMutableModel class]]) {
+            [mutableModelsByKey setObject:value forKey:key];
         } else {
-            return value;
+            // assume this is a collection which needs to be copied
+            [mutableModelsByKey setObject:[value copy] forKey:key];
         }
     }];
+
+    m_mutableModelsByKey = mutableModelsByKey;
 }
 
 #pragma mark NSCoding
