@@ -272,20 +272,12 @@
     if (!latestLogEntry)
         return nil;
 
-    NSOrderedSet *logEntries = [coder decodeObjectForKey:PROKeyForObject(self, logEntries)];
-    if (!logEntries)
-        return nil;
-
-    NSDictionary *transformationsByLogEntry = [coder decodeObjectForKey:PROKeyForObject(self, transformationsByLogEntry)];
-    if (!transformationsByLogEntry)
-        return nil;
-
     self = [self init];
     if (!self)
         return nil;
 
-    self.logEntries = [logEntries mutableCopy];
-    self.transformationsByLogEntry = [transformationsByLogEntry mutableCopy];
+    self.logEntries = [[coder decodeObjectForKey:PROKeyForObject(self, logEntries)] mutableCopy];
+    self.transformationsByLogEntry = [[coder decodeObjectForKey:PROKeyForObject(self, transformationsByLogEntry)] mutableCopy];
 
     self.latestLogEntry = latestLogEntry;
     self.maximumNumberOfLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfLogEntries)];

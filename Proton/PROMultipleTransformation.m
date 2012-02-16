@@ -10,7 +10,6 @@
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
-#import "PROModelController.h"
 
 @implementation PROMultipleTransformation
 
@@ -161,10 +160,6 @@
 }
 
 #pragma mark NSObject overrides
-
-- (NSString *)description {
-    return [NSString stringWithFormat:@"<%@: %p>: %@", [self class], (__bridge void *)self, self.transformations];
-}
 
 - (NSUInteger)hash {
     return [self.transformations hash];

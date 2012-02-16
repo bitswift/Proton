@@ -28,8 +28,6 @@
 #import <Proton/PROKeyedTransformation.h>
 #import <Proton/PROLogging.h>
 #import <Proton/PROModel.h>
-#import <Proton/PROModelController.h>
-#import <Proton/PROModelControllerTransformationLogEntry.h>
 #import <Proton/PROMultipleTransformation.h>
 #import <Proton/PROMutableModel.h>
 #import <Proton/PROOrderTransformation.h>

@@ -7,22 +7,23 @@
 //
 
 #import "PROMutableModel.h"
+#import "EXTNil.h"
 #import "EXTRuntimeExtensions.h"
 #import "EXTScope.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "PROAssert.h"
+#import "PROFuture.h"
 #import "PROIndexedTransformation.h"
 #import "PROInsertionTransformation.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROKeyedTransformation.h"
 #import "PROLogging.h"
 #import "PROModel.h"
-#import "PROModelController.h"
-#import "PROModelControllerTransformationLogEntry.h"
 #import "PROMultipleTransformation.h"
 #import "PROMutableModelPrivate.h"
+#import "PROMutableModelTransformationLog.h"
+#import "PROMutableModelTransformationResultInfo.h"
 #import "PRORemovalTransformation.h"
-#import "PROTransformationLog.h"
 #import "PROTransformationLogEntry.h"
 #import "PROUniqueTransformation.h"
 #import "SDQueue.h"
@@ -35,52 +36,124 @@
     #import <UIKit/UIKit.h>
 #endif
 
-NSString * const PROMutableModelDidRebaseFromModelControllerNotification = @"PROMutableModelDidRebaseFromModelControllerNotification";
-NSString * const PROMutableModelRebaseFromModelControllerFailedNotification = @"PROMutableModelRebaseFromModelControllerFailedNotification";
-NSString * const PROMutableModelRebaseErrorKey = @"PROMutableModelRebaseError";
-
+/**
+ * Private serial queue used to synchronize the creation of dynamic
+ * <PROMutableModel> subclasses at runtime.
+ *
+ * This is necessary to protect against accidentally creating or setting up the
+ * same subclass twice (if multiple threads attempt to use it for the first time
+ * simultaneously).
+ */
 static SDQueue *PROMutableModelClassCreationQueue = nil;
 
-/**
- * This class should avoid as many properties as possible, since it
- * functions like a proxy.
- */
 @interface PROMutableModel () {
-    /**
-     * A private dispatch queue used to synchronize modifications to this
-     * object.
-     */
-    SDQueue *m_dispatchQueue;
-
-    /**
-     * The model managed by this object, as transformed by everything in
-     * <m_transformationLog> after <m_originalModelLogEntry>.
-     */
-    PROModel *m_latestModel;
-
-    /**
-     * The log entry corresponding to the version of the model that was
-     * last retrieved from the <modelController>.
-     */
-    PROTransformationLogEntry *m_originalModelLogEntry;
-
-    /**
-     * Transformation log containing all of the changes made since
-     * <m_originalModelLogEntry>.
-     */
-    PROTransformationLog *m_transformationLog;
+    struct {
+        unsigned applyingTransformation:1;
+    } m_flags;
 }
 
+// NOTE: Be careful with property names below, since this class does try to be
+// a proxy for its immutable model, and we don't want to conflict with property
+// names used there.
+
 /**
- * Atomic getter for the <m_latestModel> instance variable.
+ * A dispatch queue used to synchronize modifications to this model hierarchy.
+ *
+ * Reads should be dispatched as non-barrier blocks, since multiple reads can
+ * progress in parallel. Writes should be dispatched as barrier blocks, to lock
+ * out all other readers and writers while working.
+ *
+ * If the receiver has a <parentMutableModel>, this property will return the
+ * parent's dispatch queue. The net result is that every model in a given
+ * hierachy is synchronized using the furthest ancestor's dispatch queue, to
+ * minimize the number of queues to jump between.
  */
-@property (copy, readonly) PROModel *latestModel;
+@property (nonatomic, strong, readonly) SDQueue *dispatchQueue;
+
+/**
+ * The dispatch queue directly owned by the receiver.
+ *
+ * This should be used instead of the <dispatchQueue> property when
+ * transitioning the receiver between parents.
+ */
+@property (nonatomic, strong, readonly) SDQueue *localDispatchQueue;
+
+/**
+ * The immutable model underlying the receiver, as transformed by everything in
+ * the <transformationLog>.
+ *
+ * @warning **Important:** This property should only be set or read while
+ * running on the <dispatchQueue>.
+ */
+@property (nonatomic, copy) PROModel *immutableBackingModel;
+
+/**
+ * A log storing all of the transformations that have occurred to the receiver's
+ * <immutableBackingModel>.
+ *
+ * Parts of the transformation log functionality are exposed to consumers of
+ * this class, but they are not given the ability to mutate the log directly.
+ *
+ * @warning **Important:** This log should only be mutated while running on the
+ * <dispatchQueue>.
+ */
+@property (nonatomic, strong, readonly) PROMutableModelTransformationLog *transformationLog;
+
+/**
+ * A parent model that the receiver is part of, or `nil` if the receiver is the
+ * root of a model hierarchy.
+ *
+ * This property is independently atomic because it's used to provide the
+ * receiver's <dispatchQueue>, and to avoid crazy deadlocking scenarios.
+ */
+@property (unsafe_unretained) PROMutableModel *parentMutableModel;
+
+/**
+ * The key at which the receiver exists relative to its <parentMutableModel>, or
+ * `nil` if the receiver is the root of a model hierarchy.
+ *
+ * @warning **Important:** This property should only be set or read while
+ * running on the <dispatchQueue>, and is only updated _after_ a new
+ * <parentMutableModel> is set.
+ */
+@property (nonatomic, copy) NSString *keyFromParentMutableModel;
+
+/**
+ * Contains any <PROMutableModel> instances that the receiver owns, keyed by
+ * their corresponding keys on the <immutableBackingModel>.
+ *
+ * If the corresponding <immutableBackingModel> property is a collection, the
+ * value in this dictionary will be a collection of the same type.
+ *
+ * @warning **Important:** This collection should only be mutated while running
+ * on the <dispatchQueue>.
+ */
+@property (nonatomic, strong, readonly) NSMutableDictionary *childMutableModelsByKey;
+
+/**
+ * Whether the receiver is currently being transformed, whether via the
+ * <applyTransformation:error:> method, restoring from the transformation log,
+ * or some other mechanism.
+ *
+ * @warning **Important:** This property should only be set or read while
+ * running on the <dispatchQueue>.
+ */
+@property (nonatomic, assign, getter = isApplyingTransformation) BOOL applyingTransformation;
 
 /**
  * Per the documentation for `<NSKeyValueObserving>`, this property is
  * overridden for improved performance.
  */
 @property (assign) void *observationInfo;
+
+/**
+ * The class of <PROModel> that this class proxies and uses for its
+ * <immutableBackingModel>.
+ *
+ * The default implementation returns `[PROModel class]`, but
+ * dynamically-created subclasses will return the class they were built for.
+ */
++ (Class)modelClass;
 
 /**
  * Given a subclass of <PROModel>, this will create or return
@@ -124,41 +197,93 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 + (IMP)synthesizedSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes;
 
 /**
- * Attempts to transform the underlying <PROModel> object by transforming the
- * given key.
- *
- * @param transformation The transformation to attempt.
- * @param key The key upon which to apply the transformation.
- */
-- (void)performTransformation:(PROTransformation *)transformation forKey:(NSString *)key;
-
-/**
- * Invoked when the receiver's <modelController> just completed
- * a transformation.
- */
-- (void)modelControllerDidPerformTransformation:(NSNotification *)notification;
-
-/**
- * Attempts to rebase the receiver's changes on top of the given model. Returns
- * whether the rebase succeeded.
- *
- * This method does not post any notifications.
- *
- * @param newModel The model to rebase onto.
- * @param oldModel The original model, on which `transformation` was applied,
- * resulting in `newModel`.
- * @param transformation A transformation that describes what changed between
- * the previous version of the model and `newModel`.
- * @param error If this is not `NULL` and the method returns `NO`, this may be
- * set to the error that occurred.
- */
-- (BOOL)rebaseOntoModel:(PROModel *)newModel oldModel:(PROModel *)oldModel transformation:(PROTransformation *)transformation error:(NSError **)error;
-
-/**
  * A set of blocks to pass to <[PROTransformation
- * applyBlocks:transformationResult:keyPath:]> to implement rebasing behavior.
+ * applyBlocks:transformationResult:keyPath:]> when applying a transformation
+ * that may need to update sub-models.
  */
-- (NSDictionary *)rebasingTransformationBlocks;
+- (NSDictionary *)transformationBlocks;
+
+/**
+ * Given a transformation relative to the receiver, this will return a new
+ * transformation which is relative to its <parentMutableModel>. If the receiver
+ * does not have a parent, returns `nil`.
+ *
+ * @param transformation A transformation that is defined relative to the
+ * receiver.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
+ */
+- (PROTransformation *)extendTransformationToParent:(PROTransformation *)transformation;
+
+/**
+ * Enumerates over a value obtained from <childMutableModelsByKey>, which may be
+ * a single object or one of a few collection types, in a uniform way.
+ *
+ * @param childModels A value from <childMutableModelsByKey>.
+ * @param block A block to apply to every element in `childModels` (or
+ * `childModels` itself, if it's a single object).
+ */
+- (void)enumerateChildMutableModels:(id)childModels usingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block;
+
+/**
+ * Creates new <PROMutableModel> objects to correspond to those at the given key
+ * path in the given model.
+ *
+ * This will replace any existing value in <childMutableModelsByKey>.
+ *
+ * @param key The key at which to create mutable models, relative to the
+ * receiver (and the receiver's <immutableBackingModel>).
+ * @param value The new value being set at the specified key, from which to
+ * create mutable models.
+ */
+- (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value;
+
+/**
+ * Replaces all of the objects in <childMutableModelsByKey> with new mutable
+ * model objects created to represent the receiver's <immutableBackingModel>.
+ */
+- (void)replaceAllChildMutableModels;
+
+/**
+ * Creates an instance of <PROMutableModelTransformationResultInfo>, fills it in
+ * with the current state of the receiver, and then associates it with the
+ * latest log entry in the <transformationLog>.
+ */
+- (void)saveTransformationResultInfoForLatestLogEntry;
+
+/**
+ * Reverts each child mutable model to the log entry corresponding to the given
+ * log entry.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
+ */
+- (void)restoreMutableModelsWithTransformationLogEntry:(PROTransformationLogEntry *)logEntry;
+
+/**
+ * Generates a KVO "will change" notification for the receiver being replaced in
+ * its <parentMutableModel>.
+ *
+ * This is used when the corresponding immutable model was replaced, but the
+ * mutable model will continue to track the new value.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
+ */
+- (void)willChangeInParentMutableModel;
+
+/**
+ * Generates a KVO "did change" notification for the receiver being replaced in
+ * its <parentMutableModel>.
+ *
+ * This is used when the corresponding immutable model was replaced, but the
+ * mutable model will continue to track the new value.
+ *
+ * @warning **Important:** This method should only be invoked while running on
+ * the <dispatchQueue>.
+ */
+- (void)didChangeInParentMutableModel;
 
 @end
 
@@ -166,17 +291,62 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark Properties
 
-@synthesize modelController = m_modelController;
+@synthesize localDispatchQueue = m_localDispatchQueue;
+@synthesize immutableBackingModel = m_immutableBackingModel;
+@synthesize transformationLog = m_transformationLog;
+@synthesize parentMutableModel = m_parentMutableModel;
 @synthesize observationInfo = m_observationInfo;
+@synthesize childMutableModelsByKey = m_childMutableModelsByKey;
+@synthesize keyFromParentMutableModel = m_keyFromParentMutableModel;
 
-- (PROModel *)latestModel {
-    __block PROModel *model;
+- (BOOL)isApplyingTransformation {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
-    [m_dispatchQueue runSynchronously:^{
-        model = [m_latestModel copy];
+    PROMutableModel *parent = self.parentMutableModel;
+    if (parent)
+        return parent.applyingTransformation;
+    else
+        return m_flags.applyingTransformation;
+}
+
+- (void)setApplyingTransformation:(BOOL)applying {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    m_flags.applyingTransformation = applying;
+}
+
+- (NSUInteger)archivedTransformationLogLimit {
+    __block NSUInteger limit;
+
+    [self.dispatchQueue runSynchronously:^{
+        limit = self.transformationLog.maximumNumberOfArchivedLogEntries;
     }];
 
-    return model;
+    return limit;
+}
+
+- (void)setArchivedTransformationLogLimit:(NSUInteger)limit {
+    [self.dispatchQueue runBarrierSynchronously:^{
+        self.transformationLog.maximumNumberOfArchivedLogEntries = limit;
+    }];
+}
+
+- (PROTransformationLogEntry *)transformationLogEntry {
+    __block PROTransformationLogEntry *logEntry;
+
+    [self.dispatchQueue runSynchronously:^{
+        logEntry = [self.transformationLog.latestLogEntry copy];
+    }];
+
+    return logEntry;
+}
+
+- (SDQueue *)dispatchQueue {
+    PROMutableModel *parent = self.parentMutableModel;
+    if (parent)
+        return parent.dispatchQueue;
+    else
+        return self.localDispatchQueue;
 }
 
 #pragma mark Reflection
@@ -189,8 +359,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     PROMutableModelClassCreationQueue = [[SDQueue alloc] init];
 }
 
++ (Class)modelClass; {
+    return [PROModel class];
+}
+
 + (Class)mutableModelClassForModelClass:(Class)modelClass; {
-    NSParameterAssert([modelClass isSubclassOfClass:[PROModel class]]);
+    NSAssert([modelClass isSubclassOfClass:[PROModel class]], @"Cannot dynamically create a PROMutableModel subclass for %@, as it is not a PROModel subclass", modelClass);
 
     if ([modelClass isEqual:[PROModel class]]) {
         return [PROMutableModel class];
@@ -212,6 +386,20 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         Class mutableSuperclass = [self mutableModelClassForModelClass:[modelClass superclass]];
 
         mutableModelClass = [self createClass:mutableModelClassName superclass:mutableSuperclass usingBlock:^(Class mutableModelClass){
+            Method originalModelClassMethod = class_getClassMethod([PROMutableModel class], @selector(modelClass));
+            NSAssert(originalModelClassMethod, @"Could not find +modelClass method on PROMutableModel");
+
+            // create a block to implement the +modelClass method
+            id modelClassBlock = [^(Class self){
+                return modelClass;
+            } copy];
+
+            // leak the block, since it's being used to implement a method
+            IMP modelClassIMP = imp_implementationWithBlock((__bridge_retained void *)modelClassBlock);
+            
+            BOOL success = class_addMethod(object_getClass(mutableModelClass), method_getName(originalModelClassMethod), modelClassIMP, method_getTypeEncoding(originalModelClassMethod));
+            PROAssert(success, @"Could not add %s method to dynamic subclass %@", sel_getName(method_getName(originalModelClassMethod)), mutableModelClassName);
+            
             // create setters for every property (but just on this subclass)
             unsigned propertyCount = 0;
             objc_property_t *properties = class_copyPropertyList(modelClass, &propertyCount);
@@ -273,8 +461,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if ([propertyClass isSubclassOfClass:[NSArray class]] || [propertyClass isSubclassOfClass:[NSOrderedSet class]]) {
         // synthesize indexed accessors
         [self synthesizeMutableIndexedAccessorsForKey:propertyKey forMutableModelClass:mutableModelClass];
-    } else if ([propertyClass isSubclassOfClass:[NSDictionary class]]) {
+    } else if ([propertyClass isSubclassOfClass:[NSDictionary class]] || [propertyClass isSubclassOfClass:[NSSet class]]) {
         // TODO: synthesize unordered accessors
+        PROAssert(NO, @"Unordered key-value coding accessors are not currently supported by PROMutableModel, property %@ will not be implemented", propertyKey);
     }
 }
 
@@ -283,6 +472,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     [capitalizedKey appendString:[[key substringToIndex:1] uppercaseString]];
     [capitalizedKey appendString:[key substringFromIndex:1]];
 
+    SEL getterSelector = NSSelectorFromString(key);
     SEL countOfSelector = NSSelectorFromString([NSString stringWithFormat:@"countOf%@", capitalizedKey]);
     SEL objectsAtIndexesSelector = NSSelectorFromString([NSString stringWithFormat:@"%@AtIndexes:", key]);
 
@@ -298,9 +488,34 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(selector), mutableModelClass);
     };
 
+    // array getter
+    id getterBlock = ^(PROMutableModel *self){
+        __block NSArray *array = nil;
+
+        [self.dispatchQueue runSynchronously:^{
+            array = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
+        }];
+
+        return array;
+    };
+
+    installBlockMethod(getterSelector, getterBlock, [NSString stringWithFormat:
+        // NSArray *(PROMutableModel *self, SEL _cmd)
+        @"%s%s%s",
+        @encode(NSArray *),
+        @encode(PROMutableModel *),
+        @encode(SEL)
+    ]);
+
     // count of objects
     id countOfMethodBlock = ^(PROMutableModel *self){
-        return [[self.latestModel valueForKey:key] count];
+        __block NSUInteger count;
+
+        [self.dispatchQueue runSynchronously:^{
+            count = [[self.immutableBackingModel valueForKey:key] count];
+        }];
+
+        return count;
     };
 
     installBlockMethod(countOfSelector, countOfMethodBlock, [NSString stringWithFormat:
@@ -313,7 +528,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // objects at indexes
     id objectsAtIndexesBlock = ^(PROMutableModel *self, NSIndexSet *indexes){
-        return [[self.latestModel valueForKey:key] objectsAtIndexes:indexes];
+        __block NSArray *objects;
+
+        [self.dispatchQueue runSynchronously:^{
+            id collection = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
+
+            objects = [collection objectsAtIndexes:indexes];
+        }];
+
+        return objects;
     };
 
     installBlockMethod(objectsAtIndexesSelector, objectsAtIndexesBlock, [NSString stringWithFormat:
@@ -327,15 +550,46 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // insertion
     id insertMethodBlock = ^(PROMutableModel *self, NSArray *objects, NSIndexSet *indexes){
-        PROTransformation *transformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexes objects:objects];
+        [self.dispatchQueue runBarrierSynchronously:^{
+            if (!self.applyingTransformation) {
+                // create a transformation and apply it
+                PROTransformation *arrayTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndexes:indexes objects:objects];
+                PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:key];
 
-        [self willChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
-        @onExit {
-            [self didChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
-        };
+                NSError *error = nil;
+                PROAssert([self applyTransformation:keyedTransformation error:&error], @"Could not insert %@ at indexes %@ in \"%@\" on %@: %@", objects, indexes, key, self, error);
 
-        [self->m_dispatchQueue runSynchronously:^{
-            [self performTransformation:transformation forKey:key];
+                return;
+            }
+
+            // we're in the middle of applying a transformation, so we should
+            // actually update our mutable collections
+            id mutableCollection = [self.childMutableModelsByKey objectForKey:key];
+            if (!PROAssert(mutableCollection, @"No mutable collection exists at \"%@\" on %@", key, self))
+                return;
+
+            [self willChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+            @onExit {
+                [self didChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+            };
+
+            NSArray *immutableModels = [self.immutableBackingModel valueForKey:key];
+
+            __block NSUInteger setIndex = 0;
+            [indexes enumerateIndexesUsingBlock:^(NSUInteger finalIndex, BOOL *stop){
+                PROMutableModel *mutableModel = [objects objectAtIndex:setIndex++];
+                NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Object to insert %@ at \"%@\" on %@ is not a PROMutableModel", mutableModel, key, self);
+
+                // make sure this model finishes anything currently in progress
+                [mutableModel.localDispatchQueue runBarrierSynchronously:^{
+                    mutableModel.parentMutableModel = self;
+                    mutableModel.keyFromParentMutableModel = key;
+                }];
+
+                mutableModel.immutableBackingModel = [immutableModels objectAtIndex:finalIndex];
+            }];
+
+            [mutableCollection insertObjects:objects atIndexes:indexes];
         }];
     };
 
@@ -351,16 +605,45 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // removal
     id removeMethodBlock = ^(PROMutableModel *self, NSIndexSet *indexes){
-        [self->m_dispatchQueue runSynchronously:^{
-            NSArray *expectedObjects = [self->m_latestModel valueForKey:key];
+        [self.dispatchQueue runBarrierSynchronously:^{
+            if (!self.applyingTransformation) {
+                // create a transformation and apply it
+                NSArray *expectedObjects = [[self copy] valueForKey:key];
+
+                PROTransformation *arrayTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexes expectedObjects:expectedObjects];
+                PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:key];
+
+                NSError *error = nil;
+                PROAssert([self applyTransformation:keyedTransformation error:&error], @"Could not remove indexes %@ from \"%@\" on %@: %@", indexes, key, self, error);
+
+                return;
+            }
+            
+            // we're in the middle of applying a transformation, so we should
+            // actually update our mutable collections
+            id mutableCollection = [self.childMutableModelsByKey objectForKey:key];
+            if (!PROAssert(mutableCollection, @"No mutable collection exists at \"%@\" on %@", key, self))
+                return;
 
             [self willChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
             @onExit {
                 [self didChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
             };
 
-            PROTransformation *transformation = [[PRORemovalTransformation alloc] initWithRemovalIndexes:indexes expectedObjects:expectedObjects];
-            [self performTransformation:transformation forKey:key];
+            NSArray *objectsBeingRemoved = [mutableCollection objectsAtIndexes:indexes];
+            [objectsBeingRemoved enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
+                NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Object to insert %@ at \"%@\" on %@ is not a PROMutableModel", mutableModel, key, self);
+
+                // take over this model's queue until we've successfully
+                // detached it, to avoid any race conditions from it being used
+                // in the tiny window when it won't use our queue anymore
+                [mutableModel.localDispatchQueue runBarrierSynchronously:^{
+                    mutableModel.keyFromParentMutableModel = nil;
+                    mutableModel.parentMutableModel = nil;
+                }];
+            }];
+
+            [mutableCollection removeObjectsAtIndexes:indexes];
         }];
     };
 
@@ -375,24 +658,77 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     // replacement
     id replaceMethodBlock = ^(PROMutableModel *self, NSIndexSet *indexes, NSArray *newObjects){
-        [self->m_dispatchQueue runSynchronously:^{
-            NSArray *originalObjects = [[self->m_latestModel valueForKey:key] objectsAtIndexes:indexes];
-            NSMutableArray *uniqueTransformations = [[NSMutableArray alloc] initWithCapacity:[indexes count]];
+        [self.dispatchQueue runBarrierSynchronously:^{
+            if (!self.applyingTransformation) {
+                // create a transformation and apply it
+                NSArray *originalObjects = [[[self copy] valueForKey:key] objectsAtIndexes:indexes];
+                NSMutableArray *uniqueTransformations = [[NSMutableArray alloc] initWithCapacity:[indexes count]];
 
-            [newObjects enumerateObjectsUsingBlock:^(id newObject, NSUInteger arrayIndex, BOOL *stop){
-                id originalObject = [originalObjects objectAtIndex:arrayIndex];
-                PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:newObject];
+                [newObjects enumerateObjectsUsingBlock:^(id newObject, NSUInteger arrayIndex, BOOL *stop){
+                    id originalObject = [originalObjects objectAtIndex:arrayIndex];
+                    PROUniqueTransformation *uniqueTransformation = [[PROUniqueTransformation alloc] initWithInputValue:originalObject outputValue:newObject];
 
-                [uniqueTransformations addObject:uniqueTransformation];
-            }];
+                    [uniqueTransformations addObject:uniqueTransformation];
+                }];
+
+                PROTransformation *arrayTransformation = [[PROIndexedTransformation alloc] initWithIndexes:indexes transformations:uniqueTransformations];
+                PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:key];
+
+                NSError *error = nil;
+                PROAssert([self applyTransformation:keyedTransformation error:&error], @"Could not replace objects at indexes %@ with %@ in \"%@\" on %@: %@", indexes, newObjects, key, self, error);
+
+                return;
+            }
+            
+            // we're in the middle of applying a transformation, so we should
+            // actually update our mutable collections
+            id mutableCollection = [self.childMutableModelsByKey objectForKey:key];
+            if (!PROAssert(mutableCollection, @"No mutable collection exists at \"%@\" on %@", key, self))
+                return;
 
             [self willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
             @onExit {
                 [self didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
             };
 
-            PROTransformation *transformation = [[PROIndexedTransformation alloc] initWithIndexes:indexes transformations:uniqueTransformations];
-            [self performTransformation:transformation forKey:key];
+            NSArray *objectsBeingRemoved = [mutableCollection objectsAtIndexes:indexes];
+            NSArray *immutableModels = [self.immutableBackingModel valueForKey:key];
+
+            // the synchronization strategy here is a bit different, because we
+            // need to protect both old and new values during the transition,
+            // while also avoiding deadlocks, so... synchronize all the things!
+            NSMutableSet *allQueues = [NSMutableSet setWithCapacity:[mutableCollection count] + [newObjects count]];
+
+            [allQueues addObjectsFromArray:[objectsBeingRemoved mapUsingBlock:^(PROMutableModel *mutableModel){
+                return mutableModel.localDispatchQueue;
+            }]];
+
+            [allQueues addObjectsFromArray:[newObjects mapUsingBlock:^(PROMutableModel *mutableModel){
+                return mutableModel.localDispatchQueue;
+            }]];
+
+            [SDQueue synchronizeQueues:allQueues.allObjects runSynchronously:^{
+                // order is important here: we detach all the old objects before
+                // attaching the new ones in order to gracefully handle objects
+                // common to both
+                [objectsBeingRemoved enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
+                    mutableModel.keyFromParentMutableModel = nil;
+                    mutableModel.parentMutableModel = nil;
+                }];
+                
+                __block NSUInteger setIndex = 0;
+                [indexes enumerateIndexesUsingBlock:^(NSUInteger finalIndex, BOOL *stop){
+                    PROMutableModel *mutableModel = [newObjects objectAtIndex:setIndex++];
+
+                    NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"Expected a mutable model to insert, got %@ at \"%@\" on %@", mutableModel, key, self);
+
+                    mutableModel.parentMutableModel = self;
+                    mutableModel.keyFromParentMutableModel = key;
+                    mutableModel.immutableBackingModel = [immutableModels objectAtIndex:finalIndex];
+                }];
+
+                [mutableCollection replaceObjectsAtIndexes:indexes withObjects:newObjects];
+            }];
         }];
     };
 
@@ -622,115 +958,256 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return imp_implementationWithBlock((__bridge_retained void *)methodBlock);
 }
 
-#pragma mark Initialization
+#pragma mark Lifecycle
 
 - (id)init {
+    NSAssert(NO, @"Use -initWithModel: to initialize a PROMutableModel");
+    return nil;
+}
+
+- (id)initWithDictionary:(NSDictionary *)dictionary error:(NSError **)error {
+    PROModel *model = [[[self.class modelClass] alloc] initWithDictionary:dictionary error:error];
+    if (model)
+        return [self initWithModel:model];
+    else
+        return nil;
+}
+
+- (id)initWithModel:(id)model; {
+    if (!model)
+        return nil;
+
     self = [super init];
     if (!self)
         return nil;
 
-    m_dispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:NO label:@"com.bitswift.Proton.PROMutableModel"];
-    return self;
-}
-
-- (id)initWithModel:(PROModel *)model; {
-    if (!model)
+    m_localDispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:YES label:@"com.bitswift.Proton.PROMutableModel"];
+    if (!PROAssert(m_localDispatchQueue, @"Could not initialize new custom GCD queue for %@", self))
         return nil;
 
-    self = [self init];
-    if (!self)
-        return nil;
+    if ([model isKindOfClass:[PROMutableModel class]]) {
+        [[model dispatchQueue] runSynchronously:^{
+            m_immutableBackingModel = [[model immutableBackingModel] copy];
 
-    m_latestModel = [model copy];
+            // we need to copy the transformation log to make sure we can unwind as
+            // far back as the given model
+            m_transformationLog = [[model transformationLog] copy];
+        }];
+    } else {
+        NSAssert([model isKindOfClass:[PROModel class]], @"Cannot initialize PROMutableModel with %@, as it is not a PROModel", model);
+        m_immutableBackingModel = [model copy];
 
-    Class mutableModelClass = [[self class] mutableModelClassForModelClass:[model class]];
-    if (PROAssert(mutableModelClass, @"Mutable model class should've been created for %@", [model class])) {
+        m_transformationLog = [[PROMutableModelTransformationLog alloc] init];
+        m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
+    }
+
+    Class mutableModelClass = [[self class] mutableModelClassForModelClass:[m_immutableBackingModel class]];
+    if (PROAssert(mutableModelClass, @"Mutable model class should've been created for %@", [m_immutableBackingModel class])) {
         // dynamically become the subclass appropriate for this model, to
         // have the proper setter and mutation methods
         object_setClass(self, mutableModelClass);
     }
 
-    return self;
-}
+    m_childMutableModelsByKey = [NSMutableDictionary dictionary];
 
-- (id)initWithModelController:(PROModelController *)modelController; {
-    if (!modelController)
-        return nil;
-
-    PROModel *model = nil;
-    m_originalModelLogEntry = [modelController transformationLogEntryWithModelPointer:&model];
-
-    self = [self initWithModel:model];
-    if (!self)
-        return nil;
-
-    m_modelController = modelController;
-    m_transformationLog = [[PROTransformationLog alloc] initWithLogEntry:m_originalModelLogEntry];
-
-    [[NSNotificationCenter defaultCenter]
-        addObserver:self
-        selector:@selector(modelControllerDidPerformTransformation:)
-        name:PROModelControllerDidPerformTransformationNotification
-        object:modelController
-    ];
+    // set up all of our child mutable models
+    [self.localDispatchQueue runBarrierSynchronously:^{
+        [self replaceAllChildMutableModels];
+    }];
 
     return self;
 }
 
 - (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [self.localDispatchQueue runBarrierSynchronously:^{
+        // detach all children
+        NSArray *allKeys = self.childMutableModelsByKey.allKeys;
+        [allKeys enumerateObjectsUsingBlock:^(NSString *key, NSUInteger index, BOOL *stop){
+            [self replaceChildMutableModelsAtKey:key usingValue:nil];
+        }];
+    }];
 }
 
-#pragma mark Transformation
+#pragma mark Performing Transformations
 
-- (void)performTransformation:(PROTransformation *)transformation forKey:(NSString *)key; {
+- (BOOL)applyTransformation:(PROTransformation *)transformation error:(NSError **)error; {
     NSParameterAssert(transformation != nil);
-    NSParameterAssert(key != nil);
 
-    NSAssert(m_dispatchQueue.currentQueue, @"%s should only be invoked while on the dispatch queue", __func__);
+    __block NSError *strongError = nil;
+    __block BOOL success = YES;
 
-    PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:key];
-
-    NSError *error = nil;
-    PROModel *newModel = [keyedTransformation transform:m_latestModel error:&error];
-    if (!PROAssert(newModel, @"Transformation %@ on key \"%@\" of %@ is invalid: %@", transformation, key, m_latestModel, error)) {
-        return;
-    }
-
-    [m_transformationLog appendTransformation:keyedTransformation];
-    m_latestModel = [newModel copy];
-}
-
-#pragma mark Rebasing
-
-- (NSDictionary *)rebasingTransformationBlocks; {
-    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
-        if (!keyPath) {
-            // we can set a new value for 'self' (by setting the latest model),
-            // but we can't generate KVO for it
-            m_latestModel = value;
-            return NO;
+    [self.dispatchQueue runBarrierSynchronously:^{
+        if (!PROAssert(!self.applyingTransformation, @"%s should not be invoked recursively", __func__)) {
+            success = NO;
+            return;
         }
 
-        [self setValue:value forKeyPath:keyPath];
-        return YES;
-    };
+        self.applyingTransformation = YES;
+        @onExit {
+            self.applyingTransformation = NO;
+        };
 
-    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^(PROTransformation *transformation, NSString *keyPath){
-        return [self mutableArrayValueForKeyPath:keyPath];
-    };
+        PROMutableModel *parentModel = self.parentMutableModel;
 
-    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
-        // we don't need to wrap values
-        return value;
-    };
+        // if we have a parent, apply this directly to the parent instead
+        if (parentModel && PROAssert(self.keyFromParentMutableModel, @"Should have a key from parent model %@", parentModel)) {
+            success = [parentModel applyTransformation:[self extendTransformationToParent:transformation] error:&strongError];
+            return;
+        }
 
-    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
-        id value = [[self valueForKeyPath:keyPath] objectAtIndex:index];
-        if ([value isKindOfClass:[PROMutableModel class]])
-            return [value rebasingTransformationBlocks];
+        id oldModel = self.immutableBackingModel;
+        if (!PROAssert(oldModel, @"Backing model of %@ should never be nil", self)) {
+            oldModel = [EXTNil null];
+        }
+
+        PROModel *newModel = [transformation transform:oldModel error:&strongError];
+        if (!newModel) {
+            // fail immediately, before any side effects
+            success = NO;
+            return;
+        }
+
+        PROTransformationLogEntry *lastLogEntry = self.transformationLog.latestLogEntry;
+        [self.transformationLog appendTransformation:transformation];
+
+        PROTransformationLogEntry *newLogEntry = self.transformationLog.latestLogEntry;
+        self.immutableBackingModel = newModel;
+
+        PROAssert([transformation applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil], @"Block application should never fail at top level");
+        [self saveTransformationResultInfoForLatestLogEntry];
+    }];
+
+    if (strongError && error)
+        *error = strongError;
+
+    return success;
+}
+
+- (PROTransformation *)extendTransformationToParent:(PROTransformation *)transformation; {
+    NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationNewValueForKeyPathBlock should only be executed while running on the dispatch queue");
+
+    if (!self.keyFromParentMutableModel)
+        return nil;
+
+    id parentValue = [self.parentMutableModel valueForKey:self.keyFromParentMutableModel];
+    if ([parentValue respondsToSelector:@selector(indexOfObject:)]) {
+        NSUInteger index = [parentValue indexOfObject:self];
+        if (!PROAssert(index != NSNotFound, @"Could not find %@ in parent collection %@", self, parentValue))
+            return nil;
+
+        transformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:transformation];
+    }
+
+    return [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:self.keyFromParentMutableModel];
+}
+
+- (NSDictionary *)transformationBlocks; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    PROTransformationNewValueForKeyPathBlock transformationNewValueForKeyPathBlock = ^(PROTransformation *transformation, id value, NSString *keyPath){
+        NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationNewValueForKeyPathBlock should only be executed while running on the dispatch queue");
+
+        if (!keyPath) {
+            if (!PROAssert([value isKindOfClass:[PROModel class]], @"%@ is not a PROModel, don't know how to update from it", value))
+                return NO;
+
+            // this was a change or replacement of the whole model -- send
+            // a notification indicating that we got "replaced" in our parent
+            [self willChangeInParentMutableModel];
+
+            self.immutableBackingModel = value;
+            [self replaceAllChildMutableModels];
+
+            [self didChangeInParentMutableModel];
+            return YES;
+        }
+
+        NSRange firstSeparatorRange = [keyPath rangeOfString:@"."];
+        NSString *firstKey;
+
+        // TODO: implement change notifications on whole key paths?
+        if (firstSeparatorRange.location != NSNotFound)
+            firstKey = [keyPath substringToIndex:firstSeparatorRange.location];
         else
+            firstKey = keyPath;
+
+        // TODO: the willChange notification needs to occur _before_ the
+        // transformation
+        [self willChangeValueForKey:firstKey];
+        @onExit {
+            [self didChangeValueForKey:firstKey];
+        };
+
+        id childModels = [self.childMutableModelsByKey objectForKey:keyPath];
+        if (childModels) {
+            // this was a replacement of a whole collection of child models
+            [self replaceChildMutableModelsAtKey:firstKey usingValue:value];
+            return YES;
+        } else {
+            // some property we don't care about
+            return NO;
+        }
+    };
+
+    PROTransformationMutableArrayForKeyPathBlock transformationMutableArrayForKeyPathBlock = ^ id (PROTransformation *transformation, NSString *keyPath){
+        NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationMutableArrayForKeyPathBlock should only be executed while running on the dispatch queue");
+
+        if ([self.childMutableModelsByKey objectForKey:keyPath])
+            return [self mutableArrayValueForKey:keyPath];
+        else
+            return nil;
+    };
+
+    PROTransformationWrappedValueForKeyPathBlock transformationWrappedValueForKeyPathBlock = ^ id (PROTransformation *transformation, id value, NSString *keyPath){
+        NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationWrappedValueForKeyPathBlock should only be executed while running on the dispatch queue");
+
+        Class modelClass = [[self.immutableBackingModel.class modelClassesByKey] objectForKey:keyPath];
+        if (modelClass && ![value isKindOfClass:[PROMutableModel class]])
+            return [[PROMutableModel alloc] initWithModel:value];
+        else
+            return value;
+    };
+
+    PROTransformationBlocksForIndexAtKeyPathBlock transformationBlocksForIndexAtKeyPathBlock = ^(id transformation, NSUInteger modelIndex, NSString *keyPath, NSDictionary *blocks){
+        NSAssert(self.dispatchQueue.currentQueue, @"PROTransformationBlocksForIndexAtKeyPathBlock should only be executed while running on the dispatch queue");
+
+        id childModels = [self.childMutableModelsByKey objectForKey:keyPath];
+        if (!PROAssert([childModels respondsToSelector:@selector(objectAtIndex:)], @"%@ is not an indexed collection, cannot perform an indexed transformation on it", childModels))
             return blocks;
+
+        PROMutableModel *mutableModel = [childModels objectAtIndex:modelIndex];
+        mutableModel.immutableBackingModel = [[self.immutableBackingModel valueForKeyPath:keyPath] objectAtIndex:modelIndex];
+
+        if (PROAssert([transformation isKindOfClass:[PROIndexedTransformation class]], @"Transformation diving down into an index should be a PROIndexedTransformation: %@", transformation)) {
+            NSUInteger indexCount = [[transformation indexes] count];
+            NSUInteger *indexes = malloc(sizeof(*indexes) * indexCount);
+            if (PROAssert(indexes, @"Could not allocate space for %lu indexes", (unsigned long)indexCount)) {
+                @onExit {
+                    free(indexes);
+                };
+
+                [[transformation indexes] getIndexes:indexes maxCount:indexCount inIndexRange:nil];
+
+                PROTransformation *modelTransformation = nil;
+
+                // we need to find the index INTO the index set where the
+                // modelIndex is located, so we can pull out the corresponding
+                // transformation
+                for (NSUInteger setIndex = 0; setIndex < indexCount; ++setIndex) {
+                    if (indexes[setIndex] == modelIndex) {
+                        modelTransformation = [[transformation transformations] objectAtIndex:setIndex];
+                        break;
+                    }
+                }
+                
+                if (PROAssert(modelTransformation, @"Could not find the transformation being performed on %@ in %@", mutableModel, transformation)) {
+                    // append this transformation to the sub-model's log
+                    [mutableModel.transformationLog appendTransformation:modelTransformation];
+                }
+            }
+        }
+
+        return [mutableModel transformationBlocks];
     };
 
     return [NSDictionary dictionaryWithObjectsAndKeys:
@@ -742,239 +1219,443 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     ];
 }
 
-- (BOOL)rebaseOntoModel:(PROModel *)newModel oldModel:(PROModel *)oldModel transformation:(PROTransformation *)transformation error:(NSError **)error; {
-    NSParameterAssert(newModel != nil);
-    NSParameterAssert(oldModel != nil);
-    NSParameterAssert(transformation != nil);
+#pragma mark Child Models
 
-    NSAssert(m_dispatchQueue.currentQueue, @"%s should only be invoked while on the dispatch queue", __func__);
+- (void)enumerateChildMutableModels:(id)childModels usingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block; {
+    NSParameterAssert(childModels != nil);
+    NSParameterAssert(block != nil);
 
-    // if we have any transformations, we need to unwind before attempting to
-    // rebase
-    BOOL needsUnwind = ![m_originalModelLogEntry isEqual:m_transformationLog.latestLogEntry];
-    PROModel *rebasedModel;
+    if ([childModels isKindOfClass:[NSDictionary class]]) {
+        // TODO
+        PROAssert(NO, @"A dictionary of child models is not currently supported: %@", childModels);
+    } else if ([childModels conformsToProtocol:@protocol(NSFastEnumeration)]) {
+        BOOL stop = NO;
 
-    if (!needsUnwind) {
-        rebasedModel = newModel;
+        for (PROMutableModel *mutableModel in childModels) {
+            NSAssert([mutableModel isKindOfClass:[PROMutableModel class]], @"%@ should be a PROMutableModel in collection %@", mutableModel, childModels);
+
+            block(mutableModel, &stop);
+            if (stop)
+                break;
+        }
     } else {
-        PROMultipleTransformation *logTransformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:m_transformationLog.latestLogEntry];
+        if (!PROAssert([childModels isKindOfClass:[PROMutableModel class]], @"Unknown child models object: %@", childModels))
+            return;
 
-        // unwind all the way back to our original model
-        NSError *localError = nil; 
-        oldModel = [logTransformation.reverseTransformation transform:m_latestModel error:&localError];
-        if (!PROAssert(oldModel, @"Could not unwind latest model of %@: %@", self, localError)) {
-            if (error)
-                *error = localError;
+        BOOL unused;
+        block(childModels, &unused);
+    }
+}
 
-            return NO;
+- (void)replaceAllChildMutableModels {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    [[self.immutableBackingModel.class modelClassesByKey] enumerateKeysAndObjectsUsingBlock:^(NSString *key, Class modelClass, BOOL *stop){
+        id value = [self.immutableBackingModel valueForKey:key];
+        [self replaceChildMutableModelsAtKey:key usingValue:value];
+    }];
+}
+
+- (void)replaceChildMutableModelsAtKey:(NSString *)key usingValue:(id)value; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    // the new value to set
+    id newValue = nil;
+
+    id previousValue = [self.childMutableModelsByKey objectForKey:key];
+    if (previousValue && ![previousValue isKindOfClass:[PROFuture class]]) {
+        // detach all previous values at this key
+        [self enumerateChildMutableModels:previousValue usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            // skip any unresolved futures
+            if ([mutableModel isKindOfClass:[PROFuture class]])
+                return;
+
+            [mutableModel.localDispatchQueue runBarrierSynchronously:^{
+                // TODO: this code seems to repeat a lot -- refactor that shit,
+                // yo
+                mutableModel.keyFromParentMutableModel = nil;
+                mutableModel.parentMutableModel = nil;
+            }];
+        }];
+
+        if ([previousValue respondsToSelector:@selector(removeAllObjects)])
+            [previousValue removeAllObjects];
+    }
+
+    // this isn't __weak because it's only referenced in the resolution of the
+    // futures below, and the futures themselves will be destroyed when we are
+    // (also, weak variables are surprisingly expensive)
+    __unsafe_unretained PROMutableModel *weakSelf = self;
+
+    // creates and returns a new PROMutableModel (or a future for one), given an
+    // object which is some model class and the index at which the new model
+    // will exist
+    PROMutableModel *(^mutableModelWithModel)(id, NSUInteger) = ^ id (id model, NSUInteger index){
+        if ([model isKindOfClass:[PROMutableModel class]]) {
+            PROMutableModel *mutableModel = model;
+
+            id newImmutableModel = [self.immutableBackingModel valueForKey:key];
+            if (index != NSNotFound)
+                newImmutableModel = [newImmutableModel objectAtIndex:index];
+
+            [mutableModel.localDispatchQueue runBarrierSynchronously:^{
+                if (!PROAssert(!mutableModel.parentMutableModel || mutableModel.parentMutableModel == weakSelf, @"%@'s parent is not %@, will not take it over", mutableModel, self))
+                    return;
+
+                
+                mutableModel.parentMutableModel = weakSelf;
+                mutableModel.keyFromParentMutableModel = key;
+
+                mutableModel.immutableBackingModel = newImmutableModel;
+                [mutableModel replaceAllChildMutableModels];
+            }];
+
+            return model;
         }
 
-        NSArray *newTransformations = [NSArray arrayWithObjects:transformation, logTransformation, nil];
-        transformation = [[PROMultipleTransformation alloc] initWithTransformations:newTransformations];
+        if (!PROAssert([model isKindOfClass:[PROModel class]], @"Object being wrapped %@ should be a PROModel", model)) {
+            return nil;
+        }
 
-        // make sure we can actually apply everything together
-        rebasedModel = [transformation transform:oldModel error:error];
-        if (!rebasedModel) {
-            return NO;
+        model = [model copy];
+
+        // futures are cheaper than instances of this class
+        return [PROFuture futureWithBlock:^{
+            PROMutableModel *mutableModel = [[PROMutableModel alloc] initWithModel:model];
+
+            mutableModel.parentMutableModel = weakSelf;
+            mutableModel.keyFromParentMutableModel = key;
+
+            return mutableModel;
+        }];
+    };
+
+    if (value) {
+        if ([value isKindOfClass:[NSArray class]]) {
+            value = [value copy];
+
+            newValue = [PROFuture futureWithBlock:^{
+                NSMutableArray *mutableValues = [NSMutableArray arrayWithCapacity:[value count]];
+
+                [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
+                    id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
+                    [mutableValues addObject:mutableModel];
+                }];
+
+                return mutableValues;
+            }];
+        } else if ([value isKindOfClass:[NSOrderedSet class]]) {
+            value = [value copy];
+
+            newValue = [PROFuture futureWithBlock:^{
+                NSMutableOrderedSet *mutableValues = [NSMutableOrderedSet orderedSetWithCapacity:[value count]];
+
+                [value enumerateObjectsUsingBlock:^(id model, NSUInteger index, BOOL *stop){
+                    id mutableModel = mutableModelWithModel(model, index) ?: [EXTNil null];
+                    [mutableValues addObject:mutableModel];
+                }];
+
+                return mutableValues;
+            }];
+        } else if ([value isKindOfClass:[NSDictionary class]]) {
+            // TODO 
+            PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
+        } else if ([value isKindOfClass:[NSSet class]]) {
+            // TODO
+            PROAssert(NO, @"Unordered collections are not currently supported by PROMutableModel, key \"%@\" will not be set", key);
+        } else {
+            newValue = mutableModelWithModel(value, NSNotFound);
         }
     }
 
-    m_latestModel = oldModel;
+    [self willChangeValueForKey:key];
+    @onExit {
+        [self didChangeValueForKey:key];
+    };
 
-    NSDictionary *blocks = [self rebasingTransformationBlocks];
-
-    // apply the new transformation from the model controller
-    PROAssert([transformation applyBlocks:blocks transformationResult:rebasedModel], @"Could not apply transformation %@ to %@", transformation, self);
-    
-    m_latestModel = rebasedModel;
-    return YES;
+    if (newValue)
+        [self.childMutableModelsByKey setObject:newValue forKey:key];
+    else if (previousValue)
+        [self.childMutableModelsByKey removeObjectForKey:key];
 }
 
-- (void)modelControllerDidPerformTransformation:(NSNotification *)notification; {
-    [m_dispatchQueue runSynchronously:^{
-        PROModel *newModel = [notification.userInfo objectForKey:PROModelControllerNewModelKey];
-        if (!PROAssert(newModel, @"Notification did not contain a new model object: %@", notification))
-            return;
+#pragma mark Transformation Log
 
-        PROModel *oldModel = [notification.userInfo objectForKey:PROModelControllerOldModelKey];
-        if (!PROAssert(oldModel, @"Notification did not contain an old model object: %@", notification))
-            return;
+- (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+    NSParameterAssert(transformationLogEntry != nil);
 
-        PROTransformation *transformation = [notification.userInfo objectForKey:PROModelControllerTransformationKey];
-        if (!PROAssert(transformation, @"Notification did not contain a transformation: %@", notification))
-            return;
+    __block PROModel *currentModel = nil;
+    __block PROTransformation *transformationFromOldModel = nil;
 
-        NSError *error = nil;
-        if ([self rebaseOntoModel:newModel oldModel:oldModel transformation:transformation error:&error]) {
-            [[NSNotificationCenter defaultCenter]
-                postNotificationName:PROMutableModelDidRebaseFromModelControllerNotification
-                object:self
-            ];
-        } else {
-            NSDictionary *userInfo = nil;
-            if (error)
-                userInfo = [NSDictionary dictionaryWithObject:error forKey:PROMutableModelRebaseErrorKey];
-
-            [[NSNotificationCenter defaultCenter]
-                postNotificationName:PROMutableModelRebaseFromModelControllerFailedNotification
-                object:self
-                userInfo:userInfo
-            ];
-        }
+    [self.dispatchQueue runSynchronously:^{
+        transformationFromOldModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
+        if (transformationFromOldModel)
+            currentModel = self.immutableBackingModel;
     }];
+
+    if (!transformationFromOldModel)
+        return nil;
+
+    PROTransformation *transformationToOldModel = transformationFromOldModel.reverseTransformation;
+    PROModel *oldModel = [transformationToOldModel transform:currentModel error:NULL];
+    NSAssert(oldModel != nil, @"Transformation from current model %@ to previous model should never fail: %@", currentModel, transformationToOldModel);
+
+    return oldModel;
 }
 
-#pragma mark Saving
+- (BOOL)restoreTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+    NSParameterAssert(transformationLogEntry != nil);
 
-- (BOOL)save:(NSError **)error; {
-    __block BOOL success = YES;
-    __block NSError *strongError = nil;
+    __block BOOL success = NO;
 
-    [m_dispatchQueue runSynchronously:^{
-        if (!m_modelController)
+    [self.dispatchQueue runBarrierSynchronously:^{
+        PROTransformation *transformationFromLogEntryModel = [self.transformationLog multipleTransformationFromLogEntry:transformationLogEntry toLogEntry:self.transformationLog.latestLogEntry];
+        if (!transformationFromLogEntryModel)
             return;
 
-        id latestLogEntry = m_transformationLog.latestLogEntry;
+        PROTransformation *transformationToLogEntryModel = transformationFromLogEntryModel.reverseTransformation;
 
-        // try restoring the model on the model controller first (if the log entry
-        // is compatible)
-        if (![latestLogEntry isKindOfClass:[PROModelControllerTransformationLogEntry class]] || ![m_modelController restoreModelFromTransformationLogEntry:latestLogEntry]) {
-            PROMultipleTransformation *transformation = [m_transformationLog multipleTransformationFromLogEntry:m_originalModelLogEntry toLogEntry:latestLogEntry];
-            if (![m_modelController performTransformation:transformation error:&strongError]) {
-                success = NO;
-                return;
+        PROMutableModel *parent = self.parentMutableModel;
+        if (parent) {
+            // restoration needs to be delegated to the parent, just like
+            // transformation
+            PROTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
+
+            if (parentLogEntry) {
+                success = [parent restoreTransformationLogEntry:parentLogEntry];
+            } else {
+                // don't really think this is an erroneous case, but we need to
+                // make sure it gets handled properly (i.e., doesn't cause
+                // problems with child models), so add some obnoxious logging for now
+                DDLogError(@"Could not find parent log entry for log entry %@ from %@", transformationLogEntry, self);
+
+                // if this parent doesn't have a corresponding log entry, its
+                // log either got trimmed sooner than ours, or we switched
+                // parents at some point -- fall back to just applying
+                // a transformation up through the parent (if it would be valid
+                // to do so)
+                success = [self applyTransformation:transformationToLogEntryModel error:NULL];
             }
-        }
 
-        // "flush" our model object, to get the latest version, and empty our
-        // transformation log
-        PROModel *newModel = nil;
-        PROTransformationLogEntry *newLogEntry = [m_modelController transformationLogEntryWithModelPointer:&newModel];
-        if (!PROAssert(newLogEntry, @"Could not get transformation log entry from controller %@", m_modelController)) {
-            success = NO;
             return;
         }
 
-        m_latestModel = newModel;
-        m_originalModelLogEntry = newLogEntry;
+        PROModel *currentModel = self.immutableBackingModel;
+        PROModel *newModel = [transformationToLogEntryModel transform:currentModel error:NULL];
+        if (!PROAssert(newModel, @"Transformation from current model %@ to previous model should never fail: %@", currentModel, transformationToLogEntryModel))
+            return;
 
-        [m_transformationLog addOrReplaceLogEntry:m_originalModelLogEntry];
-        [m_transformationLog removeAllLogEntries];
+        if (![self.transformationLog moveToLogEntry:transformationLogEntry])
+            return;
+
+        self.immutableBackingModel = newModel;
+        [self restoreMutableModelsWithTransformationLogEntry:transformationLogEntry];
+
+        success = YES;
     }];
-
-    if (strongError && error)
-        *error = strongError;
 
     return success;
+}
+
+- (void)restoreMutableModelsWithTransformationLogEntry:(PROTransformationLogEntry *)logEntry {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be invoked while running on the dispatch queue", __func__);
+
+    self.applyingTransformation = YES;
+    @onExit {
+        self.applyingTransformation = NO;
+    };
+
+    PROMutableModelTransformationResultInfo *resultInfo = [self.transformationLog.transformationResultInfoByLogEntry objectForKey:logEntry];
+
+    [resultInfo.mutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id restoredModels, BOOL *stop){
+        // collect all the models we're going to replace our existing ones with
+        NSMutableArray *replacementModels = [NSMutableArray array];
+        NSMutableArray *queues = [NSMutableArray array];
+
+        // TODO: this whole method is very ordered-collection-specific
+        if (!PROAssert([restoredModels respondsToSelector:@selector(objectAtIndex:)], @"Can only restore mutable collections, not %@", restoredModels))
+            return;
+
+        [restoredModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
+            [replacementModels addObject:mutableModel];
+            [queues addObject:mutableModel.localDispatchQueue];
+        }];
+
+        NSArray *immutableModelsForKey = [self.immutableBackingModel valueForKey:key];
+
+        [SDQueue synchronizeQueues:queues runSynchronously:^{
+            // restore models on the new mutable models first, so that we generate
+            // all KVO notifications in one fell swoop with the -setArray: call
+            // below
+            [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
+                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
+                if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
+                    return;
+
+                if (!PROAssert([mutableModel.transformationLog moveToLogEntry:childLogEntry], @"Could not move model %@ to log entry %@", mutableModel, childLogEntry))
+                    return;
+
+                mutableModel.immutableBackingModel = [immutableModelsForKey objectAtIndex:index];
+                [mutableModel restoreMutableModelsWithTransformationLogEntry:childLogEntry];
+            }];
+        }];
+
+        NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
+        [existingMutableModels setArray:replacementModels];
+    }];
+}
+
+- (void)saveTransformationResultInfoForLatestLogEntry; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    PROMutableModelTransformationResultInfo *resultInfo = [[PROMutableModelTransformationResultInfo alloc] init];
+    resultInfo.mutableModelsByKey = self.childMutableModelsByKey;
+
+    NSMutableArray *mutableModels = [NSMutableArray array];
+    NSMutableArray *logEntries = [NSMutableArray array];
+
+    [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
+        [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            [mutableModel saveTransformationResultInfoForLatestLogEntry];
+        
+            id modelEntry = mutableModel.transformationLogEntry;
+            if (!PROAssert(modelEntry, @"Could not retrieve log entry from model %@", mutableModel))
+                modelEntry = [EXTNil null];
+
+            [mutableModels addObject:mutableModel];
+            [logEntries addObject:modelEntry];
+        }];
+    }];
+
+    [resultInfo setLogEntries:logEntries forMutableModels:mutableModels];
+    [self.transformationLog.transformationResultInfoByLogEntry setObject:resultInfo forKey:self.transformationLog.latestLogEntry];
 }
 
 #pragma mark Forwarding
 
 - (BOOL)respondsToSelector:(SEL)selector {
-    return [self.latestModel respondsToSelector:selector];
+    return [self.copy respondsToSelector:selector];
 }
 
 - (id)forwardingTargetForSelector:(SEL)selector {
-    return self.latestModel;
+    return self.copy;
 }
 
 - (void)forwardInvocation:(NSInvocation *)invocation {
-    [invocation invokeWithTarget:self.latestModel];
+    [invocation invokeWithTarget:self.copy];
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
-    return [self.latestModel methodSignatureForSelector:selector];
+    return [self.copy methodSignatureForSelector:selector];
+}
+
+#pragma mark PROKeyedObject
+
+- (NSDictionary *)dictionaryValue {
+    return [self.copy dictionaryValue];
 }
 
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
-    PROModel *model = [coder decodeObjectForKey:@"model"];
+    PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, immutableBackingModel)];
     if (!model)
         return nil;
 
-    self = [self init];
+    self = [super init];
     if (!self)
         return nil;
 
-    m_latestModel = model;
-    m_modelController = [coder decodeObjectForKey:PROKeyForObject(self, modelController)];
-    m_transformationLog = [coder decodeObjectForKey:@"transformationLog"];
-    m_originalModelLogEntry = [coder decodeObjectForKey:@"originalModelLogEntry"];
+    m_localDispatchQueue = [[SDQueue alloc] initWithPriority:DISPATCH_QUEUE_PRIORITY_DEFAULT concurrent:YES label:@"com.bitswift.Proton.PROMutableModel"];
+    if (!PROAssert(m_localDispatchQueue, @"Could not initialize new custom GCD queue for %@", self))
+        return nil;
+
+    m_immutableBackingModel = [model copy];
+    m_transformationLog = [coder decodeObjectForKey:PROKeyForObject(self, transformationLog)];
+
+    m_parentMutableModel = [coder decodeObjectForKey:PROKeyForObject(self, parentMutableModel)];
+    if (m_parentMutableModel) {
+        m_keyFromParentMutableModel = [coder decodeObjectForKey:PROKeyForObject(self, keyFromParentMutableModel)];
+    }
+
+    m_childMutableModelsByKey = [[coder decodeObjectForKey:PROKeyForObject(self, childMutableModelsByKey)] mutableCopy];
 
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-    if (m_latestModel)
-        [coder encodeObject:m_latestModel forKey:@"model"];
+    [self.dispatchQueue runSynchronously:^{
+        [coder encodeObject:self.immutableBackingModel forKey:PROKeyForObject(self, immutableBackingModel)];
 
-    if (m_modelController)
-        [coder encodeObject:m_modelController forKey:PROKeyForObject(self, modelController)];
+        if (self.transformationLog)
+            [coder encodeObject:self.transformationLog forKey:PROKeyForObject(self, transformationLog)];
 
-    if (m_transformationLog)
-        [coder encodeObject:m_transformationLog forKey:@"transformationLog"];
+        PROMutableModel *parent = self.parentMutableModel;
+        if (parent) {
+            [coder encodeConditionalObject:parent forKey:PROKeyForObject(self, parentMutableModel)];
 
-    if (m_originalModelLogEntry)
-        [coder encodeObject:m_originalModelLogEntry forKey:@"originalModelLogEntry"];
+            if (self.keyFromParentMutableModel)
+                [coder encodeObject:self.keyFromParentMutableModel forKey:PROKeyForObject(self, keyFromParentMutableModel)];
+        }
+
+        if (self.childMutableModelsByKey)
+            [coder encodeObject:self.childMutableModelsByKey forKey:PROKeyForObject(self, childMutableModelsByKey)];
+    }];
 }
 
 #pragma mark NSCopying
 
 - (id)copyWithZone:(NSZone *)zone; {
-    return self.latestModel;
+    __block PROModel *immutableModel;
+    
+    [self.dispatchQueue runSynchronously:^{
+        immutableModel = [self.immutableBackingModel copy];
+    }];
+
+    return immutableModel;
 }
 
 #pragma mark NSMutableCopying
 
 - (id)mutableCopyWithZone:(NSZone *)zone; {
-    PROMutableModel *model = [[[self class] alloc] init];
-
-    [m_dispatchQueue runSynchronously:^{
-        model->m_latestModel = [m_latestModel copy];
-        model->m_modelController = self.modelController;
-        model->m_transformationLog = [m_transformationLog copy];
-        model->m_originalModelLogEntry = [m_originalModelLogEntry copy];
-    }];
-
-    return model;
+    return [[[self class] allocWithZone:zone] initWithModel:self];
 }
 
 #pragma mark NSKeyValueCoding
 
++ (BOOL)accessInstanceVariablesDirectly {
+    return NO;
+}
+
 - (id)valueForKey:(NSString *)key {
-    NSDictionary *modelControllerKeys = [[self.modelController class] modelControllerKeysByModelKeyPath];
-    NSString *modelControllersKey = [modelControllerKeys objectForKey:key];
+    __block id value;
 
-    if (!modelControllersKey)
-        return [self.latestModel valueForKey:key];
-
-    NSArray *modelControllers = [self.modelController valueForKey:modelControllersKey];
-
-    return [modelControllers mapUsingBlock:^(id modelController) {
-        return [[PROMutableModel alloc] initWithModelController:modelController];
+    [self.dispatchQueue runSynchronously:^{
+        value = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
     }];
+
+    return value;
 }
 
 - (void)setValue:(id)value forKey:(NSString *)key {
-    [m_dispatchQueue runSynchronously:^{
-        id currentValue = [m_latestModel valueForKey:key];
+    [self.dispatchQueue runBarrierSynchronously:^{
+        id currentValue = [self.immutableBackingModel valueForKey:key];
+
         PROUniqueTransformation *transformation = [[PROUniqueTransformation alloc] initWithInputValue:currentValue outputValue:value];
+        PROKeyedTransformation *keyedTransformation = [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:key];
 
-        [self willChangeValueForKey:key];
-        @onExit {
-            [self didChangeValueForKey:key];
-        };
-
-        [self performTransformation:transformation forKey:key];
+        NSError *error = nil;
+        PROAssert([self applyTransformation:keyedTransformation error:&error], @"Setting value %@ for key \"%@\" on %@ failed: %@", value, key, self, error);
     }];
 }
 
 - (NSMutableOrderedSet *)mutableOrderedSetValueForKey:(NSString *)key {
+    PROAssert(NO, @"%s is not implemented", __func__);
     return nil;
 }
 
 - (NSMutableSet *)mutableSetValueForKey:(NSString *)key {
+    PROAssert(NO, @"%s is not implemented", __func__);
     return nil;
 }
 
@@ -986,28 +1667,76 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return NO;
 }
 
+- (void)willChangeInParentMutableModel; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    PROMutableModel *parent = self.parentMutableModel;
+    if (!parent)
+        return;
+
+    NSString *key = self.keyFromParentMutableModel;
+    if (!PROAssert(key, @"%@ does not have a key on to notify about on its parent %@", self, parent))
+        return;
+
+    id parentValue = [parent valueForKey:key];
+    if ([parentValue respondsToSelector:@selector(indexOfObject:)]) {
+        NSUInteger index = [parentValue indexOfObject:self];
+        if (!PROAssert(index != NSNotFound, @"Could not find %@ in parent collection %@", self, parentValue))
+            return;
+
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:index];
+        [parent willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexSet forKey:key];
+    } else {
+        [parent willChangeValueForKey:key];
+    }
+}
+
+- (void)didChangeInParentMutableModel; {
+    NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
+
+    PROMutableModel *parent = self.parentMutableModel;
+    if (!parent)
+        return;
+
+    NSString *key = self.keyFromParentMutableModel;
+    if (!PROAssert(key, @"%@ does not have a key on to notify about on its parent %@", self, parent))
+        return;
+
+    id parentValue = [parent valueForKey:key];
+    if ([parentValue respondsToSelector:@selector(indexOfObject:)]) {
+        NSUInteger index = [parentValue indexOfObject:self];
+        if (!PROAssert(index != NSNotFound, @"Could not find %@ in parent collection %@", self, parentValue))
+            return;
+
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:index];
+        [parent didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexSet forKey:key];
+    } else {
+        [parent didChangeValueForKey:key];
+    }
+}
+
 #pragma mark NSObject protocol
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"<%@: %p>( modelController = %@, model = %@ )", [self class], (__bridge void *)self, self.modelController, self.latestModel];
+    return [NSString stringWithFormat:@"<%@: %p>( model = %@ )", [self class], (__bridge void *)self, [self copy]];
 }
 
 - (NSUInteger)hash {
-    return [self.latestModel hash];
+    return [self.copy hash];
 }
 
 - (BOOL)isKindOfClass:(Class)class {
     if ([super isKindOfClass:class])
         return YES;
 
-    return [self.latestModel isKindOfClass:class];
+    return [self.copy isKindOfClass:class];
 }
 
 - (BOOL)isMemberOfClass:(Class)class {
     if ([super isMemberOfClass:class])
         return YES;
 
-    return [self.latestModel isMemberOfClass:class];
+    return [self.copy isMemberOfClass:class];
 }
 
 - (BOOL)isEqual:(id)model {
@@ -1015,13 +1744,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         return YES;
 
     if ([model isKindOfClass:[PROModel class]]) {
-        return [self.latestModel isEqual:model];
-    } else if ([model isKindOfClass:[PROMutableModel class]]) {
-        PROMutableModel *mutableModel = model;
-        return [self.latestModel isEqual:mutableModel.latestModel];
-    } else {
-        return NO;
+        return [self.copy isEqual:model];
     }
+
+    // between PROMutableModels, compare only for identity
+    return NO;
 }
 
 - (BOOL)isProxy {

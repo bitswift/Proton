@@ -147,16 +147,14 @@ extern NSString * const PROModelPropertyKeyErrorKey;
 
 /**
  * Overridden by subclasses to return a dictionary listing any <PROModel>
- * classes that exist at key paths relative to the receiver.
+ * classes that exist at keys relative to the receiver.
  *
- * The dictionary returned from this method should list every "top level" key
- * path from the receiver that contains a <PROModel> object, or a collection of
- * such objects. The dictionary should _not_ include key paths that refer to
- * properties on any of those top level objects.
+ * The dictionary returned from this method should list every property on the
+ * receiver that contains a <PROModel> object or a collection of such objects.
  *
  * The default implementation of this method returns an empty dictionary.
  */
-+ (NSDictionary *)modelClassesByKeyPath;
++ (NSDictionary *)modelClassesByKey;
 
 /**
  * Returns an immutable dictionary containing the properties of the receiver.
