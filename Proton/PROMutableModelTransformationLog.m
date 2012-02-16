@@ -71,7 +71,7 @@
 
     // using the ivar to avoid automatically instantiating this dictionary
     return [m_transformationResultInfoByLogEntry keyOfEntryPassingTest:^ BOOL (PROTransformationLogEntry *testLogEntry, PROMutableModelTransformationResultInfo *resultInfo, BOOL *stop){
-        return [[resultInfo.logEntriesByMutableModel objectForKey:mutableModel] isEqual:childLogEntry];
+        return [[resultInfo.logEntriesByMutableModelUniqueIdentifier objectForKey:mutableModel.uniqueIdentifier] isEqual:childLogEntry];
     }];
 }
 

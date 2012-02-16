@@ -1494,7 +1494,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // all KVO notifications in one fell swoop with the -setArray: call
             // below
             [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
-                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
+                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModelUniqueIdentifier objectForKey:mutableModel.uniqueIdentifier];
                 if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
                     return;
 
@@ -1518,7 +1518,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     resultInfo.mutableModelsByKey = self.childMutableModelsByKey;
 
     NSMutableArray *mutableModels = [NSMutableArray array];
-    NSMutableArray *logEntries = [NSMutableArray array];
+    NSMutableDictionary *logEntries = [NSMutableDictionary dictionary];
 
     [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
         [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
@@ -1529,11 +1529,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 modelEntry = [EXTNil null];
 
             [mutableModels addObject:mutableModel];
-            [logEntries addObject:modelEntry];
+            [logEntries setObject:modelEntry forKey:mutableModel.uniqueIdentifier];
         }];
     }];
 
-    [resultInfo setLogEntries:logEntries forMutableModels:mutableModels];
+    resultInfo.logEntriesByMutableModelUniqueIdentifier = logEntries;
     [self.transformationLog.transformationResultInfoByLogEntry setObject:resultInfo forKey:self.transformationLog.latestLogEntry];
 }
 
