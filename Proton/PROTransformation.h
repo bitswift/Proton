@@ -219,7 +219,7 @@ extern NSString * const PROTransformationFailingTransformationPathErrorKey;
 - (NSError *)prependTransformationPath:(NSString *)transformationPath toError:(NSError *)error;
 
 /**
- * @name Transformation
+ * @name Performing Transformations
  */
 
 /**
@@ -328,8 +328,23 @@ extern NSString * const PROTransformationFailingTransformationPathErrorKey;
 @property (nonatomic, copy, readonly) NSArray *transformations;
 
 /**
- * @name Reversing the Transformation
+ * @name Converting the Transformation
  */
+
+/**
+ * The most compressed representation of the receiver that has the same effect.
+ *
+ * This will remove transformations that cancel each other out, combine the
+ * effect of transformations where possible, and just generally attempt to
+ * minimize the amount of work the new transformation needs to perform.
+ *
+ * This may be an instance of a different transformation class than the
+ * receiver (e.g., if a `PROMultipleTransformation` doesn't actually need to be
+ * a multiple transformation once flattened).
+ *
+ * The default implementation of this property returns the receiver unmodified.
+ */
+@property (nonatomic, copy, readonly) PROTransformation *flattenedTransformation;
 
 /**
  * The reverse transformation of the receiver.
@@ -345,6 +360,6 @@ extern NSString * const PROTransformationFailingTransformationPathErrorKey;
  * @warning **Important:** This method must be implemented by subclasses. You
  * should not call the superclass implementation.
  */
-@property (nonatomic, strong, readonly) PROTransformation *reverseTransformation;
+@property (nonatomic, copy, readonly) PROTransformation *reverseTransformation;
 
 @end

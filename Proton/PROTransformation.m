@@ -34,6 +34,10 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
     return nil;
 }
 
+- (PROTransformation *)flattenedTransformation {
+    return self;
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj error:(NSError **)error; {
