@@ -585,6 +585,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 [self didChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
             };
 
+            NSArray *immutableModels = [self.immutableBackingModel valueForKey:key];
+
             __block NSUInteger setIndex = 0;
             [indexes enumerateIndexesUsingBlock:^(NSUInteger finalIndex, BOOL *stop){
                 PROMutableModel *mutableModel = [objects objectAtIndex:setIndex++];
@@ -596,6 +598,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                     mutableModel.keyFromParentMutableModel = key;
                     mutableModel.indexFromParentMutableModel = finalIndex;
                 }];
+
+                mutableModel.immutableBackingModel = [immutableModels objectAtIndex:finalIndex];
             }];
 
             [mutableCollection insertObjects:objects atIndexes:indexes];
@@ -702,6 +706,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             };
 
             NSArray *objectsBeingRemoved = [mutableCollection objectsAtIndexes:indexes];
+            NSArray *immutableModels = [self.immutableBackingModel valueForKey:key];
 
             // the synchronization strategy here is a bit different, because we
             // need to protect both old and new values during the transition,
@@ -735,6 +740,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                     mutableModel.parentMutableModel = self;
                     mutableModel.keyFromParentMutableModel = key;
                     mutableModel.indexFromParentMutableModel = finalIndex;
+                    mutableModel.immutableBackingModel = [immutableModels objectAtIndex:finalIndex];
                 }];
 
                 [mutableCollection replaceObjectsAtIndexes:indexes withObjects:newObjects];
@@ -1182,6 +1188,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             return blocks;
 
         PROMutableModel *mutableModel = [childModels objectAtIndex:modelIndex];
+        mutableModel.immutableBackingModel = [[self.immutableBackingModel valueForKeyPath:keyPath] objectAtIndex:modelIndex];
 
         if (PROAssert([transformation isKindOfClass:[PROIndexedTransformation class]], @"Transformation diving down into an index should be a PROIndexedTransformation: %@", transformation)) {
             NSUInteger indexCount = [[transformation indexes] count];
@@ -1300,13 +1307,21 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         if ([model isKindOfClass:[PROMutableModel class]]) {
             PROMutableModel *mutableModel = model;
 
+            id newImmutableModel = [self.immutableBackingModel valueForKey:key];
+            if (index != NSNotFound)
+                newImmutableModel = [newImmutableModel objectAtIndex:index];
+
             [mutableModel.localDispatchQueue runBarrierSynchronously:^{
                 if (!PROAssert(!mutableModel.parentMutableModel || mutableModel.parentMutableModel == weakSelf, @"%@'s parent is not %@, will not take it over", mutableModel, self))
                     return;
 
+                
                 mutableModel.parentMutableModel = weakSelf;
                 mutableModel.keyFromParentMutableModel = key;
                 mutableModel.indexFromParentMutableModel = index;
+
+                mutableModel.immutableBackingModel = newImmutableModel;
+                [mutableModel replaceAllChildMutableModels];
             }];
 
             return model;
