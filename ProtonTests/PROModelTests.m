@@ -6,11 +6,7 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/EXTScope.h>
-#import <Proton/PROKeyedTransformation.h>
-#import <Proton/PROModel.h>
-#import <Proton/PROTransformation.h>
-#import <Proton/PROUniqueTransformation.h>
+#import <Proton/Proton.h>
 
 @interface TestModel : PROModel
 @property (nonatomic, copy) NSString *name;
@@ -128,6 +124,24 @@ SpecBegin(PROModel)
 
                 PROModel *copied = [model copy];
                 expect(model).toEqual(copied);
+            });
+
+            it(@"implements <NSMutableCopying>", ^{
+                expect(model).toConformTo(@protocol(NSMutableCopying));
+
+                PROMutableModel *mutableModel = [model mutableCopy];
+                expect(mutableModel).toBeKindOf([PROMutableModel class]);
+                expect(mutableModel).toEqual(model);
+            });
+
+            it(@"should initialize with another PROModel", ^{
+                TestModel *anotherModel = [[TestModel alloc] initWithModel:model];
+                expect(anotherModel).toEqual(model);
+            });
+
+            it(@"should initialize with a PROMutableModel", ^{
+                TestModel *anotherModel = [[TestModel alloc] initWithModel:[model mutableCopy]];
+                expect(anotherModel).toEqual(model);
             });
             
             it(@"has transformation for valid key", ^{
