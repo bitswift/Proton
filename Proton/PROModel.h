@@ -60,7 +60,7 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  * `isEqual:`. The implementations of all of these methods are based on the
  * <initWithDictionary:error:> and <dictionaryValue> behaviors of the class.
  */
-@interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
+@interface PROModel : NSObject <NSCoding, NSCopying, NSMutableCopying, PROKeyedObject>
 
 /**
  * @name Initialization
