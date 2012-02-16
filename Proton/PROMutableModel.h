@@ -106,6 +106,15 @@ Also see the `@mutable` macro, which makes this even more useful.
 @property (nonatomic, copy, readonly) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
+ * Returns the <PROMutableModel> owned by the receiver that has the given UUID,
+ * or `nil` if no such model could be found.
+ *
+ * @param identifier The <uniqueIdentifier> for a <PROMutableModel> owned by the
+ * receiver.
+ */
+- (id)mutableModelWithUniqueIdentifier:(PROUniqueIdentifier *)identifier;
+
+/**
  * @name Applying Transformations
  */
 

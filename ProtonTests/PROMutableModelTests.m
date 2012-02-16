@@ -156,6 +156,17 @@ SpecBegin(PROMutableModel)
         });
     });
 
+    it(@"should return a sub-mutable model given a UUID", ^{
+        TestMutableSubModel *subModel = [model.subModels objectAtIndex:0];
+        PROUniqueIdentifier *identifier = subModel.uniqueIdentifier;
+        expect([model mutableModelWithUniqueIdentifier:identifier]).toEqual(subModel);
+    });
+
+    it(@"should not return a sub-mutable model given an invalid UUID", ^{
+        PROUniqueIdentifier *identifier = model.uniqueIdentifier;
+        expect([model mutableModelWithUniqueIdentifier:identifier]).toBeNil();
+    });
+
     describe(@"setters", ^{
         it(@"should set an array", ^{
             expect(model).toRespondTo(@selector(setSubModels:));
