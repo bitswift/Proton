@@ -1411,6 +1411,21 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         [self.childMutableModelsByKey removeObjectForKey:key];
 }
 
+- (id)mutableModelWithUniqueIdentifier:(PROUniqueIdentifier *)identifier; {
+    NSParameterAssert(identifier != nil);
+
+    __block PROMutableModel *matchingModel = nil;
+
+    [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+        if ([mutableModel.uniqueIdentifier isEqual:identifier]) {
+            matchingModel = mutableModel;
+            *stop = YES;
+        }
+    }];
+
+    return matchingModel;
+}
+
 #pragma mark Transformation Log
 
 - (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
