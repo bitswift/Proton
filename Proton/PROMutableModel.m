@@ -496,6 +496,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSArray *array = nil;
 
         [self.dispatchQueue runSynchronously:^{
+            // we have to copy our collections to ensure thread-safety,
+            // unfortunately
             array = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
         }];
 
@@ -534,7 +536,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSArray *objects;
 
         [self.dispatchQueue runSynchronously:^{
-            id collection = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
+            id collection = [self.childMutableModelsByKey objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
 
             objects = [collection objectsAtIndexes:indexes];
         }];
@@ -1682,7 +1684,13 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     __block id value;
 
     [self.dispatchQueue runSynchronously:^{
-        value = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
+        if ([self.childMutableModelsByKey objectForKey:key]) {
+            // prefer returning a KVC mutable proxy, because it's cheaper to
+            // initialize (uses less memory)
+            value = [self mutableArrayValueForKey:key];
+        } else {
+            value = [self.immutableBackingModel valueForKey:key];
+        }
     }];
 
     return value;
