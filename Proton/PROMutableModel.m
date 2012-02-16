@@ -1667,9 +1667,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark NSCoding
 
++ (NSArray *)classFallbacksForKeyedArchiver {
+    // unarchive instances as PROMutableModel if we have to, then we can swizzle
+    // them in -awakeAfterUsingCoder:
+    return [NSArray arrayWithObject:NSStringFromClass([PROMutableModel class])];
+}
+
 - (id)initWithCoder:(NSCoder *)coder {
     PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, immutableBackingModel)];
-    if (!model)
+    if (!PROAssert(model, @"Could not decode immutable model for PROMutableModel instance"))
         return nil;
 
     PROUniqueIdentifier *identifier = [coder decodeObjectForKey:PROKeyForObject(self, uniqueIdentifier)];
@@ -1695,6 +1701,17 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     m_childMutableModelsByKey = [[coder decodeObjectForKey:PROKeyForObject(self, childMutableModelsByKey)] mutableCopy];
 
+    return self;
+}
+
+- (id)awakeAfterUsingCoder:(NSCoder *)coder {
+    Class mutableModelClass = [[self class] mutableModelClassForModelClass:[self.immutableBackingModel class]];
+    if (PROAssert(mutableModelClass, @"Mutable model class should've been created for %@", [self.immutableBackingModel class])) {
+        // dynamically become the subclass appropriate for this model, to
+        // have the proper setter and mutation methods
+        object_setClass(self, mutableModelClass);
+    }
+    
     return self;
 }
 
