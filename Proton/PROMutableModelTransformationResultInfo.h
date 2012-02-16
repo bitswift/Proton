@@ -38,23 +38,7 @@
 /**
  * Contains the <PROTransformationLogEntry> instances that each
  * <PROMutableModel> had after applying the transformation to the parent.
- *
- * This dictionary does _not_ copy its <PROMutableModel> keys.
  */
-@property (nonatomic, copy, readonly) NSDictionary *logEntriesByMutableModel;
-
-/**
- * Sets <logEntriesByMutableModels> with the given log entries (which will
- * become the values) and mutable models (which will become the keys).
- *
- * This is used to create <logEntriesByMutableModel> without copying the
- * <PROMutableModel> objects.
- *
- * @param logEntries An array of <PROTransformationLogEntry> objects, one for
- * each mutable model.
- * @param mutableModels An array of <PROMutableModel> objects, which each of the
- * log entries refer to.
- */
-- (void)setLogEntries:(NSArray *)logEntries forMutableModels:(NSArray *)mutableModels;
+@property (nonatomic, copy) NSDictionary *logEntriesByMutableModelUniqueIdentifier;
 
 @end

@@ -272,14 +272,13 @@
     if (!latestLogEntry)
         return nil;
 
-    self = [self init];
+    self = [self initWithLogEntry:latestLogEntry];
     if (!self)
         return nil;
 
     self.logEntries = [[coder decodeObjectForKey:PROKeyForObject(self, logEntries)] mutableCopy];
     self.transformationsByLogEntry = [[coder decodeObjectForKey:PROKeyForObject(self, transformationsByLogEntry)] mutableCopy];
 
-    self.latestLogEntry = latestLogEntry;
     self.maximumNumberOfLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfLogEntries)];
     self.maximumNumberOfArchivedLogEntries = [coder decodeIntegerForKey:PROKeyForObject(self, maximumNumberOfArchivedLogEntries)];
 
