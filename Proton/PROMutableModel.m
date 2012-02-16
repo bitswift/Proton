@@ -229,6 +229,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 - (void)enumerateChildMutableModels:(id)childModels usingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block;
 
 /**
+ * Enumerates over all child mutable models in <childMutableModelsByKey>,
+ * invoking the given block for each one.
+ *
+ * @param block A block to apply to every <PROMutableModel> owned by the
+ * receiver.
+ */
+- (void)enumerateAllChildMutableModelsUsingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block;
+
+/**
  * Creates new <PROMutableModel> objects to correspond to those at the given key
  * path in the given model.
  *
@@ -1254,6 +1263,22 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     }
 }
 
+- (void)enumerateAllChildMutableModelsUsingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block; {
+    __block BOOL deepStop = NO;
+
+    [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
+        [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            block(mutableModel, &deepStop);
+            
+            if (deepStop)
+                *stop = YES;
+        }];
+
+        if (deepStop)
+            *stop = YES;
+    }];
+}
+
 - (void)replaceAllChildMutableModels {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
@@ -1419,10 +1444,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         // collect all mutable models by ID, so we can easily look them up
         NSMutableDictionary *childrenByID = [NSMutableDictionary dictionary];
 
-        [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
-            [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-                [childrenByID setObject:mutableModel forKey:mutableModel.uniqueIdentifier];
-            }];
+        [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            [childrenByID setObject:mutableModel forKey:mutableModel.uniqueIdentifier];
         }];
 
         [logEntries enumerateObjectsUsingBlock:^(PROMutableModelTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
@@ -1561,17 +1584,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     NSMutableArray *mutableModels = [NSMutableArray array];
     NSMutableDictionary *logEntries = [NSMutableDictionary dictionary];
 
-    [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
-        [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-            [mutableModel saveTransformationResultInfoForLatestLogEntry];
-        
-            id modelEntry = mutableModel.transformationLogEntry;
-            if (!PROAssert(modelEntry, @"Could not retrieve log entry from model %@", mutableModel))
-                modelEntry = [EXTNil null];
+    [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+        [mutableModel saveTransformationResultInfoForLatestLogEntry];
+    
+        id modelEntry = mutableModel.transformationLogEntry;
+        if (!PROAssert(modelEntry, @"Could not retrieve log entry from model %@", mutableModel))
+            modelEntry = [EXTNil null];
 
-            [mutableModels addObject:mutableModel];
-            [logEntries setObject:modelEntry forKey:mutableModel.uniqueIdentifier];
-        }];
+        [mutableModels addObject:mutableModel];
+        [logEntries setObject:modelEntry forKey:mutableModel.uniqueIdentifier];
     }];
 
     resultInfo.logEntriesByMutableModelUniqueIdentifier = logEntries;
