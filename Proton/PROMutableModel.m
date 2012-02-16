@@ -1001,7 +1001,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         NSAssert([model isKindOfClass:[PROModel class]], @"Cannot initialize PROMutableModel with %@, as it is not a PROModel", model);
         m_immutableBackingModel = [model copy];
 
-        m_transformationLog = [[PROMutableModelTransformationLog alloc] init];
+        m_transformationLog = [[PROMutableModelTransformationLog alloc] initWithMutableModel:self];
         m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
     }
 
