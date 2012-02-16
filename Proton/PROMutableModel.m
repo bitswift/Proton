@@ -1667,10 +1667,10 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark NSCoding
 
-+ (Class)classForKeyedUnarchiver {
-    // unarchive all instances as PROMutableModel initially, then swizzle them
-    // in -awakeAfterUsingCoder:
-    return [PROMutableModel class];
++ (NSArray *)classFallbacksForKeyedArchiver {
+    // unarchive instances as PROMutableModel if we have to, then we can swizzle
+    // them in -awakeAfterUsingCoder:
+    return [NSArray arrayWithObject:NSStringFromClass([PROMutableModel class])];
 }
 
 - (id)initWithCoder:(NSCoder *)coder {
