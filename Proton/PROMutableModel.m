@@ -22,6 +22,7 @@
 #import "PROMultipleTransformation.h"
 #import "PROMutableModelPrivate.h"
 #import "PROMutableModelTransformationLog.h"
+#import "PROMutableModelTransformationLogEntry.h"
 #import "PROMutableModelTransformationResultInfo.h"
 #import "PRORemovalTransformation.h"
 #import "PROTransformationLogEntry.h"
@@ -1001,7 +1002,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         NSAssert([model isKindOfClass:[PROModel class]], @"Cannot initialize PROMutableModel with %@, as it is not a PROModel", model);
         m_immutableBackingModel = [model copy];
 
-        m_transformationLog = [[PROMutableModelTransformationLog alloc] init];
+        m_transformationLog = [[PROMutableModelTransformationLog alloc] initWithMutableModel:self];
         m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
     }
 
@@ -1407,8 +1408,48 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return oldModel;
 }
 
-- (BOOL)restoreTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+- (NSArray *)modelsWithTransformationLogEntries:(NSArray *)logEntries; {
+    NSParameterAssert(logEntries != nil);
+
+    __block NSMutableArray *immutableModels = [NSMutableArray arrayWithCapacity:logEntries.count];
+
+    [self.dispatchQueue runSynchronously:^{
+        // collect all mutable models by ID, so we can easily look them up
+        NSMutableDictionary *childrenByID = [NSMutableDictionary dictionary];
+
+        [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
+            [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+                [childrenByID setObject:mutableModel forKey:mutableModel.uniqueIdentifier];
+            }];
+        }];
+
+        [logEntries enumerateObjectsUsingBlock:^(PROMutableModelTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
+            NSAssert(logEntry.mutableModelUniqueIdentifier, @"%@ does not have a model UUID", logEntry);
+
+            PROMutableModel *subModel = [childrenByID objectForKey:logEntry.mutableModelUniqueIdentifier];
+            if (!subModel) {
+                immutableModels = nil;
+
+                *stop = YES;
+                return;
+            }
+
+            PROModel *immutableModel = [subModel modelWithTransformationLogEntry:logEntry];
+            if (immutableModel) {
+                [immutableModels addObject:immutableModel];
+            } else {
+                immutableModels = nil;
+                *stop = YES;
+            }
+        }];
+    }];
+
+    return immutableModels;
+}
+
+- (BOOL)restoreTransformationLogEntry:(PROMutableModelTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
+    NSParameterAssert([transformationLogEntry isKindOfClass:[PROMutableModelTransformationLogEntry class]]);
 
     __block BOOL success = NO;
 
@@ -1423,7 +1464,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         if (parent) {
             // restoration needs to be delegated to the parent, just like
             // transformation
-            PROTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
+            PROMutableModelTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
 
             if (parentLogEntry) {
                 success = [parent restoreTransformationLogEntry:parentLogEntry];
@@ -1492,7 +1533,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // all KVO notifications in one fell swoop with the -setArray: call
             // below
             [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
-                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
+                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModelUniqueIdentifier objectForKey:mutableModel.uniqueIdentifier];
                 if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
                     return;
 
@@ -1516,7 +1557,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     resultInfo.mutableModelsByKey = self.childMutableModelsByKey;
 
     NSMutableArray *mutableModels = [NSMutableArray array];
-    NSMutableArray *logEntries = [NSMutableArray array];
+    NSMutableDictionary *logEntries = [NSMutableDictionary dictionary];
 
     [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
         [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
@@ -1527,11 +1568,11 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 modelEntry = [EXTNil null];
 
             [mutableModels addObject:mutableModel];
-            [logEntries addObject:modelEntry];
+            [logEntries setObject:modelEntry forKey:mutableModel.uniqueIdentifier];
         }];
     }];
 
-    [resultInfo setLogEntries:logEntries forMutableModels:mutableModels];
+    resultInfo.logEntriesByMutableModelUniqueIdentifier = logEntries;
     [self.transformationLog.transformationResultInfoByLogEntry setObject:resultInfo forKey:self.transformationLog.latestLogEntry];
 }
 

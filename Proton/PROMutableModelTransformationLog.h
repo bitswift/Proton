@@ -7,6 +7,7 @@
 //
 
 #import "PROTransformationLog.h"
+#import "PROMutableModelTransformationLogEntry.h"
 
 @class PROMutableModel;
 
@@ -16,12 +17,44 @@
 @interface PROMutableModelTransformationLog : PROTransformationLog <NSCoding>
 
 /**
+ * @name Initialization
+ */
+
+/**
+ * Initializes the receiver with the given mutable model as its owner.
+ *
+ * @param mutableModel The <PROMutableModel> that owns the receiver.
+ */
+- (id)initWithMutableModel:(PROMutableModel *)mutableModel;
+
+/**
+ * @name Mutable Model
+ */
+
+/**
+ * The model that owns this transformation log.
+ */
+@property (nonatomic, weak, readonly) PROMutableModel *mutableModel;
+
+/**
+ * @name Reading the Log
+ */
+
+/**
+ * The last log entry that was recorded. This may be a root log entry if no
+ * transformations have been recorded yet in the log.
+ *
+ * This property will never be `nil`.
+ */
+@property (nonatomic, copy, readonly) PROMutableModelTransformationLogEntry *latestLogEntry;
+
+/**
  * @name Data Associated with Log Entries
  */
 
 /**
  * Contains <PROMutableModelTransformationResultInfo> objects keyed by each
- * <PROTransformationLogEntry> in the log.
+ * <PROMutableModelTransformationLogEntry> in the log.
  */
 @property (nonatomic, strong, readonly) NSMutableDictionary *transformationResultInfoByLogEntry;
 
@@ -35,6 +68,6 @@
  * @param logEntry A log entry to search for in
  * <[PROMutableModelTransformationResultInfo logEntriesByMutableModel]>.
  */
-- (PROTransformationLogEntry *)logEntryWithMutableModel:(PROMutableModel *)mutableModel childLogEntry:(PROTransformationLogEntry *)logEntry;
+- (PROMutableModelTransformationLogEntry *)logEntryWithMutableModel:(PROMutableModel *)mutableModel childLogEntry:(PROMutableModelTransformationLogEntry *)logEntry;
 
 @end

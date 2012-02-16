@@ -14,14 +14,14 @@
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
 #import "PROMutableModel.h"
-#import "PROTransformationLogEntry.h"
+#import "PROMutableModelTransformationLogEntry.h"
 
 @implementation PROMutableModelTransformationResultInfo
 
 #pragma mark Properties
 
 @synthesize mutableModelsByKey = m_mutableModelsByKey;
-@synthesize logEntriesByMutableModel = m_logEntriesByMutableModel;
+@synthesize logEntriesByMutableModelUniqueIdentifier = m_logEntriesByMutableModelUniqueIdentifier;
 
 - (void)setMutableModelsByKey:(NSDictionary *)modelsByKey {
     if (modelsByKey == m_mutableModelsByKey)
@@ -37,49 +37,6 @@
     }];
 }
 
-- (void)setLogEntries:(NSArray *)logEntries forMutableModels:(NSArray *)mutableModels; {
-    NSParameterAssert(logEntries.count == mutableModels.count);
-
-    NSUInteger count = logEntries.count;
-    if (!count) {
-        m_logEntriesByMutableModel = nil;
-        return;
-    }
-
-    CFRange fullRange = CFRangeMake(0, (CFIndex)count);
-
-    const void **keys = malloc(sizeof(*keys) * count);
-    if (!PROAssert(keys, @"Could not allocate space for %lu dictionary keys", (unsigned long)count))
-        return;
-
-    @onExit {
-        free(keys);
-    };
-
-    CFArrayGetValues((__bridge CFArrayRef)mutableModels, fullRange, keys);
-
-    const void **values = malloc(sizeof(*values) * count);
-    if (!PROAssert(values, @"Could not allocate space for %lu dictionary values", (unsigned long)count))
-        return;
-
-    @onExit {
-        free(values);
-    };
-
-    CFArrayGetValues((__bridge CFArrayRef)logEntries, fullRange, values);
-
-    CFDictionaryRef logEntriesByMutableModel = CFDictionaryCreate(
-        NULL,
-        keys,
-        values,
-        (CFIndex)count,
-        &kCFTypeDictionaryKeyCallBacks,
-        &kCFTypeDictionaryValueCallBacks
-    );
-
-    m_logEntriesByMutableModel = (__bridge_transfer id)logEntriesByMutableModel;
-}
-
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
@@ -88,12 +45,7 @@
         return nil;
 
     self.mutableModelsByKey = [coder decodeObjectForKey:PROKeyForObject(self, mutableModelsByKey)];
-    
-    NSArray *logEntries = [coder decodeObjectForKey:@"logEntries"];
-    NSArray *mutableModels = [coder decodeObjectForKey:@"mutableModels"];
-
-    if (logEntries.count == mutableModels.count)
-        [self setLogEntries:logEntries forMutableModels:mutableModels];
+    self.logEntriesByMutableModelUniqueIdentifier = [coder decodeObjectForKey:PROKeyForObject(self, logEntriesByMutableModelUniqueIdentifier)];
 
     return self;
 }
@@ -102,13 +54,8 @@
     if (self.mutableModelsByKey)
         [coder encodeObject:self.mutableModelsByKey forKey:PROKeyForObject(self, mutableModelsByKey)];
 
-    if (self.logEntriesByMutableModel) {
-        NSArray *mutableModels = self.logEntriesByMutableModel.allKeys;
-        [coder encodeObject:mutableModels forKey:@"mutableModels"];
-
-        NSArray *logEntries = [self.logEntriesByMutableModel objectsForKeys:mutableModels notFoundMarker:[NSNull null]];
-        [coder encodeObject:logEntries forKey:@"logEntries"];
-    }
+    if (self.logEntriesByMutableModelUniqueIdentifier)
+        [coder encodeObject:self.logEntriesByMutableModelUniqueIdentifier forKey:PROKeyForObject(self, logEntriesByMutableModelUniqueIdentifier)];
 }
 
 #pragma mark NSCopying
@@ -117,10 +64,7 @@
     PROMutableModelTransformationResultInfo *info = [[[self class] allocWithZone:zone] init];
 
     info.mutableModelsByKey = self.mutableModelsByKey;
-
-    // this depends on the underlying CFDictionary being immutable -- i'm afraid
-    // to call -copy here, since NSDictionary might screw with the callbacks for our keys
-    info->m_logEntriesByMutableModel = m_logEntriesByMutableModel;
+    info.logEntriesByMutableModelUniqueIdentifier = self.logEntriesByMutableModelUniqueIdentifier;
 
     return info;
 }
@@ -129,7 +73,7 @@
 
 - (NSString *)description {
     NSString *(^modelDescription)(PROMutableModel *) = ^(PROMutableModel *model){
-        PROTransformationLogEntry *logEntry = [self.logEntriesByMutableModel objectForKey:model];
+        PROTransformationLogEntry *logEntry = [self.logEntriesByMutableModelUniqueIdentifier objectForKey:model.uniqueIdentifier];
         return [NSString stringWithFormat:@"<%@: %p> = %@", [model class], (__bridge void *)model, logEntry];
     };
 
@@ -151,9 +95,7 @@
 }
 
 - (NSUInteger)hash {
-    // hashes should not change even if the data mutates, so only use immutable
-    // data
-    return self.logEntriesByMutableModel.allValues.hash;
+    return self.logEntriesByMutableModelUniqueIdentifier.hash;
 }
 
 - (BOOL)isEqual:(PROMutableModelTransformationResultInfo *)info {
@@ -163,7 +105,7 @@
     if (!NSEqualObjects(self.mutableModelsByKey, info.mutableModelsByKey))
         return NO;
 
-    if (!NSEqualObjects(self.logEntriesByMutableModel, info.logEntriesByMutableModel))
+    if (!NSEqualObjects(self.logEntriesByMutableModelUniqueIdentifier, info.logEntriesByMutableModelUniqueIdentifier))
         return NO;
 
     return YES;
