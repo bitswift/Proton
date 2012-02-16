@@ -22,6 +22,7 @@
 #import "PROMultipleTransformation.h"
 #import "PROMutableModelPrivate.h"
 #import "PROMutableModelTransformationLog.h"
+#import "PROMutableModelTransformationLogEntry.h"
 #import "PROMutableModelTransformationResultInfo.h"
 #import "PRORemovalTransformation.h"
 #import "PROTransformationLogEntry.h"
@@ -1407,8 +1408,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return oldModel;
 }
 
-- (BOOL)restoreTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+- (BOOL)restoreTransformationLogEntry:(PROMutableModelTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
+    NSParameterAssert([transformationLogEntry isKindOfClass:[PROMutableModelTransformationLogEntry class]]);
 
     __block BOOL success = NO;
 
@@ -1423,7 +1425,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         if (parent) {
             // restoration needs to be delegated to the parent, just like
             // transformation
-            PROTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
+            PROMutableModelTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
 
             if (parentLogEntry) {
                 success = [parent restoreTransformationLogEntry:parentLogEntry];
