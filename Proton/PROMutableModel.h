@@ -156,8 +156,9 @@ Also see the `@mutable` macro, which makes this even more useful.
 @property (nonatomic, copy, readonly) PROTransformationLogEntry *transformationLogEntry;
 
 /**
- * Returns the version of the receiver that corresponds to the given
- * transformation log entry, or `nil` if the entry no longer exists in the log.
+ * Returns an immutable <PROModel> representing the version of the receiver that
+ * corresponds to the given transformation log entry, or `nil` if the entry no
+ * longer exists in the log.
  *
  * The given log entry may no longer exist if the transformation was archived
  * and trimmed to stay within the <archivedTransformationLogLimit>.
