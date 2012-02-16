@@ -169,6 +169,17 @@ Also see the `@mutable` macro, which makes this even more useful.
 - (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
 
 /**
+ * Attempts to find models on the receiver for each given log entry, and returns
+ * immutable <PROModel> objects for the corresponding versions. Returns `nil` if
+ * the receiver is missing the model corresponding to any one of the entries, or
+ * if any entry no longer exists in its model's log.
+ *
+ * @param logEntries An array of log entries previously returned from calls to
+ * <transformationLogEntry> on the models of the receiver.
+ */
+- (NSArray *)modelsWithTransformationLogEntries:(NSArray *)logEntries;
+
+/**
  * Restores the version of the receiver that corresponds to the given log entry.
  * Returns `YES` on success, or `NO` if the entry no longer exists in the log.
  *

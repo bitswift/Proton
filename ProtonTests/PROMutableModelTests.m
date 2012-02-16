@@ -830,6 +830,70 @@ SpecBegin(PROMutableModel)
             expect([model restoreTransformationLogEntry:futureLogEntry]).toBeTruthy();
             expect([model.subModels objectAtIndex:1] == subModel).toBeTruthy();
         });
+
+        describe(@"models with log entries", ^{
+            __block NSMutableArray *logEntries;
+            __block NSMutableArray *expectedModels;
+
+            before(^{
+                logEntries = [[NSMutableArray alloc] init];
+                expectedModels = [[NSMutableArray alloc] init];
+
+                for (unsigned i = 0; i < 10; ++i) {
+                    expect([model applyTransformation:transformation error:NULL]).toBeTruthy();
+                }
+
+                for (unsigned i = 0; i < 10; ++i) {
+                    PROMutableModel *subModel = [model.subModels objectAtIndex:i];
+                    PROTransformationLogEntry *logEntry = subModel.transformationLogEntry;
+
+                    expect(logEntry).not.toBeNil();
+                    expect(subModel).not.toBeNil();
+
+                    [logEntries addObject:logEntry];
+                    [expectedModels addObject:subModel];
+                }
+            });
+
+            it(@"should return an array of models with valid references", ^{
+                NSArray *models = [model modelsWithTransformationLogEntries:logEntries];
+                expect(models).toEqual(expectedModels);
+            });
+
+            it(@"should return nil with any log entries not from a sub-model", ^{
+                PROTransformationLogEntry *logEntry = model.transformationLogEntry;
+                expect(logEntry).not.toBeNil();
+
+                [logEntries addObject:logEntry];
+
+                NSArray *models = [model modelsWithTransformationLogEntries:logEntries];
+                expect(models).toBeNil();
+            });
+
+            it(@"should return nil with any log entries no longer valid", ^{
+                TestMutableSubModel *subModel = [expectedModels objectAtIndex:0];
+
+                subModel.archivedTransformationLogLimit = 1;
+                model.archivedTransformationLogLimit = 1;
+
+                subModel.name = @"this is a new name";
+
+                PROTransformationLogEntry *subEntry = [logEntries objectAtIndex:0];
+
+                // archive and un-archive the super model, and make
+                // sure it invalidates 'subEntry'
+                {
+                    model = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:model]];
+                    expect(model).not.toBeNil();
+
+                    PROMutableModel *subModel = [model.subModels objectAtIndex:0];
+                    expect([subModel modelWithTransformationLogEntry:subEntry]).toBeNil();
+                }
+
+                NSArray *models = [model modelsWithTransformationLogEntries:logEntries];
+                expect(models).toBeNil();
+            });
+        });
     });
 
     describe(@"concurrency", ^{

@@ -1408,6 +1408,45 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return oldModel;
 }
 
+- (NSArray *)modelsWithTransformationLogEntries:(NSArray *)logEntries; {
+    NSParameterAssert(logEntries != nil);
+
+    __block NSMutableArray *immutableModels = [NSMutableArray arrayWithCapacity:logEntries.count];
+
+    [self.dispatchQueue runSynchronously:^{
+        // collect all mutable models by ID, so we can easily look them up
+        NSMutableDictionary *childrenByID = [NSMutableDictionary dictionary];
+
+        [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
+            [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+                [childrenByID setObject:mutableModel forKey:mutableModel.uniqueIdentifier];
+            }];
+        }];
+
+        [logEntries enumerateObjectsUsingBlock:^(PROMutableModelTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
+            NSAssert(logEntry.mutableModelUniqueIdentifier, @"%@ does not have a model UUID", logEntry);
+
+            PROMutableModel *subModel = [childrenByID objectForKey:logEntry.mutableModelUniqueIdentifier];
+            if (!subModel) {
+                immutableModels = nil;
+
+                *stop = YES;
+                return;
+            }
+
+            PROModel *immutableModel = [subModel modelWithTransformationLogEntry:logEntry];
+            if (immutableModel) {
+                [immutableModels addObject:immutableModel];
+            } else {
+                immutableModels = nil;
+                *stop = YES;
+            }
+        }];
+    }];
+
+    return immutableModels;
+}
+
 - (BOOL)restoreTransformationLogEntry:(PROMutableModelTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
     NSParameterAssert([transformationLogEntry isKindOfClass:[PROMutableModelTransformationLogEntry class]]);
