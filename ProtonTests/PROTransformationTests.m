@@ -23,9 +23,21 @@
 
 SpecBegin(PROTransformation)
     __block id transformation = nil;
+    __block void (^verifyTransformation)(void);
+
+    before(^{
+        verifyTransformation = nil;
+    });
 
     after(^{
-        transformation = nil;
+        if (verifyTransformation) {
+            verifyTransformation();
+
+            // the transformation and the flattened transformation should have the
+            // same effect
+            transformation = [transformation flattenedTransformation];
+            verifyTransformation();
+        }
     });
 
     describe(@"unique transformation", ^{
@@ -45,9 +57,11 @@ SpecBegin(PROTransformation)
             expect([transformation outputValue]).toBeNil();
 
             // values should just pass through
-            __block NSError *error = nil;
-            expect([transformation transform:uniqueInputValue error:&error]).toEqual(uniqueInputValue);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                __block NSError *error = nil;
+                expect([transformation transform:uniqueInputValue error:&error]).toEqual(uniqueInputValue);
+                expect(error).toBeNil();
+            } copy];
         });
 
         it(@"initializes and copies values", ^{
@@ -99,49 +113,59 @@ SpecBegin(PROTransformation)
             });
 
             it(@"should transform the input value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:uniqueInputValue error:&error]).toEqual(uniqueOutputValue);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:uniqueInputValue error:&error]).toEqual(uniqueOutputValue);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform another value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:uniqueOutputValue error:&error]).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:uniqueOutputValue error:&error]).toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should transform the input value to the output value in place", ^{
-                __block NSError *error = nil;
-                __block id value = uniqueInputValue;
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = uniqueInputValue;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
-                expect(value).toEqual(uniqueOutputValue);
-                expect(error).toBeNil();
+                    expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                    expect(value).toEqual(uniqueOutputValue);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform another value to the output value in place", ^{
-                __block NSError *error = nil;
-                __block id value = uniqueOutputValue;
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = uniqueOutputValue;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
-                expect(value).toEqual(uniqueOutputValue);
+                    expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                    expect(value).toEqual(uniqueOutputValue);
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should return a reverse transformation which does the opposite", ^{
-                PROUniqueTransformation *reverseTransformation = (id)[transformation reverseTransformation];
-                expect(reverseTransformation.inputValue).toEqual(uniqueOutputValue);
-                expect(reverseTransformation.outputValue).toEqual(uniqueInputValue);
+                verifyTransformation = [^{
+                    PROUniqueTransformation *reverseTransformation = (id)[transformation reverseTransformation];
+                    expect(reverseTransformation.inputValue).toEqual(uniqueOutputValue);
+                    expect(reverseTransformation.outputValue).toEqual(uniqueInputValue);
 
-                __block NSError *error = nil;
-                expect([reverseTransformation transform:uniqueOutputValue error:&error]).toEqual(uniqueInputValue);
-                expect(error).toBeNil();
+                    __block NSError *error = nil;
+                    expect([reverseTransformation transform:uniqueOutputValue error:&error]).toEqual(uniqueInputValue);
+                    expect(error).toBeNil();
+                } copy];
             });
         });
     });
@@ -170,10 +194,12 @@ SpecBegin(PROTransformation)
             expect([transformation indexes]).toBeNil();
             expect([transformation transformations]).toEqual([NSArray array]);
 
-            // values should just pass through
-            __block NSError *error = nil;
-            expect([transformation transform:startArray error:&error]).toEqual(startArray);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                // values should just pass through
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            } copy];
         });
 
         it(@"initializes with a single index", ^{
@@ -235,53 +261,63 @@ SpecBegin(PROTransformation)
             });
 
             it(@"should transform the input value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:startArray error:&error]).toEqual(endArray);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:[NSArray array] error:&error]).toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should transform the input value to the output value in place", ^{
-                NSMutableArray *mutableArray = [startArray mutableCopy];
+                verifyTransformation = [^{
+                    NSMutableArray *mutableArray = [startArray mutableCopy];
 
-                __block NSError *error = nil;
-                __block id value = mutableArray;
+                    __block NSError *error = nil;
+                    __block id value = mutableArray;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
-                expect(value).toEqual(endArray);
-                expect(error).toBeNil();
+                    expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                    expect(value).toEqual(endArray);
+                    expect(error).toBeNil();
 
-                // the transformation should've mutated the array, not created
-                // a new one
-                expect(mutableArray).toEqual(endArray);
+                    // the transformation should've mutated the array, not created
+                    // a new one
+                    expect(mutableArray).toEqual(endArray);
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes in place", ^{
-                __block NSError *error = nil;
-                __block id value = [NSArray array];
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = [NSArray array];
 
-                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
-                expect(value).toEqual([NSArray array]);
+                    expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                    expect(value).toEqual([NSArray array]);
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should return a reverse transformation which does the opposite", ^{
-                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+                verifyTransformation = [^{
+                    PROTransformation *reverseTransformation = [transformation reverseTransformation];
 
-                __block NSError *error = nil;
-                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
-                expect(error).toBeNil();
+                    __block NSError *error = nil;
+                    expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                    expect(error).toBeNil();
+                } copy];
             });
         });
 
@@ -295,23 +331,25 @@ SpecBegin(PROTransformation)
             after(^{
                 expect(arrayTransformation).not.toBeNil();
 
-                NSMutableArray *items = [NSMutableArray arrayWithObject:@"foobar"];
-                __block NSMutableArray *array = [NSMutableArray arrayWithObject:items];
+                verifyTransformation = [^{
+                    NSMutableArray *items = [NSMutableArray arrayWithObject:@"foobar"];
+                    __block NSMutableArray *array = [NSMutableArray arrayWithObject:items];
 
-                NSArray *expectedArray = [arrayTransformation transform:items error:NULL];
-                expect(expectedArray).not.toBeNil();
+                    NSArray *expectedArray = [arrayTransformation transform:items error:NULL];
+                    expect(expectedArray).not.toBeNil();
 
-                transformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:arrayTransformation];
-                expect(transformation).not.toBeNil();
-    
-                __block NSError *error = nil;
-                expect([transformation transformInPlace:&array error:&error]).toBeTruthy();
-                expect(error).toBeNil();
+                    transformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:arrayTransformation];
+                    expect(transformation).not.toBeNil();
+        
+                    __block NSError *error = nil;
+                    expect([transformation transformInPlace:&array error:&error]).toBeTruthy();
+                    expect(error).toBeNil();
 
-                expect([array objectAtIndex:0]).toEqual(expectedArray);
+                    expect([array objectAtIndex:0]).toEqual(expectedArray);
 
-                // should've mutated the array, not created a new one
-                expect(items).toEqual(expectedArray);
+                    // should've mutated the array, not created a new one
+                    expect(items).toEqual(expectedArray);
+                } copy];
             });
 
             it(@"should perform an indexed transformation in place at the index", ^{
@@ -354,10 +392,12 @@ SpecBegin(PROTransformation)
             expect([transformation insertionIndexes]).toBeNil();
             expect([transformation objects]).toBeNil();
 
-            // values should just pass through
-            __block NSError *error = nil;
-            expect([transformation transform:startArray error:&error]).toEqual(startArray);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                // values should just pass through
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            } copy];
         });
 
         it(@"initializes with a single index", ^{
@@ -372,9 +412,11 @@ SpecBegin(PROTransformation)
         it(@"should insert into empty array", ^{
             transformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:@"foobar"];
 
-            __block NSError *error = nil;
-            expect([transformation transform:[NSArray array] error:&error]).toEqual([NSArray arrayWithObject:@"foobar"]);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                __block NSError *error = nil;
+                expect([transformation transform:[NSArray array] error:&error]).toEqual([NSArray arrayWithObject:@"foobar"]);
+                expect(error).toBeNil();
+            } copy];
         });
 
         describe(@"with objects", ^{
@@ -412,53 +454,63 @@ SpecBegin(PROTransformation)
             });
 
             it(@"should transform the input value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:startArray error:&error]).toEqual(endArray);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:[NSArray array] error:&error]).toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should transform the input value to the output value in place", ^{
-                NSMutableArray *mutableArray = [startArray mutableCopy];
+                verifyTransformation = [^{
+                    NSMutableArray *mutableArray = [startArray mutableCopy];
 
-                __block NSError *error = nil;
-                __block id value = mutableArray;
+                    __block NSError *error = nil;
+                    __block id value = mutableArray;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
-                expect(value).toEqual(endArray);
-                expect(error).toBeNil();
+                    expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                    expect(value).toEqual(endArray);
+                    expect(error).toBeNil();
 
-                // the transformation should've mutated the array, not created
-                // a new one
-                expect(mutableArray).toEqual(endArray);
+                    // the transformation should've mutated the array, not created
+                    // a new one
+                    expect(mutableArray).toEqual(endArray);
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes in place", ^{
-                __block NSError *error = nil;
-                __block id value = [NSArray array];
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = [NSArray array];
 
-                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
-                expect(value).toEqual([NSArray array]);
+                    expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                    expect(value).toEqual([NSArray array]);
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should return a reverse transformation which does the opposite", ^{
-                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+                verifyTransformation = [^{
+                    PROTransformation *reverseTransformation = [transformation reverseTransformation];
 
-                __block NSError *error = nil;
-                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
-                expect(error).toBeNil();
+                    __block NSError *error = nil;
+                    expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                    expect(error).toBeNil();
+                } copy];
             });
         });
     });
@@ -487,10 +539,12 @@ SpecBegin(PROTransformation)
             expect([transformation removalIndexes]).toBeNil();
             expect([transformation expectedObjects]).toBeNil();
 
-            // values should just pass through
-            __block NSError *error = nil;
-            expect([transformation transform:startArray error:&error]).toEqual(startArray);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                // values should just pass through
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            } copy];
         });
 
         it(@"initializes with a single index", ^{
@@ -505,9 +559,11 @@ SpecBegin(PROTransformation)
         it(@"should remove down to an empty array", ^{
             transformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:@"foobar"];
 
-            __block NSError *error = nil;
-            expect([transformation transform:[NSArray arrayWithObject:@"foobar"] error:&error]).toEqual([NSArray array]);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                __block NSError *error = nil;
+                expect([transformation transform:[NSArray arrayWithObject:@"foobar"] error:&error]).toEqual([NSArray array]);
+                expect(error).toBeNil();
+            } copy];
         });
 
         describe(@"with objects", ^{
@@ -549,80 +605,94 @@ SpecBegin(PROTransformation)
             });
 
             it(@"should transform the input value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:startArray error:&error]).toEqual(endArray);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:[NSArray array] error:&error]).toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should not transform with mismatched objects", ^{
                 NSMutableArray *modifiedStartArray = [startArray mutableCopy];
                 [modifiedStartArray insertObject:@"fizzbuzz" atIndex:[indexes firstIndex]];
 
-                __block NSError *error = nil;
-                expect([transformation transform:modifiedStartArray error:&error]).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:modifiedStartArray error:&error]).toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should transform the input value to the output value in place", ^{
-                NSMutableArray *mutableArray = [startArray mutableCopy];
+                verifyTransformation = [^{
+                    NSMutableArray *mutableArray = [startArray mutableCopy];
 
-                __block NSError *error = nil;
-                __block id value = mutableArray;
+                    __block NSError *error = nil;
+                    __block id value = mutableArray;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
-                expect(value).toEqual(endArray);
-                expect(error).toBeNil();
+                    expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                    expect(value).toEqual(endArray);
+                    expect(error).toBeNil();
 
-                // the transformation should've mutated the array, not created
-                // a new one
-                expect(mutableArray).toEqual(endArray);
+                    // the transformation should've mutated the array, not created
+                    // a new one
+                    expect(mutableArray).toEqual(endArray);
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes in place", ^{
-                __block NSError *error = nil;
-                __block id value = [NSArray array];
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = [NSArray array];
 
-                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
-                expect(value).toEqual([NSArray array]);
+                    expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                    expect(value).toEqual([NSArray array]);
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should not transform mismatched objects in place", ^{
-                __block NSMutableArray *modifiedStartArray = [startArray mutableCopy];
-                [modifiedStartArray insertObject:@"fizzbuzz" atIndex:[indexes firstIndex]];
+                verifyTransformation = [^{
+                    __block NSMutableArray *modifiedStartArray = [startArray mutableCopy];
+                    [modifiedStartArray insertObject:@"fizzbuzz" atIndex:[indexes firstIndex]];
 
-                NSArray *expectedValue = [modifiedStartArray copy];
+                    NSArray *expectedValue = [modifiedStartArray copy];
 
-                __block NSError *error = nil;
-                expect([transformation transformInPlace:&modifiedStartArray error:&error]).toBeFalsy();
-                expect(modifiedStartArray).toEqual(expectedValue);
+                    __block NSError *error = nil;
+                    expect([transformation transformInPlace:&modifiedStartArray error:&error]).toBeFalsy();
+                    expect(modifiedStartArray).toEqual(expectedValue);
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should return a reverse transformation which does the opposite", ^{
-                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+                verifyTransformation = [^{
+                    PROTransformation *reverseTransformation = [transformation reverseTransformation];
 
-                __block NSError *error = nil;
-                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
-                expect(error).toBeNil();
+                    __block NSError *error = nil;
+                    expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                    expect(error).toBeNil();
+                } copy];
             });
         });
     });
@@ -649,10 +719,12 @@ SpecBegin(PROTransformation)
             expect([transformation valueTransformations]).toBeNil();
             expect([transformation transformations]).toEqual([NSArray array]);
 
-            // values should just pass through
-            __block NSError *error = nil;
-            expect([transformation transform:startDictionary error:&error]).toEqual(startDictionary);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                // values should just pass through
+                __block NSError *error = nil;
+                expect([transformation transform:startDictionary error:&error]).toEqual(startDictionary);
+                expect(error).toBeNil();
+            } copy];
         });
 
         it(@"initializes with a single transformation", ^{
@@ -719,19 +791,23 @@ SpecBegin(PROTransformation)
             });
 
             it(@"should transform the input value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:startDictionary error:&error]).toEqual(endDictionary);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:startDictionary error:&error]).toEqual(endDictionary);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform an object which is not a <PROKeyedObject>", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:@"foobar" error:&error]).toBeNil();
-                expect(error).not.toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:@"foobar" error:&error]).toBeNil();
+                    expect(error).not.toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorUnsupportedInputType);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorUnsupportedInputType);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should treat missing values as NSNull", ^{
@@ -740,32 +816,38 @@ SpecBegin(PROTransformation)
                 // remove the key associated with NSNull
                 [modifiedStartDictionary removeObjectForKey:@"nil"];
 
-                __block NSError *error = nil;
-                expect([transformation transform:modifiedStartDictionary error:&error]).toEqual(endDictionary);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:modifiedStartDictionary error:&error]).toEqual(endDictionary);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should transform the input value to the output value in place", ^{
-                NSMutableDictionary *mutableStartDictionary = [startDictionary mutableCopy];
+                verifyTransformation = [^{
+                    NSMutableDictionary *mutableStartDictionary = [startDictionary mutableCopy];
 
-                __block NSError *error = nil;
-                __block id value = mutableStartDictionary;
+                    __block NSError *error = nil;
+                    __block id value = mutableStartDictionary;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
-                expect(value).toEqual(endDictionary);
-                expect(error).toBeNil();
+                    expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                    expect(value).toEqual(endDictionary);
+                    expect(error).toBeNil();
 
-                // the transformation should've mutated the dictionary, not
-                // created a new one
-                expect(mutableStartDictionary).toEqual(endDictionary);
+                    // the transformation should've mutated the dictionary, not
+                    // created a new one
+                    expect(mutableStartDictionary).toEqual(endDictionary);
+                } copy];
             });
 
             it(@"should return a reverse transformation which does the opposite", ^{
-                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+                verifyTransformation = [^{
+                    PROTransformation *reverseTransformation = [transformation reverseTransformation];
 
-                __block NSError *error = nil;
-                expect([reverseTransformation transform:endDictionary error:&error]).toEqual(startDictionary);
-                expect(error).toBeNil();
+                    __block NSError *error = nil;
+                    expect([reverseTransformation transform:endDictionary error:&error]).toEqual(startDictionary);
+                    expect(error).toBeNil();
+                } copy];
             });
         });
 
@@ -779,9 +861,11 @@ SpecBegin(PROTransformation)
             TransformationTestModel *expectedModel = [[TransformationTestModel alloc] init];
             expectedModel.array = endArray;
 
-            __block NSError *error = nil;
-            expect([transformation transform:model error:&error]).toEqual(expectedModel);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                __block NSError *error = nil;
+                expect([transformation transform:model error:&error]).toEqual(expectedModel);
+                expect(error).toBeNil();
+            } copy];
         });
 
         describe(@"array transformations in place", ^{
@@ -794,25 +878,27 @@ SpecBegin(PROTransformation)
             after(^{
                 expect(arrayTransformation).not.toBeNil();
 
-                __block TransformationInPlaceTestObject *model = [[TransformationInPlaceTestObject alloc] init];
+                verifyTransformation = [^{
+                    __block TransformationInPlaceTestObject *model = [[TransformationInPlaceTestObject alloc] init];
 
-                NSMutableArray *items = model->m_items;
-                [items addObject:@"foobar"];
+                    NSMutableArray *items = model->m_items;
+                    [items addObject:@"foobar"];
 
-                NSArray *expectedArray = [arrayTransformation transform:items error:NULL];
-                expect(expectedArray).not.toBeNil();
+                    NSArray *expectedArray = [arrayTransformation transform:items error:NULL];
+                    expect(expectedArray).not.toBeNil();
 
-                transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"items"];
-                expect(transformation).not.toBeNil();
-    
-                __block NSError *error = nil;
-                expect([transformation transformInPlace:&model error:&error]).toBeTruthy();
-                expect(error).toBeNil();
+                    transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"items"];
+                    expect(transformation).not.toBeNil();
+        
+                    __block NSError *error = nil;
+                    expect([transformation transformInPlace:&model error:&error]).toBeTruthy();
+                    expect(error).toBeNil();
 
-                expect(model->m_items).toEqual(expectedArray);
+                    expect(model->m_items).toEqual(expectedArray);
 
-                // should've mutated the array, not created a new one
-                expect(items).toEqual(expectedArray);
+                    // should've mutated the array, not created a new one
+                    expect(items).toEqual(expectedArray);
+                } copy];
             });
 
             it(@"should perform an indexed transformation in place on the key", ^{
@@ -841,10 +927,12 @@ SpecBegin(PROTransformation)
 
             expect([transformation transformations]).toEqual([NSArray array]);
 
-            // values should just pass through
-            __block NSError *error = nil;
-            expect([transformation transform:multipleStartValue error:&error]).toEqual(multipleStartValue);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                // values should just pass through
+                __block NSError *error = nil;
+                expect([transformation transform:multipleStartValue error:&error]).toEqual(multipleStartValue);
+                expect(error).toBeNil();
+            } copy];
         });
 
         describe(@"with transformations", ^{
@@ -875,51 +963,61 @@ SpecBegin(PROTransformation)
             });
 
             it(@"should transform the input value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:multipleStartValue error:&error]).toEqual(multipleEndValue);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:multipleStartValue error:&error]).toEqual(multipleEndValue);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform another value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:multipleMiddleValue error:&error]).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:multipleMiddleValue error:&error]).toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
 
-                NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                } copy];
             });
 
             it(@"should transform the input value to the output value in place", ^{
-                __block NSError *error = nil;
-                __block id value = multipleStartValue;
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = multipleStartValue;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
-                expect(value).toEqual(multipleEndValue);
-                expect(error).toBeNil();
+                    expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                    expect(value).toEqual(multipleEndValue);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform another value to the output value in place", ^{
-                __block NSError *error = nil;
-                __block id value = multipleMiddleValue;
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = multipleMiddleValue;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
-                expect(value).toEqual(multipleMiddleValue);
+                    expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                    expect(value).toEqual(multipleMiddleValue);
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
 
-                NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                } copy];
             });
 
             it(@"should return a reverse transformation which does the opposite", ^{
-                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+                verifyTransformation = [^{
+                    PROTransformation *reverseTransformation = [transformation reverseTransformation];
 
-                __block NSError *error = nil;
-                expect([reverseTransformation transform:multipleEndValue error:&error]).toEqual(multipleStartValue);
-                expect(error).toBeNil();
+                    __block NSError *error = nil;
+                    expect([reverseTransformation transform:multipleEndValue error:&error]).toEqual(multipleStartValue);
+                    expect(error).toBeNil();
+                } copy];
             });
         });
     });
@@ -953,10 +1051,12 @@ SpecBegin(PROTransformation)
             expect([transformation endIndexes]).toBeNil();
             expect([transformation transformations]).toBeNil();
 
-            // values should just pass through
-            __block NSError *error = nil;
-            expect([transformation transform:startArray error:&error]).toEqual(startArray);
-            expect(error).toBeNil();
+            verifyTransformation = [^{
+                // values should just pass through
+                __block NSError *error = nil;
+                expect([transformation transform:startArray error:&error]).toEqual(startArray);
+                expect(error).toBeNil();
+            } copy];
         });
 
         it(@"initializes with single indexes", ^{
@@ -995,53 +1095,63 @@ SpecBegin(PROTransformation)
             });
 
             it(@"should transform the input value to the output value", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:startArray error:&error]).toEqual(endArray);
-                expect(error).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:startArray error:&error]).toEqual(endArray);
+                    expect(error).toBeNil();
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes", ^{
-                __block NSError *error = nil;
-                expect([transformation transform:[NSArray array] error:&error]).toBeNil();
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    expect([transformation transform:[NSArray array] error:&error]).toBeNil();
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should transform the input value to the output value in place", ^{
-                NSMutableArray *mutableArray = [startArray mutableCopy];
+                verifyTransformation = [^{
+                    NSMutableArray *mutableArray = [startArray mutableCopy];
 
-                __block NSError *error = nil;
-                __block id value = mutableArray;
+                    __block NSError *error = nil;
+                    __block id value = mutableArray;
 
-                expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
-                expect(value).toEqual(endArray);
-                expect(error).toBeNil();
+                    expect([transformation transformInPlace:&value error:&error]).toBeTruthy();
+                    expect(value).toEqual(endArray);
+                    expect(error).toBeNil();
 
-                // the transformation should've mutated the array, not created
-                // a new one
-                expect(mutableArray).toEqual(endArray);
+                    // the transformation should've mutated the array, not created
+                    // a new one
+                    expect(mutableArray).toEqual(endArray);
+                } copy];
             });
 
             it(@"should not transform out of bounds indexes in place", ^{
-                __block NSError *error = nil;
-                __block id value = [NSArray array];
+                verifyTransformation = [^{
+                    __block NSError *error = nil;
+                    __block id value = [NSArray array];
 
-                expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
-                expect(value).toEqual([NSArray array]);
+                    expect([transformation transformInPlace:&value error:&error]).toBeFalsy();
+                    expect(value).toEqual([NSArray array]);
 
-                expect(error.domain).toEqual([PROTransformation errorDomain]);
-                expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
-                expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                    expect(error.domain).toEqual([PROTransformation errorDomain]);
+                    expect(error.code).toEqual(PROTransformationErrorIndexOutOfBounds);
+                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual([NSArray arrayWithObject:transformation]);
+                } copy];
             });
 
             it(@"should return a reverse transformation which does the opposite", ^{
-                PROTransformation *reverseTransformation = [transformation reverseTransformation];
+                verifyTransformation = [^{
+                    PROTransformation *reverseTransformation = [transformation reverseTransformation];
 
-                __block NSError *error = nil;
-                expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
-                expect(error).toBeNil();
+                    __block NSError *error = nil;
+                    expect([reverseTransformation transform:endArray error:&error]).toEqual(startArray);
+                    expect(error).toBeNil();
+                } copy];
             });
         });
     });
@@ -1055,103 +1165,120 @@ SpecBegin(PROTransformation)
         __block BOOL newValueBlockInvoked;
         __block BOOL nestedNewValueBlockInvoked;
 
-        before(^{
-            newValueBlockInvoked = NO;
-            nestedNewValueBlockInvoked = NO;
+        __block void (^setupBlock)(void);
 
+        before(^{
             dictionary = [NSDictionary dictionaryWithObject:@"foo" forKey:@"bar"];
-            mutableArray = [NSMutableArray arrayWithObject:dictionary];
 
             model = [[TransformationTestModel alloc] init];
-            model.array = mutableArray;
+            model.array = [NSArray arrayWithObject:dictionary];
 
-            // this will only get invoked for top level or the 'array' property,
-            // because we replace this block after diving down into the array
-            id newValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
-                id transformedModel = [transformation transform:model error:NULL];
+            // these applied blocks have lots of side effects, so it's simpler
+            // to make it all part of the verifyTransformation block that gets
+            // called
+            setupBlock = [^{
+                newValueBlockInvoked = NO;
+                nestedNewValueBlockInvoked = NO;
 
-                if (keyPath) {
-                    expect(keyPath).toEqual(@"array");
-                    expect(value).toEqual([transformedModel valueForKeyPath:keyPath]);
-                    expect(localTransformation).not.toBeNil();
-                } else {
-                    expect(value).toEqual(transformedModel);
-                    expect(localTransformation).toBeKindOf([PROUniqueTransformation class]);
-                }
+                mutableArray = [NSMutableArray arrayWithObject:dictionary];
+                model.array = mutableArray;
 
-                newValueBlockInvoked = YES;
-                return YES;
-            } copy];
+                // this will only get invoked for top level or the 'array' property,
+                // because we replace this block after diving down into the array
+                id newValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
+                    id transformedModel = [transformation transform:model error:NULL];
 
-            id mutableArrayBlock = [^(PROTransformation *localTransformation, NSString *keyPath){
-                expect(keyPath).toEqual(@"array");
-                expect(localTransformation).not.toBeNil();
+                    if (keyPath) {
+                        expect(keyPath).toEqual(@"array");
+                        expect(value).toEqual([transformedModel valueForKeyPath:keyPath]);
+                        expect(localTransformation).not.toBeNil();
+                    } else {
+                        expect(value).toEqual(transformedModel);
+                        expect(localTransformation).toBeKindOf([PROUniqueTransformation class]);
+                    }
 
-                return mutableArray;
-            } copy];
-
-            id wrappedValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
-                expect(value).toBeKindOf([NSString class]);
-                expect(keyPath).toEqual(@"array");
-                expect(localTransformation).toBeKindOf([PROInsertionTransformation class]);
-
-                return [NSNull null];
-            } copy];
-
-            id blocksForIndexBlock = [^(PROTransformation *localTransformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
-                id transformedModel = [transformation transform:model error:NULL];
-
-                expect(keyPath).toEqual(@"array");
-                expect(index).toEqual(0);
-                expect(localTransformation).toBeKindOf([PROIndexedTransformation class]);
-
-                PROTransformationNewValueForKeyPathBlock newValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
-                    nestedNewValueBlockInvoked = YES;
-
-                    expect(keyPath).not.toBeNil();
-                    expect(localTransformation).not.toBeNil();
-
-                    NSDictionary *transformedDictionary = [[transformedModel array] objectAtIndex:0];
-                    expect(value).toEqual([transformedDictionary valueForKeyPath:keyPath]);
-
+                    newValueBlockInvoked = YES;
                     return YES;
                 } copy];
 
-                NSMutableDictionary *newBlocks = [blocks mutableCopy];
-                [newBlocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+                id mutableArrayBlock = [^(PROTransformation *localTransformation, NSString *keyPath){
+                    expect(keyPath).toEqual(@"array");
+                    expect(localTransformation).not.toBeNil();
 
-                return newBlocks;
+                    return mutableArray;
+                } copy];
+
+                id wrappedValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
+                    expect(value).toBeKindOf([NSString class]);
+                    expect(keyPath).toEqual(@"array");
+                    expect(localTransformation).toBeKindOf([PROInsertionTransformation class]);
+
+                    return [NSNull null];
+                } copy];
+
+                id blocksForIndexBlock = [^(PROTransformation *localTransformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+                    id transformedModel = [transformation transform:model error:NULL];
+
+                    expect(keyPath).toEqual(@"array");
+                    expect(index).toEqual(0);
+                    expect(localTransformation).toBeKindOf([PROIndexedTransformation class]);
+
+                    PROTransformationNewValueForKeyPathBlock newValueBlock = [^(PROTransformation *localTransformation, id value, NSString *keyPath){
+                        nestedNewValueBlockInvoked = YES;
+
+                        expect(keyPath).not.toBeNil();
+                        expect(localTransformation).not.toBeNil();
+
+                        NSDictionary *transformedDictionary = [[transformedModel array] objectAtIndex:0];
+                        expect(value).toEqual([transformedDictionary valueForKeyPath:keyPath]);
+
+                        return YES;
+                    } copy];
+
+                    NSMutableDictionary *newBlocks = [blocks mutableCopy];
+                    [newBlocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+
+                    return newBlocks;
+                } copy];
+
+                blocks = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                    newValueBlock, PROTransformationNewValueForKeyPathBlockKey,
+                    mutableArrayBlock, PROTransformationMutableArrayForKeyPathBlockKey,
+                    wrappedValueBlock, PROTransformationWrappedValueForKeyPathBlockKey,
+                    blocksForIndexBlock, PROTransformationBlocksForIndexAtKeyPathBlockKey,
+                    nil
+                ];
             } copy];
-
-            blocks = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                newValueBlock, PROTransformationNewValueForKeyPathBlockKey,
-                mutableArrayBlock, PROTransformationMutableArrayForKeyPathBlockKey,
-                wrappedValueBlock, PROTransformationWrappedValueForKeyPathBlockKey,
-                blocksForIndexBlock, PROTransformationBlocksForIndexAtKeyPathBlockKey,
-                nil
-            ];
         });
 
         it(@"should apply new value block at top level", ^{
             TransformationTestModel *newModel = [[TransformationTestModel alloc] init];
             transformation = [[PROUniqueTransformation alloc] initWithInputValue:model outputValue:newModel];
 
-            TransformationTestModel *result = [transformation transform:model error:NULL];
-            expect(result).not.toBeNil();
+            verifyTransformation = [^{
+                setupBlock();
 
-            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
-            expect(newValueBlockInvoked).toBeTruthy();
+                TransformationTestModel *result = [transformation transform:model error:NULL];
+                expect(result).not.toBeNil();
+
+                expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+                expect(newValueBlockInvoked).toBeTruthy();
+            } copy];
         });
 
         it(@"should apply new value block at array level", ^{
             transformation = [model transformationForKey:@"array" value:[NSArray array]];
 
-            TransformationTestModel *result = [transformation transform:model error:NULL];
-            expect(result).not.toBeNil();
+            verifyTransformation = [^{
+                setupBlock();
 
-            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
-            expect(newValueBlockInvoked).toBeTruthy();
-            expect(mutableArray).not.toEqual(result.array);
+                TransformationTestModel *result = [transformation transform:model error:NULL];
+                expect(result).not.toBeNil();
+
+                expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+                expect(newValueBlockInvoked).toBeTruthy();
+                expect(mutableArray).not.toEqual(result.array);
+            } copy];
         });
 
         it(@"should perform array mutations", ^{
@@ -1160,12 +1287,16 @@ SpecBegin(PROTransformation)
             PROTransformation *arrayTransformation = [[PRORemovalTransformation alloc] initWithRemovalIndex:0 expectedObject:expectedObject];
             transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
 
-            TransformationTestModel *result = [transformation transform:model error:NULL];
-            expect(result).not.toBeNil();
+            verifyTransformation = [^{
+                setupBlock();
 
-            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
-            expect(newValueBlockInvoked).toBeFalsy();
-            expect(mutableArray).toEqual([NSArray array]);
+                TransformationTestModel *result = [transformation transform:model error:NULL];
+                expect(result).not.toBeNil();
+
+                expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+                expect(newValueBlockInvoked).toBeFalsy();
+                expect(mutableArray).toEqual([NSArray array]);
+            } copy];
         });
 
         it(@"should wrap inserted values", ^{
@@ -1174,15 +1305,19 @@ SpecBegin(PROTransformation)
             PROTransformation *arrayTransformation = [[PROInsertionTransformation alloc] initWithInsertionIndex:0 object:insertedObject];
             transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
 
-            TransformationTestModel *result = [transformation transform:model error:NULL];
-            expect(result).not.toBeNil();
+            verifyTransformation = [^{
+                setupBlock();
 
-            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
-            expect(newValueBlockInvoked).toBeFalsy();
+                TransformationTestModel *result = [transformation transform:model error:NULL];
+                expect(result).not.toBeNil();
 
-            // the inserted object should've been "wrapped" as an NSNull
-            NSArray *expectedArray = [NSArray arrayWithObjects:[NSNull null], dictionary, nil];
-            expect(mutableArray).toEqual(expectedArray);
+                expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+                expect(newValueBlockInvoked).toBeFalsy();
+
+                // the inserted object should've been "wrapped" as an NSNull
+                NSArray *expectedArray = [NSArray arrayWithObjects:[NSNull null], dictionary, nil];
+                expect(mutableArray).toEqual(expectedArray);
+            } copy];
         });
 
         it(@"should retrieve blocks for nested indexes", ^{
@@ -1192,66 +1327,78 @@ SpecBegin(PROTransformation)
             PROTransformation *arrayTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:dictionaryTransformation];
             transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
 
-            TransformationTestModel *result = [transformation transform:model error:NULL];
-            expect(result).not.toBeNil();
+            verifyTransformation = [^{
+                setupBlock();
 
-            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
-            expect(newValueBlockInvoked).toBeFalsy();
-            expect(nestedNewValueBlockInvoked).toBeTruthy();
-            expect(mutableArray).not.toEqual(result.array);
+                TransformationTestModel *result = [transformation transform:model error:NULL];
+                expect(result).not.toBeNil();
+
+                expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+                expect(newValueBlockInvoked).toBeFalsy();
+                expect(nestedNewValueBlockInvoked).toBeTruthy();
+                expect(mutableArray).not.toEqual(result.array);
+            } copy];
         });
 
         it(@"should fail to apply unique transformation if new value block fails", ^{
-            id newValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
-                return NO;
-            } copy];
-
-            [blocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
-
             TransformationTestModel *newModel = [[TransformationTestModel alloc] init];
             transformation = [[PROUniqueTransformation alloc] initWithInputValue:model outputValue:newModel];
 
-            TransformationTestModel *result = [transformation transform:model error:NULL];
-            expect(result).not.toBeNil();
+            verifyTransformation = [^{
+                setupBlock();
 
-            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeFalsy();
-            expect(newValueBlockInvoked).toBeFalsy();
-        });
-
-        it(@"should fall back to replacement if nested new value block fails", ^{
-            id blocksForIndexBlock = [^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
                 id newValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
                     return NO;
                 } copy];
 
-                NSMutableDictionary *newBlocks = [blocks mutableCopy];
-                [newBlocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
-                return newBlocks;
+                [blocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+
+                TransformationTestModel *result = [transformation transform:model error:NULL];
+                expect(result).not.toBeNil();
+
+                expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeFalsy();
+                expect(newValueBlockInvoked).toBeFalsy();
             } copy];
+        });
 
-            [blocks setObject:blocksForIndexBlock forKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
-
-            id wrappedValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
-                expect(value).toBeKindOf([NSDictionary class]);
-                return [value allKeys];
-            } copy];
-
-            [blocks setObject:wrappedValueBlock forKey:PROTransformationWrappedValueForKeyPathBlockKey];
-
+        it(@"should fall back to replacement if nested new value block fails", ^{
             PROUniqueTransformation *barTransformation = [[PROUniqueTransformation alloc] initWithInputValue:@"foo" outputValue:@"fizzbuzz"];
             PROKeyedTransformation *dictionaryTransformation = [[PROKeyedTransformation alloc] initWithTransformation:barTransformation forKey:@"bar"];
 
             PROTransformation *arrayTransformation = [[PROIndexedTransformation alloc] initWithIndex:0 transformation:dictionaryTransformation];
             transformation = [[PROKeyedTransformation alloc] initWithTransformation:arrayTransformation forKey:@"array"];
 
-            TransformationTestModel *result = [transformation transform:model error:NULL];
-            expect(result).not.toBeNil();
+            verifyTransformation = [^{
+                setupBlock();
 
-            expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+                id blocksForIndexBlock = [^(PROTransformation *transformation, NSUInteger index, NSString *keyPath, NSDictionary *blocks){
+                    id newValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
+                        return NO;
+                    } copy];
 
-            // the replaced dictionary should have been "wrapped" as an NSArray
-            NSArray *expectedArray = [NSArray arrayWithObject:[NSArray arrayWithObject:@"bar"]];
-            expect(mutableArray).toEqual(expectedArray);
+                    NSMutableDictionary *newBlocks = [blocks mutableCopy];
+                    [newBlocks setObject:newValueBlock forKey:PROTransformationNewValueForKeyPathBlockKey];
+                    return newBlocks;
+                } copy];
+
+                [blocks setObject:blocksForIndexBlock forKey:PROTransformationBlocksForIndexAtKeyPathBlockKey];
+
+                id wrappedValueBlock = [^(PROTransformation *transformation, id value, NSString *keyPath){
+                    expect(value).toBeKindOf([NSDictionary class]);
+                    return [value allKeys];
+                } copy];
+
+                [blocks setObject:wrappedValueBlock forKey:PROTransformationWrappedValueForKeyPathBlockKey];
+
+                TransformationTestModel *result = [transformation transform:model error:NULL];
+                expect(result).not.toBeNil();
+
+                expect([transformation applyBlocks:blocks transformationResult:result keyPath:nil]).toBeTruthy();
+
+                // the replaced dictionary should have been "wrapped" as an NSArray
+                NSArray *expectedArray = [NSArray arrayWithObject:[NSArray arrayWithObject:@"bar"]];
+                expect(mutableArray).toEqual(expectedArray);
+            } copy];
         });
     });
 
