@@ -10,7 +10,6 @@
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
-#import "PROModelController.h"
 
 @implementation PROUniqueTransformation
 

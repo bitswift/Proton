@@ -7,7 +7,6 @@
 //
 
 #import "PROTransformation.h"
-#import "PROModelController.h"
 
 NSString * const PROTransformationNewValueForKeyPathBlockKey = @"PROTransformationNewValueForKeyPathBlock";
 NSString * const PROTransformationMutableArrayForKeyPathBlockKey = @"PROTransformationMutableArrayForKeyPathBlock";
@@ -93,12 +92,24 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
 
     NSMutableDictionary *userInfo = [error.userInfo mutableCopy];
 
-    NSMutableArray *transformations = [[userInfo objectForKey:PROTransformationFailingTransformationsErrorKey] mutableCopy];
-    [transformations insertObject:self atIndex:0];
-    [userInfo setObject:transformations forKey:PROTransformationFailingTransformationsErrorKey];
+    // append 'self' to the list of transformations
+    NSArray *existingTransformations = [userInfo objectForKey:PROTransformationFailingTransformationsErrorKey];
+    NSMutableArray *newTransformations = [NSMutableArray array];
 
-    NSString *path = [transformationPath stringByAppendingString:[userInfo objectForKey:PROTransformationFailingTransformationPathErrorKey]];
-    [userInfo setObject:path forKey:PROTransformationFailingTransformationPathErrorKey];
+    if (existingTransformations)
+        [newTransformations addObjectsFromArray:existingTransformations];
+
+    [newTransformations insertObject:self atIndex:0];
+    [userInfo setObject:newTransformations forKey:PROTransformationFailingTransformationsErrorKey];
+
+    // append the given path to the existing string
+    NSString *existingPath = [userInfo objectForKey:PROTransformationFailingTransformationPathErrorKey];
+    NSMutableString *newPath = [transformationPath mutableCopy];
+
+    if (existingPath)
+        [newPath appendString:existingPath];
+
+    [userInfo setObject:newPath forKey:PROTransformationFailingTransformationPathErrorKey];
 
     return [NSError errorWithDomain:error.domain code:error.code userInfo:userInfo];
 }
@@ -119,6 +130,12 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
 - (id)copyWithZone:(NSZone *)zone {
     // this object is immutable
     return self;
+}
+
+#pragma mark NSObject overrides
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@: %p>: %@", [self class], (__bridge void *)self, self.transformations];
 }
 
 @end

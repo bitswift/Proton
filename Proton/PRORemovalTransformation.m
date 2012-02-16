@@ -10,7 +10,6 @@
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PROInsertionTransformation.h"
-#import "PROModelController.h"
 
 @implementation PRORemovalTransformation
 

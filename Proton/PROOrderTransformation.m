@@ -10,7 +10,6 @@
 #import "EXTScope.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
-#import "PROModelController.h"
 
 @implementation PROOrderTransformation
 
