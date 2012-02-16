@@ -119,17 +119,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @property (nonatomic, copy) NSString *keyFromParentMutableModel;
 
 /**
- * If the value corresponding to the <keyFromParentMutableModel> is an
- * indexed collection, this is the index at which the receiver exists in the
- * collection. Otherwise, this is `NSNotFound`.
- *
- * @warning **Important:** This property should only be set or read while
- * running on the <dispatchQueue>, and is only updated _after_ a new
- * <parentMutableModel> is set.
- */
-@property (nonatomic, assign) NSUInteger indexFromParentMutableModel;
-
-/**
  * Contains any <PROMutableModel> instances that the receiver owns, keyed by
  * their corresponding keys on the <immutableBackingModel>.
  *
@@ -309,7 +298,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 @synthesize observationInfo = m_observationInfo;
 @synthesize childMutableModelsByKey = m_childMutableModelsByKey;
 @synthesize keyFromParentMutableModel = m_keyFromParentMutableModel;
-@synthesize indexFromParentMutableModel = m_indexFromParentMutableModel;
 
 - (BOOL)isApplyingTransformation {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
@@ -596,7 +584,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 [mutableModel.localDispatchQueue runBarrierSynchronously:^{
                     mutableModel.parentMutableModel = self;
                     mutableModel.keyFromParentMutableModel = key;
-                    mutableModel.indexFromParentMutableModel = finalIndex;
                 }];
 
                 mutableModel.immutableBackingModel = [immutableModels objectAtIndex:finalIndex];
@@ -651,7 +638,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 // detached it, to avoid any race conditions from it being used
                 // in the tiny window when it won't use our queue anymore
                 [mutableModel.localDispatchQueue runBarrierSynchronously:^{
-                    mutableModel.indexFromParentMutableModel = NSNotFound;
                     mutableModel.keyFromParentMutableModel = nil;
                     mutableModel.parentMutableModel = nil;
                 }];
@@ -726,7 +712,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 // attaching the new ones in order to gracefully handle objects
                 // common to both
                 [objectsBeingRemoved enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
-                    mutableModel.indexFromParentMutableModel = NSNotFound;
                     mutableModel.keyFromParentMutableModel = nil;
                     mutableModel.parentMutableModel = nil;
                 }];
@@ -739,7 +724,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
                     mutableModel.parentMutableModel = self;
                     mutableModel.keyFromParentMutableModel = key;
-                    mutableModel.indexFromParentMutableModel = finalIndex;
                     mutableModel.immutableBackingModel = [immutableModels objectAtIndex:finalIndex];
                 }];
 
@@ -1017,8 +1001,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
     }
 
-    m_indexFromParentMutableModel = NSNotFound;
-
     Class mutableModelClass = [[self class] mutableModelClassForModelClass:[m_immutableBackingModel class]];
     if (PROAssert(mutableModelClass, @"Mutable model class should've been created for %@", [m_immutableBackingModel class])) {
         // dynamically become the subclass appropriate for this model, to
@@ -1107,8 +1089,14 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!self.keyFromParentMutableModel)
         return nil;
 
-    if (self.indexFromParentMutableModel != NSNotFound)
-        transformation = [[PROIndexedTransformation alloc] initWithIndex:self.indexFromParentMutableModel transformation:transformation];
+    id parentValue = [self.parentMutableModel valueForKey:self.keyFromParentMutableModel];
+    if ([parentValue respondsToSelector:@selector(indexOfObject:)]) {
+        NSUInteger index = [parentValue indexOfObject:self];
+        if (!PROAssert(index != NSNotFound, @"Could not find %@ in parent collection %@", self, parentValue))
+            return nil;
+
+        transformation = [[PROIndexedTransformation alloc] initWithIndex:index transformation:transformation];
+    }
 
     return [[PROKeyedTransformation alloc] initWithTransformation:transformation forKey:self.keyFromParentMutableModel];
 }
@@ -1286,7 +1274,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 // TODO: this code seems to repeat a lot -- refactor that shit,
                 // yo
                 mutableModel.keyFromParentMutableModel = nil;
-                mutableModel.indexFromParentMutableModel = NSNotFound;
                 mutableModel.parentMutableModel = nil;
             }];
         }];
@@ -1318,7 +1305,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
                 
                 mutableModel.parentMutableModel = weakSelf;
                 mutableModel.keyFromParentMutableModel = key;
-                mutableModel.indexFromParentMutableModel = index;
 
                 mutableModel.immutableBackingModel = newImmutableModel;
                 [mutableModel replaceAllChildMutableModels];
@@ -1339,7 +1325,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
             mutableModel.parentMutableModel = weakSelf;
             mutableModel.keyFromParentMutableModel = key;
-            mutableModel.indexFromParentMutableModel = index;
 
             return mutableModel;
         }];
@@ -1591,7 +1576,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     m_parentMutableModel = [coder decodeObjectForKey:PROKeyForObject(self, parentMutableModel)];
     if (m_parentMutableModel) {
         m_keyFromParentMutableModel = [coder decodeObjectForKey:PROKeyForObject(self, keyFromParentMutableModel)];
-        m_indexFromParentMutableModel = [coder decodeIntegerForKey:PROKeyForObject(self, indexFromParentMutableModel)];
     }
 
     m_childMutableModelsByKey = [[coder decodeObjectForKey:PROKeyForObject(self, childMutableModelsByKey)] mutableCopy];
@@ -1609,7 +1593,6 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         PROMutableModel *parent = self.parentMutableModel;
         if (parent) {
             [coder encodeConditionalObject:parent forKey:PROKeyForObject(self, parentMutableModel)];
-            [coder encodeInteger:self.indexFromParentMutableModel forKey:PROKeyForObject(self, indexFromParentMutableModel)];
 
             if (self.keyFromParentMutableModel)
                 [coder encodeObject:self.keyFromParentMutableModel forKey:PROKeyForObject(self, keyFromParentMutableModel)];
@@ -1695,11 +1678,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!PROAssert(key, @"%@ does not have a key on to notify about on its parent %@", self, parent))
         return;
 
-    if (self.indexFromParentMutableModel == NSNotFound) {
-        [parent willChangeValueForKey:key];
-    } else {
-        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:self.indexFromParentMutableModel];
+    id parentValue = [parent valueForKey:key];
+    if ([parentValue respondsToSelector:@selector(indexOfObject:)]) {
+        NSUInteger index = [parentValue indexOfObject:self];
+        if (!PROAssert(index != NSNotFound, @"Could not find %@ in parent collection %@", self, parentValue))
+            return;
+
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:index];
         [parent willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexSet forKey:key];
+    } else {
+        [parent willChangeValueForKey:key];
     }
 }
 
@@ -1714,11 +1702,16 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (!PROAssert(key, @"%@ does not have a key on to notify about on its parent %@", self, parent))
         return;
 
-    if (self.indexFromParentMutableModel == NSNotFound) {
-        [parent didChangeValueForKey:key];
-    } else {
-        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:self.indexFromParentMutableModel];
+    id parentValue = [parent valueForKey:key];
+    if ([parentValue respondsToSelector:@selector(indexOfObject:)]) {
+        NSUInteger index = [parentValue indexOfObject:self];
+        if (!PROAssert(index != NSNotFound, @"Could not find %@ in parent collection %@", self, parentValue))
+            return;
+
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:index];
         [parent didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexSet forKey:key];
+    } else {
+        [parent didChangeValueForKey:key];
     }
 }
 
