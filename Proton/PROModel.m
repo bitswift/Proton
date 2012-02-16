@@ -6,13 +6,14 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROModel.h>
-#import <Proton/EXTRuntimeExtensions.h>
-#import <Proton/EXTScope.h>
-#import <Proton/NSDictionary+HigherOrderAdditions.h>
-#import <Proton/NSObject+ComparisonAdditions.h>
-#import <Proton/PROKeyedTransformation.h>
-#import <Proton/PROUniqueTransformation.h>
+#import "PROModel.h"
+#import "EXTRuntimeExtensions.h"
+#import "EXTScope.h"
+#import "NSDictionary+HigherOrderAdditions.h"
+#import "NSObject+ComparisonAdditions.h"
+#import "PROKeyedTransformation.h"
+#import "PROMutableModel.h"
+#import "PROUniqueTransformation.h"
 #import <objc/runtime.h>
 
 NSString * const PROModelPropertyKeyErrorKey = @"PROModelPropertyKey";
@@ -34,6 +35,10 @@ const NSInteger PROModelErrorValidationFailed = 2;
 
 - (id)init {
     return [self initWithDictionary:nil error:NULL];
+}
+
+- (id)initWithModel:(id)model; {
+    return [model copy];
 }
 
 - (id)initWithDictionary:(NSDictionary *)dictionary error:(NSError **)error {
@@ -273,6 +278,12 @@ const NSInteger PROModelErrorValidationFailed = 2;
 - (id)copyWithZone:(NSZone *)zone {
     // this object is immutable
     return self;
+}
+
+#pragma mark NSMutableCopying
+
+- (id)mutableCopyWithZone:(NSZone *)zone {
+    return [[PROMutableModel alloc] initWithModel:self];
 }
 
 #pragma mark NSObject overrides

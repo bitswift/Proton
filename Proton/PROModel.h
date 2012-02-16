@@ -60,7 +60,7 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  * `isEqual:`. The implementations of all of these methods are based on the
  * <initWithDictionary:error:> and <dictionaryValue> behaviors of the class.
  */
-@interface PROModel : NSObject <NSCoding, NSCopying, PROKeyedObject>
+@interface PROModel : NSObject <NSCoding, NSCopying, NSMutableCopying, PROKeyedObject>
 
 /**
  * @name Initialization
@@ -71,6 +71,18 @@ extern NSString * const PROModelPropertyKeyErrorKey;
  * argument.
  */
 - (id)init;
+
+/**
+ * Initializes the receiver with the given <PROModel> or <PROMutableModel>
+ * instance.
+ *
+ * The receiver must be of the same <PROModel> class as the given object, or one
+ * of its subclasses.
+ *
+ * @param model A <PROModel> or <PROMutableModel> to initialize the receiver
+ * from.
+ */
+- (id)initWithModel:(id)model;
 
 /**
  * Initializes the properties of the receiver using the keys and values of
