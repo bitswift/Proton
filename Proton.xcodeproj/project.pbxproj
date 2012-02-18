@@ -1178,7 +1178,7 @@
 		D0DB5CBA1492DDD5005955FB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0420;
+				LastUpgradeCheck = 0430;
 				ORGANIZATIONNAME = Bitswift;
 			};
 			buildConfigurationList = D0DB5CBD1492DDD5005955FB /* Build configuration list for PBXProject "Proton" */;
