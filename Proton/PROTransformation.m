@@ -50,6 +50,10 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
     return NO;
 }
 
+- (PROTransformation *)coalesceWithTransformation:(PROTransformation *)transformation; {
+    return nil;
+}
+
 - (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result; {
     return [self applyBlocks:blocks transformationResult:result keyPath:nil];
 }
