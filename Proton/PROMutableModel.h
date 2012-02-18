@@ -106,6 +106,15 @@ Also see the `@mutable` macro, which makes this even more useful.
 @property (nonatomic, copy, readonly) PROUniqueIdentifier *uniqueIdentifier;
 
 /**
+ * Returns the <PROMutableModel> owned by the receiver that has the given UUID,
+ * or `nil` if no such model could be found.
+ *
+ * @param identifier The <uniqueIdentifier> for a <PROMutableModel> owned by the
+ * receiver.
+ */
+- (id)mutableModelWithUniqueIdentifier:(PROUniqueIdentifier *)identifier;
+
+/**
  * @name Applying Transformations
  */
 
@@ -156,8 +165,9 @@ Also see the `@mutable` macro, which makes this even more useful.
 @property (nonatomic, copy, readonly) PROTransformationLogEntry *transformationLogEntry;
 
 /**
- * Returns the version of the receiver that corresponds to the given
- * transformation log entry, or `nil` if the entry no longer exists in the log.
+ * Returns an immutable <PROModel> representing the version of the receiver that
+ * corresponds to the given transformation log entry, or `nil` if the entry no
+ * longer exists in the log.
  *
  * The given log entry may no longer exist if the transformation was archived
  * and trimmed to stay within the <archivedTransformationLogLimit>.
@@ -166,6 +176,17 @@ Also see the `@mutable` macro, which makes this even more useful.
  * <transformationLogEntry>.
  */
 - (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry;
+
+/**
+ * Attempts to find models on the receiver for each given log entry, and returns
+ * immutable <PROModel> objects for the corresponding versions. Returns `nil` if
+ * the receiver is missing the model corresponding to any one of the entries, or
+ * if any entry no longer exists in its model's log.
+ *
+ * @param logEntries An array of log entries previously returned from calls to
+ * <transformationLogEntry> on the models of the receiver.
+ */
+- (NSArray *)modelsWithTransformationLogEntries:(NSArray *)logEntries;
 
 /**
  * Restores the version of the receiver that corresponds to the given log entry.

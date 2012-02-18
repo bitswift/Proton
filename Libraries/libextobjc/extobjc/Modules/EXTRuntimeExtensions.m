@@ -7,8 +7,9 @@
 //
 
 #import "EXTRuntimeExtensions.h"
-#import <objc/message.h>
 #import <ctype.h>
+#import <libkern/OSAtomic.h>
+#import <objc/message.h>
 #import <pthread.h>
 #import <stdio.h>
 #import <stdlib.h>
@@ -340,7 +341,7 @@ Class *ext_copyClassList (unsigned *count) {
 
             if (!keep) {
                 if (--classCount > i) {
-                    memmove(allClasses + i, allClasses + i + 1, (classCount - i - 1) * sizeof(*allClasses));
+                    memmove(allClasses + i, allClasses + i + 1, (classCount - i) * sizeof(*allClasses));
                 }
 
                 continue;
@@ -712,6 +713,17 @@ BOOL ext_getPropertyAccessorsForClass (objc_property_t property, Class aClass, M
 }
 
 NSMethodSignature *ext_globalMethodSignatureForSelector (SEL aSelector) {
+    // set up a simplistic cache to avoid repeatedly scouring every class in the
+    // runtime
+    static const size_t selectorCacheLength = 1 << 8;
+    static const uintptr_t selectorCacheMask = (selectorCacheLength - 1);
+    static void * volatile selectorCache[selectorCacheLength];
+
+    const char *cachedType = selectorCache[(uintptr_t)aSelector & selectorCacheMask];
+    if (cachedType) {
+        return [NSMethodSignature signatureWithObjCTypes:cachedType];
+    }
+
     unsigned classCount = 0;
     Class *classes = ext_copyClassList(&classCount);
     if (!classes)
@@ -724,35 +736,26 @@ NSMethodSignature *ext_globalMethodSignatureForSelector (SEL aSelector) {
      * during this process
      */
     @autoreleasepool {
-        Class proxyClass = objc_getClass("NSProxy");
-        SEL selectorsToTry[] = {
-            @selector(methodSignatureForSelector:),
-            @selector(instanceMethodSignatureForSelector:)
-        };
-
         for (unsigned i = 0;i < classCount;++i) {
             Class cls = classes[i];
+            Method method;
 
-            // NSProxy crashes if you send it a meaningful message, like
-            // methodSignatureForSelector:
-            if (ext_classIsKindOfClass(cls, proxyClass))
-                continue;
+            method = class_getInstanceMethod(cls, aSelector);
+            if (!method)
+                method = class_getClassMethod(cls, aSelector);
 
-            for (size_t selIndex = 0;selIndex < sizeof(selectorsToTry) / sizeof(*selectorsToTry);++selIndex) {
-                SEL lookupSel = selectorsToTry[selIndex];
-                Method methodSignatureForSelector = class_getClassMethod(cls, lookupSel);
+            if (method) {
+                const char *type = method_getTypeEncoding(method);
+                uintptr_t cacheLocation = ((uintptr_t)aSelector & selectorCacheMask);
 
-                if (methodSignatureForSelector) {
-                    methodSignatureForSelectorIMP impl = (methodSignatureForSelectorIMP)method_getImplementation(methodSignatureForSelector);
-                    signature = impl(cls, lookupSel, aSelector);
-                    
-                    if (signature)
-                        break;
-                }
-            }
+                // this doesn't need to be a barrier, and we don't care whether
+                // it succeeds, since our only goal is to make things faster in
+                // the future
+                OSAtomicCompareAndSwapPtr(selectorCache[cacheLocation], (void *)type, selectorCache + cacheLocation);
 
-            if (signature)
+                signature = [NSMethodSignature signatureWithObjCTypes:type];
                 break;
+            }
         }
     }
 
@@ -822,6 +825,9 @@ BOOL ext_loadSpecialProtocol (Protocol *protocol, void (^injectionBehavior)(Clas
         // array
         assert(specialProtocolCount < specialProtocolCapacity);
 
+        // disable warning about "leaking" this block, which is released in
+        // ext_injectSpecialProtocols()
+        #ifndef __clang_analyzer__
         ext_specialProtocolInjectionBlock copiedBlock = [injectionBehavior copy];
 
         // construct a new EXTSpecialProtocol structure and add it to the first
@@ -831,6 +837,7 @@ BOOL ext_loadSpecialProtocol (Protocol *protocol, void (^injectionBehavior)(Clas
             .injectionBlock = (__bridge_retained void *)copiedBlock,
             .ready = NO
         };
+        #endif
 
         ++specialProtocolCount;
         pthread_mutex_unlock(&specialProtocolsLock);

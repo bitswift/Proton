@@ -7,6 +7,7 @@
 //
 
 #import "PROMutableModel.h"
+#import "EXTBlockMethod.h"
 #import "EXTNil.h"
 #import "EXTRuntimeExtensions.h"
 #import "EXTScope.h"
@@ -22,6 +23,7 @@
 #import "PROMultipleTransformation.h"
 #import "PROMutableModelPrivate.h"
 #import "PROMutableModelTransformationLog.h"
+#import "PROMutableModelTransformationLogEntry.h"
 #import "PROMutableModelTransformationResultInfo.h"
 #import "PRORemovalTransformation.h"
 #import "PROTransformationLogEntry.h"
@@ -186,8 +188,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 + (void)synthesizeMutableIndexedAccessorsForKey:(NSString *)key forMutableModelClass:(Class)mutableModelClass;
 
 /**
- * Returns a new method implementation that implements a setter for the given
- * property.
+ * Creates, on `mutableModelClass`, a setter method for the given property.
  *
  * The method implementation will simply call through to `setValue:forKey:` on
  * `self`.
@@ -195,7 +196,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * @param propertyKey The key for which to generate a setter.
  * @param attributes The attributes of the property.
  */
-+ (IMP)synthesizedSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes;
++ (void)synthesizeSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes forMutableModelClass:(Class)mutableModelClass;
 
 /**
  * A set of blocks to pass to <[PROTransformation
@@ -226,6 +227,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * `childModels` itself, if it's a single object).
  */
 - (void)enumerateChildMutableModels:(id)childModels usingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block;
+
+/**
+ * Enumerates over all child mutable models in <childMutableModelsByKey>,
+ * invoking the given block for each one.
+ *
+ * @param block A block to apply to every <PROMutableModel> owned by the
+ * receiver.
+ */
+- (void)enumerateAllChildMutableModelsUsingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block;
 
 /**
  * Creates new <PROMutableModel> objects to correspond to those at the given key
@@ -440,26 +450,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     }
 
     NSString *propertyKey = [[NSString alloc] initWithUTF8String:property_getName(property)];
-
-    IMP setterIMP = [self synthesizedSetterForPropertyKey:propertyKey attributes:attributes];
-    if (setterIMP) {
-        NSString *setterType = [[NSString alloc] initWithFormat:
-            // void (PROMutableModel *self, SEL _cmd, TYPE value)
-            @"%s%s%s%s",
-            @encode(void),
-            @encode(PROMutableModel *),
-            @encode(SEL),
-            attributes->type
-        ];
-
-        // TODO: this could be changed to use +resolveInstanceMethod: instead,
-        // which might be cheaper if not all setters are used
-        BOOL success = class_addMethod(mutableModelClass, attributes->setter, setterIMP, [setterType UTF8String]);
-        PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(attributes->setter), mutableModelClass);
-    }
+    [self synthesizeSetterForPropertyKey:propertyKey attributes:attributes forMutableModelClass:mutableModelClass];
 
     Class propertyClass = attributes->objectClass;
-
     if ([propertyClass isSubclassOfClass:[NSArray class]] || [propertyClass isSubclassOfClass:[NSOrderedSet class]]) {
         // synthesize indexed accessors
         [self synthesizeMutableIndexedAccessorsForKey:propertyKey forMutableModelClass:mutableModelClass];
@@ -495,6 +488,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSArray *array = nil;
 
         [self.dispatchQueue runSynchronously:^{
+            // we have to copy our collections to ensure thread-safety,
+            // unfortunately
             array = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
         }];
 
@@ -533,7 +528,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         __block NSArray *objects;
 
         [self.dispatchQueue runSynchronously:^{
-            id collection = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
+            id collection = [self.childMutableModelsByKey objectForKey:key] ?: [self.immutableBackingModel valueForKey:key];
 
             objects = [collection objectsAtIndexes:indexes];
         }];
@@ -745,7 +740,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     ]);
 }
 
-+ (IMP)synthesizedSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes {
++ (void)synthesizeSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes forMutableModelClass:(Class)mutableModelClass; {
     const char *type = attributes->type;
 
     // skip attributes in the provided type encoding
@@ -953,11 +948,19 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     #undef NSVALUE_METHOD_BLOCK
 
     if (!methodBlock)
-        return NULL;
+        return;
 
-    // leak the block, since it'll be used for a method implementation, which
-    // by its nature won't ever be deallocated anyways
-    return imp_implementationWithBlock((__bridge_retained void *)methodBlock);
+    NSString *setterType = [[NSString alloc] initWithFormat:
+        // void (PROMutableModel *self, SEL _cmd, TYPE value)
+        @"%s%s%s%s",
+        @encode(void),
+        @encode(PROMutableModel *),
+        @encode(SEL),
+        attributes->type
+    ];
+
+    BOOL success = ext_addBlockMethod(mutableModelClass, attributes->setter, methodBlock, [setterType UTF8String]);
+    PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(attributes->setter), mutableModelClass);
 }
 
 #pragma mark Lifecycle
@@ -1001,7 +1004,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         NSAssert([model isKindOfClass:[PROModel class]], @"Cannot initialize PROMutableModel with %@, as it is not a PROModel", model);
         m_immutableBackingModel = [model copy];
 
-        m_transformationLog = [[PROMutableModelTransformationLog alloc] init];
+        m_transformationLog = [[PROMutableModelTransformationLog alloc] initWithMutableModel:self];
         m_transformationLog.maximumNumberOfArchivedLogEntries = 50;
     }
 
@@ -1251,6 +1254,22 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     }
 }
 
+- (void)enumerateAllChildMutableModelsUsingBlock:(void (^)(PROMutableModel *mutableModel, BOOL *stop))block; {
+    __block BOOL deepStop = NO;
+
+    [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
+        [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            block(mutableModel, &deepStop);
+            
+            if (deepStop)
+                *stop = YES;
+        }];
+
+        if (deepStop)
+            *stop = YES;
+    }];
+}
+
 - (void)replaceAllChildMutableModels {
     NSAssert(self.dispatchQueue.currentQueue, @"%s should only be executed while running on the dispatch queue", __func__);
 
@@ -1383,6 +1402,21 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         [self.childMutableModelsByKey removeObjectForKey:key];
 }
 
+- (id)mutableModelWithUniqueIdentifier:(PROUniqueIdentifier *)identifier; {
+    NSParameterAssert(identifier != nil);
+
+    __block PROMutableModel *matchingModel = nil;
+
+    [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+        if ([mutableModel.uniqueIdentifier isEqual:identifier]) {
+            matchingModel = mutableModel;
+            *stop = YES;
+        }
+    }];
+
+    return matchingModel;
+}
+
 #pragma mark Transformation Log
 
 - (id)modelWithTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
@@ -1407,8 +1441,73 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     return oldModel;
 }
 
-- (BOOL)restoreTransformationLogEntry:(PROTransformationLogEntry *)transformationLogEntry; {
+- (NSArray *)modelsWithTransformationLogEntries:(NSArray *)logEntries; {
+    NSParameterAssert(logEntries != nil);
+
+    /*
+     * This array will contain three types of objects as we progress through this method:
+     *
+     * 1. The PROUniqueIdentifiers for each log entry.
+     * 2. The PROMutableModels corresponding to each log entry.
+     * 3. The PROModels corresponding to each PROMutableModel (retrieved with the log entry).
+     *
+     * If the array in each step contains any objects from the previous step,
+     * this method should return nil.
+     */
+    __block NSMutableArray *modelsAndIDs = [NSMutableArray arrayWithCapacity:logEntries.count];
+
+    [self.dispatchQueue runSynchronously:^{
+        [logEntries enumerateObjectsUsingBlock:^(PROMutableModelTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
+            [modelsAndIDs addObject:logEntry.mutableModelUniqueIdentifier];
+        }];
+
+        // then replace them one-by-one with the actual model objects
+        [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+            PROUniqueIdentifier *identifier = mutableModel.uniqueIdentifier;
+            
+            NSUInteger arrayIndex = [modelsAndIDs indexOfObject:identifier];
+            if (arrayIndex == NSNotFound)
+                return;
+
+            [modelsAndIDs replaceObjectAtIndex:arrayIndex withObject:mutableModel];
+        }];
+
+        // then enumerate back through, and fill in the corresponding immutable
+        // models
+        [logEntries enumerateObjectsUsingBlock:^(PROMutableModelTransformationLogEntry *logEntry, NSUInteger index, BOOL *stop){
+            NSAssert(logEntry.mutableModelUniqueIdentifier, @"%@ does not have a model UUID", logEntry);
+
+            PROMutableModel *subModel = [modelsAndIDs objectAtIndex:index];
+            if (![subModel isKindOfClass:[PROMutableModel class]]) {
+                modelsAndIDs = nil;
+
+                *stop = YES;
+                return;
+            }
+
+            PROModel *immutableModel = [subModel modelWithTransformationLogEntry:logEntry];
+            if (immutableModel) {
+                [modelsAndIDs replaceObjectAtIndex:index withObject:immutableModel];
+            } else {
+                modelsAndIDs = nil;
+                *stop = YES;
+            }
+        }];
+    }];
+
+    #ifdef DEBUG
+    // double-check the contents of the array -- it should be all PROModels now
+    [[modelsAndIDs copy] enumerateObjectsUsingBlock:^(id object, NSUInteger index, BOOL *stop){
+        PROAssert([object isKindOfClass:[PROModel class]], @"%@ should have been converted to a PROModel by now", object);
+    }];
+    #endif
+
+    return modelsAndIDs;
+}
+
+- (BOOL)restoreTransformationLogEntry:(PROMutableModelTransformationLogEntry *)transformationLogEntry; {
     NSParameterAssert(transformationLogEntry != nil);
+    NSParameterAssert([transformationLogEntry isKindOfClass:[PROMutableModelTransformationLogEntry class]]);
 
     __block BOOL success = NO;
 
@@ -1423,7 +1522,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         if (parent) {
             // restoration needs to be delegated to the parent, just like
             // transformation
-            PROTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
+            PROMutableModelTransformationLogEntry *parentLogEntry = [parent.transformationLog logEntryWithMutableModel:self childLogEntry:transformationLogEntry];
 
             if (parentLogEntry) {
                 success = [parent restoreTransformationLogEntry:parentLogEntry];
@@ -1492,7 +1591,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             // all KVO notifications in one fell swoop with the -setArray: call
             // below
             [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
-                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModel objectForKey:mutableModel];
+                PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModelUniqueIdentifier objectForKey:mutableModel.uniqueIdentifier];
                 if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
                     return;
 
@@ -1516,22 +1615,20 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     resultInfo.mutableModelsByKey = self.childMutableModelsByKey;
 
     NSMutableArray *mutableModels = [NSMutableArray array];
-    NSMutableArray *logEntries = [NSMutableArray array];
+    NSMutableDictionary *logEntries = [NSMutableDictionary dictionary];
 
-    [self.childMutableModelsByKey enumerateKeysAndObjectsUsingBlock:^(NSString *key, id childModels, BOOL *stop){
-        [self enumerateChildMutableModels:childModels usingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
-            [mutableModel saveTransformationResultInfoForLatestLogEntry];
-        
-            id modelEntry = mutableModel.transformationLogEntry;
-            if (!PROAssert(modelEntry, @"Could not retrieve log entry from model %@", mutableModel))
-                modelEntry = [EXTNil null];
+    [self enumerateAllChildMutableModelsUsingBlock:^(PROMutableModel *mutableModel, BOOL *stop){
+        [mutableModel saveTransformationResultInfoForLatestLogEntry];
+    
+        id modelEntry = mutableModel.transformationLogEntry;
+        if (!PROAssert(modelEntry, @"Could not retrieve log entry from model %@", mutableModel))
+            modelEntry = [EXTNil null];
 
-            [mutableModels addObject:mutableModel];
-            [logEntries addObject:modelEntry];
-        }];
+        [mutableModels addObject:mutableModel];
+        [logEntries setObject:modelEntry forKey:mutableModel.uniqueIdentifier];
     }];
 
-    [resultInfo setLogEntries:logEntries forMutableModels:mutableModels];
+    resultInfo.logEntriesByMutableModelUniqueIdentifier = logEntries;
     [self.transformationLog.transformationResultInfoByLogEntry setObject:resultInfo forKey:self.transformationLog.latestLogEntry];
 }
 
@@ -1561,9 +1658,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
 #pragma mark NSCoding
 
++ (NSArray *)classFallbacksForKeyedArchiver {
+    // unarchive instances as PROMutableModel if we have to, then we can swizzle
+    // them in -awakeAfterUsingCoder:
+    return [NSArray arrayWithObject:NSStringFromClass([PROMutableModel class])];
+}
+
 - (id)initWithCoder:(NSCoder *)coder {
     PROModel *model = [coder decodeObjectForKey:PROKeyForObject(self, immutableBackingModel)];
-    if (!model)
+    if (!PROAssert(model, @"Could not decode immutable model for PROMutableModel instance"))
         return nil;
 
     PROUniqueIdentifier *identifier = [coder decodeObjectForKey:PROKeyForObject(self, uniqueIdentifier)];
@@ -1589,6 +1692,17 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
     m_childMutableModelsByKey = [[coder decodeObjectForKey:PROKeyForObject(self, childMutableModelsByKey)] mutableCopy];
 
+    return self;
+}
+
+- (id)awakeAfterUsingCoder:(NSCoder *)coder {
+    Class mutableModelClass = [[self class] mutableModelClassForModelClass:[self.immutableBackingModel class]];
+    if (PROAssert(mutableModelClass, @"Mutable model class should've been created for %@", [self.immutableBackingModel class])) {
+        // dynamically become the subclass appropriate for this model, to
+        // have the proper setter and mutation methods
+        object_setClass(self, mutableModelClass);
+    }
+    
     return self;
 }
 
@@ -1641,7 +1755,13 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     __block id value;
 
     [self.dispatchQueue runSynchronously:^{
-        value = [[self.childMutableModelsByKey objectForKey:key] copy] ?: [self.immutableBackingModel valueForKey:key];
+        if ([self.childMutableModelsByKey objectForKey:key]) {
+            // prefer returning a KVC mutable proxy, because it's cheaper to
+            // initialize (uses less memory)
+            value = [self mutableArrayValueForKey:key];
+        } else {
+            value = [self.immutableBackingModel valueForKey:key];
+        }
     }];
 
     return value;
