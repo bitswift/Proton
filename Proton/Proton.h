@@ -40,9 +40,11 @@
 #import <Proton/PROUniqueTransformation.h>
 
 // other imported frameworks
+#import "EXTBlockMethod.h"
 #import "EXTConcreteProtocol.h"
 #import "EXTNil.h"
 #import "EXTRuntimeExtensions.h"
 #import "EXTSafeCategory.h"
 #import "EXTScope.h"
+#import "NSMethodSignature+EXT.h"
 #import "SDQueue.h"
