@@ -97,6 +97,16 @@
 		D06AA4531494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D06AA4541494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
 		D06AA4551494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */; };
+		D06DE86514F04344000E145F /* EXTBlockMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = D06DE86314F04344000E145F /* EXTBlockMethod.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D06DE86614F04344000E145F /* EXTBlockMethod.h in Headers */ = {isa = PBXBuildFile; fileRef = D06DE86314F04344000E145F /* EXTBlockMethod.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D06DE86714F04344000E145F /* EXTBlockMethod.m in Sources */ = {isa = PBXBuildFile; fileRef = D06DE86414F04344000E145F /* EXTBlockMethod.m */; };
+		D06DE86814F04344000E145F /* EXTBlockMethod.m in Sources */ = {isa = PBXBuildFile; fileRef = D06DE86414F04344000E145F /* EXTBlockMethod.m */; };
+		D06DE86B14F04358000E145F /* EXTBlockMethodTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D06DE86A14F04358000E145F /* EXTBlockMethodTest.m */; };
+		D06DE86C14F04358000E145F /* EXTBlockMethodTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D06DE86A14F04358000E145F /* EXTBlockMethodTest.m */; };
+		D06DE87014F043D0000E145F /* NSMethodSignature+EXT.h in Headers */ = {isa = PBXBuildFile; fileRef = D06DE86E14F043D0000E145F /* NSMethodSignature+EXT.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D06DE87114F043D0000E145F /* NSMethodSignature+EXT.h in Headers */ = {isa = PBXBuildFile; fileRef = D06DE86E14F043D0000E145F /* NSMethodSignature+EXT.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D06DE87214F043D0000E145F /* NSMethodSignature+EXT.m in Sources */ = {isa = PBXBuildFile; fileRef = D06DE86F14F043D0000E145F /* NSMethodSignature+EXT.m */; };
+		D06DE87314F043D0000E145F /* NSMethodSignature+EXT.m in Sources */ = {isa = PBXBuildFile; fileRef = D06DE86F14F043D0000E145F /* NSMethodSignature+EXT.m */; };
 		D07D6E8E1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E8F1499DF7300192DED /* NSSet+HigherOrderAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D07D6E901499DF7300192DED /* NSSet+HigherOrderAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */; };
@@ -389,6 +399,12 @@
 		D054A69B14DF939C00A10515 /* PROMutableModelTransformationLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROMutableModelTransformationLog.m; sourceTree = "<group>"; };
 		D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+HigherOrderAdditions.m"; sourceTree = "<group>"; };
+		D06DE86314F04344000E145F /* EXTBlockMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTBlockMethod.h; sourceTree = "<group>"; };
+		D06DE86414F04344000E145F /* EXTBlockMethod.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTBlockMethod.m; sourceTree = "<group>"; };
+		D06DE86914F04358000E145F /* EXTBlockMethodTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTBlockMethodTest.h; sourceTree = "<group>"; };
+		D06DE86A14F04358000E145F /* EXTBlockMethodTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTBlockMethodTest.m; sourceTree = "<group>"; };
+		D06DE86E14F043D0000E145F /* NSMethodSignature+EXT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMethodSignature+EXT.h"; path = "Extensions/NSMethodSignature+EXT.h"; sourceTree = "<group>"; };
+		D06DE86F14F043D0000E145F /* NSMethodSignature+EXT.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSMethodSignature+EXT.m"; path = "Extensions/NSMethodSignature+EXT.m"; sourceTree = "<group>"; };
 		D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSSet+HigherOrderAdditions.h"; sourceTree = "<group>"; };
 		D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSSet+HigherOrderAdditions.m"; sourceTree = "<group>"; };
 		D07D6E931499DFE900192DED /* NSDictionary+HigherOrderAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+HigherOrderAdditions.h"; sourceTree = "<group>"; };
@@ -671,6 +687,15 @@
 			name = Classes;
 			sourceTree = "<group>";
 		};
+		D06DE86D14F043BD000E145F /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				D06DE86E14F043D0000E145F /* NSMethodSignature+EXT.h */,
+				D06DE86F14F043D0000E145F /* NSMethodSignature+EXT.m */,
+			);
+			name = Extensions;
+			sourceTree = "<group>";
+		};
 		D080D58114A5DF2C00FABAA2 /* Futures */ = {
 			isa = PBXGroup;
 			children = (
@@ -899,6 +924,7 @@
 			isa = PBXGroup;
 			children = (
 				D0F5CD0F14C5790D00966B2D /* Classes */,
+				D06DE86D14F043BD000E145F /* Extensions */,
 				D0F5CD1214C5790D00966B2D /* metamacros.h */,
 				D0F5CD1314C5790D00966B2D /* Modules */,
 				D0F5CD1A14C5790D00966B2D /* Tests */,
@@ -919,6 +945,8 @@
 		D0F5CD1314C5790D00966B2D /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				D06DE86314F04344000E145F /* EXTBlockMethod.h */,
+				D06DE86414F04344000E145F /* EXTBlockMethod.m */,
 				D0DA64C214C67E3D00B6A577 /* EXTConcreteProtocol.h */,
 				D0DA64C314C67E3D00B6A577 /* EXTConcreteProtocol.m */,
 				D0F5CD1414C5790D00966B2D /* EXTRuntimeExtensions.h */,
@@ -934,6 +962,8 @@
 		D0F5CD1A14C5790D00966B2D /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				D06DE86914F04358000E145F /* EXTBlockMethodTest.h */,
+				D06DE86A14F04358000E145F /* EXTBlockMethodTest.m */,
 				D0DA64C914C67E4E00B6A577 /* EXTConcreteProtocolTest.h */,
 				D0DA64CA14C67E4E00B6A577 /* EXTConcreteProtocolTest.m */,
 				D0F5CD1B14C5790D00966B2D /* EXTNilTest.h */,
@@ -1039,6 +1069,8 @@
 				D0C808B214D0EF310068E06C /* NSUndoManager+RegistrationAdditions.h in Headers */,
 				D01DD0D514DB05CF00179322 /* PROTransformationLog.h in Headers */,
 				D01DD0E914DB0A3300179322 /* PROTransformationLogEntry.h in Headers */,
+				D06DE86614F04344000E145F /* EXTBlockMethod.h in Headers */,
+				D06DE87114F043D0000E145F /* NSMethodSignature+EXT.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1089,6 +1121,8 @@
 				D0C808B114D0EF310068E06C /* NSUndoManager+RegistrationAdditions.h in Headers */,
 				D01DD0D414DB05CF00179322 /* PROTransformationLog.h in Headers */,
 				D01DD0E814DB0A3300179322 /* PROTransformationLogEntry.h in Headers */,
+				D06DE86514F04344000E145F /* EXTBlockMethod.h in Headers */,
+				D06DE87014F043D0000E145F /* NSMethodSignature+EXT.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1372,6 +1406,8 @@
 				D054A69F14DF939C00A10515 /* PROMutableModelTransformationLog.m in Sources */,
 				D0F3CA6414EA4E17002159E4 /* PROMutableModelTransformationResultInfo.m in Sources */,
 				D0292A2614EC941100F26C0F /* PROMutableModelTransformationLogEntry.m in Sources */,
+				D06DE86814F04344000E145F /* EXTBlockMethod.m in Sources */,
+				D06DE87314F043D0000E145F /* NSMethodSignature+EXT.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1399,6 +1435,7 @@
 				D0AA94F714D0AF070040B59D /* PRONSUndoManagerAdditionsTests.m in Sources */,
 				D01DD21C14DB17F500179322 /* PROTransformationLogEntryTests.m in Sources */,
 				D0BD75F314DB3CBB00AD62C5 /* PROTransformationLogTests.m in Sources */,
+				D06DE86C14F04358000E145F /* EXTBlockMethodTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1448,6 +1485,8 @@
 				D054A69E14DF939C00A10515 /* PROMutableModelTransformationLog.m in Sources */,
 				D0F3CA6314EA4E17002159E4 /* PROMutableModelTransformationResultInfo.m in Sources */,
 				D0292A2514EC941100F26C0F /* PROMutableModelTransformationLogEntry.m in Sources */,
+				D06DE86714F04344000E145F /* EXTBlockMethod.m in Sources */,
+				D06DE87214F043D0000E145F /* NSMethodSignature+EXT.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1475,6 +1514,7 @@
 				D0AA94F614D0AF070040B59D /* PRONSUndoManagerAdditionsTests.m in Sources */,
 				D01DD21B14DB17F500179322 /* PROTransformationLogEntryTests.m in Sources */,
 				D0BD75F214DB3CBB00AD62C5 /* PROTransformationLogTests.m in Sources */,
+				D06DE86B14F04358000E145F /* EXTBlockMethodTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

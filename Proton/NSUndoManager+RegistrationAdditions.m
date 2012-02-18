@@ -7,6 +7,7 @@
 //
 
 #import "NSUndoManager+RegistrationAdditions.h"
+#import "EXTBlockMethod.h"
 #import "EXTSafeCategory.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "NSUndoManager+UndoStackAdditions.h"
@@ -179,11 +180,8 @@ static char * const PROUndoManagerBlockActionsKey = "PROUndoManagerBlockActions"
         removeAllActionsWithTargetIMP(self, removeAllActionsWithTargetSelector, weakTarget);
     } copy];
 
-    IMP newRemoveAllActionsIMP = imp_implementationWithBlock((__bridge_retained void *)newRemoveAllActions);
-    IMP newRemoveAllActionsWithTargetIMP = imp_implementationWithBlock((__bridge_retained void *)newRemoveAllActionsWithTarget);
-
-    class_replaceMethod(self, removeAllActionsSelector, newRemoveAllActionsIMP, method_getTypeEncoding(removeAllActions));
-    class_replaceMethod(self, removeAllActionsWithTargetSelector, newRemoveAllActionsWithTargetIMP, method_getTypeEncoding(removeAllActionsWithTarget));
+    ext_replaceBlockMethod(self, removeAllActionsSelector, newRemoveAllActions, method_getTypeEncoding(removeAllActions));
+    ext_replaceBlockMethod(self, removeAllActionsWithTargetSelector, newRemoveAllActionsWithTarget, method_getTypeEncoding(removeAllActionsWithTarget));
 }
 
 @end
