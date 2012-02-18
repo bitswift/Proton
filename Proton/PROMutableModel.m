@@ -7,6 +7,7 @@
 //
 
 #import "PROMutableModel.h"
+#import "EXTBlockMethod.h"
 #import "EXTNil.h"
 #import "EXTRuntimeExtensions.h"
 #import "EXTScope.h"
@@ -187,8 +188,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 + (void)synthesizeMutableIndexedAccessorsForKey:(NSString *)key forMutableModelClass:(Class)mutableModelClass;
 
 /**
- * Returns a new method implementation that implements a setter for the given
- * property.
+ * Creates, on `mutableModelClass`, a setter method for the given property.
  *
  * The method implementation will simply call through to `setValue:forKey:` on
  * `self`.
@@ -196,7 +196,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
  * @param propertyKey The key for which to generate a setter.
  * @param attributes The attributes of the property.
  */
-+ (IMP)synthesizedSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes;
++ (void)synthesizeSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes forMutableModelClass:(Class)mutableModelClass;
 
 /**
  * A set of blocks to pass to <[PROTransformation
@@ -450,26 +450,9 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     }
 
     NSString *propertyKey = [[NSString alloc] initWithUTF8String:property_getName(property)];
-
-    IMP setterIMP = [self synthesizedSetterForPropertyKey:propertyKey attributes:attributes];
-    if (setterIMP) {
-        NSString *setterType = [[NSString alloc] initWithFormat:
-            // void (PROMutableModel *self, SEL _cmd, TYPE value)
-            @"%s%s%s%s",
-            @encode(void),
-            @encode(PROMutableModel *),
-            @encode(SEL),
-            attributes->type
-        ];
-
-        // TODO: this could be changed to use +resolveInstanceMethod: instead,
-        // which might be cheaper if not all setters are used
-        BOOL success = class_addMethod(mutableModelClass, attributes->setter, setterIMP, [setterType UTF8String]);
-        PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(attributes->setter), mutableModelClass);
-    }
+    [self synthesizeSetterForPropertyKey:propertyKey attributes:attributes forMutableModelClass:mutableModelClass];
 
     Class propertyClass = attributes->objectClass;
-
     if ([propertyClass isSubclassOfClass:[NSArray class]] || [propertyClass isSubclassOfClass:[NSOrderedSet class]]) {
         // synthesize indexed accessors
         [self synthesizeMutableIndexedAccessorsForKey:propertyKey forMutableModelClass:mutableModelClass];
@@ -757,7 +740,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     ]);
 }
 
-+ (IMP)synthesizedSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes {
++ (void)synthesizeSetterForPropertyKey:(NSString *)propertyKey attributes:(const ext_propertyAttributes *)attributes forMutableModelClass:(Class)mutableModelClass; {
     const char *type = attributes->type;
 
     // skip attributes in the provided type encoding
@@ -965,11 +948,19 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     #undef NSVALUE_METHOD_BLOCK
 
     if (!methodBlock)
-        return NULL;
+        return;
 
-    // leak the block, since it'll be used for a method implementation, which
-    // by its nature won't ever be deallocated anyways
-    return imp_implementationWithBlock((__bridge_retained void *)methodBlock);
+    NSString *setterType = [[NSString alloc] initWithFormat:
+        // void (PROMutableModel *self, SEL _cmd, TYPE value)
+        @"%s%s%s%s",
+        @encode(void),
+        @encode(PROMutableModel *),
+        @encode(SEL),
+        attributes->type
+    ];
+
+    BOOL success = ext_addBlockMethod(mutableModelClass, attributes->setter, methodBlock, [setterType UTF8String]);
+    PROAssert(success, @"Could not add method %@ to %@", NSStringFromSelector(attributes->setter), mutableModelClass);
 }
 
 #pragma mark Lifecycle
