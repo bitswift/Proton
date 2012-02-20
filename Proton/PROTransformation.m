@@ -34,6 +34,10 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
     return nil;
 }
 
+- (PROTransformation *)flattenedTransformation {
+    return self;
+}
+
 #pragma mark Transformation
 
 - (id)transform:(id)obj error:(NSError **)error; {
@@ -44,6 +48,10 @@ const NSInteger PROTransformationErrorUnsupportedInputType = 3;
 - (BOOL)transformInPlace:(id *)objPtr error:(NSError **)error; {
     NSAssert1(NO, @"%s should be implemented by a concrete subclass", __func__);
     return NO;
+}
+
+- (PROTransformation *)coalesceWithTransformation:(PROTransformation *)transformation; {
+    return nil;
 }
 
 - (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result; {
