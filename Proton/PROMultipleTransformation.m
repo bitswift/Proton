@@ -170,10 +170,15 @@
 }
 
 - (PROTransformation *)coalesceWithTransformation:(id)transformation; {
+    if (!self.transformations.count)
+        return transformation;
+
     NSArray *newTransformations;
 
     if ([transformation isKindOfClass:[PROMultipleTransformation class]]) {
         newTransformations = [self.transformations arrayByAddingObjectsFromArray:[transformation transformations]];
+        if (newTransformations.count == self.transformations.count)
+            return self;
     } else {
         newTransformations = [self.transformations arrayByAddingObject:transformation];
     }
