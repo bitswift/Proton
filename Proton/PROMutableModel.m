@@ -1062,12 +1062,15 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             return;
         }
 
+        // flatten the transformation, so we perform as little work as possible
+        PROTransformation *flattenedTransformation = transformation.flattenedTransformation;
+
         id oldModel = self.immutableBackingModel;
         if (!PROAssert(oldModel, @"Backing model of %@ should never be nil", self)) {
             oldModel = [EXTNil null];
         }
 
-        PROModel *newModel = [transformation transform:oldModel error:&strongError];
+        PROModel *newModel = [flattenedTransformation transform:oldModel error:&strongError];
         if (!newModel) {
             // fail immediately, before any side effects
             success = NO;
@@ -1075,12 +1078,12 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         }
 
         PROTransformationLogEntry *lastLogEntry = self.transformationLog.latestLogEntry;
-        [self.transformationLog appendTransformation:transformation];
+        [self.transformationLog appendTransformation:flattenedTransformation];
 
         PROTransformationLogEntry *newLogEntry = self.transformationLog.latestLogEntry;
         self.immutableBackingModel = newModel;
 
-        PROAssert([transformation applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil], @"Block application should never fail at top level");
+        PROAssert([flattenedTransformation applyBlocks:self.transformationBlocks transformationResult:newModel keyPath:nil], @"Block application should never fail at top level");
         [self saveTransformationResultInfoForLatestLogEntry];
     }];
 
