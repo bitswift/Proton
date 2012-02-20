@@ -7,10 +7,12 @@
 //
 
 #import "PROInsertionTransformation.h"
+#import "EXTScope.h"
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PRORemovalTransformation.h"
+#import "PROTransformationProtected.h"
 
 @implementation PROInsertionTransformation
 
@@ -130,6 +132,114 @@
     [mutableArray insertObjects:newObjects atIndexes:self.insertionIndexes];
     
     return YES;
+}
+
+- (PROTransformation *)coalesceWithTransformation:(id)transformation; {
+    if ([transformation isKindOfClass:[PRORemovalTransformation class]]) {
+        PRORemovalTransformation *removalTransformation = transformation;
+
+        if ([self.insertionIndexes containsIndexes:removalTransformation.removalIndexes]) {
+            // find indexes and objects that would remain even after the
+            // removal, and create a new insertion from just those
+            NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSet];
+            NSMutableArray *newObjects = [NSMutableArray array];
+
+            __block NSUInteger setIndex = 0;
+            __block BOOL compatible = YES;
+            
+            [self.insertionIndexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop){
+                @onExit {
+                    ++setIndex;
+                };
+
+                if ([removalTransformation.removalIndexes containsIndex:index]) {
+                    compatible = NSEqualObjects([self.objects objectAtIndex:setIndex], [removalTransformation.expectedObjects objectAtIndex:setIndex]);
+                    if (!compatible)
+                        *stop = YES;
+                } else {
+                    [newIndexes addIndex:index];
+                    [newObjects addObject:[self.objects objectAtIndex:setIndex]];
+                }
+            }];
+            
+            if (compatible) {
+                return [[PROInsertionTransformation alloc] initWithInsertionIndexes:newIndexes objects:newObjects];
+            }
+        } else if ([removalTransformation.removalIndexes containsIndexes:self.insertionIndexes]) {
+            // find indexes and objects that would be removed regardless of the
+            // insertion, and create a new removal from just those
+            NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSet];
+            NSMutableArray *newObjects = [NSMutableArray array];
+
+            __block NSUInteger setIndex = 0;
+            __block BOOL compatible = YES;
+            
+            [removalTransformation.removalIndexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop){
+                @onExit {
+                    ++setIndex;
+                };
+
+                if ([self.insertionIndexes containsIndex:index]) {
+                    compatible = NSEqualObjects([self.objects objectAtIndex:setIndex], [removalTransformation.expectedObjects objectAtIndex:setIndex]);
+                    if (!compatible)
+                        *stop = YES;
+                } else {
+                    [newIndexes addIndex:index];
+                    [newObjects addObject:[removalTransformation.expectedObjects objectAtIndex:setIndex]];
+                }
+            }];
+            
+            if (compatible) {
+                return [[PRORemovalTransformation alloc] initWithRemovalIndexes:newIndexes expectedObjects:newObjects];
+            }
+        }
+
+        return nil;
+    }
+
+    if (![transformation isKindOfClass:[PROInsertionTransformation class]]) {
+        return nil;
+    }
+
+    PROInsertionTransformation *insertionTransformation = transformation;
+
+    NSMutableIndexSet *newIndexes = [self.insertionIndexes mutableCopy];
+    NSMutableArray *newObjects = [NSMutableArray arrayWithCapacity:self.objects.count + insertionTransformation.objects.count];
+
+    [newObjects addObjectsFromArray:self.objects];
+
+    __block NSUInteger originalArrayIndex = 0;
+    [insertionTransformation.insertionIndexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop){
+        @onExit {
+            ++originalArrayIndex;
+        };
+
+        if (index < newIndexes.lastIndex) {
+            [newIndexes shiftIndexesStartingAtIndex:index by:1];
+        }
+
+        [newIndexes addIndex:index];
+
+        // go back through the index set, and figure out _where_ in the index
+        // set this index is -- that position is where in the array we should
+        // insert
+        //
+        // TODO: this could be optimized
+        __block NSUInteger newArrayIndex = 0;
+        [newIndexes enumerateIndexesUsingBlock:^(NSUInteger testIndex, BOOL *stop){
+            if (testIndex == index) {
+                *stop = YES;
+                return;
+            }
+
+            ++newArrayIndex;
+        }];
+
+        id object = [insertionTransformation.objects objectAtIndex:originalArrayIndex];
+        [newObjects insertObject:object atIndex:newArrayIndex];
+    }];
+
+    return [[PROInsertionTransformation alloc] initWithInsertionIndexes:newIndexes objects:newObjects];
 }
 
 #pragma mark NSCoding
