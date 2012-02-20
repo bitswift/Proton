@@ -245,8 +245,14 @@
 }
 
 - (PROTransformation *)coalesceWithTransformation:(PROKeyedTransformation *)transformation; {
+    if (!self.valueTransformations)
+        return transformation;
+
     if (![transformation isKindOfClass:[PROKeyedTransformation class]])
         return nil;
+
+    if (!transformation.valueTransformations)
+        return self;
 
     NSMutableDictionary *newValueTransformations = [NSMutableDictionary dictionaryWithCapacity:self.valueTransformations.count + transformation.valueTransformations.count];
 
