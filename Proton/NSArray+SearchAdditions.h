@@ -25,7 +25,7 @@
  * array, or `nil` if the two arrays have nothing in common.
  *
  * The subarray may start at different indexes in each array. Comparison of each
- * object in the subarray is doing using `isEqual:`.
+ * object in the subarray is performed with `isEqual:`.
  *
  * @param otherArray The array to compare with the receiver.
  * @param rangeInReceiver If not `NULL`, this will be set to the range in the
@@ -36,5 +36,28 @@
  * `nil`, the `location` of the range will be `NSNotFound`.
  */
 - (NSArray *)longestSubarrayCommonWithArray:(NSArray *)otherArray rangeInReceiver:(NSRangePointer)rangeInReceiver rangeInOtherArray:(NSRangePointer)rangeInOtherArray;
+
+/**
+ * Invokes <longestSubarrayIdenticalWithArray:subarrayRange:> with `NULL` range
+ * pointers.
+ */
+- (NSArray *)longestSubarrayIdenticalWithArray:(NSArray *)otherArray;
+
+/**
+ * Returns the longest subarray that has identical objects in the receiver and
+ * the given array, or `nil` if the two arrays have nothing in common.
+ *
+ * The subarray may start at different indexes in each array. Comparison of each
+ * object in the subarray is performed with pointer equality.
+ *
+ * @param otherArray The array to compare with the receiver.
+ * @param rangeInReceiver If not `NULL`, this will be set to the range in the
+ * receiver at which the returned subarray exists. If this method returns `nil`,
+ * the `location` of the range will be `NSNotFound`.
+ * @param rangeInOtherArray If not `NULL`, this will be set to the range in
+ * `otherArray` at which the returned subarray exists. If this method returns
+ * `nil`, the `location` of the range will be `NSNotFound`.
+ */
+- (NSArray *)longestSubarrayIdenticalWithArray:(NSArray *)otherArray rangeInReceiver:(NSRangePointer)rangeInReceiver rangeInOtherArray:(NSRangePointer)rangeInOtherArray;
 
 @end
