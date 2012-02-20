@@ -130,6 +130,14 @@
     return YES;
 }
 
+- (PROTransformation *)coalesceWithTransformation:(PROTransformation *)transformation; {
+    if (!self.startIndexes)
+        return transformation;
+
+    // TODO: implement merging logic for ordered transformations
+    return nil;
+}
+
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
