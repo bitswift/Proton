@@ -74,11 +74,8 @@ SpecBegin(PROMutableModel)
         expect(model).not.toBeNil();
     });
 
-    it(@"should consider model in equality", ^{
-        PROMutableModel *equalModel = [[PROMutableModel alloc] initWithModel:immutableModel];
-        expect(equalModel).toEqual(model);
-
-        PROMutableModel *otherModel = [[PROMutableModel alloc] initWithModel:[TestSubModel enabledSubModel]];
+    it(@"should not compare equal to other instances", ^{
+        PROMutableModel *otherModel = [[PROMutableModel alloc] initWithModel:immutableModel];
         expect(otherModel).not.toEqual(model);
     });
 
@@ -96,7 +93,7 @@ SpecBegin(PROMutableModel)
         expect(model).toConformTo(@protocol(NSMutableCopying));
 
         PROMutableModel *copied = [model mutableCopy];
-        expect(copied).toEqual(model);
+        expect(copied.copy).toEqual(model.copy);
 
         // this copy should be a PROMutableModel
         expect(copied).toBeKindOf([PROMutableModel class]);
