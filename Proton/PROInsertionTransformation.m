@@ -135,8 +135,22 @@
 }
 
 - (PROTransformation *)coalesceWithTransformation:(id)transformation; {
+    if (!self.insertionIndexes)
+        return transformation;
+
     if ([transformation isKindOfClass:[PRORemovalTransformation class]]) {
         PRORemovalTransformation *removalTransformation = transformation;
+        if (!removalTransformation.removalIndexes)
+            return self;
+
+        if ([self.insertionIndexes isEqual:removalTransformation.removalIndexes]) {
+            if (NSEqualObjects(self.objects, removalTransformation.expectedObjects)) {
+                // return a transformation that doesn't do any work
+                return [[PROInsertionTransformation alloc] init];
+            } else {
+                return nil;
+            }
+        }
 
         if ([self.insertionIndexes containsIndexes:removalTransformation.removalIndexes]) {
             // find indexes and objects that would remain even after the
@@ -202,6 +216,9 @@
     }
 
     PROInsertionTransformation *insertionTransformation = transformation;
+    if (!insertionTransformation.insertionIndexes) {
+        return self;
+    }
 
     NSMutableIndexSet *newIndexes = [self.insertionIndexes mutableCopy];
     NSMutableArray *newObjects = [NSMutableArray arrayWithCapacity:self.objects.count + insertionTransformation.objects.count];
