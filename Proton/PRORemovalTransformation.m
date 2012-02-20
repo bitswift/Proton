@@ -7,9 +7,11 @@
 //
 
 #import "PRORemovalTransformation.h"
+#import "EXTScope.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PROInsertionTransformation.h"
+#import "PROTransformationProtected.h"
 
 @implementation PRORemovalTransformation
 
@@ -133,6 +135,58 @@
     [mutableArray removeObjectsAtIndexes:self.removalIndexes];
     
     return YES;
+}
+
+- (PROTransformation *)coalesceWithTransformation:(id)transformation; {
+    if ([transformation isKindOfClass:[PROInsertionTransformation class]]) {
+        // this is technically out-of-order, but it doesn't matter, since
+        // one will cancel out the other anyways
+        return [transformation coalesceWithTransformation:self];
+    }
+
+    if (![transformation isKindOfClass:[PRORemovalTransformation class]]) {
+        return nil;
+    }
+
+    PRORemovalTransformation *removalTransformation = transformation;
+
+    NSMutableIndexSet *newIndexes = [removalTransformation.removalIndexes mutableCopy];
+    NSMutableArray *newObjects = [NSMutableArray arrayWithCapacity:self.expectedObjects.count + removalTransformation.expectedObjects.count];
+
+    [newObjects addObjectsFromArray:removalTransformation.expectedObjects];
+
+    __block NSUInteger originalArrayIndex = 0;
+    [self.removalIndexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop){
+        @onExit {
+            ++originalArrayIndex;
+        };
+
+        if (index < newIndexes.lastIndex) {
+            [newIndexes shiftIndexesStartingAtIndex:index by:1];
+        }
+
+        [newIndexes addIndex:index];
+
+        // go back through the index set, and figure out _where_ in the index
+        // set this index is -- that position is where in the array we should
+        // insert
+        //
+        // TODO: this could be optimized
+        __block NSUInteger newArrayIndex = 0;
+        [newIndexes enumerateIndexesUsingBlock:^(NSUInteger testIndex, BOOL *stop){
+            if (testIndex == index) {
+                *stop = YES;
+                return;
+            }
+
+            ++newArrayIndex;
+        }];
+
+        id object = [self.expectedObjects objectAtIndex:originalArrayIndex];
+        [newObjects insertObject:object atIndex:newArrayIndex];
+    }];
+
+    return [[PRORemovalTransformation alloc] initWithRemovalIndexes:newIndexes expectedObjects:newObjects];
 }
 
 #pragma mark NSCoding
