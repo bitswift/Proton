@@ -140,6 +140,18 @@
     return YES;
 }
 
+- (PROTransformation *)coalesceWithTransformation:(id)transformation; {
+    NSArray *newTransformations;
+
+    if ([transformation isKindOfClass:[PROMultipleTransformation class]]) {
+        newTransformations = [self.transformations arrayByAddingObjectsFromArray:[transformation transformations]];
+    } else {
+        newTransformations = [self.transformations arrayByAddingObject:transformation];
+    }
+
+    return [[PROMultipleTransformation alloc] initWithTransformations:newTransformations];
+}
+
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
