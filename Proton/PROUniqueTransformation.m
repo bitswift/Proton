@@ -94,6 +94,16 @@
     return newValueBlock(self, result, keyPath);
 }
 
+- (PROTransformation *)coalesceWithTransformation:(PROUniqueTransformation *)transformation; {
+    if (![transformation isKindOfClass:[PROUniqueTransformation class]])
+        return nil;
+
+    if (!NSEqualObjects(transformation.inputValue, self.outputValue))
+        return nil;
+
+    return [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:transformation.outputValue];
+}
+
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
