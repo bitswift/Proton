@@ -1586,16 +1586,20 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         // skip the KVO array when just doing lookups
         NSArray *existingMutableModelsCopy = [existingMutableModels copy];
 
-        // try to identify common bits, so we can avoid generating KVO
-        // notifications for those
+        // fast-track array equality, since that's likely to be the common case
         if ([replacementModels isEqualToArray:existingMutableModelsCopy]) {
-            // nothing to replace
             return;
         }
 
+        // try to identify common bits, so we can avoid generating KVO
+        // notifications for those
         NSRange existingRange;
         NSRange replacementRange;
-        [replacementModels longestSubarrayCommonWithArray:existingMutableModelsCopy rangeInReceiver:&replacementRange rangeInOtherArray:&existingRange];
+
+        // checking for identity might miss some model objects that would
+        // otherwise be equal, but the extra KVO notifications for those are
+        // worth the comparison speed tradeoff in the common case
+        [replacementModels longestSubarrayIdenticalWithArray:existingMutableModelsCopy rangeInReceiver:&replacementRange rangeInOtherArray:&existingRange];
 
         if (existingRange.location == NSNotFound) {
             // no luck, replace it all
