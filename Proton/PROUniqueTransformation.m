@@ -95,10 +95,15 @@
 }
 
 - (PROTransformation *)coalesceWithTransformation:(PROUniqueTransformation *)transformation; {
+    if (!self.inputValue)
+        return transformation;
+
     if (![transformation isKindOfClass:[PROUniqueTransformation class]])
         return nil;
-
-    if (!NSEqualObjects(transformation.inputValue, self.outputValue))
+    
+    if (!transformation.inputValue)
+        return self;
+    else if (!NSEqualObjects(transformation.inputValue, self.outputValue))
         return nil;
 
     return [[PROUniqueTransformation alloc] initWithInputValue:self.inputValue outputValue:transformation.outputValue];
