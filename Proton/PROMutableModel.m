@@ -1614,7 +1614,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         NSUInteger replacementCount = replacementModels.count;
 
         // replace everything before and after 'existingRange'
-        if (existingRange.location > 0) {
+        if (existingRange.location > 0 || replacementRange.location > 0) {
             [existingMutableModels removeObjectsInRange:NSMakeRange(0, existingRange.location)];
 
             NSIndexSet *replacementIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, replacementRange.location)];
