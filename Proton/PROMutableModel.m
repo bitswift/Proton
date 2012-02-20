@@ -1583,11 +1583,19 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
 
         NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
 
+        // skip the KVO array when just doing lookups
+        NSArray *existingMutableModelsCopy = [existingMutableModels copy];
+
         // try to identify common bits, so we can avoid generating KVO
         // notifications for those
+        if ([replacementModels isEqualToArray:existingMutableModelsCopy]) {
+            // nothing to replace
+            return;
+        }
+
         NSRange existingRange;
         NSRange replacementRange;
-        [replacementModels longestSubarrayCommonWithArray:[existingMutableModels copy] rangeInReceiver:&replacementRange rangeInOtherArray:&existingRange];
+        [replacementModels longestSubarrayCommonWithArray:existingMutableModelsCopy rangeInReceiver:&replacementRange rangeInOtherArray:&existingRange];
 
         if (existingRange.location == NSNotFound) {
             // no luck, replace it all
@@ -1595,7 +1603,7 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
             return;
         }
 
-        NSUInteger existingCount = existingMutableModels.count;
+        NSUInteger existingCount = existingMutableModelsCopy.count;
         NSUInteger replacementCount = replacementModels.count;
 
         // replace everything before and after 'existingRange'
