@@ -113,4 +113,12 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
  * blocks.
  */
 @property (strong) SDQueue *queue;
+
+/**
+ * Whether the receiver is currently executing its <block> on the <queue>.
+ *
+ * This can be used to conditionalize actions based on whether they are
+ * occurring as part of a KVO callback.
+ */
+@property (getter = isExecuting, readonly) BOOL executing;
 @end

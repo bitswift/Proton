@@ -6,14 +6,19 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import <Proton/PROKeyValueObserver.h>
-#import <Proton/SDQueue.h>
+#import "PROKeyValueObserver.h"
+#import "EXTScope.h"
+#import "SDQueue.h"
 
 /*
  * A unique context pointer for our class, so that we can uniquely identify
  * observations that we set up.
  */
 static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
+
+@interface PROKeyValueObserver ()
+@property (getter = isExecuting, readwrite) BOOL executing;
+@end
 
 @implementation PROKeyValueObserver
 
@@ -24,6 +29,7 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
 @synthesize block = m_block;
 @synthesize options = m_options;
 @synthesize queue = m_queue;
+@synthesize executing = m_executing;
 
 #pragma mark Initialization
 
@@ -70,6 +76,14 @@ static void * const PROKeyValueObserverContext = "PROKeyValueObserverContext";
     PROKeyValueObserverBlock block = self.block;
 
     void (^trampoline)(void) = ^{
+        self.executing = YES;
+
+        // using @onExit ensures that we set the flag back to NO even in the
+        // face of an exception
+        @onExit {
+            self.executing = NO;
+        };
+
         block(changes);
     };
 

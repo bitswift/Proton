@@ -18,6 +18,8 @@ SpecBegin(PROKeyValueObserver)
     __block id observedObject = nil;
 
     __block PROKeyValueObserver *observer = nil;
+    __block __weak PROKeyValueObserver *weakObserver;
+
     __block BOOL observerInvoked;
 
     __block NSString *keyPath;
@@ -35,6 +37,8 @@ SpecBegin(PROKeyValueObserver)
     });
 
     after(^{
+        expect(observer.executing).toBeFalsy();
+
         // tear down observers before the observed object
         observer = nil;
         observedObject = nil;
@@ -48,10 +52,14 @@ SpecBegin(PROKeyValueObserver)
         expect(observer.options).toEqual(options);
         expect(observer.block).toEqual(block);
         expect(observer.queue).toEqual(queue);
+        expect(observer.executing).toBeFalsy();
     };
 
     PROKeyValueObserverBlock blockWithoutOptions = ^(NSDictionary *changes){
+        expect(weakObserver).not.toBeNil();
+
         observerInvoked = YES;
+        expect(weakObserver.executing).toBeTruthy();
 
         // make sure the change dictionary matches the structure we expect
         expect(changes).not.toBeNil();
@@ -89,7 +97,7 @@ SpecBegin(PROKeyValueObserver)
             before(^{
                 block = blockWithoutOptions;
 
-                observer = [[PROKeyValueObserver alloc]
+                weakObserver = observer = [[PROKeyValueObserver alloc]
                     initWithTarget:observedObject
                     keyPath:keyPath
                     block:block
@@ -122,7 +130,7 @@ SpecBegin(PROKeyValueObserver)
                 block = blockWithoutOptions;
                 queue = [[SDQueue alloc] init];
 
-                observer = [[PROKeyValueObserver alloc]
+                weakObserver = observer = [[PROKeyValueObserver alloc]
                     initWithTarget:observedObject
                     keyPath:keyPath
                     block:block
@@ -147,7 +155,7 @@ SpecBegin(PROKeyValueObserver)
                 block = blockWithoutOptions;
                 queue = nil;
 
-                observer = [[PROKeyValueObserver alloc]
+                weakObserver = observer = [[PROKeyValueObserver alloc]
                     initWithTarget:observedObject
                     keyPath:keyPath
                     block:block
@@ -172,6 +180,7 @@ SpecBegin(PROKeyValueObserver)
                 options = NSKeyValueObservingOptionNew;
                 block = ^(NSDictionary *changes){
                     observerInvoked = YES;
+                    expect(weakObserver.executing).toBeTruthy();
 
                     // make sure the change dictionary matches the structure we expect
                     expect(changes).not.toBeNil();
@@ -188,7 +197,7 @@ SpecBegin(PROKeyValueObserver)
                     expect([[changes objectForKey:NSKeyValueChangeNotificationIsPriorKey] boolValue]).toBeFalsy();
                 };
 
-                observer = [[PROKeyValueObserver alloc]
+                weakObserver = observer = [[PROKeyValueObserver alloc]
                     initWithTarget:observedObject
                     keyPath:keyPath
                     options:options
@@ -224,7 +233,7 @@ SpecBegin(PROKeyValueObserver)
             observedObject = [[KVOTestObject alloc] init];
             block = blockWithoutOptions;
 
-            observer = [[PROKeyValueObserver alloc]
+            weakObserver = observer = [[PROKeyValueObserver alloc]
                 initWithTarget:observedObject
                 keyPath:keyPath
                 block:block
@@ -252,7 +261,7 @@ SpecBegin(PROKeyValueObserver)
             observedObject = [[NSMutableDictionary alloc] init];
             block = blockWithoutOptions;
 
-            observer = [[PROKeyValueObserver alloc]
+            weakObserver = observer = [[PROKeyValueObserver alloc]
                 initWithTarget:observedObject
                 keyPath:keyPath
                 block:block
