@@ -138,6 +138,9 @@
 }
 
 - (PROTransformation *)coalesceWithTransformation:(id)transformation; {
+    if (!self.removalIndexes)
+        return transformation;
+
     if ([transformation isKindOfClass:[PROInsertionTransformation class]]) {
         // this is technically out-of-order, but it doesn't matter, since
         // one will cancel out the other anyways
@@ -149,6 +152,8 @@
     }
 
     PRORemovalTransformation *removalTransformation = transformation;
+    if (!removalTransformation.removalIndexes)
+        return self;
 
     NSMutableIndexSet *newIndexes = [removalTransformation.removalIndexes mutableCopy];
     NSMutableArray *newObjects = [NSMutableArray arrayWithCapacity:self.expectedObjects.count + removalTransformation.expectedObjects.count];
