@@ -198,6 +198,9 @@
 - (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
+    if (!self.indexes)
+        return YES;
+
     if (!PROAssert(keyPath, @"No key path for %@", self))
         return NO;
 

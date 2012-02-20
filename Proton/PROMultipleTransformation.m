@@ -137,6 +137,9 @@
 - (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
+    if (!self.transformations.count)
+        return YES;
+
     /*
      * Unfortunately, for a multiple transformation, we have to redo the
      * actual work of the transformation in order to properly update
