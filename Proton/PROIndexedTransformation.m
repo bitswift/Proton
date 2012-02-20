@@ -270,8 +270,14 @@
 }
 
 - (PROTransformation *)coalesceWithTransformation:(PROIndexedTransformation *)transformation; {
+    if (!self.indexes)
+        return transformation;
+
     if (![transformation isKindOfClass:[PROIndexedTransformation class]])
         return nil;
+
+    if (!transformation.indexes)
+        return self;
 
     NSMutableArray *newTransformations = [NSMutableArray arrayWithCapacity:self.transformations.count + transformation.transformations.count];
     NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSet];
