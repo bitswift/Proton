@@ -1911,10 +1911,14 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
     if (model == self)
         return YES;
 
-    if ([model isKindOfClass:[PROModel class]]) {
-        return [self.copy isEqual:model];
-    } else if (![model isKindOfClass:[PROMutableModel class]]) {
-        return NO;
+    // order is important here -- must check for PROMutableModel before
+    // PROModel, since the former pretends to be the latter
+    if (![model isKindOfClass:[PROMutableModel class]]) {
+        if ([model isKindOfClass:[PROModel class]]) {
+            return [self.copy isEqual:model];
+        } else {
+            return NO;
+        }
     }
 
     // between PROMutableModels, compare only for identity
