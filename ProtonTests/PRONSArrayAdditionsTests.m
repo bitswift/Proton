@@ -42,7 +42,8 @@ SpecBegin(PRONSArrayAdditions)
         });
 
         it(@"should return the full array for a common subarray of the same arrays", ^{
-            // all the logic of this test exists above
+            // just invoke the before() and after() blocks, without making any
+            // changes to the arrays
         });
 
         it(@"should find common subarray at the beginning", ^{
@@ -85,7 +86,7 @@ SpecBegin(PRONSArrayAdditions)
     });
     
     describe(@"longest identical subarray", ^{
-        // this should be set to nil if the arrays don't have anything in identical
+        // this should be set to nil if the arrays don't have anything identical
         __block NSArray *identicalSubarray;
 
         // created as copies of the identical subarray to start with
@@ -116,7 +117,8 @@ SpecBegin(PRONSArrayAdditions)
         });
 
         it(@"should return the full array for a identical subarray of the same arrays", ^{
-            // all the logic of this test exists above
+            // just invoke the before() and after() blocks, without making any
+            // changes to the arrays
         });
 
         it(@"should find identical subarray at the beginning", ^{
