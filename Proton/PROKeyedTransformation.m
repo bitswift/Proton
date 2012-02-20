@@ -12,6 +12,8 @@
 #import "PROAssert.h"
 #import "PROKeyedObject.h"
 #import "PROModel.h"
+#import "PROMultipleTransformation.h"
+#import "PROTransformationProtected.h"
 
 @implementation PROKeyedTransformation
 
@@ -227,6 +229,38 @@
     }
 
     return allModelUpdatesSuccessful;
+}
+
+- (PROTransformation *)coalesceWithTransformation:(PROKeyedTransformation *)transformation; {
+    if (![transformation isKindOfClass:[PROKeyedTransformation class]])
+        return nil;
+
+    NSMutableDictionary *newValueTransformations = [NSMutableDictionary dictionaryWithCapacity:self.valueTransformations.count + transformation.valueTransformations.count];
+
+    [self.valueTransformations enumerateKeysAndObjectsUsingBlock:^(NSString *key, PROTransformation *valueTransformation, BOOL *stop){
+        [newValueTransformations setObject:valueTransformation.flattenedTransformation forKey:key];
+    }];
+
+    [transformation.valueTransformations enumerateKeysAndObjectsUsingBlock:^(NSString *key, PROTransformation *valueTransformation, BOOL *stop){
+        valueTransformation = valueTransformation.flattenedTransformation;
+
+        PROTransformation *existingTransformation = [newValueTransformations objectForKey:key];
+        if (!existingTransformation) {
+            [newValueTransformations setObject:valueTransformation forKey:key];
+            return;
+        }
+
+        PROTransformation *combinedTransformation = [existingTransformation coalesceWithTransformation:valueTransformation];
+        if (!combinedTransformation) {
+            NSArray *transformations = [NSArray arrayWithObjects:existingTransformation, valueTransformation, nil];
+
+            combinedTransformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
+        }
+
+        [newValueTransformations setObject:combinedTransformation forKey:key];
+    }];
+
+    return [[PROKeyedTransformation alloc] initWithValueTransformations:newValueTransformations];
 }
 
 #pragma mark NSCoding
