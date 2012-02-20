@@ -12,6 +12,7 @@
 #import "EXTRuntimeExtensions.h"
 #import "EXTScope.h"
 #import "NSArray+HigherOrderAdditions.h"
+#import "NSArray+SearchAdditions.h"
 #import "PROAssert.h"
 #import "PROFuture.h"
 #import "PROIndexedTransformation.h"
@@ -1587,9 +1588,8 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         NSArray *immutableModelsForKey = [self.immutableBackingModel valueForKey:key];
 
         [SDQueue synchronizeQueues:queues runSynchronously:^{
-            // restore models on the new mutable models first, so that we generate
-            // all KVO notifications in one fell swoop with the -setArray: call
-            // below
+            // restore models on the new mutable models first, so that we can
+            // generate all necessary KVO notifications at once
             [replacementModels enumerateObjectsUsingBlock:^(PROMutableModel *mutableModel, NSUInteger index, BOOL *stop){
                 PROTransformationLogEntry *childLogEntry = [resultInfo.logEntriesByMutableModelUniqueIdentifier objectForKey:mutableModel.uniqueIdentifier];
                 if (!PROAssert(childLogEntry, @"Could not find log entry for model %@ in result info %@", mutableModel, resultInfo))
@@ -1604,7 +1604,45 @@ static SDQueue *PROMutableModelClassCreationQueue = nil;
         }];
 
         NSMutableArray *existingMutableModels = [self mutableArrayValueForKey:key];
-        [existingMutableModels setArray:replacementModels];
+
+        // try to identify common bits, so we can avoid generating KVO
+        // notifications for those
+        NSRange existingRange;
+        NSRange replacementRange;
+        [replacementModels longestSubarrayCommonWithArray:[existingMutableModels copy] rangeInReceiver:&replacementRange rangeInOtherArray:&existingRange];
+
+        if (existingRange.location == NSNotFound) {
+            // no luck, replace it all
+            [existingMutableModels setArray:replacementModels];
+            return;
+        }
+
+        NSUInteger existingCount = existingMutableModels.count;
+        NSUInteger replacementCount = replacementModels.count;
+
+        // replace everything before and after 'existingRange'
+        if (existingRange.location > 0) {
+            [existingMutableModels removeObjectsInRange:NSMakeRange(0, existingRange.location)];
+
+            NSIndexSet *replacementIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, replacementRange.location)];
+            NSArray *replacements = [replacementModels objectsAtIndexes:replacementIndexes];
+
+            [existingMutableModels insertObjects:replacements atIndexes:replacementIndexes];
+        }
+
+        NSUInteger existingRangeEnd = NSMaxRange(existingRange);
+        NSUInteger replacementRangeEnd = NSMaxRange(replacementRange);
+
+        if (existingRangeEnd < existingCount || replacementRangeEnd < replacementCount) {
+            [existingMutableModels removeObjectsInRange:NSMakeRange(existingRangeEnd, existingCount - existingRangeEnd)];
+
+            NSIndexSet *replacementIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(replacementRangeEnd, replacementCount - replacementRangeEnd)];
+            NSArray *replacements = [replacementModels objectsAtIndexes:replacementIndexes];
+
+            [existingMutableModels insertObjects:replacements atIndexes:replacementIndexes];
+        }
+
+        NSAssert([existingMutableModels isEqualToArray:replacementModels], @"Replaced mutable models array %@ does not match %@", existingMutableModels, replacementModels);
     }];
 }
 
