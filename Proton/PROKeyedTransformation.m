@@ -41,6 +41,19 @@
         return [NSArray array];
 }
 
+- (PROTransformation *)flattenedTransformation {
+    NSMutableDictionary *valueTransformations = [NSMutableDictionary dictionaryWithCapacity:self.valueTransformations.count];
+
+    [self.valueTransformations enumerateKeysAndObjectsUsingBlock:^(NSString *key, PROTransformation *transformation, BOOL *stop){
+        [valueTransformations setObject:transformation.flattenedTransformation forKey:key];
+    }];
+
+    if ([valueTransformations isEqualToDictionary:self.valueTransformations])
+        return self;
+    else
+        return [[PROKeyedTransformation alloc] initWithValueTransformations:valueTransformations];
+}
+
 #pragma mark Lifecycle
 
 - (id)init; {
