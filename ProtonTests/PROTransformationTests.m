@@ -978,8 +978,15 @@ SpecBegin(PROTransformation)
                     expect(error.domain).toEqual([PROTransformation errorDomain]);
                     expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
 
-                    NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
-                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    if ([transformation isKindOfClass:[PROMultipleTransformation class]]) {
+                        // unflattened
+                        NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
+                        expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    } else {
+                        // flattened
+                        NSArray *failingTransformations = [NSArray arrayWithObject:transformation];
+                        expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    }
                 } copy];
             });
 
@@ -1005,8 +1012,15 @@ SpecBegin(PROTransformation)
                     expect(error.domain).toEqual([PROTransformation errorDomain]);
                     expect(error.code).toEqual(PROTransformationErrorMismatchedInput);
 
-                    NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
-                    expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    if ([transformation isKindOfClass:[PROMultipleTransformation class]]) {
+                        // unflattened
+                        NSArray *failingTransformations = [NSArray arrayWithObjects:transformation, [transformations objectAtIndex:0], nil];
+                        expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    } else {
+                        // flattened
+                        NSArray *failingTransformations = [NSArray arrayWithObject:transformation];
+                        expect([error.userInfo objectForKey:PROTransformationFailingTransformationsErrorKey]).toEqual(failingTransformations);
+                    }
                 } copy];
             });
 
