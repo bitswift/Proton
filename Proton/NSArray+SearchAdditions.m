@@ -9,6 +9,7 @@
 #import "NSArray+SearchAdditions.h"
 #import "EXTSafeCategory.h"
 #import "EXTScope.h"
+#import "PROAssert.h"
 
 @safecategory (NSArray, SearchAdditions)
 
@@ -17,14 +18,21 @@
 }
 
 - (NSArray *)longestSubarrayCommonWithArray:(NSArray *)otherArray rangeInReceiver:(NSRangePointer)rangeInReceiver rangeInOtherArray:(NSRangePointer)rangeInOtherArray; {
-    if (!self.count || !otherArray.count)
+    if (!self.count || !otherArray.count) {
+        if (rangeInReceiver)
+            *rangeInReceiver = NSMakeRange(NSNotFound, 0);
+
+        if (rangeInOtherArray)
+            *rangeInOtherArray = NSMakeRange(NSNotFound, 0);
+
         return nil;
+    }
 
     NSUInteger selfCount = self.count;
     NSUInteger otherCount = otherArray.count;
     
     __block NSUInteger *current = calloc(otherCount, sizeof(*current));
-    if (!current)
+    if (!PROAssert(current, @"Could not allocate space for %lu integers", (unsigned long)otherCount))
         return nil;
 
     @onExit {
@@ -32,7 +40,7 @@
     };
 
     __block NSUInteger *previous = calloc(otherCount, sizeof(*previous));
-    if (!previous)
+    if (!PROAssert(previous, @"Could not allocate space for %lu integers", (unsigned long)otherCount))
         return nil;
 
     @onExit {
