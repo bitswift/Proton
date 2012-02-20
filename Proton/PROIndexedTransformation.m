@@ -40,6 +40,19 @@
 @synthesize indexes = m_indexes;
 @synthesize transformations = m_transformations;
 
+- (PROTransformation *)flattenedTransformation {
+    NSMutableArray *newTransformations = [NSMutableArray arrayWithCapacity:self.transformations.count];
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger index, BOOL *stop){
+        [newTransformations addObject:transformation.flattenedTransformation];
+    }];
+
+    if ([newTransformations isEqualToArray:self.transformations])
+        return self;
+    else
+        return [[PROIndexedTransformation alloc] initWithIndexes:self.indexes transformations:newTransformations];
+}
+
 #pragma mark Initialization
 
 - (id)init {
