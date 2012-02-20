@@ -194,6 +194,9 @@
 - (BOOL)applyBlocks:(NSDictionary *)blocks transformationResult:(id)result keyPath:(NSString *)keyPath; {
     NSParameterAssert(result != nil);
 
+    if (!self.valueTransformations)
+        return YES;
+
     BOOL allModelUpdatesSuccessful = YES;
 
     for (NSString *key in self.valueTransformations) {
