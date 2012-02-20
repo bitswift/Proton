@@ -10,6 +10,7 @@
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
+#import "PROTransformationProtected.h"
 
 @implementation PROMultipleTransformation
 
@@ -26,6 +27,34 @@
     }];
     
     return [[[self class] alloc] initWithTransformations:reverseTransformations];
+}
+
+- (PROTransformation *)flattenedTransformation {
+    NSMutableArray *newTransformations = [NSMutableArray arrayWithCapacity:self.transformations.count];
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformation, NSUInteger index, BOOL *stop){
+        transformation = transformation.flattenedTransformation;
+
+        PROTransformation *lastTransformation = [newTransformations lastObject];
+        if (!lastTransformation) {
+            [newTransformations addObject:transformation];
+            return;
+        }
+
+        PROTransformation *coalescedTransformation = [lastTransformation coalesceWithTransformation:transformation];
+        if (coalescedTransformation) {
+            [newTransformations replaceObjectAtIndex:newTransformations.count - 1 withObject:coalescedTransformation];
+        } else {
+            [newTransformations addObject:transformation];
+        }
+    }];
+
+    if ([newTransformations isEqualToArray:self.transformations])
+        return self;
+    else if (newTransformations.count == 1)
+        return [newTransformations objectAtIndex:0];
+    else
+        return [[PROMultipleTransformation alloc] initWithTransformations:newTransformations];
 }
 
 #pragma mark Lifecycle
