@@ -11,6 +11,8 @@
 #import "NSArray+HigherOrderAdditions.h"
 #import "NSObject+ComparisonAdditions.h"
 #import "PROAssert.h"
+#import "PROMultipleTransformation.h"
+#import "PROTransformationProtected.h"
 
 @interface PROIndexedTransformation ()
 /**
@@ -252,6 +254,67 @@
     }
 
     return [[[self class] alloc] initWithIndexes:self.indexes transformations:reversedTransformations];
+}
+
+- (PROTransformation *)coalesceWithTransformation:(PROIndexedTransformation *)transformation; {
+    if (![transformation isKindOfClass:[PROIndexedTransformation class]])
+        return nil;
+
+    NSMutableArray *newTransformations = [NSMutableArray arrayWithCapacity:self.transformations.count + transformation.transformations.count];
+    NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSet];
+
+    [self.transformations enumerateObjectsUsingBlock:^(PROTransformation *transformationAtIndex, NSUInteger index, BOOL *stop){
+        [newTransformations addObject:transformationAtIndex.flattenedTransformation];
+    }];
+
+    [newIndexes addIndexes:self.indexes];
+
+    __block NSUInteger arrayIndex = 0;
+    [transformation.indexes enumerateIndexesUsingBlock:^(NSUInteger index, BOOL *stop){
+        @onExit {
+            ++arrayIndex;
+        };
+
+        NSUInteger (^indexSetIndex)(void) = ^{
+            // go through the index set, and figure out _where_ in the index set
+            // this index is
+            //
+            // TODO: this could be optimized
+            __block NSUInteger setIndex = 0;
+            [newIndexes enumerateIndexesUsingBlock:^(NSUInteger testIndex, BOOL *stop){
+                if (testIndex == index) {
+                    *stop = YES;
+                    return;
+                }
+
+                ++setIndex;
+            }];
+
+            return setIndex;
+        };
+
+        PROTransformation *transformationAtIndex = [[transformation.transformations objectAtIndex:arrayIndex] flattenedTransformation];
+
+        if (![self.indexes containsIndex:index]) {
+            [newIndexes addIndex:index];
+            [newTransformations insertObject:transformationAtIndex atIndex:indexSetIndex()];
+            return;
+        }
+
+        NSUInteger existingIndex = indexSetIndex();
+        PROTransformation *existingTransformation = [newTransformations objectAtIndex:existingIndex];
+
+        PROTransformation *combinedTransformation = [existingTransformation coalesceWithTransformation:transformationAtIndex];
+        if (!combinedTransformation) {
+            NSArray *transformations = [NSArray arrayWithObjects:existingTransformation, transformationAtIndex, nil];
+
+            combinedTransformation = [[PROMultipleTransformation alloc] initWithTransformations:transformations];
+        }
+
+        [newTransformations replaceObjectAtIndex:existingIndex withObject:combinedTransformation];
+    }];
+
+    return [[PROIndexedTransformation alloc] initWithIndexes:newIndexes transformations:newTransformations];
 }
 
 #pragma mark Equality
