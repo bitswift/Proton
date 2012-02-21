@@ -7,6 +7,7 @@
 //
 
 #import "PROCoreDataManager.h"
+#import "EXTScope.h"
 
 @interface PROCoreDataManager () {
     /**
@@ -99,6 +100,16 @@
                 }
 
                 [m_mainThreadContext performBlock:^{
+                    // make sure not to add the merged changes to any undo
+                    // manager which may exist
+                    [m_mainThreadContext processPendingChanges];
+                    [m_mainThreadContext.undoManager disableUndoRegistration];
+                    
+                    @onExit {
+                        [m_mainThreadContext processPendingChanges];
+                        [m_mainThreadContext.undoManager enableUndoRegistration];
+                    };
+
                     [m_mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
                 }];
             }
