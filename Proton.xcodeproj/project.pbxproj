@@ -25,6 +25,10 @@
 		D002AEC114CDFF570062AEFC /* libSpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9E14CDFF1F0062AEFC /* libSpecta-iOS.a */; };
 		D00AB29E14CFF549000BC4B0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29D14CFF549000BC4B0 /* UIKit.framework */; };
 		D00AB2A014CFF55E000BC4B0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */; };
+		D0205B2614F32C9500404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
+		D0205B2814F32C9C00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2714F32C9C00404ACA /* CoreData.framework */; };
+		D0205B2914F32CBE00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
+		D0205B2A14F32CC300404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2714F32C9C00404ACA /* CoreData.framework */; };
 		D031BA8F14A53B5000A38526 /* PROKeyValueObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = D031BA8D14A53B5000A38526 /* PROKeyValueObserver.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D031BA9014A53B5000A38526 /* PROKeyValueObserver.h in Headers */ = {isa = PBXBuildFile; fileRef = D031BA8D14A53B5000A38526 /* PROKeyValueObserver.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D031BA9114A53B5000A38526 /* PROKeyValueObserver.m in Sources */ = {isa = PBXBuildFile; fileRef = D031BA8E14A53B5000A38526 /* PROKeyValueObserver.m */; };
@@ -287,6 +291,8 @@
 		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
 		D00AB29D14CFF549000BC4B0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
+		D0205B2514F32C9500404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
+		D0205B2714F32C9C00404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		D031BA8D14A53B5000A38526 /* PROKeyValueObserver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROKeyValueObserver.h; sourceTree = "<group>"; };
 		D031BA8E14A53B5000A38526 /* PROKeyValueObserver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueObserver.m; sourceTree = "<group>"; };
 		D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROKeyValueObserverTests.m; sourceTree = "<group>"; };
@@ -398,6 +404,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0205B2814F32C9C00404ACA /* CoreData.framework in Frameworks */,
 				D0B07AD01492E72800A1E816 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -406,6 +413,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0205B2A14F32CC300404ACA /* CoreData.framework in Frameworks */,
 				D00AB2A014CFF55E000BC4B0 /* CoreGraphics.framework in Frameworks */,
 				D00AB29E14CFF549000BC4B0 /* UIKit.framework in Frameworks */,
 				D002AEC014CDFF570062AEFC /* libExpecta-iOS.a in Frameworks */,
@@ -420,6 +428,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0205B2614F32C9500404ACA /* CoreData.framework in Frameworks */,
 				D0B07AF81492E76200A1E816 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -428,6 +437,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0205B2914F32CBE00404ACA /* CoreData.framework in Frameworks */,
 				D0C3222514CF6BF7009FF044 /* ApplicationServices.framework in Frameworks */,
 				D002AEBA14CDFF340062AEFC /* libExpecta.a in Frameworks */,
 				D002AEBB14CDFF340062AEFC /* libSpecta.a in Frameworks */,
@@ -609,17 +619,19 @@
 		D0DB5CC61492DDD5005955FB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */,
+				D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */,
 				D0F5CD4C14C5798B00966B2D /* CocoaLumberjack */,
 				D0F5CD0E14C5790D00966B2D /* libextobjc */,
 				D0F5CD3D14C5796800966B2D /* SafeDispatch */,
-				D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */,
-				D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */,
-				D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */,
+				D0C3222414CF6BF7009FF044 /* ApplicationServices.framework */,
+				D0205B2714F32C9C00404ACA /* CoreData.framework */,
+				D0205B2514F32C9500404ACA /* CoreData.framework */,
+				D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */,
 				D0B07AF71492E76200A1E816 /* Foundation.framework */,
 				D0B07ACF1492E72800A1E816 /* Foundation.framework */,
-				D0C3222414CF6BF7009FF044 /* ApplicationServices.framework */,
+				D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */,
 				D00AB29D14CFF549000BC4B0 /* UIKit.framework */,
-				D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
