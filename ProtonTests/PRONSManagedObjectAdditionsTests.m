@@ -93,6 +93,21 @@ SpecBegin(PRONSManagedObjectAdditions)
             expect(manager.mainThreadContext.insertedObjects).toEqual(insertedObjects);
         });
 
+        it(@"should archive non-property list values", ^{
+            NSRange range = NSMakeRange(2, 10);
+            NSValue *rangeValue = [NSValue valueWithRange:range];
+
+            model.value = rangeValue;
+            expect(NSEqualRanges([model.value rangeValue], range)).toBeTruthy();
+
+            NSDictionary *propertyList = model.propertyListRepresentation;
+            expect(propertyList).not.toBeNil();
+            expect([propertyList objectForKey:PROKeyForObject(model, value)]).toBeKindOf([NSData class]);
+
+            TestModel *anotherModel = [[TestModel alloc] initWithPropertyListRepresentation:propertyList insertIntoManagedObjectContext:manager.mainThreadContext];
+            expect(anotherModel.value).toEqual(rangeValue);
+        });
+
         it(@"should instantiate a model in another context given a property list", ^{
             NSDictionary *propertyList = model.propertyListRepresentation;
             expect(propertyList).not.toBeNil();

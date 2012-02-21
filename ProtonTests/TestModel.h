@@ -14,6 +14,7 @@
 @interface TestModel : NSManagedObject
 
 @property (nonatomic, retain) NSString * name;
+@property (nonatomic, retain) id value;
 @property (nonatomic, retain) NSSet *subModels;
 @end
 

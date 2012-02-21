@@ -13,6 +13,7 @@
 @implementation TestModel
 
 @dynamic name;
+@dynamic value;
 @dynamic subModels;
 
 @end

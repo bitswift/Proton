@@ -28,8 +28,16 @@
     [self.entity.properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
         if ([property isKindOfClass:[NSAttributeDescription class]]) {
             id value = [propertyList objectForKey:[property name]];
-            if (value)
-                [self setValue:value forKey:[property name]];
+            if (!value)
+                return;
+
+            if ([property attributeType] == NSTransformableAttributeType) {
+                if (PROAssert([value isKindOfClass:[NSData class]], @"Expected an NSData for non-property list value, got: %@", value)) {
+                    value = [NSKeyedUnarchiver unarchiveObjectWithData:value];
+                }
+            }
+
+            [self setValue:value forKey:[property name]];
         } else if ([property isKindOfClass:[NSRelationshipDescription class]] && [property isToMany]) {
             NSArray *array = [propertyList objectForKey:[property name]];
             if (!array.count)
@@ -67,8 +75,15 @@
     [properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
         if ([property isKindOfClass:[NSAttributeDescription class]]) {
             id value = [self valueForKey:[property name]];
-            if (value)
-                [propertyList setObject:value forKey:[property name]];
+            if (!value)
+                return;
+            
+            if ([property attributeType] == NSTransformableAttributeType) {
+                // gotta archive the value first
+                value = [NSKeyedArchiver archivedDataWithRootObject:value];
+            }
+
+            [propertyList setObject:value forKey:[property name]];
         } else if ([property isKindOfClass:[NSRelationshipDescription class]] && [property isToMany]) {
             id collection = [self valueForKey:[property name]];
             if (![collection count])
