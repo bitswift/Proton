@@ -10,6 +10,7 @@
 #import <Proton/NSArray+HigherOrderAdditions.h>
 #import <Proton/NSArray+SearchAdditions.h>
 #import <Proton/NSDictionary+HigherOrderAdditions.h>
+#import <Proton/NSManagedObject+ConvenienceAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
 #import <Proton/NSObject+ErrorAdditions.h>
 #import <Proton/NSObject+PROKeyValueObserverAdditions.h>
