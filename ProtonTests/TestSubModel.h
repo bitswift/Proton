@@ -2,17 +2,18 @@
 //  TestSubModel.h
 //  Proton
 //
-//  Created by Justin Spahr-Summers on 20.02.12.
+//  Created by Justin Spahr-Summers on 21.02.12.
 //  Copyright (c) 2012 Bitswift. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-#import "TestModel.h"
 
+@class TestModel;
 
-@interface TestSubModel : TestModel
+@interface TestSubModel : NSManagedObject
 
 @property (nonatomic) int32_t age;
+@property (nonatomic, retain) TestModel *model;
 
 @end

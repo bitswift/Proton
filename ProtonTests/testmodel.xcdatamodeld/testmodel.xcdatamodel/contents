@@ -2,12 +2,14 @@
 <model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1170" systemVersion="11D50" minimumToolsVersion="Xcode 4.1" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="TestModel" representedClassName="TestModel" syncable="YES">
         <attribute name="name" optional="YES" attributeType="String" indexed="YES" syncable="YES"/>
+        <relationship name="subModels" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TestSubModel" inverseName="model" inverseEntity="TestSubModel" syncable="YES"/>
     </entity>
-    <entity name="TestSubModel" representedClassName="TestSubModel" parentEntity="TestModel" syncable="YES">
+    <entity name="TestSubModel" representedClassName="TestSubModel" syncable="YES">
         <attribute name="age" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <relationship name="model" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="TestModel" inverseName="subModels" inverseEntity="TestModel" syncable="YES"/>
     </entity>
     <elements>
-        <element name="TestModel" positionX="-63" positionY="-18" width="128" height="60"/>
-        <element name="TestSubModel" positionX="-65" positionY="126" width="128" height="60"/>
+        <element name="TestModel" positionX="-63" positionY="-18" width="128" height="75"/>
+        <element name="TestSubModel" positionX="-65" positionY="126" width="128" height="75"/>
     </elements>
 </model>

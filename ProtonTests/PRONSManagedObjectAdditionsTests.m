@@ -8,6 +8,7 @@
 
 #import <Proton/Proton.h>
 #import "TestModel.h"
+#import "TestSubModel.h"
 
 SpecBegin(PRONSManagedObjectAdditions)
     
