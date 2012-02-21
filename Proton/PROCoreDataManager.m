@@ -34,6 +34,13 @@
     dispatch_once_t m_mainThreadContextPredicate;
 }
 
+/**
+ * An `NSNotificationCenter` observer object, associated with a block that
+ * updates the <mainThreadContext> when another managed object context saves.
+ *
+ * @warning **Important:** This property is not thread-safe.
+ */
+@property (nonatomic, strong) id contextDidSaveObserver;
 @end
 
 @implementation PROCoreDataManager
@@ -44,6 +51,7 @@
 @synthesize managedObjectModel = m_managedObjectModel;
 @synthesize globalContext = m_globalContext;
 @synthesize mainThreadContext = m_mainThreadContext;
+@synthesize contextDidSaveObserver = m_contextDidSaveObserver;
 
 - (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
     dispatch_once(&m_persistentStoreCoordinatorPredicate, ^{
@@ -76,9 +84,38 @@
         m_mainThreadContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
         m_mainThreadContext.parentContext = self.globalContext;
         m_mainThreadContext.undoManager = nil;
+
+        __weak PROCoreDataManager *weakSelf = self;
+
+        [[NSNotificationCenter defaultCenter]
+            addObserverForName:NSManagedObjectContextDidSaveNotification
+            object:nil
+            queue:nil
+            usingBlock:^(NSNotification *notification){
+                if (notification.object != self.globalContext && [notification.object parentContext] != self.globalContext) {
+                    // this context doesn't belong to us (or the main thread
+                    // context wouldn't get any changes from it)
+                    return;
+                }
+
+                [m_mainThreadContext performBlock:^{
+                    [m_mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
+                }];
+            }
+        ];
     });
 
     return m_mainThreadContext;
+}
+
+#pragma mark Lifecycle
+
+- (void)dealloc {
+    if (self.contextDidSaveObserver) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self.contextDidSaveObserver];
+
+        self.contextDidSaveObserver = nil;
+    }
 }
 
 #pragma mark Managed Object Contexts

@@ -68,6 +68,37 @@ SpecBegin(PROCoreDataManager)
             expect(context.undoManager).toBeNil();
         });
 
+        describe(@"new context", ^{
+            __block NSManagedObjectContext *context;
+
+            before(^{
+                context = [manager newContext];
+                expect(context).not.toBeNil();
+
+                expect(context.parentContext).toEqual(manager.globalContext);
+                expect(context.concurrencyType).toEqual(NSConfinementConcurrencyType);
+                expect(context.undoManager).toBeNil();
+            });
+
+            it(@"should save to the global context", ^{
+                TestModel *model = [[TestModel alloc] initWithEntity:testModelEntity insertIntoManagedObjectContext:context];
+                model.name = @"foobar";
+
+                expect([context hasChanges]).toBeTruthy();
+                expect([manager.globalContext hasChanges]).toBeFalsy();
+                expect([context save:NULL]).toBeTruthy();
+
+                expect([context hasChanges]).toBeFalsy();
+                expect([manager.globalContext hasChanges]).toBeTruthy();
+
+                TestModel *globalModel = [manager.globalContext.insertedObjects anyObject];
+                expect(globalModel.name).toEqual(@"foobar");
+                
+                expect([manager.globalContext save:NULL]).toBeTruthy();
+                expect([manager.globalContext hasChanges]).toBeFalsy();
+            });
+        });
+
         describe(@"main thread context", ^{
             it(@"should have a main thread context", ^{
                 NSManagedObjectContext *context = manager.mainThreadContext;
@@ -98,36 +129,28 @@ SpecBegin(PROCoreDataManager)
                 expect([manager.globalContext save:NULL]).toBeTruthy();
                 expect([manager.globalContext hasChanges]).toBeFalsy();
             });
-        });
 
-        describe(@"new context", ^{
-            __block NSManagedObjectContext *context;
-
-            before(^{
-                context = [manager newContext];
-                expect(context).not.toBeNil();
-
-                expect(context.parentContext).toEqual(manager.globalContext);
-                expect(context.concurrencyType).toEqual(NSConfinementConcurrencyType);
-                expect(context.undoManager).toBeNil();
-            });
-
-            it(@"should save to the global context", ^{
-                TestModel *model = [[TestModel alloc] initWithEntity:testModelEntity insertIntoManagedObjectContext:context];
+            it(@"should merge changes from other contexts after one run loop", ^{
+                TestModel *model = [[TestModel alloc] initWithEntity:testModelEntity insertIntoManagedObjectContext:manager.mainThreadContext];
                 model.name = @"foobar";
 
-                expect([context hasChanges]).toBeTruthy();
-                expect([manager.globalContext hasChanges]).toBeFalsy();
-                expect([context save:NULL]).toBeTruthy();
+                expect([manager.mainThreadContext save:NULL]).toBeTruthy();
 
-                expect([context hasChanges]).toBeFalsy();
-                expect([manager.globalContext hasChanges]).toBeTruthy();
+                NSManagedObjectContext *otherContext = [manager newContext];
+                expect(otherContext).not.toBeNil();
 
-                TestModel *globalModel = [manager.globalContext.insertedObjects anyObject];
-                expect(globalModel.name).toEqual(@"foobar");
-                
-                expect([manager.globalContext save:NULL]).toBeTruthy();
-                expect([manager.globalContext hasChanges]).toBeFalsy();
+                NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"TestModel"];
+                NSArray *models = [otherContext executeFetchRequest:fetchRequest error:NULL];
+                expect(models.count).toEqual(1);
+
+                TestModel *otherModel = [models objectAtIndex:0];
+                expect(otherModel.name).toEqual(@"foobar");
+
+                otherModel.name = @"fizzbuzz";
+                expect([otherContext save:NULL]).toBeTruthy();
+
+                expect(model.name).toEqual(@"foobar");
+                expect(model.name).isGoing.toEqual(@"fizzbuzz");
             });
         });
     });
