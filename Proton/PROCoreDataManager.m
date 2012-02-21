@@ -92,7 +92,7 @@
             object:nil
             queue:nil
             usingBlock:^(NSNotification *notification){
-                if (notification.object != self.globalContext && [notification.object parentContext] != self.globalContext) {
+                if (notification.object != weakSelf.globalContext && [notification.object parentContext] != weakSelf.globalContext) {
                     // this context doesn't belong to us (or the main thread
                     // context wouldn't get any changes from it)
                     return;
