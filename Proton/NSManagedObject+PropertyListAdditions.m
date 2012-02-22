@@ -24,13 +24,19 @@
     self = [super initWithEntity:entity insertIntoManagedObjectContext:context];
     if (!self)
         return nil;
+    
+    [propertyList enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
+        if ([key isEqualToString:@"entityName"])
+            return;
 
-    [self.entity.properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
+        id property = [self.entity.propertiesByName objectForKey:key];
+        if (!PROAssert(property, @"Property %@ does not exist on %@", key, self))
+            return;
+
+        if ([value isEqual:[NSNull null]])
+            value = nil;
+
         if ([property isKindOfClass:[NSAttributeDescription class]]) {
-            id value = [propertyList objectForKey:[property name]];
-            if (!value)
-                return;
-
             if ([property attributeType] == NSTransformableAttributeType) {
                 if (PROAssert([value isKindOfClass:[NSData class]], @"Expected an NSData for non-property list value, got: %@", value)) {
                     value = [NSKeyedUnarchiver unarchiveObjectWithData:value];
