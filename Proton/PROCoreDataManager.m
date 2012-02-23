@@ -8,6 +8,17 @@
 
 #import "PROCoreDataManager.h"
 #import "EXTScope.h"
+#import <objc/runtime.h>
+
+/**
+ * Associated object key on an `NSManagedObjectContext`, associated with an
+ * `NSNotificationCenter` observer block that is called when that context saves.
+ *
+ * This is used to merge changes into the <[PROCoreDataManager
+ * mainThreadContext]> automatically, without receiving notifications for
+ * unrelated contexts.
+ */
+static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContextObserver";
 
 @interface PROCoreDataManager () {
     /**
@@ -36,12 +47,13 @@
 }
 
 /**
- * An `NSNotificationCenter` observer object, associated with a block that
- * updates the <mainThreadContext> when another managed object context saves.
+ * Invoked when an `NSManagedObjectContext` created by the receiver has
+ * completed a save.
  *
- * @warning **Important:** This property is not thread-safe.
+ * This is used to update the <mainThreadContext>.
  */
-@property (nonatomic, strong) id contextDidSaveObserver;
+- (void)managedObjectContextDidSave:(NSNotification *)notification;
+
 @end
 
 @implementation PROCoreDataManager
@@ -52,7 +64,6 @@
 @synthesize managedObjectModel = m_managedObjectModel;
 @synthesize globalContext = m_globalContext;
 @synthesize mainThreadContext = m_mainThreadContext;
-@synthesize contextDidSaveObserver = m_contextDidSaveObserver;
 
 - (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
     dispatch_once(&m_persistentStoreCoordinatorPredicate, ^{
@@ -75,6 +86,19 @@
         m_globalContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
         m_globalContext.persistentStoreCoordinator = self.persistentStoreCoordinator;
         m_globalContext.undoManager = nil;
+
+        __weak PROCoreDataManager *weakSelf = self;
+
+        id observer = [[NSNotificationCenter defaultCenter]
+            addObserverForName:NSManagedObjectContextDidSaveNotification
+            object:m_globalContext
+            queue:nil
+            usingBlock:^(NSNotification *notification){
+                [weakSelf managedObjectContextDidSave:notification];
+            }
+        ];
+
+        objc_setAssociatedObject(m_globalContext, PROManagedObjectContextObserverKey, observer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     });
 
     return m_globalContext;
@@ -85,48 +109,9 @@
         m_mainThreadContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
         m_mainThreadContext.parentContext = self.globalContext;
         m_mainThreadContext.undoManager = nil;
-
-        __weak PROCoreDataManager *weakSelf = self;
-
-        [[NSNotificationCenter defaultCenter]
-            addObserverForName:NSManagedObjectContextDidSaveNotification
-            object:nil
-            queue:nil
-            usingBlock:^(NSNotification *notification){
-                if (notification.object != weakSelf.globalContext && [notification.object parentContext] != weakSelf.globalContext) {
-                    // this context doesn't belong to us (or the main thread
-                    // context wouldn't get any changes from it)
-                    return;
-                }
-
-                [m_mainThreadContext performBlock:^{
-                    // make sure not to add the merged changes to any undo
-                    // manager which may exist
-                    [m_mainThreadContext processPendingChanges];
-                    [m_mainThreadContext.undoManager disableUndoRegistration];
-                    
-                    @onExit {
-                        [m_mainThreadContext processPendingChanges];
-                        [m_mainThreadContext.undoManager enableUndoRegistration];
-                    };
-
-                    [m_mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
-                }];
-            }
-        ];
     });
 
     return m_mainThreadContext;
-}
-
-#pragma mark Lifecycle
-
-- (void)dealloc {
-    if (self.contextDidSaveObserver) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self.contextDidSaveObserver];
-
-        self.contextDidSaveObserver = nil;
-    }
 }
 
 #pragma mark Managed Object Contexts
@@ -136,7 +121,35 @@
     context.parentContext = self.globalContext;
     context.undoManager = nil;
 
+    __weak PROCoreDataManager *weakSelf = self;
+
+    id observer = [[NSNotificationCenter defaultCenter]
+        addObserverForName:NSManagedObjectContextDidSaveNotification
+        object:context
+        queue:nil
+        usingBlock:^(NSNotification *notification){
+            [weakSelf managedObjectContextDidSave:notification];
+        }
+    ];
+
+    objc_setAssociatedObject(context, PROManagedObjectContextObserverKey, observer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     return context;
+}
+
+- (void)managedObjectContextDidSave:(NSNotification *)notification; {
+    [self.mainThreadContext performBlock:^{
+        // make sure not to add the merged changes to any undo
+        // manager which may exist
+        [self.mainThreadContext processPendingChanges];
+        [self.mainThreadContext.undoManager disableUndoRegistration];
+        
+        @onExit {
+            [self.mainThreadContext processPendingChanges];
+            [self.mainThreadContext.undoManager enableUndoRegistration];
+        };
+
+        [self.mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
+    }];
 }
 
 @end
