@@ -152,6 +152,28 @@ SpecBegin(PROCoreDataManager)
                 expect(model.name).toEqual(@"foobar");
                 expect(model.name).isGoing.toEqual(@"fizzbuzz");
             });
+
+            it(@"should receive changes from the global context", ^{
+                TestModel *model = [[TestModel alloc] initWithEntity:testModelEntity insertIntoManagedObjectContext:manager.mainThreadContext];
+                model.name = @"foobar";
+
+                expect([manager.mainThreadContext save:NULL]).toBeTruthy();
+
+                NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"TestModel"];
+                NSArray *models = [manager.globalContext executeFetchRequest:fetchRequest error:NULL];
+                expect(models.count).toEqual(1);
+
+                TestModel *otherModel = [models objectAtIndex:0];
+                expect(otherModel.name).toEqual(@"foobar");
+
+                otherModel.name = @"fizzbuzz";
+                expect([manager.globalContext save:NULL]).toBeTruthy();
+
+                expect(model.name).toEqual(@"foobar");
+
+                [manager.mainThreadContext refreshObject:model mergeChanges:YES];
+                expect(model.name).toEqual(@"fizzbuzz");
+            });
         });
     });
 
