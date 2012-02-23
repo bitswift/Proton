@@ -87,6 +87,7 @@
         m_mainThreadContext.undoManager = nil;
 
         __weak PROCoreDataManager *weakSelf = self;
+        __weak NSManagedObjectContext *context = m_mainThreadContext;
 
         [[NSNotificationCenter defaultCenter]
             addObserverForName:NSManagedObjectContextDidSaveNotification
@@ -99,18 +100,23 @@
                     return;
                 }
 
-                [m_mainThreadContext performBlock:^{
+                if (notification.object == context) {
+                    // this is our own save notification
+                    return;
+                }
+
+                [context performBlock:^{
                     // make sure not to add the merged changes to any undo
                     // manager which may exist
-                    [m_mainThreadContext processPendingChanges];
-                    [m_mainThreadContext.undoManager disableUndoRegistration];
+                    [context processPendingChanges];
+                    [context.undoManager disableUndoRegistration];
                     
                     @onExit {
-                        [m_mainThreadContext processPendingChanges];
-                        [m_mainThreadContext.undoManager enableUndoRegistration];
+                        [context processPendingChanges];
+                        [context.undoManager enableUndoRegistration];
                     };
 
-                    [m_mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
+                    [context mergeChangesFromContextDidSaveNotification:notification];
                 }];
             }
         ];
