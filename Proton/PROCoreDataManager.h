@@ -102,7 +102,10 @@
  * <persistentStoreCoordinator>. Setting this property will not affect any
  * existing persistent stores.
  *
- * The default value for this property is `nil`.
+ * The default value for this property enables
+ * `NSMigratePersistentStoresAutomaticallyOption` and
+ * `NSInferMappingModelAutomaticallyOption`, to automatically migrate models in
+ * opened persistent stores.
  */
 @property (copy) NSDictionary *persistentStoreOptions;
 
