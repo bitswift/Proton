@@ -14,6 +14,23 @@
 @interface NSManagedObjectContext (ConvenienceAdditions)
 
 /**
+ * @name Refreshing Objects
+ */
+
+/**
+ * Updates all of the objects of the receiver to use the latest values from the
+ * persistent store.
+ *
+ * This invokes `refreshObject:mergeChanges:` on all of the receiver's
+ * `registeredObjects`.
+ *
+ * @param mergeChanges Whether each object's changes should be reapplied on top
+ * of the latest values from the persistent store. If `NO`, every object is
+ * turned back into a fault.
+ */
+- (void)refreshAllObjectsMergingChanges:(BOOL)mergeChanges;
+
+/**
  * @name Saving
  */
 
@@ -30,5 +47,20 @@
  * the error that occurred while saving.
  */
 - (BOOL)saveWithMergePolicy:(NSMergePolicy *)mergePolicy error:(NSError **)error;
+
+/**
+ * @name Undo Management
+ */
+
+/**
+ * Synchronously performs a block on the receiver with undo registration disabled.
+ *
+ * This dispatches a block using `performBlockAndWait:`, in which pending
+ * changes are processed and undo registration on any `undoManager` is disabled.
+ * When `block` finishes executing, undo registration is re-enabled.
+ *
+ * @param block A block to perform while undo registration is disabled.
+ */
+- (void)performBlockWithDisabledUndoAndWait:(void (^)(void))block;
 
 @end
