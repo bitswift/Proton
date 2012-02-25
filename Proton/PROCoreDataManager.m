@@ -232,8 +232,54 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 }
 
 - (BOOL)saveAsURL:(NSURL *)URL error:(NSError **)error; {
-    // TODO
-    return NO;
+    {
+        [self.persistentStoreCoordinator lock];
+        @onExit {
+            [self.persistentStoreCoordinator unlock];
+        };
+
+        if (![self.persistentStoreCoordinator persistentStoreForURL:URL]) {
+            // this may "fail" even if the item didn't exist to begin with, so we
+            // can't really honor the result of this method
+            [[NSFileManager defaultManager] removeItemAtURL:URL error:nil];
+
+            NSPersistentStore *newStore;
+
+            if (self.persistentStoreCoordinator.persistentStores.count) {
+                newStore = [self.persistentStoreCoordinator
+                    migratePersistentStore:[self.persistentStoreCoordinator.persistentStores objectAtIndex:0]
+                    toURL:URL
+                    options:self.persistentStoreOptions
+                    withType:self.persistentStoreType
+                    error:error
+                ];
+            } else {
+                newStore = [self.persistentStoreCoordinator
+                    addPersistentStoreWithType:self.persistentStoreType
+                    configuration:nil
+                    URL:URL
+                    options:self.persistentStoreOptions
+                    error:error
+                ];
+            }
+
+            if (!newStore)
+                return NO;
+        }
+    }
+
+    __block BOOL success = NO;
+    __block NSError *strongError = nil;
+
+    [self.globalContext performBlockAndWait:^{
+        success = [self.globalContext save:&strongError];
+    }];
+    
+    if (!success && strongError && error) {
+        *error = strongError;
+    }
+
+    return success;
 }
 
 - (BOOL)saveToURL:(NSURL *)URL error:(NSError **)error; {
