@@ -14,6 +14,23 @@
 @interface NSManagedObjectContext (ConvenienceAdditions)
 
 /**
+ * @name Refreshing Objects
+ */
+
+/**
+ * Updates all of the objects of the receiver to use the latest values from the
+ * persistent store.
+ *
+ * This invokes `refreshObject:mergeChanges:` on all of the receiver's
+ * `registeredObjects`.
+ *
+ * @param mergeChanges Whether each object's changes should be reapplied on top
+ * of the latest values from the persistent store. If `NO`, every object is
+ * turned back into a fault.
+ */
+- (void)refreshAllObjectsMergingChanges:(BOOL)mergeChanges;
+
+/**
  * @name Saving
  */
 

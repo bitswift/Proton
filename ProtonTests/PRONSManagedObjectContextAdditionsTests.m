@@ -92,4 +92,51 @@ SpecBegin(PRONSManagedObjectContextAdditions)
         expect(model.name).toEqual(name);
     });
 
+    describe(@"refreshing all objects", ^{
+        __block TestModel *secondModel;
+        __block NSString *secondName;
+        
+        __block TestModel *secondOtherModel;
+        __block NSString *secondOtherName;
+
+        before(^{
+            secondOtherModel = [TestModel managedObjectWithContext:otherContext];
+            expect(secondOtherModel).not.toBeNil();
+
+            secondOtherModel.name = @"second";
+            expect([otherContext save:NULL]).toBeTruthy();
+        });
+
+        before(^{
+            NSFetchRequest *request = [TestModel fetchRequest];
+            request.predicate = [NSPredicate predicateWithFormat:@"self == %@", secondOtherModel];
+
+            NSArray *models = [context executeFetchRequest:request error:NULL];
+            expect(models.count).toEqual(1);
+
+            secondModel = [models objectAtIndex:0];
+            expect(secondModel).toBeKindOf([TestModel class]);
+
+            expect(secondModel.name).toEqual(secondOtherModel.name);
+            secondModel.name = secondName = @"second model";
+
+            secondOtherModel.name = secondOtherName = @"second other model";
+            expect([otherContext save:NULL]).toBeTruthy();
+        });
+
+        it(@"should merge changes", ^{
+            [context refreshAllObjectsMergingChanges:YES];
+            
+            expect(secondModel.name).toEqual(secondName);
+            expect(model.name).toEqual(name);
+        });
+
+        it(@"should refresh without merging changes", ^{
+            [context refreshAllObjectsMergingChanges:NO];
+            
+            expect(secondModel.name).toEqual(secondOtherName);
+            expect(model.name).toEqual(otherName);
+        });
+    });
+
 SpecEnd

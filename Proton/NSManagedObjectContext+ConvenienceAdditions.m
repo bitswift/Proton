@@ -10,6 +10,14 @@
 #import "EXTSafeCategory.h"
 
 @safecategory (NSManagedObjectContext, ConvenienceAdditions)
+- (void)refreshAllObjectsMergingChanges:(BOOL)mergeChanges; {
+    NSSet *objects = [self.registeredObjects copy];
+
+    [objects enumerateObjectsUsingBlock:^(NSManagedObject *object, BOOL *stop){
+        [self refreshObject:object mergeChanges:mergeChanges];
+    }];
+}
+
 - (BOOL)saveWithMergePolicy:(NSMergePolicy *)mergePolicy error:(NSError **)error; {
     NSMergePolicy *originalPolicy = self.mergePolicy;
     self.mergePolicy = mergePolicy;
