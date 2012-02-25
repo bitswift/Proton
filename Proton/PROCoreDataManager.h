@@ -110,8 +110,8 @@
 @property (copy) NSDictionary *persistentStoreOptions;
 
 /**
- * The type of persistent store to create for the receiver, such as through the
- * <readFromURL:error:> method.
+ * The type of persistent store to use when automatically creating one for the
+ * receiver.
  *
  * Changes to this property will only be reflected in subsequent calls to
  * <readFromURL:error:>, <saveAsURL:error:>, or <saveToURL:error:> that result
