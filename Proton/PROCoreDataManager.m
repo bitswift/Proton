@@ -8,6 +8,7 @@
 
 #import "PROCoreDataManager.h"
 #import "EXTScope.h"
+#import "NSManagedObjectContext+ConvenienceAdditions.h"
 #import <objc/runtime.h>
 
 const NSInteger PROCoreDataManagerNonexistentURLError = 1;
@@ -182,8 +183,52 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 #pragma mark Persistent Stores
 
 - (BOOL)readFromURL:(NSURL *)URL error:(NSError **)error; {
-    // TODO
-    return NO;
+    [self.persistentStoreCoordinator lock];
+    @onExit {
+        [self.persistentStoreCoordinator unlock];
+    };
+
+    if ([self.persistentStoreCoordinator persistentStoreForURL:URL])
+        return YES;
+
+    if ([URL isFileURL] && ![[NSFileManager defaultManager] fileExistsAtPath:URL.path]) {
+        if (error) {
+            *error = [NSError
+                errorWithDomain:[PROCoreDataManager errorDomain]
+                code:PROCoreDataManagerNonexistentURLError
+                userInfo:nil
+            ];
+        }
+
+        return NO;
+    }
+
+    NSArray *existingStores = [self.persistentStoreCoordinator.persistentStores copy];
+    NSPersistentStore *newStore = [self.persistentStoreCoordinator
+        addPersistentStoreWithType:self.persistentStoreType
+        configuration:nil
+        URL:URL
+        options:self.persistentStoreOptions
+        error:error
+    ];
+
+    if (!newStore)
+        return NO;
+
+    @onExit {
+        [self.globalContext performBlockAndWait:^{
+            [self.globalContext reset];
+        }];
+    };
+
+    // only remove the existing stores after we've successfully added our new
+    // one
+    for (NSPersistentStore *existingStore in existingStores) {
+        if (![self.persistentStoreCoordinator removePersistentStore:existingStore error:error])
+            return NO;
+    }
+
+    return YES;
 }
 
 - (BOOL)saveAsURL:(NSURL *)URL error:(NSError **)error; {
