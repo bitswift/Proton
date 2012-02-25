@@ -166,8 +166,8 @@ extern const NSInteger PROCoreDataManagerNonexistentURLError;
  * at the given URL, one of two things will occur:
  *
  *  1. If the persistent store coordinator does not currently have any
- *  persistent stores, a persistent store of <persistentStoreType> is added with
- *  <persistentStoreOptions>.
+ *  persistent stores, any file already at `URL` is removed, and a persistent
+ *  store of <persistentStoreType> is added with <persistentStoreOptions>.
  *  2. If the persistent store coordinator already has one or more persistent
  *  stores, the first object in the `persistentStores` array is migrated to the
  *  given URL with a new type of <persistentStoreType> and using
@@ -178,7 +178,8 @@ extern const NSInteger PROCoreDataManagerNonexistentURLError;
  *
  * This method is thread-safe.
  *
- * @param URL The URL to which the receiver should be saved.
+ * @param URL The URL to which the receiver should be saved. Anything already
+ * existing at this URL will be removed.
  * @param error If not `NULL`, and this method returns `NO`, this may be filled
  * in with detailed information about the error that occurred.
  */
@@ -191,15 +192,17 @@ extern const NSInteger PROCoreDataManagerNonexistentURLError;
  * If the <persistentStoreCoordinator> already has a persistent store at the
  * given URL, this method behaves like <saveAsURL:error:>. Otherwise, a new
  * persistent store of <persistentStoreType> will be created at the given URL
- * with <persistentStoreOptions>, and the database, as represented by the
- * current state of the <globalContext>, will be saved to the new URL.
+ * with <persistentStoreOptions> (replacing any existing file at that URL), and
+ * the database, as represented by the current state of the <globalContext>,
+ * will be saved to the new URL.
  *
  * When this method returns, the persistent store coordinator will have the same
  * persistent stores as when the method was initially invoked.
  *
  * This method is thread-safe.
  *
- * @param URL The URL to which the <globalContext> should be saved.
+ * @param URL The URL to which the <globalContext> should be saved. Anything
+ * already existing at this URL will be removed.
  * @param error If not `NULL`, and this method returns `NO`, this may be filled
  * in with detailed information about the error that occurred.
  *
