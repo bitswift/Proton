@@ -283,8 +283,80 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 }
 
 - (BOOL)saveToURL:(NSURL *)URL error:(NSError **)error; {
-    // TODO
-    return NO;
+    [self.persistentStoreCoordinator lock];
+    @onExit {
+        [self.persistentStoreCoordinator unlock];
+    };
+
+    // this will remain 'nil' if the URL being saved already exists as
+    // a persistent store
+    NSPersistentStore *originalStore = nil;
+
+    if (self.persistentStoreCoordinator.persistentStores.count) {
+        if (![self.persistentStoreCoordinator persistentStoreForURL:URL])
+            originalStore = [self.persistentStoreCoordinator.persistentStores objectAtIndex:0];
+    } else {
+        // create an in-memory store, which we'll use to save changes and then
+        // migrate back to after saving to URL
+        originalStore = [self.persistentStoreCoordinator
+            addPersistentStoreWithType:NSInMemoryStoreType
+            configuration:nil
+            URL:nil
+            options:self.persistentStoreOptions
+            error:error
+        ];
+
+        if (!originalStore)
+            return NO;
+    }
+
+    {
+        __block BOOL success = NO;
+        __block NSError *strongError = nil;
+
+        [self.globalContext performBlockAndWait:^{
+            success = [self.globalContext save:&strongError];
+        }];
+        
+        if (!success) {
+            if (strongError && error)
+                *error = strongError;
+
+            return NO;
+        }
+    }
+
+    if (!originalStore) {
+        // if the store is already at the correct URL, we're done
+        return YES;
+    }
+
+    // this may "fail" even if the item didn't exist to begin with, so we
+    // can't really honor the result of this method
+    [[NSFileManager defaultManager] removeItemAtURL:URL error:nil];
+
+    // migrate to the new URL
+    NSPersistentStore *newStore = [self.persistentStoreCoordinator
+        migratePersistentStore:originalStore
+        toURL:URL
+        options:self.persistentStoreOptions
+        withType:self.persistentStoreType
+        error:error
+    ];
+
+    if (!newStore)
+        return NO;
+
+    // recover our original persistent store
+    NSPersistentStore *recoveredStore = [self.persistentStoreCoordinator
+        migratePersistentStore:newStore
+        toURL:originalStore.URL
+        options:originalStore.options
+        withType:originalStore.type
+        error:error
+    ];
+
+    return recoveredStore != nil;
 }
 
 @end
