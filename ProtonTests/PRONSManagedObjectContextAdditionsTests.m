@@ -141,4 +141,24 @@ SpecBegin(PRONSManagedObjectContextAdditions)
         });
     });
 
+    it(@"should disable undo while performing a block", ^{
+        NSUndoManager *undoManager = [[NSUndoManager alloc] init];
+        expect(undoManager).not.toBeNil();
+
+        undoManager.groupsByEvent = NO;
+        context.undoManager = undoManager;
+
+        [context performBlockWithDisabledUndoAndWait:^{
+            [undoManager beginUndoGrouping];
+
+            model.name = @"fuzzbuzz";
+            expect([context save:NULL]).toBeTruthy();
+
+            [undoManager endUndoGrouping];
+        }];
+
+        expect(model.name).toEqual(@"fuzzbuzz");
+        expect(undoManager.canUndo).toBeFalsy();
+    });
+
 SpecEnd

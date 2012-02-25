@@ -48,4 +48,19 @@
  */
 - (BOOL)saveWithMergePolicy:(NSMergePolicy *)mergePolicy error:(NSError **)error;
 
+/**
+ * @name Undo Management
+ */
+
+/**
+ * Synchronously performs a block on the receiver with undo registration disabled.
+ *
+ * This dispatches a block using `performBlockAndWait:`, in which pending
+ * changes are processed and undo registration on any `undoManager` is disabled.
+ * When `block` finishes executing, undo registration is re-enabled.
+ *
+ * @param block A block to perform while undo registration is disabled.
+ */
+- (void)performBlockWithDisabledUndoAndWait:(void (^)(void))block;
+
 @end

@@ -8,6 +8,7 @@
 
 #import "NSManagedObjectContext+ConvenienceAdditions.h"
 #import "EXTSafeCategory.h"
+#import "EXTScope.h"
 
 @safecategory (NSManagedObjectContext, ConvenienceAdditions)
 - (void)refreshAllObjectsMergingChanges:(BOOL)mergeChanges; {
@@ -26,6 +27,20 @@
     self.mergePolicy = originalPolicy;
 
     return success;
+}
+
+- (void)performBlockWithDisabledUndoAndWait:(void (^)(void))block; {
+    [self performBlockAndWait:^{
+        [self processPendingChanges];
+        [self.undoManager disableUndoRegistration];
+
+        @onExit {
+            [self processPendingChanges];
+            [self.undoManager enableUndoRegistration];
+        };
+
+        block();
+    }];
 }
 
 @end
