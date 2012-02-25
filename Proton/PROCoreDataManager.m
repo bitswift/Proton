@@ -118,6 +118,23 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
     return m_mainThreadContext;
 }
 
+#pragma mark Lifecycle
+
+- (id)init {
+    self = [super init];
+    if (!self)
+        return nil;
+
+    self.persistentStoreOptions = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption,
+        [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption,
+        nil
+    ];
+
+    self.persistentStoreType = NSSQLiteStoreType;
+    return self;
+}
+
 #pragma mark Error Handling
 
 + (NSString *)errorDomain {
