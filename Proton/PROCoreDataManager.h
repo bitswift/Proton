@@ -9,9 +9,24 @@
 #import <CoreData/CoreData.h>
 
 /**
+ * An error code when returned when <[PROCoreDataManager readFromURL:error:]> is
+ * given a URL that does not already exist.
+ */
+extern const NSInteger PROCoreDataManagerNonexistentURLError;
+
+/**
  * Manages the state for a single Core Data database.
  */
 @interface PROCoreDataManager : NSObject
+
+/**
+ * @name Error Handling
+ */
+
+/**
+ * The error domain for `NSError` objects created by this class.
+ */
++ (NSString *)errorDomain;
 
 /**
  * @name Database Information
@@ -130,7 +145,8 @@
  *
  * If the <persistentStoreCoordinator> already has a persistent store at the
  * given URL, nothing happens, and `YES` is returned. If nothing exists at the
- * given URL, `NO` is returned. Otherwise, a persistent store of
+ * given URL, `NO` is returned, and `error` is set to
+ * `PROCoreDataManagerNonexistentURLError`. Otherwise, a persistent store of
  * <persistentStoreType> is added with <persistentStoreOptions>, discarding any
  * persistent stores that already exist on the persistent store coordinator.
  *

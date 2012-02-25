@@ -10,6 +10,8 @@
 #import "EXTScope.h"
 #import <objc/runtime.h>
 
+const NSInteger PROCoreDataManagerNonexistentURLError = 1;
+
 /**
  * Associated object key on an `NSManagedObjectContext`, associated with an
  * `NSNotificationCenter` observer block that is called when that context saves.
@@ -114,6 +116,12 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
     });
 
     return m_mainThreadContext;
+}
+
+#pragma mark Error Handling
+
++ (NSString *)errorDomain {
+    return @"com.bitswift.Proton.PROCoreDataManager";
 }
 
 #pragma mark Managed Object Contexts
