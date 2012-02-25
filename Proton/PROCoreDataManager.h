@@ -85,4 +85,108 @@
  */
 - (NSManagedObjectContext *)newContext;
 
+/**
+ * @name Managing the Persistent Store
+ */
+
+/**
+ * Options to use when creating a persistent store for the receiver.
+ *
+ * This dictionary should match the format of the `options` dictionary passed to
+ * `-[NSPersistentStoreCoordinator
+ * addPersistentStoreWithType:configuration:URL:options:error:`.
+ *
+ * Changes to this property will only be reflected in subsequent calls to
+ * <readFromURL:error:>, <saveAsURL:error:>, or <saveToURL:error:> that result
+ * in an `NSPersistentStore` being added to the receiver's
+ * <persistentStoreCoordinator>. Setting this property will not affect any
+ * existing persistent stores.
+ *
+ * The default value for this property is `nil`.
+ */
+@property (copy) NSDictionary *persistentStoreOptions;
+
+/**
+ * The type of persistent store to create for the receiver, such as through the
+ * <readFromURL:error:> method.
+ *
+ * Changes to this property will only be reflected in subsequent calls to
+ * <readFromURL:error:>, <saveAsURL:error:>, or <saveToURL:error:> that result
+ * in an `NSPersistentStore` being added to the receiver's
+ * <persistentStoreCoordinator>. Setting this property will not affect any
+ * existing persistent stores.
+ *
+ * The default value for this property is `NSSQLiteStoreType`.
+ */
+@property (copy) NSString *persistentStoreType;
+
+/**
+ * Reads a persistent store from the given URL, adding it to the receiver's
+ * <persistentStoreCoordinator>, and resets the <globalContext>. Returns whether
+ * the read was successful.
+ *
+ * If the <persistentStoreCoordinator> already has a persistent store at the
+ * given URL, nothing happens, and `YES` is returned. If nothing exists at the
+ * given URL, `NO` is returned. Otherwise, a persistent store of
+ * <persistentStoreType> is added with <persistentStoreOptions>, discarding any
+ * persistent stores that already exist on the persistent store coordinator.
+ *
+ * This method is thread-safe.
+ *
+ * @param URL The URL from which to read a persistent store.
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with detailed information about the error that occurred.
+ */
+- (BOOL)readFromURL:(NSURL *)URL error:(NSError **)error;
+
+/**
+ * Creates a persistent store at the given URL if necessary, and then saves the
+ * <globalContext>. Returns whether the operation was successful.
+ *
+ * If the <persistentStoreCoordinator> does not already have a persistent store
+ * at the given URL, one of two things will occur:
+ *
+ *  1. If the persistent store coordinator does not currently have any
+ *  persistent stores, a persistent store of <persistentStoreType> is added with
+ *  <persistentStoreOptions>.
+ *  2. If the persistent store coordinator already has one or more persistent
+ *  stores, the first object in the `persistentStores` array is migrated to the
+ *  given URL with a new type of <persistentStoreType> and using
+ *  <persistentStoreOptions>.
+ *
+ * In either case, once a persistent store exists at the given URL, this method
+ * will attempt to save the <globalContext>.
+ *
+ * This method is thread-safe.
+ *
+ * @param URL The URL to which the receiver should be saved.
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with detailed information about the error that occurred.
+ */
+- (BOOL)saveAsURL:(NSURL *)URL error:(NSError **)error;
+
+/**
+ * Saves the current contents of the <globalContext> to the given URL. Returns
+ * whether the save was successful.
+ *
+ * If the <persistentStoreCoordinator> already has a persistent store at the
+ * given URL, this method behaves like <saveAsURL:error:>. Otherwise, a new
+ * persistent store of <persistentStoreType> will be created at the given URL
+ * with <persistentStoreOptions>, and the database, as represented by the
+ * current state of the <globalContext>, will be saved to the new URL.
+ *
+ * When this method returns, the persistent store coordinator will have the same
+ * persistent stores as when the method was initially invoked.
+ *
+ * This method is thread-safe.
+ *
+ * @param URL The URL to which the <globalContext> should be saved.
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with detailed information about the error that occurred.
+ *
+ * @warning **Important:** This method may save the <globalContext> to the
+ * current persistent store(s) as part of its implementation.
+ */
+- (BOOL)saveToURL:(NSURL *)URL error:(NSError **)error;
+
 @end

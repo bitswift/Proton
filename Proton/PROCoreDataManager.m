@@ -64,6 +64,8 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 @synthesize managedObjectModel = m_managedObjectModel;
 @synthesize globalContext = m_globalContext;
 @synthesize mainThreadContext = m_mainThreadContext;
+@synthesize persistentStoreOptions = m_persistentStoreOptions;
+@synthesize persistentStoreType = m_persistentStoreType;
 
 - (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
     dispatch_once(&m_persistentStoreCoordinatorPredicate, ^{
@@ -150,6 +152,23 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 
         [self.mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
     }];
+}
+
+#pragma mark Persistent Stores
+
+- (BOOL)readFromURL:(NSURL *)URL error:(NSError **)error; {
+    // TODO
+    return NO;
+}
+
+- (BOOL)saveAsURL:(NSURL *)URL error:(NSError **)error; {
+    // TODO
+    return NO;
+}
+
+- (BOOL)saveToURL:(NSURL *)URL error:(NSError **)error; {
+    // TODO
+    return NO;
 }
 
 @end
