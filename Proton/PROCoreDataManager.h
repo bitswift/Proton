@@ -196,9 +196,6 @@ extern const NSInteger PROCoreDataManagerNonexistentURLError;
  * the database, as represented by the current state of the <globalContext>,
  * will be saved to the new URL.
  *
- * When this method returns, the persistent store coordinator will have the same
- * persistent stores as when the method was initially invoked.
- *
  * This method is thread-safe.
  *
  * @param URL The URL to which the <globalContext> should be saved. Anything
@@ -206,8 +203,11 @@ extern const NSInteger PROCoreDataManagerNonexistentURLError;
  * @param error If not `NULL`, and this method returns `NO`, this may be filled
  * in with detailed information about the error that occurred.
  *
- * @warning **Important:** This method may save the <globalContext> to the
- * current persistent store(s) as part of its implementation.
+ * @warning **Important:** This method will save the <globalContext> to the
+ * current persistent store(s) as part of its implementation. If the receiver
+ * has no persistent stores when this method is invoked, an in-memory store may
+ * be created and added before returning. The in-memory store will be replaced
+ * by any subsequent call to <readFromURL:error:> or <saveAsURL:error:>.
  */
 - (BOOL)saveToURL:(NSURL *)URL error:(NSError **)error;
 
