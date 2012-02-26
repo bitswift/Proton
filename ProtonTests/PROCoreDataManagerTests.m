@@ -148,7 +148,7 @@ SpecBegin(PROCoreDataManager)
                 expect([manager.globalContext hasChanges]).toBeFalsy();
             });
 
-            it(@"should merge changes from other contexts after one run loop", ^{
+            it(@"should merge changes from other contexts", ^{
                 TestModel *model = [[TestModel alloc] initWithEntity:testModelEntity insertIntoManagedObjectContext:manager.mainThreadContext];
                 model.name = @"foobar";
 
@@ -167,8 +167,7 @@ SpecBegin(PROCoreDataManager)
                 otherModel.name = @"fizzbuzz";
                 expect([otherContext save:NULL]).toBeTruthy();
 
-                expect(model.name).toEqual(@"foobar");
-                expect(model.name).isGoing.toEqual(@"fizzbuzz");
+                expect(model.name).toEqual(@"fizzbuzz");
             });
 
             it(@"should receive changes from the global context", ^{

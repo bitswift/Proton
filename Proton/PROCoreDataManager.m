@@ -166,7 +166,8 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 }
 
 - (void)managedObjectContextDidSave:(NSNotification *)notification; {
-    [self.mainThreadContext performBlock:^{
+    // blocking here sucks, but we can run into race conditions otherwise
+    [self.mainThreadContext performBlockAndWait:^{
         // make sure not to add the merged changes to any undo
         // manager which may exist
         [self.mainThreadContext processPendingChanges];
