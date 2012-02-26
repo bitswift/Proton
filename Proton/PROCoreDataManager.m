@@ -9,6 +9,7 @@
 #import "PROCoreDataManager.h"
 #import "EXTScope.h"
 #import "NSManagedObjectContext+ConvenienceAdditions.h"
+#import "PROAssert.h"
 #import <objc/runtime.h>
 
 const NSInteger PROCoreDataManagerNonexistentURLError = 1;
@@ -176,7 +177,11 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
             [self.mainThreadContext.undoManager enableUndoRegistration];
         };
 
-        [self.mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
+        @try {
+            [self.mainThreadContext mergeChangesFromContextDidSaveNotification:notification];
+        } @catch (NSException *exception) {
+            PROAssert(NO, @"Caught exception while attempting to merge save notification into main thread context %@ of %@: %@", self.mainThreadContext, self, exception);
+        }
     }];
 }
 
