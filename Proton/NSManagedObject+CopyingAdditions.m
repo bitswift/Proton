@@ -67,7 +67,7 @@
                     }
                 }
 
-                NSManagedObject *newObject = [object copyToManagedObjectContext:context includingRelationships:relationships];
+                NSManagedObject *newObject = [object copyToManagedObjectContext:context includingRelationships:relationships copiedObjects:copiedObjects];
                 PROAssert(newObject, @"Could not copy %@ in relationship %@ to new context %@", object, property, context);
                 
                 return newObject;
