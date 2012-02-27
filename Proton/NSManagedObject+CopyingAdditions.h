@@ -20,9 +20,14 @@
 - (id)copyToManagedObjectContext:(NSManagedObjectContext *)context;
 
 /**
- * Creates and returns a copy of the receiver in the given managed object
- * context, preserving only the given relationships. Returns `nil` if an error
- * occurs.
+ * Invokes <copyToManagedObjectContext:includingRelationships:copiedObjects:>
+ * with an empty dictionary.
+ */
+- (id)copyToManagedObjectContext:(NSManagedObjectContext *)context includingRelationships:(NSSet *)relationshipDescriptions;
+
+/**
+ * Creates and returns a copy of `self` in the given managed object context,
+ * preserving only the given relationships. Returns `nil` if an error occurs.
  *
  * Attributes (i.e., properties that are not relationships) are always copied.
  *
@@ -32,10 +37,13 @@
  * @param relationshipDescriptions A set of `NSRelationshipDescription` objects
  * that describes the relationships that should be preserved in the copy. If
  * this is `nil`, no relationships are copied.
+ * @param copiedObjects A dictionary used to avoid creating duplicate objects,
+ * keyed by object IDs from the source context, associated with copied objects
+ * in `context`. If this is `nil`, objects will not be deduplicated.
  *
  * @warning **Important:** The created copy will include any unsaved changes on
  * the receiver.
  */
-- (id)copyToManagedObjectContext:(NSManagedObjectContext *)context includingRelationships:(NSSet *)relationshipDescriptions;
+- (id)copyToManagedObjectContext:(NSManagedObjectContext *)context includingRelationships:(NSSet *)relationshipDescriptions copiedObjects:(NSMutableDictionary *)copiedObjects;
 
 @end
