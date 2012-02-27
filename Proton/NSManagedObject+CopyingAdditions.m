@@ -55,7 +55,7 @@
             if (![relationshipDescriptions containsObject:property])
                 return;
 
-            id newCollection = [[self valueForKey:key] mapUsingBlock:^(NSManagedObject *object){
+            id (^mappingBlock)(id) = ^(NSManagedObject *object){
                 NSMutableSet *relationships = nil;
                 if (object.entity.relationshipsByName.count) {
                     relationships = [NSMutableSet setWithArray:object.entity.relationshipsByName.allValues];
@@ -71,9 +71,18 @@
                 PROAssert(newObject, @"Could not copy %@ in relationship %@ to new context %@", object, property, context);
                 
                 return newObject;
-            }];
+            };
 
-            [copiedObject setValue:newCollection forKey:key];
+            id newValue;
+
+            if ([property isToMany]) {
+                newValue = [[self valueForKey:key] mapUsingBlock:mappingBlock];
+            } else {
+                id value = [self valueForKey:key];
+                newValue = value ? mappingBlock(value) : nil;
+            }
+
+            [copiedObject setValue:newValue forKey:key];
         } else if ([property isKindOfClass:[NSAttributeDescription class]]) {
             [copiedObject setValue:[self valueForKey:key] forKey:key];
         }
