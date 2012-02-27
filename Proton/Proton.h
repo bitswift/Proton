@@ -11,6 +11,7 @@
 #import <Proton/NSArray+SearchAdditions.h>
 #import <Proton/NSDictionary+HigherOrderAdditions.h>
 #import <Proton/NSManagedObject+ConvenienceAdditions.h>
+#import <Proton/NSManagedObject+CopyingAdditions.h>
 #import <Proton/NSManagedObject+PropertyListAdditions.h>
 #import <Proton/NSManagedObjectContext+ConvenienceAdditions.h>
 #import <Proton/NSObject+ComparisonAdditions.h>
