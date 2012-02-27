@@ -10,6 +10,7 @@
 #import "EXTScope.h"
 #import "NSManagedObject+CopyingAdditions.h"
 #import "NSManagedObjectContext+ConvenienceAdditions.h"
+#import "NSSet+HigherOrderAdditions.h"
 #import "PROAssert.h"
 #import <objc/runtime.h>
 
@@ -277,16 +278,25 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
             // can't really honor the result of this method
             [[NSFileManager defaultManager] removeItemAtURL:URL error:nil];
 
-            NSPersistentStore *newStore;
+            __block NSPersistentStore *newStore;
 
             if (self.persistentStoreCoordinator.persistentStores.count) {
-                newStore = [self.persistentStoreCoordinator
-                    migratePersistentStore:[self.persistentStoreCoordinator.persistentStores objectAtIndex:0]
-                    toURL:URL
-                    options:self.persistentStoreOptions
-                    withType:self.persistentStoreType
-                    error:error
-                ];
+                [self.globalContext performBlockAndWait:^{
+                    // workaround for an issue where -migratePersistentStore:…
+                    // appears to prematurely deallocate the object IDs it's
+                    // migrating
+                    __attribute__((objc_precise_lifetime, unused)) NSSet *objectIDs = [self.globalContext.registeredObjects mapUsingBlock:^(NSManagedObject *object){
+                        return object.objectID;
+                    }];
+
+                    newStore = [self.persistentStoreCoordinator
+                        migratePersistentStore:[self.persistentStoreCoordinator.persistentStores objectAtIndex:0]
+                        toURL:URL
+                        options:self.persistentStoreOptions
+                        withType:self.persistentStoreType
+                        error:error
+                    ];
+                }];
             } else {
                 newStore = [self.persistentStoreCoordinator
                     addPersistentStoreWithType:self.persistentStoreType
