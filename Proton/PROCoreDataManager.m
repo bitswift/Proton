@@ -365,7 +365,8 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
             ];
 
             if (PROAssert(copiedObject, @"Could not copy %@ to new context %@", object, newContext)) {
-                [newContext insertObject:copiedObject];
+                if (![newContext.insertedObjects containsObject:copiedObject])
+                    [newContext insertObject:copiedObject];
             } else {
                 success = NO;
             }
