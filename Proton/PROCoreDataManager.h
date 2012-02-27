@@ -9,9 +9,24 @@
 #import <CoreData/CoreData.h>
 
 /**
+ * An error code when returned when <[PROCoreDataManager readFromURL:error:]> is
+ * given a URL that does not already exist.
+ */
+extern const NSInteger PROCoreDataManagerNonexistentURLError;
+
+/**
  * Manages the state for a single Core Data database.
  */
 @interface PROCoreDataManager : NSObject
+
+/**
+ * @name Error Handling
+ */
+
+/**
+ * The error domain for `NSError` objects created by this class.
+ */
++ (NSString *)errorDomain;
 
 /**
  * @name Database Information
@@ -84,5 +99,114 @@
  * This context will _not_ have an `undoManager` by default.
  */
 - (NSManagedObjectContext *)newContext;
+
+/**
+ * @name Managing the Persistent Store
+ */
+
+/**
+ * Options to use when creating a persistent store for the receiver.
+ *
+ * This dictionary should match the format of the `options` dictionary passed to
+ * `-[NSPersistentStoreCoordinator
+ * addPersistentStoreWithType:configuration:URL:options:error:`.
+ *
+ * Changes to this property will only be reflected in subsequent calls to
+ * <readFromURL:error:>, <saveAsURL:error:>, or <saveToURL:error:> that result
+ * in an `NSPersistentStore` being added to the receiver's
+ * <persistentStoreCoordinator>. Setting this property will not affect any
+ * existing persistent stores.
+ *
+ * The default value for this property enables
+ * `NSMigratePersistentStoresAutomaticallyOption` and
+ * `NSInferMappingModelAutomaticallyOption`, to automatically migrate models in
+ * opened persistent stores.
+ */
+@property (copy) NSDictionary *persistentStoreOptions;
+
+/**
+ * The type of persistent store to use when automatically creating one for the
+ * receiver.
+ *
+ * Changes to this property will only be reflected in subsequent calls to
+ * <readFromURL:error:>, <saveAsURL:error:>, or <saveToURL:error:> that result
+ * in an `NSPersistentStore` being added to the receiver's
+ * <persistentStoreCoordinator>. Setting this property will not affect any
+ * existing persistent stores.
+ *
+ * The default value for this property is `NSSQLiteStoreType`.
+ */
+@property (copy) NSString *persistentStoreType;
+
+/**
+ * Reads a persistent store from the given URL, adding it to the receiver's
+ * <persistentStoreCoordinator>, and resets the <globalContext>. Returns whether
+ * the read was successful.
+ *
+ * If the <persistentStoreCoordinator> already has a persistent store at the
+ * given URL, nothing happens, and `YES` is returned. If nothing exists at the
+ * given URL, `NO` is returned, and `error` is set to
+ * `PROCoreDataManagerNonexistentURLError`. Otherwise, a persistent store of
+ * <persistentStoreType> is added with <persistentStoreOptions>, discarding any
+ * persistent stores that already exist on the persistent store coordinator.
+ *
+ * This method is thread-safe.
+ *
+ * @param URL The URL from which to read a persistent store.
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with detailed information about the error that occurred.
+ */
+- (BOOL)readFromURL:(NSURL *)URL error:(NSError **)error;
+
+/**
+ * Creates a persistent store at the given URL if necessary, and then saves the
+ * <globalContext>. Returns whether the operation was successful.
+ *
+ * If the <persistentStoreCoordinator> does not already have a persistent store
+ * at the given URL, one of two things will occur:
+ *
+ *  1. If the persistent store coordinator does not currently have any
+ *  persistent stores, any file already at `URL` is removed, and a persistent
+ *  store of <persistentStoreType> is added with <persistentStoreOptions>.
+ *  2. If the persistent store coordinator already has one or more persistent
+ *  stores, the first object in the `persistentStores` array is migrated to the
+ *  given URL with a new type of <persistentStoreType> and using
+ *  <persistentStoreOptions>.
+ *
+ * In either case, once a persistent store exists at the given URL, this method
+ * will attempt to save the <globalContext>.
+ *
+ * This method is thread-safe.
+ *
+ * @param URL The URL to which the receiver should be saved. Anything already
+ * existing at this URL will be removed.
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with detailed information about the error that occurred.
+ */
+- (BOOL)saveAsURL:(NSURL *)URL error:(NSError **)error;
+
+/**
+ * Saves the current contents of the <globalContext> to the given URL. Returns
+ * whether the save was successful.
+ *
+ * If the <persistentStoreCoordinator> already has a persistent store at the
+ * given URL, this method behaves like <saveAsURL:error:>. Otherwise, a new
+ * persistent store of <persistentStoreType> will be created at the given URL
+ * with <persistentStoreOptions> (replacing any existing file at that URL), and
+ * the database, as represented by the current state of the <globalContext>,
+ * will be saved to the new URL.
+ *
+ * This method will avoid saving <globalContext> (leaving it in the state it was
+ * in when this method was invoked), and will not modify the persistent stores
+ * on the <persistentStoreCoordinator>.
+ *
+ * This method is thread-safe.
+ *
+ * @param URL The URL to which the <globalContext> should be saved. Anything
+ * already existing at this URL will be removed.
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with detailed information about the error that occurred.
+ */
+- (BOOL)saveToURL:(NSURL *)URL error:(NSError **)error;
 
 @end
