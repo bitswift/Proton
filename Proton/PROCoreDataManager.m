@@ -8,6 +8,7 @@
 
 #import "PROCoreDataManager.h"
 #import "EXTScope.h"
+#import "NSManagedObject+CopyingAdditions.h"
 #import "NSManagedObjectContext+ConvenienceAdditions.h"
 #import "PROAssert.h"
 #import <objc/runtime.h>
@@ -23,6 +24,29 @@ const NSInteger PROCoreDataManagerNonexistentURLError = 1;
  * unrelated contexts.
  */
 static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContextObserver";
+
+/**
+ * Synchronously saves on the given context's dispatch queue, returning whether
+ * the save succeeded.
+ *
+ * @param context The context to save.
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with detailed information about the error that occurred.
+ */
+static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error) {
+    __block BOOL success = NO;
+    __block NSError *strongError = nil;
+
+    [context performBlockAndWait:^{
+        success = [context save:&strongError];
+    }];
+    
+    if (!success && strongError && error) {
+        *error = strongError;
+    }
+
+    return success;
+}
 
 @interface PROCoreDataManager () {
     /**
@@ -189,6 +213,8 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 #pragma mark Persistent Stores
 
 - (BOOL)readFromURL:(NSURL *)URL error:(NSError **)error; {
+    NSParameterAssert(URL);
+
     [self.persistentStoreCoordinator lock];
     @onExit {
         [self.persistentStoreCoordinator unlock];
@@ -238,6 +264,8 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
 }
 
 - (BOOL)saveAsURL:(NSURL *)URL error:(NSError **)error; {
+    NSParameterAssert(URL);
+
     {
         [self.persistentStoreCoordinator lock];
         @onExit {
@@ -274,95 +302,80 @@ static void * const PROManagedObjectContextObserverKey = "PROManagedObjectContex
         }
     }
 
-    __block BOOL success = NO;
-    __block NSError *strongError = nil;
-
-    [self.globalContext performBlockAndWait:^{
-        success = [self.globalContext save:&strongError];
-    }];
-    
-    if (!success && strongError && error) {
-        *error = strongError;
-    }
-
-    return success;
+    return saveOnContextQueue(self.globalContext, error);
 }
 
 - (BOOL)saveToURL:(NSURL *)URL error:(NSError **)error; {
+    NSParameterAssert(URL);
+
     [self.persistentStoreCoordinator lock];
+
+    if ([self.persistentStoreCoordinator persistentStoreForURL:URL]) {
+        [self.persistentStoreCoordinator unlock];
+
+        // just save normally
+        return saveOnContextQueue(self.globalContext, error);
+    }
+
     @onExit {
         [self.persistentStoreCoordinator unlock];
     };
-
-    // this will remain 'nil' if the URL being saved already exists as
-    // a persistent store
-    NSPersistentStore *originalStore = nil;
-
-    if (self.persistentStoreCoordinator.persistentStores.count) {
-        if (![self.persistentStoreCoordinator persistentStoreForURL:URL])
-            originalStore = [self.persistentStoreCoordinator.persistentStores objectAtIndex:0];
-    } else {
-        // create an in-memory store, which we'll use to save changes and then
-        // migrate back to after saving to URL
-        originalStore = [self.persistentStoreCoordinator
-            addPersistentStoreWithType:NSInMemoryStoreType
-            configuration:nil
-            URL:nil
-            options:self.persistentStoreOptions
-            error:error
-        ];
-
-        if (!originalStore)
-            return NO;
-    }
-
-    {
-        __block BOOL success = NO;
-        __block NSError *strongError = nil;
-
-        [self.globalContext performBlockAndWait:^{
-            success = [self.globalContext save:&strongError];
-        }];
-        
-        if (!success) {
-            if (strongError && error)
-                *error = strongError;
-
-            return NO;
-        }
-    }
-
-    if (!originalStore) {
-        // if the store is already at the correct URL, we're done
-        return YES;
-    }
 
     // this may "fail" even if the item didn't exist to begin with, so we
     // can't really honor the result of this method
     [[NSFileManager defaultManager] removeItemAtURL:URL error:nil];
 
-    // migrate to the new URL
-    NSPersistentStore *newStore = [self.persistentStoreCoordinator
-        migratePersistentStore:originalStore
-        toURL:URL
+    // create a new persistent store coordinator and persistent store for the
+    // destination
+    NSPersistentStoreCoordinator *newCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:self.managedObjectModel];
+    if (!PROAssert(newCoordinator, @"Could not create new persistent store coordinator with model %@", self.managedObjectModel))
+        return NO;
+
+    NSPersistentStore *newStore = [newCoordinator
+        addPersistentStoreWithType:self.persistentStoreType
+        configuration:nil
+        URL:URL
         options:self.persistentStoreOptions
-        withType:self.persistentStoreType
         error:error
     ];
 
     if (!newStore)
         return NO;
 
-    // recover our original persistent store
-    NSPersistentStore *recoveredStore = [self.persistentStoreCoordinator
-        migratePersistentStore:newStore
-        toURL:originalStore.URL
-        options:originalStore.options
-        withType:originalStore.type
-        error:error
-    ];
+    NSManagedObjectContext *newContext = [[NSManagedObjectContext alloc] init];
+    newContext.persistentStoreCoordinator = newCoordinator;
 
-    return recoveredStore != nil;
+    __block BOOL success = YES;
+
+    // keeps track of already-copied objects as we go through the whole database
+    NSMutableDictionary *copiedObjects = [NSMutableDictionary dictionary];
+
+    [self.globalContext performBlockAndWait:^{
+        [self.globalContext.registeredObjects enumerateObjectsUsingBlock:^(NSManagedObject *object, BOOL *stop){
+            NSSet *relationships = nil;
+
+            if (object.entity.relationshipsByName.count) {
+                relationships = [NSSet setWithArray:object.entity.relationshipsByName.allValues];
+            }
+
+            NSManagedObject *copiedObject = [object
+                copyToManagedObjectContext:newContext
+                includingRelationships:relationships
+                copiedObjects:copiedObjects
+            ];
+
+            if (PROAssert(copiedObject, @"Could not copy %@ to new context %@", object, newContext)) {
+                [newContext insertObject:copiedObject];
+            } else {
+                success = NO;
+            }
+        }];
+    }];
+
+    if (!success)
+        return NO;
+
+    return [newContext save:error];
 }
 
 @end

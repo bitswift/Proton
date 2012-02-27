@@ -346,14 +346,10 @@ SpecBegin(PROCoreDataManager)
                     expect([manager saveToURL:storeURL error:&error]).toBeTruthy();
                     expect(error).toBeNil();
 
-                    expect(manager.globalContext.hasChanges).toBeFalsy();
+                    expect(manager.globalContext.hasChanges).toBeTruthy();
                     expect(model.name).toEqual(modelName);
 
-                    // this should've created an in-memory store, because we
-                    // didn't have one before
-                    expect(manager.persistentStoreCoordinator.persistentStores.count).toEqual(1);
-                    expect([manager.persistentStoreCoordinator.persistentStores.lastObject type]).toEqual(NSInMemoryStoreType);
-
+                    expect(manager.persistentStoreCoordinator.persistentStores.count).toEqual(0);
                     verifyFileExistsAtURL(storeURL);
                 });
 
@@ -397,8 +393,9 @@ SpecBegin(PROCoreDataManager)
 
                         expect(model.name).toEqual(modelName);
                         expect(model.value).not.toEqual(modelValue);
-                        expect(manager.globalContext.hasChanges).toBeFalsy();
+                        expect(manager.globalContext.hasChanges).toBeTruthy();
 
+                        expect(manager.persistentStoreCoordinator.persistentStores.count).toEqual(0);
                         verifyFileExistsAtURL(storeURL);
 
                         // verify that reading the URL back in doesn't result in any
@@ -473,9 +470,7 @@ SpecBegin(PROCoreDataManager)
                         expect(error).toBeNil();
 
                         expect(subModel.age).toEqual(subModelAge);
-
-                        expect(manager.globalContext.hasChanges).toBeFalsy();
-                        expect(manager.persistentStoreCoordinator.persistentStores.count).toEqual(1);
+                        expect(manager.globalContext.hasChanges).toBeTruthy();
 
                         // the persistent store on the coordinator should still be at
                         // 'secondURL', but 'storeURL' should also exist on disk
