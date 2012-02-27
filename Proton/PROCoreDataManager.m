@@ -12,6 +12,7 @@
 #import "NSManagedObjectContext+ConvenienceAdditions.h"
 #import "NSSet+HigherOrderAdditions.h"
 #import "PROAssert.h"
+#import "SDQueue.h"
 #import <objc/runtime.h>
 
 const NSInteger PROCoreDataManagerNonexistentURLError = 1;
@@ -191,8 +192,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 }
 
 - (void)managedObjectContextDidSave:(NSNotification *)notification; {
-    // blocking here sucks, but we can run into race conditions otherwise
-    [self.mainThreadContext performBlockAndWait:^{
+    dispatch_block_t mergeBlock = ^{
         // make sure not to add the merged changes to any undo
         // manager which may exist
         [self.mainThreadContext processPendingChanges];
@@ -208,7 +208,13 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         } @catch (NSException *exception) {
             PROAssert(NO, @"Caught exception while attempting to merge save notification into main thread context %@ of %@: %@", self.mainThreadContext, self, exception);
         }
-    }];
+    };
+
+    if ([[SDQueue mainQueue] isCurrentQueue]) {
+        mergeBlock();
+    } else {
+        [[SDQueue mainQueue] runAsynchronously:mergeBlock];
+    }
 }
 
 #pragma mark Persistent Stores
