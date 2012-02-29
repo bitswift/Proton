@@ -409,17 +409,17 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
     if (notification.object != self.mainThreadContext.undoManager)
         return;
 
-    void (^save)(void) = ^{
+    dispatch_block_t saveBlock = ^{
         NSError *error = nil;
         if (![self.mainThreadContext save:&error]) {
-            DDLogError(@"Main thread context failed to save after an undo or redo action. error = %@", error);
+            PROAssert(@"Main thread context failed to save after an undo or redo action. error = %@", [error description]);
         }
     };
 
-    if ([[NSThread currentThread] isMainThread]) {
-        save();
+    if ([[SDQueue mainQueue] isCurrentQueue]) {
+        saveBlock();
     } else {
-        dispatch_async(dispatch_get_main_queue(), save);
+        [[SDQueue mainQueue] runAsynchronously:saveBlock];
     }
 }
 
