@@ -141,12 +141,19 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         m_mainThreadContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
         m_mainThreadContext.parentContext = self.globalContext;
         m_mainThreadContext.undoManager = nil;
+
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidUndoChangeNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidRedoChangeNotification object:nil];
     });
 
     return m_mainThreadContext;
 }
 
 #pragma mark Lifecycle
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
 
 - (id)init {
     self = [super init];
@@ -160,6 +167,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
     ];
 
     self.persistentStoreType = NSSQLiteStoreType;
+
     return self;
 }
 
@@ -393,6 +401,26 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         return NO;
 
     return [newContext save:error];
+}
+
+#pragma mark Undo Management
+
+- (void)didUndoOrRedo:(NSNotification *)notification {
+    if (notification.object != self.mainThreadContext.undoManager)
+        return;
+
+    void (^save)(void) = ^{
+        NSError *error = nil;
+        if (![self.mainThreadContext save:&error]) {
+            DDLogError(@"Main thread context failed to save after an undo or redo action. error = %@", error);
+        }
+    };
+
+    if ([[NSThread currentThread] isMainThread]) {
+        save();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), save);
+    }
 }
 
 @end
