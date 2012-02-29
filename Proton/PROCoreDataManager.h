@@ -84,7 +84,9 @@ extern const NSInteger PROCoreDataManagerNonexistentURLError;
  * main run loop. This guarantees that managed objects in use on the main thread
  * will not be modified without warning.
  *
- * This context will _not_ have an `undoManager` by default.
+ * This context will _not_ have an `undoManager` by default.  In the event that
+ * it does have one, it will automatically save to its persistent store any
+ * time an undo or redo occurs.
  */
 @property (strong, readonly) NSManagedObjectContext *mainThreadContext;
 
