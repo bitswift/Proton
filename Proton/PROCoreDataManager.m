@@ -411,9 +411,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 
     dispatch_block_t saveBlock = ^{
         NSError *error = nil;
-        if (![self.mainThreadContext save:&error]) {
-            PROAssert(@"Main thread context failed to save after an undo or redo action. error = %@", [error description]);
-        }
+        PROAssert([self.mainThreadContext save:&error], @"Main thread context failed to save after an undo or redo action. error = %@", error);
     };
 
     if ([[SDQueue mainQueue] isCurrentQueue]) {
