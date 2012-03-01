@@ -41,4 +41,38 @@
  */
 + (NSFetchRequest *)fetchRequest;
 
+/**
+ * @name Validation
+ */
+
+/**
+
+Executes all of the given validation blocks, returning whether they all succeeded,
+and combining any errors into `error`.
+
+Each block should return whether validation succeeds, and can modify `error` to set
+its error, like so:
+
+    - (BOOL)validateForInsert:(NSError **)error {
+        return [self validateWithError:error usingBlocks:
+            ^{
+                return [super validateForInsert:error];
+            },
+
+            ^{
+                return [self validateCustomProperties:error];
+            },
+            
+            nil
+        ];
+    }
+
+@param error If this is not `NULL`, and this method returns `NO`, this may be
+filled in with a validation error composed of the errors set by each block.
+@param firstBlock The first validation block. This should not be `nil`.
+@param ... A `nil`-terminated list of additional validation blocks.
+
+*/
+- (BOOL)validateWithError:(NSError **)error usingBlocks:(BOOL (^)(void))firstBlock, ... NS_REQUIRES_NIL_TERMINATION;
+
 @end
