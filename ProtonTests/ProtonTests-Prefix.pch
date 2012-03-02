@@ -8,6 +8,7 @@
 
 #ifdef __OBJC__
     #import <Foundation/Foundation.h>
+    #import <CoreData/CoreData.h>
     #import "Specta.h"
 
     #define EXP_SHORTHAND
