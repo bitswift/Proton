@@ -208,6 +208,215 @@ SpecBegin(PRONSObjectAdditions)
         });
     });
 
+    describe(@"applying key-value changes", ^{
+        __block NSMutableDictionary *object;
+        __block NSString *keyPath;
+
+        // converts strings into an NSNumber with the string length
+        __block id (^mappingBlock)(id);
+
+        before(^{
+            mappingBlock = [^(id obj){
+                if ([obj isKindOfClass:[NSString class]])
+                    return [NSNumber numberWithUnsignedInteger:[obj length]];
+                else
+                    return obj;
+            } copy];
+        });
+
+        describe(@"ordered to-many property", ^{
+            __block NSMutableArray *array;
+
+            // should be set to the expected result
+            __block id expectedArray;
+
+            before(^{
+                array = [NSMutableArray arrayWithObjects:
+                    @"foo",
+                    @"bar",
+                    @"fizz",
+                    @"buzz",
+                    nil
+                ];
+
+                keyPath = @"foobar";
+                object = [NSMutableDictionary dictionaryWithObject:array forKey:keyPath];
+            });
+
+            after(^{
+                expect([object valueForKeyPath:keyPath]).toEqual(expectedArray);
+                expect([object mutableArrayValueForKeyPath:keyPath]).toEqual(expectedArray);
+
+                // no matter what changes occurred, the value should still be a mutable array 
+                //
+                // it's not valid to check for NSMutableArray here, because of
+                // the nature of class clusters
+                [[object valueForKeyPath:keyPath] addObject:@"test"];
+            });
+
+            it(@"should apply 'setting' change without mapping", ^{
+                expectedArray = [NSArray arrayWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    expectedArray, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change to nil without mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedArray = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'insertion' change without mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray insertObjects:insertedObjects atIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'removal' change without mapping", ^{
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray removeObjectsAtIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'replacement' change without mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray replaceObjectsAtIndexes:indexes withObjects:insertedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change with mapping", ^{
+                NSArray *newArray = [NSArray arrayWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    newArray, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedArray = [newArray mapUsingBlock:mappingBlock];
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'setting' change to nil with mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedArray = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'insertion' change with mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray insertObjects:[insertedObjects mapUsingBlock:mappingBlock] atIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'removal' change with mapping", ^{
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray removeObjectsAtIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'replacement' change with mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray replaceObjectsAtIndexes:indexes withObjects:[insertedObjects mapUsingBlock:mappingBlock]];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+        });
+    });
+
 SpecEnd
 
 @implementation ErrorTestClass
