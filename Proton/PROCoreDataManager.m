@@ -118,19 +118,6 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         m_globalContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
         m_globalContext.persistentStoreCoordinator = self.persistentStoreCoordinator;
         m_globalContext.undoManager = nil;
-
-        __weak PROCoreDataManager *weakSelf = self;
-
-        id observer = [[NSNotificationCenter defaultCenter]
-            addObserverForName:NSManagedObjectContextDidSaveNotification
-            object:m_globalContext
-            queue:nil
-            usingBlock:^(NSNotification *notification){
-                [weakSelf managedObjectContextDidSave:notification];
-            }
-        ];
-
-        objc_setAssociatedObject(m_globalContext, PROManagedObjectContextObserverKey, observer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     });
 
     return m_globalContext;
