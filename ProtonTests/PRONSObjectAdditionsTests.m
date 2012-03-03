@@ -6,218 +6,609 @@
 //  Copyright (c) 2011 Bitswift. All rights reserved.
 //
 
-#import "PRONSObjectAdditionsTests.h"
 #import <Proton/Proton.h>
 #import <libkern/OSAtomic.h>
 
-@implementation PRONSObjectAdditionsTests
+@interface ErrorTestClass : NSObject
+@end
 
-+ (NSString *)errorDomain {
-    return @"PRONSObjectAdditionsTestsErrorDomain";
-}
+SpecBegin(PRONSObjectAdditions)
 
-- (void)testEquality {
-    id obj1 = @"Test1";
-    id obj2 = @"Test2";
+    it(@"should determine equality even with nil values", ^{
+        id obj1 = @"Test1";
+        id obj2 = @"Test2";
 
-    STAssertTrueNoThrow(NSEqualObjects(nil, nil), @"");
-    STAssertFalseNoThrow(NSEqualObjects(nil, obj1), @"");
-    STAssertFalseNoThrow(NSEqualObjects(obj1, nil), @"");
-    STAssertTrueNoThrow(NSEqualObjects(obj1, obj1), @"");
-    STAssertFalseNoThrow(NSEqualObjects(obj1, obj2), @"");
-}
+        expect(NSEqualObjects(nil, nil)).toBeTruthy();
+        expect(NSEqualObjects(nil, obj1)).toBeFalsy();
+        expect(NSEqualObjects(obj1, nil)).toBeFalsy();
+        expect(NSEqualObjects(obj1, obj1)).toBeTruthy();
+        expect(NSEqualObjects(obj1, obj2)).toBeFalsy();
+    });
 
-- (void)testErrorGeneration {
-    NSInteger errorCode = 1000;
-    NSString *errorDescription = @"DESCRIPTION";
-    NSString *errorRecoverySuggestion = @"RECOVERY SUGGESTION";
-    NSError *error = [self errorWithCode:errorCode description:errorDescription recoverySuggestion:errorRecoverySuggestion];
+    it(@"should create errors using +errorDomain", ^{
+        ErrorTestClass *obj = [[ErrorTestClass alloc] init];
+        expect(obj).not.toBeNil();
 
-    STAssertNotNil(error, @"");
-    STAssertEquals([error code], errorCode, @"");
-    STAssertEqualObjects([error localizedDescription], errorDescription, @"");
-    STAssertEqualObjects([error localizedRecoverySuggestion], errorRecoverySuggestion, @"");
-    STAssertEqualObjects([error domain], [[self class] errorDomain], @"");
-}
+        NSInteger errorCode = 1000;
+        NSString *errorDescription = @"DESCRIPTION";
+        NSString *errorRecoverySuggestion = @"RECOVERY SUGGESTION";
 
-- (void)testAddObserverOwnedByObject {
-    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
-    NSString *keyPath = @"isExecuting";
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){} copy];
+        NSError *error = [obj errorWithCode:errorCode description:errorDescription recoverySuggestion:errorRecoverySuggestion];
+        expect(error).not.toBeNil();
 
-    // we use __weak to verify that the lifecycle of the observer is correctly
-    // tied to 'self' (i.e., it's not immediately deallocated)
-    __weak PROKeyValueObserver *observer;
+        expect(error.code).toEqual(errorCode);
+        expect(error.localizedDescription).toEqual(errorDescription);
+        expect(error.localizedRecoverySuggestion).toEqual(errorRecoverySuggestion);
+        expect(error.domain).toEqual([[obj class] errorDomain]);
+    });
 
-    // also verify that it's not deallocated when an autorelease pool is popped
-    @autoreleasepool {
-        observer = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
-    }
+    describe(@"PROKeyValueObserver additions", ^{
+        __block NSBlockOperation *operation;
+        __block __weak PROKeyValueObserver *observer;
 
-    STAssertNotNil(observer, @"");
+        __block NSString *keyPath;
+        __block PROKeyValueObserverBlock block;
 
-    // verify that the observer was instantiated correctly
-    STAssertEquals(observer.target, operation, @"");
-    STAssertEqualObjects(observer.keyPath, keyPath, @"");
-    STAssertEquals(observer.options, (NSKeyValueObservingOptions)0, @"");
-    STAssertEqualObjects(observer.block, block, @"");
-}
+        // set to zero by default -- will be verified on the observer afterward
+        __block NSKeyValueObservingOptions options;
 
-- (void)testAddObserverOwnedByObjectWithOptions {
-    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
-    NSString *keyPath = @"isExecuting";
-    NSKeyValueObservingOptions options = NSKeyValueObservingOptionNew;
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){} copy];
+        before(^{
+            operation = [NSBlockOperation blockOperationWithBlock:^{}];
 
-    // we use __weak to verify that the lifecycle of the observer is correctly
-    // tied to 'self' (i.e., it's not immediately deallocated)
-    __weak PROKeyValueObserver *observer;
-    
-    // also verify that it's not deallocated when an autorelease pool is popped
-    @autoreleasepool {
-        observer = [operation addObserverOwnedByObject:self forKeyPath:keyPath options:options usingBlock:block];
-    }
+            keyPath = @"isExecuting";
+            options = 0;
 
-    STAssertNotNil(observer, @"");
-
-    // verify that the observer was instantiated correctly
-    STAssertEquals(observer.target, operation, @"");
-    STAssertEqualObjects(observer.keyPath, keyPath, @"");
-    STAssertEquals(observer.options, options, @"");
-    STAssertEqualObjects(observer.block, block, @"");
-}
-
-- (void)testRemoveOwnedObserver {
-    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
-    NSString *keyPath = @"isExecuting";
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){} copy];
-
-    __weak PROKeyValueObserver *observer;
-    
-    // after this autorelease pool, 'observer' should be guaranteed to be deallocated
-    @autoreleasepool {
-        observer = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
-
-        [self removeOwnedObserver:observer];
-    }
-
-    STAssertNil(observer, @"");
-}
-
-- (void)testRemoveOwnedObservers {
-    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){} copy];
-
-    __weak PROKeyValueObserver *observer1;
-    __weak PROKeyValueObserver *observer2;
-
-    // after this autorelease pool, both observers should be guaranteed to be deallocated
-    @autoreleasepool {
-        observer1 = [operation addObserverOwnedByObject:self forKeyPath:@"isExecuting" usingBlock:block];
-        observer2 = [operation addObserverOwnedByObject:self forKeyPath:@"isFinished" usingBlock:block];
-
-        [self removeAllOwnedObservers];
-    }
-
-    STAssertNil(observer1, @"");
-    STAssertNil(observer2, @"");
-}
-
-- (void)testMultithreadedAddition {
-    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
-    NSString *keyPath = @"isExecuting";
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){} copy];
-
-    // the number of observers to test concurrently
-    const size_t count = 10;
-
-    __weak PROKeyValueObserver * volatile *observers = (__weak id *)malloc(sizeof(*observers) * count);
-    @onExit {
-        free((void *)observers);
-    };
-
-    @autoreleasepool {
-        dispatch_apply(count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
-            // each thread has its own autorelease pool -- verify that it does not
-            // destroy the observer created on this thread
-            @autoreleasepool {
-                observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
-            }
+            block = [^(NSDictionary *changes){
+                STFail(@"Observer block should not trigger for any tests");
+            } copy];
         });
 
-        // make sure all stores complete
-        OSMemoryBarrier();
-    }
+        after(^{
+            observer = nil;
+        });
 
-    // verify that each observer was instantiated correctly and is still alive
-    for (size_t i = 0;i < count;++i) {
-        __weak PROKeyValueObserver *observer = observers[i];
+        describe(@"adding an observer owned by an object", ^{
+            it(@"should add without options", ^{
+                // all behavior here is handled by the before and after blocks
+            });
 
-        STAssertNotNil(observer, @"");
+            it(@"should add with options", ^{
+                options = NSKeyValueObservingOptionNew;
+            });
 
-        STAssertEquals(observer.target, operation, @"");
-        STAssertEqualObjects(observer.keyPath, keyPath, @"");
-        STAssertEquals(observer.options, (NSKeyValueObservingOptions)0, @"");
-        STAssertEqualObjects(observer.block, block, @"");
-    }
-}
+            after(^{
+                @autoreleasepool {
+                    if (options)
+                        observer = [operation addObserverOwnedByObject:self forKeyPath:keyPath options:options usingBlock:block];
+                    else
+                        observer = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
 
-- (void)testMultithreadedRemoval {
-    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{}];
-    NSString *keyPath = @"isExecuting";
+                    expect(observer).not.toBeNil();
+                }
 
-    PROKeyValueObserverBlock block = [^(NSDictionary *changes){
-        // we'll remove this block before changing the status of the operation
-        STFail(@"Observer block should not be called after being removed");
-    } copy];
+                // observers should not be deallocated when an autorelease pool
+                // is popped
+                expect(observer).not.toBeNil();
 
-    // the number of observers to test concurrently
-    const size_t count = 10;
+                expect(observer.target).toEqual(operation);
+                expect(observer.keyPath).toEqual(keyPath);
+                expect(observer.options).toEqual(options);
+                expect(observer.block).toEqual(block);
+            });
+        });
 
-    __weak PROKeyValueObserver * volatile *observers = (__weak id *)malloc(sizeof(*observers) * count);
-    @onExit {
-        free((void *)observers);
-    };
+        it(@"should remove a specific observer", ^{
+            __weak PROKeyValueObserver *observer;
 
-    dispatch_group_t group = dispatch_group_create();
-    @onExit {
-        dispatch_release(group);
-    };
-
-    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-
-    @autoreleasepool {
-        dispatch_apply(count, queue, ^(size_t index){
             @autoreleasepool {
-                observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
+                observer = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
+                [self removeOwnedObserver:observer];
+            }
 
-                dispatch_group_async(group, queue, ^{
+            expect(observer).toBeNil();
+        });
+
+        it(@"should remove all observers", ^{
+            __weak PROKeyValueObserver *observer;
+            __weak PROKeyValueObserver *secondObserver;
+
+            @autoreleasepool {
+                observer = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
+                secondObserver = [operation addObserverOwnedByObject:self forKeyPath:@"isFinished" usingBlock:block];
+
+                [self removeAllOwnedObservers];
+            }
+
+            expect(observer).toBeNil();
+            expect(secondObserver).toBeNil();
+        });
+
+        it(@"should add observers in a thread-safe way", ^{
+            // the number of observers to test concurrently
+            const size_t count = 10;
+
+            __weak PROKeyValueObserver * volatile *observers = (__weak id *)malloc(sizeof(*observers) * count);
+            @onExit {
+                free((void *)observers);
+            };
+
+            @autoreleasepool {
+                dispatch_apply(count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index){
+                    // each thread has its own autorelease pool -- verify that it does not
+                    // destroy the observer created on this thread
                     @autoreleasepool {
-                        // make sure the store to this index completes before trying to
-                        // remove it
-                        OSMemoryBarrier();
-                    
-                        [self removeOwnedObserver:observers[index]];
+                        observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
                     }
                 });
+
+                // make sure all stores complete
+                OSMemoryBarrier();
+            }
+
+            // verify that each observer was instantiated correctly and is still alive
+            for (size_t i = 0;i < count;++i) {
+                __weak PROKeyValueObserver *observer = observers[i];
+                expect(observer).not.toBeNil();
+
+                expect(observer.target).toEqual(operation);
+                expect(observer.keyPath).toEqual(keyPath);
+                expect(observer.options).toEqual(0);
+                expect(observer.block).toEqual(block);
             }
         });
 
-        // wait for all removals to complete as well
-        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+        it(@"should remove observers in a thread-safe way", ^{
+            // the number of observers to test concurrently
+            const size_t count = 10;
 
-        // make sure all stores and weak reference updates complete
-        OSMemoryBarrier();
-    }
+            __weak PROKeyValueObserver * volatile *observers = (__weak id *)malloc(sizeof(*observers) * count);
+            @onExit {
+                free((void *)observers);
+            };
 
-    // verify that each observer was removed correctly and niled out
-    for (size_t i = 0;i < count;++i) {
-        STAssertNil(observers[i], @"");
-    }
-    
-    // start the operation and make sure no observers are triggered
-    [operation start];
-    [operation waitUntilFinished];
+            dispatch_group_t group = dispatch_group_create();
+            @onExit {
+                dispatch_release(group);
+            };
+
+            dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+
+            @autoreleasepool {
+                dispatch_apply(count, queue, ^(size_t index){
+                    @autoreleasepool {
+                        observers[index] = [operation addObserverOwnedByObject:self forKeyPath:keyPath usingBlock:block];
+
+                        dispatch_group_async(group, queue, ^{
+                            @autoreleasepool {
+                                // make sure the store to this index completes before trying to
+                                // remove it
+                                OSMemoryBarrier();
+                            
+                                [self removeOwnedObserver:observers[index]];
+                            }
+                        });
+                    }
+                });
+
+                // wait for all removals to complete as well
+                dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+
+                // make sure all stores and weak reference updates complete
+                OSMemoryBarrier();
+            }
+
+            // verify that each observer was removed correctly and niled out
+            for (size_t i = 0;i < count;++i) {
+                expect(observers[i]).toBeNil();
+            }
+            
+            // start the operation and make sure no observers are triggered
+            [operation start];
+            [operation waitUntilFinished];
+        });
+    });
+
+    describe(@"applying key-value changes", ^{
+        __block NSMutableDictionary *object;
+        __block NSString *keyPath;
+
+        // converts strings into an NSNumber with the string length
+        __block id (^mappingBlock)(id);
+
+        before(^{
+            mappingBlock = [^(id obj){
+                if ([obj isKindOfClass:[NSString class]])
+                    return [NSNumber numberWithUnsignedInteger:[obj length]];
+                else
+                    return obj;
+            } copy];
+        });
+
+        describe(@"ordered to-many property", ^{
+            __block NSMutableArray *array;
+
+            // should be set to the expected result
+            __block id expectedArray;
+
+            before(^{
+                array = [NSMutableArray arrayWithObjects:
+                    @"foo",
+                    @"bar",
+                    @"fizz",
+                    @"buzz",
+                    nil
+                ];
+
+                keyPath = @"foobar";
+                object = [NSMutableDictionary dictionaryWithObject:array forKey:keyPath];
+            });
+
+            after(^{
+                if (expectedArray) {
+                    expect([object valueForKeyPath:keyPath]).toEqual(expectedArray);
+                    expect([object mutableArrayValueForKeyPath:keyPath]).toEqual(expectedArray);
+
+                    // no matter what changes occurred, the value should still be a mutable array 
+                    //
+                    // it's not valid to check for NSMutableArray here, because of
+                    // the nature of class clusters
+                    [[object mutableArrayValueForKeyPath:keyPath] addObject:@"test"];
+                } else {
+                    expect([object valueForKeyPath:keyPath]).toBeNil();
+                }
+            });
+
+            it(@"should apply 'setting' change without mapping", ^{
+                expectedArray = [NSArray arrayWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    expectedArray, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change to nil without mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedArray = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'insertion' change without mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray insertObjects:insertedObjects atIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'removal' change without mapping", ^{
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray removeObjectsAtIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'replacement' change without mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray replaceObjectsAtIndexes:indexes withObjects:insertedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change with mapping", ^{
+                NSArray *newArray = [NSArray arrayWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    newArray, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedArray = [newArray mapUsingBlock:mappingBlock];
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'setting' change to nil with mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedArray = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'insertion' change with mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray insertObjects:[insertedObjects mapUsingBlock:mappingBlock] atIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'removal' change with mapping", ^{
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray removeObjectsAtIndexes:indexes];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'replacement' change with mapping", ^{
+                NSArray *insertedObjects = [NSArray arrayWithObjects:@"quux", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    indexes, NSKeyValueChangeIndexesKey,
+                    nil
+                ];
+
+                expectedArray = [array mutableCopy];
+                [expectedArray replaceObjectsAtIndexes:indexes withObjects:[insertedObjects mapUsingBlock:mappingBlock]];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+        });
+
+        describe(@"unordered to-many property", ^{
+            __block NSMutableSet *set;
+
+            // should be set to the expected result
+            __block id expectedSet;
+
+            before(^{
+                set = [NSMutableSet setWithObjects:
+                    @"foo",
+                    @"bar",
+                    @"fizz",
+                    @"buzz",
+                    nil
+                ];
+
+                keyPath = @"foobar";
+                object = [NSMutableDictionary dictionaryWithObject:set forKey:keyPath];
+            });
+
+            after(^{
+                if (expectedSet) {
+                    expect([object valueForKeyPath:keyPath]).toEqual(expectedSet);
+                    expect([object mutableSetValueForKeyPath:keyPath]).toEqual(expectedSet);
+
+                    // no matter what changes occurred, the value should still be
+                    // a mutable set
+                    //
+                    // it's not valid to check for NSMutableSet here, because of the
+                    // nature of class clusters
+                    [[object mutableSetValueForKeyPath:keyPath] addObject:@"test"];
+                } else {
+                    expect([object valueForKeyPath:keyPath]).toBeNil();
+                }
+            });
+
+            it(@"should apply 'setting' change without mapping", ^{
+                expectedSet = [NSSet setWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    expectedSet, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change to nil without mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'insertion' change without mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet unionSet:insertedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'removal' change without mapping", ^{
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'replacement' change without mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+                [expectedSet unionSet:insertedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change with mapping", ^{
+                NSSet *newSet = [NSSet setWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    newSet, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = [newSet mapUsingBlock:mappingBlock];
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'setting' change to nil with mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'insertion' change with mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet unionSet:[insertedObjects mapUsingBlock:mappingBlock]];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'removal' change with mapping", ^{
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'replacement' change with mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+                [expectedSet unionSet:[insertedObjects mapUsingBlock:mappingBlock]];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+        });
+    });
+
+SpecEnd
+
+@implementation ErrorTestClass
++ (NSString *)errorDomain {
+    return @"PRONSObjectAdditionsTestsErrorDomain";
 }
 
 @end
