@@ -415,6 +415,185 @@ SpecBegin(PRONSObjectAdditions)
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
             });
         });
+
+        describe(@"unordered to-many property", ^{
+            __block NSMutableSet *set;
+
+            // should be set to the expected result
+            __block id expectedSet;
+
+            before(^{
+                set = [NSMutableSet setWithObjects:
+                    @"foo",
+                    @"bar",
+                    @"fizz",
+                    @"buzz",
+                    nil
+                ];
+
+                keyPath = @"foobar";
+                object = [NSMutableDictionary dictionaryWithObject:set forKey:keyPath];
+            });
+
+            after(^{
+                expect([object valueForKeyPath:keyPath]).toEqual(expectedSet);
+                expect([object mutableSetValueForKeyPath:keyPath]).toEqual(expectedSet);
+
+                // no matter what changes occurred, the value should still be
+                // a mutable set
+                //
+                // it's not valid to check for NSMutableSet here, because of the
+                // nature of class clusters
+                [[object valueForKeyPath:keyPath] addObject:@"test"];
+            });
+
+            it(@"should apply 'setting' change without mapping", ^{
+                expectedSet = [NSSet setWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    expectedSet, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change to nil without mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'insertion' change without mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet unionSet:insertedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'removal' change without mapping", ^{
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'replacement' change without mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+                [expectedSet unionSet:insertedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
+            });
+
+            it(@"should apply 'setting' change with mapping", ^{
+                NSSet *newSet = [NSSet setWithObjects:@"bar", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    newSet, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = [newSet mapUsingBlock:mappingBlock];
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'setting' change to nil with mapping", ^{
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
+                    [NSNull null], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = nil;
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'insertion' change with mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet unionSet:[insertedObjects mapUsingBlock:mappingBlock]];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'removal' change with mapping", ^{
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeRemoval], NSKeyValueChangeKindKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
+            it(@"should apply 'replacement' change with mapping", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+                NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
+
+                NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
+                [indexes addIndex:1];
+                [indexes addIndex:3];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeReplacement], NSKeyValueChangeKindKey,
+                    [insertedObjects allObjects], NSKeyValueChangeNewKey,
+                    [removedObjects allObjects], NSKeyValueChangeOldKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet minusSet:removedObjects];
+                [expectedSet unionSet:[insertedObjects mapUsingBlock:mappingBlock]];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+        });
     });
 
 SpecEnd
