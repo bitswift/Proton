@@ -244,14 +244,18 @@ SpecBegin(PRONSObjectAdditions)
             });
 
             after(^{
-                expect([object valueForKeyPath:keyPath]).toEqual(expectedArray);
-                expect([object mutableArrayValueForKeyPath:keyPath]).toEqual(expectedArray);
+                if (expectedArray) {
+                    expect([object valueForKeyPath:keyPath]).toEqual(expectedArray);
+                    expect([object mutableArrayValueForKeyPath:keyPath]).toEqual(expectedArray);
 
-                // no matter what changes occurred, the value should still be a mutable array 
-                //
-                // it's not valid to check for NSMutableArray here, because of
-                // the nature of class clusters
-                [[object valueForKeyPath:keyPath] addObject:@"test"];
+                    // no matter what changes occurred, the value should still be a mutable array 
+                    //
+                    // it's not valid to check for NSMutableArray here, because of
+                    // the nature of class clusters
+                    [[object mutableArrayValueForKeyPath:keyPath] addObject:@"test"];
+                } else {
+                    expect([object valueForKeyPath:keyPath]).toBeNil();
+                }
             });
 
             it(@"should apply 'setting' change without mapping", ^{
@@ -436,15 +440,19 @@ SpecBegin(PRONSObjectAdditions)
             });
 
             after(^{
-                expect([object valueForKeyPath:keyPath]).toEqual(expectedSet);
-                expect([object mutableSetValueForKeyPath:keyPath]).toEqual(expectedSet);
+                if (expectedSet) {
+                    expect([object valueForKeyPath:keyPath]).toEqual(expectedSet);
+                    expect([object mutableSetValueForKeyPath:keyPath]).toEqual(expectedSet);
 
-                // no matter what changes occurred, the value should still be
-                // a mutable set
-                //
-                // it's not valid to check for NSMutableSet here, because of the
-                // nature of class clusters
-                [[object valueForKeyPath:keyPath] addObject:@"test"];
+                    // no matter what changes occurred, the value should still be
+                    // a mutable set
+                    //
+                    // it's not valid to check for NSMutableSet here, because of the
+                    // nature of class clusters
+                    [[object mutableSetValueForKeyPath:keyPath] addObject:@"test"];
+                } else {
+                    expect([object valueForKeyPath:keyPath]).toBeNil();
+                }
             });
 
             it(@"should apply 'setting' change without mapping", ^{
