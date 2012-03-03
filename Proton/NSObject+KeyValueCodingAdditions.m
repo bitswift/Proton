@@ -65,7 +65,7 @@
                 NSMutableOrderedSet *orderedSet = [self mutableOrderedSetValueForKeyPath:keyPath];
 
                 [orderedSet removeAllObjects];
-                [orderedSet addObjectsFromArray:mappedCollection(newValue, NO)];
+                [orderedSet unionOrderedSet:mappedCollection(newValue, NO)];
             } else {
                 [[self mutableArrayValueForKeyPath:keyPath] setArray:mappedCollection(newValue, NO)];
             }
