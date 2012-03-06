@@ -84,14 +84,6 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
  */
 - (void)managedObjectContextDidSave:(NSNotification *)notification;
 
-/**
- * Runs the given block on the main dispatch queue.
- *
- * If already on the main dispatch queue, the block executes immediately;
- * otherwise, the block is dispatched asynchronously.
- */
-- (void)runAsynchronouslyOnMainQueueIfNotCurrent:(dispatch_block_t)block;
-
 @end
 
 @implementation PROCoreDataManager
@@ -138,7 +130,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidUndoChangeNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidRedoChangeNotification object:nil];
 
-        [self runAsynchronouslyOnMainQueueIfNotCurrent:^{
+        [[SDQueue mainQueue] runAsynchronouslyIfNotCurrent:^{
             if (m_mainThreadContext.parentContext)
                 return;
 
@@ -187,16 +179,6 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
     return @"com.bitswift.Proton.PROCoreDataManager";
 }
 
-#pragma mark Multithreading
-
-- (void)runAsynchronouslyOnMainQueueIfNotCurrent:(dispatch_block_t)block; {
-    if ([[SDQueue mainQueue] isCurrentQueue]) {
-        block();
-    } else {
-        [[SDQueue mainQueue] runAsynchronously:block];
-    }
-}
-
 #pragma mark Managed Object Contexts
 
 - (NSManagedObjectContext *)newContext; {
@@ -220,7 +202,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 }
 
 - (void)managedObjectContextDidSave:(NSNotification *)notification; {
-    [self runAsynchronouslyOnMainQueueIfNotCurrent:^{
+    [[SDQueue mainQueue] runAsynchronouslyIfNotCurrent:^{
         // make sure not to add the merged changes to any undo
         // manager which may exist
         [self.mainThreadContext processPendingChanges];
@@ -423,7 +405,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
     if (notification.object != self.mainThreadContext.undoManager)
         return;
 
-    [self runAsynchronouslyOnMainQueueIfNotCurrent:^{
+    [[SDQueue mainQueue] runAsynchronouslyIfNotCurrent:^{
         NSError *error = nil;
         PROAssert([self.mainThreadContext save:&error], @"Main thread context failed to save after an undo or redo action. error = %@", error);
     }];
