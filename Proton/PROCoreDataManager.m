@@ -84,6 +84,14 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
  */
 - (void)managedObjectContextDidSave:(NSNotification *)notification;
 
+/**
+ * Runs the given block on the main dispatch queue.
+ *
+ * If already on the main dispatch queue, the block executes immediately;
+ * otherwise, the block is dispatched asynchronously.
+ */
+- (void)runAsynchronouslyOnMainQueueIfNotCurrent:(dispatch_block_t)block;
+
 @end
 
 @implementation PROCoreDataManager
@@ -126,12 +134,27 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 - (NSManagedObjectContext *)mainThreadContext {
     dispatch_once(&m_mainThreadContextPredicate, ^{
         m_mainThreadContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
-        m_mainThreadContext.parentContext = self.globalContext;
-        m_mainThreadContext.undoManager = nil;
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidUndoChangeNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidRedoChangeNotification object:nil];
+
+        [self runAsynchronouslyOnMainQueueIfNotCurrent:^{
+            if (m_mainThreadContext.parentContext)
+                return;
+
+            m_mainThreadContext.parentContext = self.globalContext;
+            m_mainThreadContext.undoManager = nil;
+        }];
     });
+
+    // necessary to avoid a race condition from performing the above asynchronous
+    // block too late for code on the main thread to get it
+    if ([[SDQueue mainQueue] isCurrentQueue]) {
+        if (!m_mainThreadContext.parentContext) {
+            m_mainThreadContext.parentContext = self.globalContext;
+            m_mainThreadContext.undoManager = nil;
+        }
+    }
 
     return m_mainThreadContext;
 }
@@ -164,6 +187,16 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
     return @"com.bitswift.Proton.PROCoreDataManager";
 }
 
+#pragma mark Multithreading
+
+- (void)runAsynchronouslyOnMainQueueIfNotCurrent:(dispatch_block_t)block; {
+    if ([[SDQueue mainQueue] isCurrentQueue]) {
+        block();
+    } else {
+        [[SDQueue mainQueue] runAsynchronously:block];
+    }
+}
+
 #pragma mark Managed Object Contexts
 
 - (NSManagedObjectContext *)newContext; {
@@ -187,7 +220,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 }
 
 - (void)managedObjectContextDidSave:(NSNotification *)notification; {
-    dispatch_block_t mergeBlock = ^{
+    [self runAsynchronouslyOnMainQueueIfNotCurrent:^{
         // make sure not to add the merged changes to any undo
         // manager which may exist
         [self.mainThreadContext processPendingChanges];
@@ -203,13 +236,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         } @catch (NSException *exception) {
             PROAssert(NO, @"Caught exception while attempting to merge save notification into main thread context %@ of %@: %@", self.mainThreadContext, self, exception);
         }
-    };
-
-    if ([[SDQueue mainQueue] isCurrentQueue]) {
-        mergeBlock();
-    } else {
-        [[SDQueue mainQueue] runAsynchronously:mergeBlock];
-    }
+    }];
 }
 
 #pragma mark Persistent Stores
@@ -396,16 +423,10 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
     if (notification.object != self.mainThreadContext.undoManager)
         return;
 
-    dispatch_block_t saveBlock = ^{
+    [self runAsynchronouslyOnMainQueueIfNotCurrent:^{
         NSError *error = nil;
         PROAssert([self.mainThreadContext save:&error], @"Main thread context failed to save after an undo or redo action. error = %@", error);
-    };
-
-    if ([[SDQueue mainQueue] isCurrentQueue]) {
-        saveBlock();
-    } else {
-        [[SDQueue mainQueue] runAsynchronously:saveBlock];
-    }
+    }];
 }
 
 @end
