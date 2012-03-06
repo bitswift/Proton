@@ -126,12 +126,37 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 - (NSManagedObjectContext *)mainThreadContext {
     dispatch_once(&m_mainThreadContextPredicate, ^{
         m_mainThreadContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
-        m_mainThreadContext.parentContext = self.globalContext;
-        m_mainThreadContext.undoManager = nil;
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidUndoChangeNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didUndoOrRedo:) name:NSUndoManagerDidRedoChangeNotification object:nil];
+
+        [[SDQueue mainQueue] runAsynchronouslyIfNotCurrent:^{
+            if (m_mainThreadContext.parentContext)
+                return;
+
+            m_mainThreadContext.parentContext = self.globalContext;
+            m_mainThreadContext.undoManager = nil;
+        }];
     });
+
+    /*
+     * This is here to protect against a subtle race condition.
+     *
+     * Namely, if a background thread accesses this getter while the main thread
+     * is blocked, and the main thread accesses this getter before the above
+     * (queued) block has been run, it could retrieve a context that hasn't been
+     * fully set up.
+     *
+     * So, to avoid such a case, we verify that the properties have been set
+     * correctly if we're running on the main thread and got through the
+     * dispatch_once without issue.
+     */
+    if ([[SDQueue mainQueue] isCurrentQueue]) {
+        if (!m_mainThreadContext.parentContext) {
+            m_mainThreadContext.parentContext = self.globalContext;
+            m_mainThreadContext.undoManager = nil;
+        }
+    }
 
     return m_mainThreadContext;
 }
@@ -187,7 +212,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 }
 
 - (void)managedObjectContextDidSave:(NSNotification *)notification; {
-    dispatch_block_t mergeBlock = ^{
+    [[SDQueue mainQueue] runAsynchronouslyIfNotCurrent:^{
         // make sure not to add the merged changes to any undo
         // manager which may exist
         [self.mainThreadContext processPendingChanges];
@@ -203,13 +228,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         } @catch (NSException *exception) {
             PROAssert(NO, @"Caught exception while attempting to merge save notification into main thread context %@ of %@: %@", self.mainThreadContext, self, exception);
         }
-    };
-
-    if ([[SDQueue mainQueue] isCurrentQueue]) {
-        mergeBlock();
-    } else {
-        [[SDQueue mainQueue] runAsynchronously:mergeBlock];
-    }
+    }];
 }
 
 #pragma mark Persistent Stores
@@ -396,16 +415,10 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
     if (notification.object != self.mainThreadContext.undoManager)
         return;
 
-    dispatch_block_t saveBlock = ^{
+    [[SDQueue mainQueue] runAsynchronouslyIfNotCurrent:^{
         NSError *error = nil;
         PROAssert([self.mainThreadContext save:&error], @"Main thread context failed to save after an undo or redo action. error = %@", error);
-    };
-
-    if ([[SDQueue mainQueue] isCurrentQueue]) {
-        saveBlock();
-    } else {
-        [[SDQueue mainQueue] runAsynchronously:saveBlock];
-    }
+    }];
 }
 
 @end
