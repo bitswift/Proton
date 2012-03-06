@@ -139,8 +139,18 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
         }];
     });
 
-    // necessary to avoid a race condition from performing the above asynchronous
-    // block too late for code on the main thread to get it
+    /*
+     * This is here to protect against a subtle race condition.
+     *
+     * Namely, if a background thread accesses this getter while the main thread
+     * is blocked, and the main thread accesses this getter before the above
+     * (queued) block has been run, it could retrieve a context that hasn't been
+     * fully set up.
+     *
+     * So, to avoid such a case, we verify that the properties have been set
+     * correctly if we're running on the main thread and got through the
+     * dispatch_once without issue.
+     */
     if ([[SDQueue mainQueue] isCurrentQueue]) {
         if (!m_mainThreadContext.parentContext) {
             m_mainThreadContext.parentContext = self.globalContext;
