@@ -270,14 +270,14 @@ SpecBegin(PRONSObjectAdditions)
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
             });
 
-            it(@"should apply 'setting' change to nil without mapping", ^{
+            it(@"should be emptied when applying 'setting' change to nil without mapping", ^{
                 NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
                     [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
                     [NSNull null], NSKeyValueChangeNewKey,
                     nil
                 ];
 
-                expectedArray = nil;
+                expectedArray = [NSArray array];
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
             });
 
@@ -351,14 +351,14 @@ SpecBegin(PRONSObjectAdditions)
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
             });
 
-            it(@"should apply 'setting' change to nil with mapping", ^{
+            it(@"should be emptied when applying 'setting' change to nil with mapping", ^{
                 NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
                     [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
                     [NSNull null], NSKeyValueChangeNewKey,
                     nil
                 ];
 
-                expectedArray = nil;
+                expectedArray = [NSArray array];
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
             });
 
@@ -467,14 +467,14 @@ SpecBegin(PRONSObjectAdditions)
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
             });
 
-            it(@"should apply 'setting' change to nil without mapping", ^{
+            it(@"should be emptied when applying 'setting' change to nil without mapping", ^{
                 NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
                     [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
                     [NSNull null], NSKeyValueChangeNewKey,
                     nil
                 ];
 
-                expectedSet = nil;
+                expectedSet = [NSSet set];
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:nil];
             });
 
@@ -539,14 +539,14 @@ SpecBegin(PRONSObjectAdditions)
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
             });
 
-            it(@"should apply 'setting' change to nil with mapping", ^{
+            it(@"should be emptied when applying 'setting' change to nil with mapping", ^{
                 NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
                     [NSNumber numberWithUnsignedInteger:NSKeyValueChangeSetting], NSKeyValueChangeKindKey,
                     [NSNull null], NSKeyValueChangeNewKey,
                     nil
                 ];
 
-                expectedSet = nil;
+                expectedSet = [NSSet set];
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
             });
 
