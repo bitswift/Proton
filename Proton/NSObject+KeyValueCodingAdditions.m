@@ -13,6 +13,19 @@
 #import "NSSet+HigherOrderAdditions.h"
 #import "PROAssert.h"
 
+
+static id mutableCollectionForKeyPath(id obj, NSString *keyPath) {
+    id currentValue = [obj valueForKeyPath:keyPath];
+    if ([currentValue isKindOfClass:[NSArray class]])
+        return [obj mutableArrayValueForKey:keyPath];
+    if ([currentValue isKindOfClass:[NSSet class]])
+        return [obj mutableSetValueForKeyPath:keyPath];
+    else if ([currentValue isKindOfClass:[NSOrderedSet class]])
+        return [obj mutableOrderedSetValueForKeyPath:keyPath];
+    return nil;
+}
+
+
 @safecategory (NSObject, KeyValueCodingAdditions)
 
 - (void)applyKeyValueChangeDictionary:(NSDictionary *)changes toKeyPath:(NSString *)keyPath mappingNewObjectsUsingBlock:(id (^)(id))block;{ 
@@ -58,7 +71,13 @@
     switch (change) {
         case NSKeyValueChangeSetting:
             if ([newValue isEqual:[NSNull null]]) {
-                [self setValue:nil forKeyPath:keyPath];
+                // Attempt to empty the collection before trying setValue:forKeyPath:
+                id mutableCollection = mutableCollectionForKeyPath(self, keyPath);
+                if (mutableCollection) {
+                    [mutableCollection removeAllObjects];
+                } else {
+                    [self setValue:nil forKeyPath:keyPath];
+                }
             } else if ([newValue isKindOfClass:[NSSet class]]) {
                 [[self mutableSetValueForKeyPath:keyPath] setSet:mappedCollection(newValue, NO)];
             } else if ([newValue isKindOfClass:[NSOrderedSet class]]) {
