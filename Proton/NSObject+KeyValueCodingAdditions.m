@@ -18,10 +18,11 @@ static id mutableCollectionForKeyPath(id obj, NSString *keyPath) {
     id currentValue = [obj valueForKeyPath:keyPath];
     if ([currentValue isKindOfClass:[NSArray class]])
         return [obj mutableArrayValueForKey:keyPath];
-    if ([currentValue isKindOfClass:[NSSet class]])
+    else if ([currentValue isKindOfClass:[NSSet class]])
         return [obj mutableSetValueForKeyPath:keyPath];
     else if ([currentValue isKindOfClass:[NSOrderedSet class]])
         return [obj mutableOrderedSetValueForKeyPath:keyPath];
+
     return nil;
 }
 
