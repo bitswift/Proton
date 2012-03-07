@@ -68,6 +68,8 @@
         }
     }];
 
+    [self awakeFromSerializedRepresentation];
+
     return self;
 }
 
@@ -108,6 +110,9 @@
     }];
 
     return propertyList;
+}
+
+- (void)awakeFromSerializedRepresentation {
 }
 
 @end

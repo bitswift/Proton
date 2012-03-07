@@ -47,4 +47,19 @@
  */
 - (NSDictionary *)propertyListRepresentation;
 
+/**
+ * @name Managing Life Cycle and Change Events
+ */
+
+/**
+ * Invoked automatically when the receiver is initialized with a serialized
+ * representation.
+ *
+ * You typically use this method to initialize special default property values.
+ *
+ * This is invoked by <initWithPropertyListRepresentation:insertIntoManagedObjectContext:>
+ * after any to-many relationships have been decoded.
+ */
+- (void)awakeFromSerializedRepresentation;
+
 @end
