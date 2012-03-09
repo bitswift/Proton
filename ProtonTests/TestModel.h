@@ -16,6 +16,9 @@
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) id value;
 @property (nonatomic, retain) NSSet *subModels;
+
+@property (nonatomic, readonly) BOOL initWasCalledOnTestModel;
+
 @end
 
 @interface TestModel (CoreDataGeneratedAccessors)
