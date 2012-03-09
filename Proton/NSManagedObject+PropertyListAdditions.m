@@ -21,7 +21,7 @@
     if (!PROAssert(entity, @"Could not find entity %@", entityName))
         return nil;
 
-    self = [super initWithEntity:entity insertIntoManagedObjectContext:context];
+    self = [self initWithEntity:entity insertIntoManagedObjectContext:context];
     if (!self)
         return nil;
     
