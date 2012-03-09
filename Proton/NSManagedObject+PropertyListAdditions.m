@@ -17,6 +17,13 @@
     if (!PROAssert(entityName, @"No entity name encoded for %@", [self class]))
         return nil;
 
+    // See if there is a subclass corresponding to the entity name
+    // and init there, so we can override this method
+    Class subclass = NSClassFromString(entityName);
+    if (subclass && [subclass isSubclassOfClass:self.class] && ![self isMemberOfClass:subclass]) {
+        return [[subclass alloc] initWithPropertyListRepresentation:propertyList insertIntoManagedObjectContext:context];
+    }
+
     NSEntityDescription *entity = [context.persistentStoreCoordinator.managedObjectModel.entitiesByName objectForKey:entityName];
     if (!PROAssert(entity, @"Could not find entity %@", entityName))
         return nil;

@@ -247,6 +247,18 @@ SpecBegin(PRONSManagedObjectAdditions)
                 expect(manager.mainThreadContext.insertedObjects).toEqual(insertedObjects);
             });
 
+            it(@"should instantiate a subclass if called on NSManagedObject", ^{
+                NSDictionary *propertyList = model.propertyListRepresentation;
+                expect(propertyList).not.toBeNil();
+
+                TestModel *anotherModel = (id)[[NSManagedObject alloc] initWithPropertyListRepresentation:propertyList insertIntoManagedObjectContext:manager.mainThreadContext];
+                expect(anotherModel).not.toBeNil();
+                expect(anotherModel).toBeInstanceOf([TestModel class]);
+                expect(anotherModel.initWasCalledOnTestModel).toBeTruthy();
+                expect(anotherModel.name).toEqual(model.name);
+                expect(anotherModel.propertyListRepresentation).toEqual(propertyList);
+            });
+
             it(@"should archive non-property list values", ^{
                 NSRange range = NSMakeRange(2, 10);
                 NSValue *rangeValue = [NSValue valueWithRange:range];
