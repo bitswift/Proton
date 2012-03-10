@@ -21,6 +21,8 @@
     if (!PROAssert(entity, @"Could not find an entity for %@ in context %@", self, context))
         return nil;
 
+    NSAssert(![context.undoManager isUndoRegistrationEnabled] || context.undoManager.groupingLevel > 0, @"%@ invoked for context %@, which has no open undo group -- this will register an undo group of its own, which is probably not what you want", NSStringFromSelector(_cmd), context);
+
     return [[self alloc] initWithEntity:entity insertIntoManagedObjectContext:context];
 }
 
