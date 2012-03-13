@@ -9,11 +9,22 @@
 #import <CoreData/CoreData.h>
 
 /**
- * Coordinates the editing of a model object, and allows views and view
+ * Coordinates the editing of an `NSManagedObject`, and allows views and view
  * controllers to bind to its properties.
+ *
+ * This class provides built-in support for undo grouping, using <groupsByEdit>,
+ * and for managed object context operations, using <saveOnCommitEditing> and
+ * <rollbackOnDiscardEditing>.
  *
  * This class conforms to the `<NSEditor>` and `<NSEditorRegistration>` informal
  * protocols on Mac OS X.
+ *
+ * Instances of this class will automatically remove themselves from the default
+ * `NSNotificationCenter` upon deallocation.
+ *
+ * @warning **Important:** This class is not safe to use from multiple threads
+ * simultaneously. It can be used on background threads if only accessed from
+ * one thread at a time.
  */
 @interface PROModelController : NSObject
 
@@ -38,8 +49,6 @@
  * The model object managed by the receiver.
  *
  * This may be redeclared by subclasses to be of a more specific type.
- *
- * This property is KVO-compliant.
  */
 @property (nonatomic, strong, readonly) NSManagedObject *model;
 
@@ -49,6 +58,9 @@
 
 /**
  * Any `undoManager` from the receiver's <managedObjectContext>.
+ *
+ * The receiver will automatically remove undo actions targeting itself upon
+ * deallocation.
  */
 @property (nonatomic, strong, readonly) NSUndoManager *undoManager;
 
@@ -88,19 +100,18 @@
 @property (nonatomic, assign) BOOL rollbackOnDiscardEditing;
 
 /**
- * @name Model Controllers
+ * @name Parent Controller
  */
 
 /**
- * Returns the model controller corresponding to the given model object,
- * creating a new one if necessary. If the given model could not be found, `nil`
- * is returned.
+ * A controller that coordinates the receiver's editing state with other
+ * controllers.
  *
- * @param model A model object to find the model controller for. This should be
- * an `NSManagedObject` that is or is part of an immediate relationship on the
- * receiver's <model>.
+ * If this property is set, the parent controller will receive
+ * <objectDidBeginEditing:> and <objectDidEndEditing:> messages when the
+ * receiver's <editing> state changes.
  */
-- (PROModelController *)modelControllerForModel:(NSManagedObject *)model;
+@property (nonatomic, weak) id parentController;
 
 /**
  * @name Registering Editors
@@ -118,7 +129,7 @@
  *
  * This property is KVO-compliant.
  */
-@property (nonatomic, strong, readonly) NSSet *currentEditors;
+@property (nonatomic, copy, readonly) NSSet *currentEditors;
 
 /**
  * Invoked by objects that want to begin editing the receiver's <model>.
@@ -137,30 +148,18 @@
 - (void)objectDidEndEditing:(id)editor;
 
 /**
- * @name Ending Editing
+ * @name Editing Status
  */
-
-/**
- * Invokes `discardEditing` on all <currentEditors>.
- *
- * The default implementation of this method does the following:
- *
- *  - If <groupsByEdit> is `YES`, any open undo group is closed and then
- *  discarded.
- *  - If <rollbackOnDiscardEditing> is `YES`, `rollback` is invoked on the
- *  <managedObjectContext>, thus discarding all unsaved changes.
- */
-- (void)discardEditing;
 
 /**
  * Whether the receiver is currently editing.
  *
- * The default implementation determines editing state simply by whether the
- * receiver has any <currentEditors>.
+ * The setter for this property should not be invoked by other classes; however,
+ * subclasses may override the setter to perform additional behaviors.
  *
  * This property is KVO-compliant.
  */
-@property (nonatomic, getter = isEditing, readonly) BOOL editing;
+@property (nonatomic, getter = isEditing) BOOL editing;
 
 /**
  * Attempts to commit editing on all <currentEditors>, returning whether the
@@ -215,5 +214,17 @@
  * changes.
  */
 - (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error))block;
+
+/**
+ * Invokes `discardEditing` on all <currentEditors>.
+ *
+ * The default implementation of this method does the following:
+ *
+ *  - If <groupsByEdit> is `YES`, any open undo group is closed and then
+ *  discarded.
+ *  - If <rollbackOnDiscardEditing> is `YES`, `rollback` is invoked on the
+ *  <managedObjectContext>, thus discarding all unsaved changes.
+ */
+- (void)discardEditing;
 
 @end
