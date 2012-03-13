@@ -30,7 +30,7 @@
 #import <Proton/PROKeyValueCodingMacros.h>
 #import <Proton/PROKeyValueObserver.h>
 #import <Proton/PROLogging.h>
-#import <Proton/PROModelController.h>
+#import <Proton/PROManagedObjectController.h>
 #import <Proton/PROUniqueIdentifier.h>
 
 // other imported frameworks

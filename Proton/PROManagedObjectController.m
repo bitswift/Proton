@@ -1,18 +1,18 @@
 //
-//  PROModelController.m
+//  PROManagedObjectController.m
 //  Proton
 //
 //  Created by Justin Spahr-Summers on 13.03.12.
 //  Copyright (c) 2012 Bitswift. All rights reserved.
 //
 
-#import "PROModelController.h"
+#import "PROManagedObjectController.h"
 #import "EXTScope.h"
 #import "NSUndoManager+UndoStackAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
 
-@interface PROModelController () {
+@interface PROManagedObjectController () {
     NSMutableSet *m_currentEditors;
 
     struct {
@@ -50,7 +50,7 @@
 - (BOOL)commitEditor:(id)editor error:(NSError **)error;
 @end
 
-@implementation PROModelController
+@implementation PROManagedObjectController
 
 #pragma mark Properties
 

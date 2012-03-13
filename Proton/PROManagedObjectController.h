@@ -1,5 +1,5 @@
 //
-//  PROModelController.h
+//  PROManagedObjectController.h
 //  Proton
 //
 //  Created by Justin Spahr-Summers on 13.03.12.
@@ -26,7 +26,7 @@
  * simultaneously. It can be used on background threads if only accessed from
  * one thread at a time.
  */
-@interface PROModelController : NSObject
+@interface PROManagedObjectController : NSObject
 
 /**
  * @name Initialization
