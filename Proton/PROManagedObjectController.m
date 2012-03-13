@@ -139,7 +139,7 @@
         self.editing = YES;
 }
 
-- (void)removeEditors:(NSSet *)editors {
+- (void)removeCurrentEditors:(NSSet *)editors {
     [m_currentEditors minusSet:editors];
 
     if (!m_currentEditors.count)
