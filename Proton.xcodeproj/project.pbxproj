@@ -29,6 +29,8 @@
 		D00DA76A150FD9980090875F /* PROManagedObjectController.h in Headers */ = {isa = PBXBuildFile; fileRef = D00DA767150FD9980090875F /* PROManagedObjectController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D00DA76B150FD9980090875F /* PROManagedObjectController.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA768150FD9980090875F /* PROManagedObjectController.m */; };
 		D00DA76C150FD9980090875F /* PROManagedObjectController.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA768150FD9980090875F /* PROManagedObjectController.m */; };
+		D00DA76E151001100090875F /* PROManagedObjectControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */; };
+		D00DA76F151001100090875F /* PROManagedObjectControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */; };
 		D0205B2614F32C9500404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
 		D0205B2814F32C9C00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2714F32C9C00404ACA /* CoreData.framework */; };
 		D0205B2914F32CBE00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
@@ -339,6 +341,7 @@
 		D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
 		D00DA767150FD9980090875F /* PROManagedObjectController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROManagedObjectController.h; sourceTree = "<group>"; };
 		D00DA768150FD9980090875F /* PROManagedObjectController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROManagedObjectController.m; sourceTree = "<group>"; };
+		D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROManagedObjectControllerTests.m; sourceTree = "<group>"; };
 		D0205B2514F32C9500404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		D0205B2714F32C9C00404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		D0205B2C14F32D0000404ACA /* PROCoreDataManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROCoreDataManager.h; sourceTree = "<group>"; };
@@ -638,6 +641,7 @@
 				D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */,
 				D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */,
 				D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */,
+				D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */,
 				D001801814F1E5AE00A131D8 /* PRONSArrayAdditionsTests.m */,
 				D0ADFE7F150025390043787E /* PRONSErrorAdditionsTests.m */,
 				D0205BAF14F33C1500404ACA /* PRONSManagedObjectAdditionsTests.m */,
@@ -1349,6 +1353,7 @@
 				D0870F0014F3E95F0099AF8E /* TestModel.m in Sources */,
 				D0870F0414F3E96B0099AF8E /* TestSubModel.m in Sources */,
 				D0ADFE81150025390043787E /* PRONSErrorAdditionsTests.m in Sources */,
+				D00DA76F151001100090875F /* PROManagedObjectControllerTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1421,6 +1426,7 @@
 				D0870EFF14F3E95F0099AF8E /* TestModel.m in Sources */,
 				D0870F0314F3E96B0099AF8E /* TestSubModel.m in Sources */,
 				D0ADFE80150025390043787E /* PRONSErrorAdditionsTests.m in Sources */,
+				D00DA76E151001100090875F /* PROManagedObjectControllerTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
