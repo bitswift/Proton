@@ -163,6 +163,11 @@
 
     m_model = model;
     m_currentEditors = [NSMutableSet set];
+
+    self.groupsByEdit = YES;
+    self.saveOnCommitEditing = YES;
+    self.rollbackOnDiscardEditing = YES;
+
     return self;
 }
 
