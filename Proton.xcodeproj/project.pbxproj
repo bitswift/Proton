@@ -25,6 +25,10 @@
 		D002AEC114CDFF570062AEFC /* libSpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9E14CDFF1F0062AEFC /* libSpecta-iOS.a */; };
 		D00AB29E14CFF549000BC4B0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29D14CFF549000BC4B0 /* UIKit.framework */; };
 		D00AB2A014CFF55E000BC4B0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */; };
+		D00DA769150FD9980090875F /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D00DA767150FD9980090875F /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D00DA76A150FD9980090875F /* PROModelController.h in Headers */ = {isa = PBXBuildFile; fileRef = D00DA767150FD9980090875F /* PROModelController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D00DA76B150FD9980090875F /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA768150FD9980090875F /* PROModelController.m */; };
+		D00DA76C150FD9980090875F /* PROModelController.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA768150FD9980090875F /* PROModelController.m */; };
 		D0205B2614F32C9500404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
 		D0205B2814F32C9C00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2714F32C9C00404ACA /* CoreData.framework */; };
 		D0205B2914F32CBE00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
@@ -333,6 +337,8 @@
 		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
 		D00AB29D14CFF549000BC4B0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
+		D00DA767150FD9980090875F /* PROModelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROModelController.h; sourceTree = "<group>"; };
+		D00DA768150FD9980090875F /* PROModelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROModelController.m; sourceTree = "<group>"; };
 		D0205B2514F32C9500404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		D0205B2714F32C9C00404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		D0205B2C14F32D0000404ACA /* PROCoreDataManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROCoreDataManager.h; sourceTree = "<group>"; };
@@ -547,6 +553,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		D00DA766150FD98B0090875F /* Model Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				D00DA767150FD9980090875F /* PROModelController.h */,
+				D00DA768150FD9980090875F /* PROModelController.m */,
+			);
+			name = "Model Controllers";
+			sourceTree = "<group>";
+		};
 		D0205B2B14F32CE200404ACA /* Core Data */ = {
 			isa = PBXGroup;
 			children = (
@@ -674,6 +689,7 @@
 				D04D284514A5626F00197AB9 /* Key-Value Coding */,
 				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
 				D0A3DD7014CAB85000754143 /* Logging */,
+				D00DA766150FD98B0090875F /* Model Controllers */,
 				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
 			);
 			name = Modules;
@@ -980,6 +996,7 @@
 				D0830A4914FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.h in Headers */,
 				D0ADFE7C150022A40043787E /* NSError+ValidationAdditions.h in Headers */,
 				D0CB0E2A150180FB0099611A /* NSObject+KeyValueCodingAdditions.h in Headers */,
+				D00DA76A150FD9980090875F /* PROModelController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1025,6 +1042,7 @@
 				D0830A4814FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.h in Headers */,
 				D0ADFE7B150022A40043787E /* NSError+ValidationAdditions.h in Headers */,
 				D0CB0E29150180FB0099611A /* NSObject+KeyValueCodingAdditions.h in Headers */,
+				D00DA769150FD9980090875F /* PROModelController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1300,6 +1318,7 @@
 				D0830A4B14FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.m in Sources */,
 				D0ADFE7E150022A40043787E /* NSError+ValidationAdditions.m in Sources */,
 				D0CB0E2C150180FB0099611A /* NSObject+KeyValueCodingAdditions.m in Sources */,
+				D00DA76C150FD9980090875F /* PROModelController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1371,6 +1390,7 @@
 				D0830A4A14FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.m in Sources */,
 				D0ADFE7D150022A40043787E /* NSError+ValidationAdditions.m in Sources */,
 				D0CB0E2B150180FB0099611A /* NSObject+KeyValueCodingAdditions.m in Sources */,
+				D00DA76B150FD9980090875F /* PROModelController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
