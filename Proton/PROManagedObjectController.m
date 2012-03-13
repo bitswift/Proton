@@ -192,7 +192,8 @@
         return;
 
     [self.currentEditors enumerateObjectsUsingBlock:^(id editor, BOOL *stop){
-        [editor discardEditing];
+        if (PROAssert([editor respondsToSelector:@selector(discardEditing)], @"%@ does not implement <NSEditor>", editor))
+            [editor discardEditing];
     }];
 
     /*
@@ -280,7 +281,7 @@
         return [editor commitEditingAndReturnError:error];
     }
 
-    if (!PROAssert([editor respondsToSelector:@selector(commitEditing)], @"%@ does not implement <NSEditor>"))
+    if (!PROAssert([editor respondsToSelector:@selector(commitEditing)], @"%@ does not implement <NSEditor>", editor))
         return NO;
 
     return [editor commitEditing];
