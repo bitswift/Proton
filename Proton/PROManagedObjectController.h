@@ -46,11 +46,12 @@
  */
 
 /**
- * The model object managed by the receiver.
+ * The `NSManagedObject` managed by the receiver.
  *
- * This may be redeclared by subclasses to be of a more specific type.
+ * This property is typed as `id` to easily support subclasses, and may be
+ * redeclared by controller subclasses to be of a more specific type.
  */
-@property (nonatomic, strong, readonly) NSManagedObject *model;
+@property (nonatomic, strong, readonly) id model;
 
 /**
  * @name Undo Management
@@ -134,6 +135,9 @@
 /**
  * Invoked by objects that want to begin editing the receiver's <model>.
  *
+ * This will invoke `setActionName:` on the receiver's <undoManager> with any
+ * <[NSObject editingUndoActionName]> that is set on the given editor object.
+ *
  * @param editor The object that has begun editing. This object will be added to
  * <currentEditors>.
  */
@@ -148,7 +152,7 @@
 - (void)objectDidEndEditing:(id)editor;
 
 /**
- * @name Editing Status
+ * @name Editing State
  */
 
 /**
@@ -216,6 +220,23 @@
 - (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error))block;
 
 /**
+ * Attempts to commit editing on all controllers in the hierarchy, returning
+ * whether the commit was successful.
+ *
+ * This method effectively walks up to the top-most controller by following the
+ * <parentController> property, and then asks that top-most controller to commit
+ * editing. That controller is then responsible for committing all active
+ * editors it knows of.
+ *
+ * If the receiver has no <parentController>, this method behaves identically to
+ * <commitEditingAndReturnError:>.
+ *
+ * @param error If not `NULL`, and this method returns `NO`, this may be filled
+ * in with information about the error that occurred.
+ */
+- (BOOL)commitAllEditingAndReturnError:(NSError **)error;
+
+/**
  * Invokes `discardEditing` on all <currentEditors>.
  *
  * The default implementation of this method does the following:
@@ -226,5 +247,18 @@
  *  <managedObjectContext>, thus discarding all unsaved changes.
  */
 - (void)discardEditing;
+
+/**
+ * Discards editing on all controllers in the hierarchy.
+ *
+ * This method effectively walks up to the top-most controller by following the
+ * <parentController> property, and then asks that top-most controller to
+ * discard editing. That controller is then responsible for discarding the edits
+ * of all active editors it knows of.
+ *
+ * If the receiver has no <parentController>, this method behaves identically to
+ * <discardEditing>.
+ */
+- (void)discardAllEditing;
 
 @end

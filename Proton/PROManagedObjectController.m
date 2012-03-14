@@ -9,6 +9,7 @@
 #import "PROManagedObjectController.h"
 #import "EXTScope.h"
 #import "NSManagedObjectContext+ConvenienceAdditions.h"
+#import "NSObject+EditorAdditions.h"
 #import "NSUndoManager+UndoStackAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
@@ -126,7 +127,7 @@
 }
 
 - (NSManagedObjectContext *)managedObjectContext {
-    return self.model.managedObjectContext;
+    return [self.model managedObjectContext];
 }
 
 - (NSSet *)currentEditors {
@@ -184,6 +185,8 @@
 - (void)objectDidBeginEditing:(id)editor; {
     NSMutableSet *editors = [self mutableSetValueForKey:PROKeyForObject(self, currentEditors)];
     [editors addObject:editor];
+
+    [self.undoManager setActionName:[editor editingUndoActionName]];
 }
 
 - (void)objectDidEndEditing:(id)editor; {
@@ -298,6 +301,35 @@
         return NO;
 
     return [editor commitEditing];
+}
+
+- (BOOL)commitAllEditingAndReturnError:(NSError **)error; {
+    id controller = self;
+
+    do {
+        id parent = [controller parentController];
+        if (!parent)
+            break;
+
+        controller = parent;
+    } while ([controller respondsToSelector:@selector(parentController)]);
+
+    return [self commitEditor:controller error:error];
+}
+
+- (void)discardAllEditing; {
+    id controller = self;
+
+    do {
+        id parent = [controller parentController];
+        if (!parent)
+            break;
+
+        controller = parent;
+    } while ([controller respondsToSelector:@selector(parentController)]);
+
+    if (PROAssert([controller respondsToSelector:@selector(discardEditing)], @"%@ does not implement <NSEditor>", controller))
+        [controller discardEditing];
 }
 
 #pragma mark NSKeyValueCoding
