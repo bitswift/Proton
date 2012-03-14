@@ -126,7 +126,7 @@
 }
 
 - (NSManagedObjectContext *)managedObjectContext {
-    return self.model.managedObjectContext;
+    return [self.model managedObjectContext];
 }
 
 - (NSSet *)currentEditors {

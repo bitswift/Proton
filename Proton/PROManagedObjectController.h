@@ -46,11 +46,12 @@
  */
 
 /**
- * The model object managed by the receiver.
+ * The `NSManagedObject` managed by the receiver.
  *
- * This may be redeclared by subclasses to be of a more specific type.
+ * This property is typed as `id` to easily support subclasses, and may be
+ * redeclared by controller subclasses to be of a more specific type.
  */
-@property (nonatomic, strong, readonly) NSManagedObject *model;
+@property (nonatomic, strong, readonly) id model;
 
 /**
  * @name Undo Management
