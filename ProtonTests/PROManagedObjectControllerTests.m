@@ -152,7 +152,9 @@ SpecBegin(PROManagedObjectController)
         editingObserverInvoked = NO;
         currentEditorsObserverInvoked = NO;
 
-        [controller objectDidEndEditing:editor];
+        expect([^{
+            [controller objectDidEndEditing:editor];
+        } copy]).toInvoke(controller, @selector(commitEditing));
 
         expect(controller.currentEditors.count).toEqual(0);
         expect(controller.editing).toBeFalsy();
@@ -170,7 +172,10 @@ SpecBegin(PROManagedObjectController)
         currentEditorsObserverInvoked = NO;
 
         TestEditor *editor = [editors anyObject];
-        [controller objectDidEndEditing:editor];
+
+        expect([^{
+            [controller objectDidEndEditing:editor];
+        } copy]).not.toInvoke(controller, @selector(commitEditing));
 
         NSMutableSet *remainingEditors = [editors mutableCopy];
         [remainingEditors removeObject:editor];
@@ -448,7 +453,7 @@ SpecBegin(PROManagedObjectController)
             expect(context.hasChanges).toBeFalsy();
         });
 
-        it(@"should not save when saveOnCommitEditing is YES", ^{
+        it(@"should not save when saveOnCommitEditing is NO", ^{
             controller.saveOnCommitEditing = NO;
 
             expect([controller commitEditing]).toBeTruthy();
@@ -456,6 +461,17 @@ SpecBegin(PROManagedObjectController)
 
             expect(model.name).toEqual(name);
             expect(context.hasChanges).toBeTruthy();
+        });
+
+        it(@"should save when saveOnCommitEditing is YES and last editor finishes", ^{
+            TestEditor *editor = [editors anyObject];
+
+            [controller objectDidBeginEditing:editor];
+            [controller objectDidEndEditing:editor];
+            expect(controller.editing).toBeFalsy();
+
+            expect(model.name).toEqual(name);
+            expect(context.hasChanges).toBeFalsy();
         });
 
         it(@"should rollback when rollbackOnDiscardEditing is YES", ^{
