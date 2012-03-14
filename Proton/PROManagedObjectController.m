@@ -8,6 +8,7 @@
 
 #import "PROManagedObjectController.h"
 #import "EXTScope.h"
+#import "NSManagedObjectContext+ConvenienceAdditions.h"
 #import "NSUndoManager+UndoStackAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
@@ -201,16 +202,22 @@
             [editor discardEditing];
     }];
 
+    BOOL shouldDiscardUndoGroup = self.hasOpenUndoGroup;
+
     /*
      * Editors are expected to invoke <objectDidEndEditing:> when they discard
      * their changes. If they don't, we assume that they haven't really finished
      * editing (for some reason).
      */
     self.editing = NO;
-    
-    // only rollback after cleaning up undo stuff
+
+    // only rollback after closing undo groups
     if (self.rollbackOnDiscardEditing) {
         [self.managedObjectContext rollback];
+    }
+    
+    if (!self.editing && shouldDiscardUndoGroup) {
+        [self.undoManager undoNestedGroupingWithoutRegisteringRedo];
     }
 }
 
@@ -271,6 +278,7 @@
 
     if (self.saveOnCommitEditing && self.managedObjectContext) {
         NSError *error = nil;
+        NSLog(@"saving");
         if (![self.managedObjectContext save:&error]) {
             block(NO, error);
             return;
