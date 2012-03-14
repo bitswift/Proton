@@ -300,6 +300,35 @@
     return [editor commitEditing];
 }
 
+- (BOOL)commitAllEditingAndReturnError:(NSError **)error; {
+    id controller = self;
+
+    do {
+        id parent = [controller parentController];
+        if (!parent)
+            break;
+
+        controller = parent;
+    } while ([controller respondsToSelector:@selector(parentController)]);
+
+    return [self commitEditor:controller error:error];
+}
+
+- (void)discardAllEditing; {
+    id controller = self;
+
+    do {
+        id parent = [controller parentController];
+        if (!parent)
+            break;
+
+        controller = parent;
+    } while ([controller respondsToSelector:@selector(parentController)]);
+
+    if (PROAssert([controller respondsToSelector:@selector(discardEditing)], @"%@ does not implement <NSEditor>", controller))
+        [controller discardEditing];
+}
+
 #pragma mark NSKeyValueCoding
 
 + (BOOL)accessInstanceVariablesDirectly {

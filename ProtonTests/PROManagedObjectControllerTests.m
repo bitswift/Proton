@@ -230,11 +230,28 @@ SpecBegin(PROManagedObjectController)
                 } copy]).toInvoke(editor, @selector(commitEditingAndReturnError:));
             });
 
+            it(@"should commitAllEditingAndReturnError: identically to commitEditingAndReturnError: without a parent", ^{
+                expect([^{
+                    __block NSError *error = nil;
+                    expect([controller commitAllEditingAndReturnError:&error]).toBeTruthy();
+                    expect(error).toBeNil();
+                } copy]).toInvoke(editor, @selector(commitEditingAndReturnError:));
+            });
+
             it(@"should fail to commitEditingAndReturnError: if any editor fails", ^{
                 editor.shouldFailToCommit = YES;
 
                 __block NSError *error = nil;
                 expect([controller commitEditingAndReturnError:&error]).toBeFalsy();
+                expect(error.domain).toEqual(editor.testError.domain);
+                expect(error.code).toEqual(editor.testError.code);
+            });
+
+            it(@"should fail to commitAllEditingAndReturnError: identically to commitEditingAndReturnError: without a parent", ^{
+                editor.shouldFailToCommit = YES;
+
+                __block NSError *error = nil;
+                expect([controller commitAllEditingAndReturnError:&error]).toBeFalsy();
                 expect(error.domain).toEqual(editor.testError.domain);
                 expect(error.code).toEqual(editor.testError.code);
             });
@@ -426,25 +443,75 @@ SpecBegin(PROManagedObjectController)
         });
     });
 
-    it(@"should notify a parent controller of editing changes", ^{
-        PROManagedObjectController *parentController = [[PROManagedObjectController alloc] initWithModel:model];
-        expect(parentController).not.toBeNil();
+    describe(@"with a parent controller", ^{
+        __block PROManagedObjectController *parentController;
 
-        controller.parentController = parentController;
+        before(^{
+            parentController = [[PROManagedObjectController alloc] initWithModel:model];
+            expect(parentController).not.toBeNil();
 
-        expect([^{
-            controller.editing = YES;
-        } copy]).toInvoke(parentController, @selector(objectDidBeginEditing:));
+            controller.parentController = parentController;
+        });
 
-        expect(parentController.currentEditors).toEqual([NSSet setWithObject:controller]);
-        expect(parentController.editing).toBeTruthy();
+        after(^{
+            parentController = nil;
+        });
 
-        expect([^{
-            controller.editing = NO;
-        } copy]).toInvoke(parentController, @selector(objectDidEndEditing:));
+        it(@"should notify the parent of editing changes", ^{
+            expect([^{
+                controller.editing = YES;
+            } copy]).toInvoke(parentController, @selector(objectDidBeginEditing:));
 
-        expect(parentController.currentEditors.count).toEqual(0);
-        expect(parentController.editing).toBeFalsy();
+            expect(parentController.currentEditors).toEqual([NSSet setWithObject:controller]);
+            expect(parentController.editing).toBeTruthy();
+
+            expect([^{
+                controller.editing = NO;
+            } copy]).toInvoke(parentController, @selector(objectDidEndEditing:));
+
+            expect(parentController.currentEditors.count).toEqual(0);
+            expect(parentController.editing).toBeFalsy();
+        });
+
+        describe(@"finishing all editing", ^{
+            before(^{
+                parentController.editing = YES;
+            });
+
+            it(@"should commit the parent upon commitAllEditingAndReturnError:", ^{
+                expect([^{
+                    __block NSError *error = nil;
+                    expect([controller commitAllEditingAndReturnError:&error]).toBeTruthy();
+                    expect(error).toBeNil();
+                } copy]).toInvoke(parentController, @selector(commitEditingAndReturnError:));
+
+                expect(parentController.editing).toBeFalsy();
+            });
+
+            it(@"should fail to commit the parent upon commitAllEditingAndReturnError: if any editor fails", ^{
+                TestEditor *editor = [editors anyObject];
+                editor.shouldFailToCommit = YES;
+
+                [controller objectDidBeginEditing:editor];
+
+                expect([^{
+                    __block NSError *error = nil;
+                    expect([controller commitAllEditingAndReturnError:&error]).toBeFalsy();
+                    expect(error.domain).toEqual(editor.testError.domain);
+                    expect(error.code).toEqual(editor.testError.code);
+                } copy]).toInvoke(parentController, @selector(commitEditingAndReturnError:));
+
+                expect(parentController.editing).toBeTruthy();
+            });
+
+            it(@"should discard the parent's edits upon discardAllEditing", ^{
+                expect([^{
+                    [controller discardAllEditing];
+                } copy]).toInvoke(parentController, @selector(discardEditing));
+
+                expect(parentController.editing).toBeFalsy();
+            });
+        });
     });
 
 SpecEnd
