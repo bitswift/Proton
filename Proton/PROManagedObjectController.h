@@ -215,9 +215,11 @@
  * behavior of committing an edit.
  *
  * @param block A block to invoke when the receiver has finished committing its
- * changes.
+ * changes. Upon failure, this block will be passed the error, and the editor
+ * that failed to commit, or `nil` if an error occurred during saving the
+ * receiver's <managedObjectContext>.
  */
-- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error))block;
+- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error, id failedEditor))block;
 
 /**
  * Attempts to commit editing on all controllers in the hierarchy, returning
@@ -260,5 +262,28 @@
  * <discardEditing>.
  */
 - (void)discardAllEditing;
+
+/**
+ * @name Error Handling
+ */
+
+/**
+ * Invoked to respond to an error that occurred from the given editor.
+ *
+ * This method is only invoked in cases where errors occurred, but no facility
+ * exists to return them, such as from the following methods:
+ *
+ *  - <commitEditing>
+ *  - <commitEditingWithDelegate:didCommitSelector:contextInfo:>
+ *  - <objectDidEndEditing:> (when a save is attempted)
+ *
+ * The default implementation of this method simply logs the error. Subclasses
+ * may override it to perform additional actions.
+ *
+ * @param error The error that occurred. This may be `nil`.
+ * @param editor The editor which failed, or `nil` if the error occurred during
+ * saving to the receiver's <managedObjectContext>.
+ */
+- (void)handleError:(NSError *)error fromEditor:(id)editor;
 
 @end

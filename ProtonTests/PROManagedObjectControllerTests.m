@@ -219,7 +219,10 @@ SpecBegin(PROManagedObjectController)
 
             it(@"should fail to commitEditing if any editor fails", ^{
                 editor.shouldFailToCommit = YES;
-                expect([controller commitEditing]).toBeFalsy();
+
+                expect([^{
+                    expect([controller commitEditing]).toBeFalsy();
+                } copy]).toInvoke(controller, @selector(handleError:fromEditor:));
             });
 
             it(@"should commitEditingAndReturnError: if all editors commit", ^{
@@ -275,7 +278,9 @@ SpecBegin(PROManagedObjectController)
                     editor.shouldFailToCommit = YES;
 
                     expect([^{
-                        [controller commitEditingWithDelegate:editor didCommitSelector:didCommitSelector contextInfo:contextInfo];
+                        expect([^{
+                            [controller commitEditingWithDelegate:editor didCommitSelector:didCommitSelector contextInfo:contextInfo];
+                        } copy]).toInvoke(controller, @selector(handleError:fromEditor:));
                     } copy]).toInvoke(editor, didCommitSelector);
                 });
             });

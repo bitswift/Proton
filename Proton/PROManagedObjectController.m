@@ -13,6 +13,7 @@
 #import "NSUndoManager+UndoStackAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
+#import "PROLogging.h"
 
 @interface PROManagedObjectController () {
     NSMutableSet *m_currentEditors;
@@ -180,6 +181,15 @@
     [self.undoManager removeAllActionsWithTarget:self];
 }
 
+#pragma mark Error Handling
+
+- (void)handleError:(NSError *)error fromEditor:(id)editor; {
+    if (editor)
+        DDLogError(@"Error occurred saving changes from editor %@: %@", editor, error);
+    else
+        DDLogError(@"Error occurred saving changes: %@", error);
+}
+
 #pragma mark NSEditorRegistration
 
 - (void)objectDidBeginEditing:(id)editor; {
@@ -225,13 +235,21 @@
 }
 
 - (BOOL)commitEditing; {
-    return [self commitEditingAndReturnError:NULL];
+    __block BOOL success = NO;
+
+    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error, id failedEditor){
+        success = commitSuccessful;
+        if (!commitSuccessful)
+            [self handleError:error fromEditor:failedEditor];
+    }];
+
+    return success;
 }
 
 - (BOOL)commitEditingAndReturnError:(NSError **)errorPtr; {
     __block BOOL success = NO;
 
-    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error){
+    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error, id failedEditor){
         success = commitSuccessful;
         if (!commitSuccessful && errorPtr) {
             *errorPtr = error;
@@ -242,7 +260,11 @@
 }
 
 - (void)commitEditingWithDelegate:(id)delegate didCommitSelector:(SEL)selector contextInfo:(void *)contextInfo; {
-    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error){
+    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error, id failedEditor){
+        if (!commitSuccessful) {
+            [self handleError:error fromEditor:failedEditor];
+        }
+
         if (!delegate)
             return;
 
@@ -263,33 +285,32 @@
     }];
 }
 
-- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error))block; {
+- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error, id failedEditor))block; {
     NSParameterAssert(block != nil);
 
     if (!self.editing) {
-        block(YES, nil);
+        block(YES, nil, nil);
         return;
     }
 
     for (id editor in self.currentEditors) {
         NSError *error = nil;
         if (![self commitEditor:editor error:&error]) {
-            block(NO, error);
+            block(NO, error, editor);
             return;
         }
     }
 
     if (self.saveOnCommitEditing && self.managedObjectContext) {
         NSError *error = nil;
-        NSLog(@"saving");
         if (![self.managedObjectContext save:&error]) {
-            block(NO, error);
+            block(NO, error, nil);
             return;
         }
     }
 
     self.editing = NO;
-    block(YES, nil);
+    block(YES, nil, nil);
 }
 
 - (BOOL)commitEditor:(id)editor error:(NSError **)error; {
