@@ -112,6 +112,11 @@
 }
 
 - (void)setEditing:(BOOL)value {
+    [self willChangeValueForKey:PROKeyForObject(self, editing)];
+    @onExit {
+        [self didChangeValueForKey:PROKeyForObject(self, editing)];
+    };
+
     BOOL wasEditing = self.editing;
     m_flags.editing = value;
 
@@ -156,17 +161,22 @@
 }
 
 - (void)addCurrentEditors:(NSSet *)editors {
-    [m_currentEditors unionSet:editors];
+    [self willChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueUnionSetMutation usingObjects:editors];
 
-    if (m_currentEditors.count)
-        self.editing = YES;
+    [m_currentEditors unionSet:editors];
+    self.editing = YES;
+
+    [self didChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueUnionSetMutation usingObjects:editors];
 }
 
 - (void)removeCurrentEditors:(NSSet *)editors {
-    [m_currentEditors minusSet:editors];
+    [self willChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueMinusSetMutation usingObjects:editors];
 
+    [m_currentEditors minusSet:editors];
     if (!m_currentEditors.count)
         self.editing = NO;
+
+    [self didChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueMinusSetMutation usingObjects:editors];
 }
 
 #pragma mark Lifecycle
@@ -213,15 +223,12 @@
 #pragma mark NSEditorRegistration
 
 - (void)objectDidBeginEditing:(id)editor; {
-    NSMutableSet *editors = [self mutableSetValueForKey:PROKeyForObject(self, currentEditors)];
-    [editors addObject:editor];
-
+    [self addCurrentEditors:[NSSet setWithObject:editor]];
     [self.undoManager setActionName:[editor editingUndoActionName]];
 }
 
 - (void)objectDidEndEditing:(id)editor; {
-    NSMutableSet *editors = [self mutableSetValueForKey:PROKeyForObject(self, currentEditors)];
-    [editors removeObject:editor];
+    [self removeCurrentEditors:[NSSet setWithObject:editor]];
 }
 
 #pragma mark NSEditor
@@ -390,6 +397,18 @@
 
 + (BOOL)accessInstanceVariablesDirectly {
     return NO;
+}
+
+#pragma mark NSKeyValueObserving
+
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key {
+    if ([key isEqualToString:PROKeyForClass(PROManagedObjectController, currentEditors)])
+        return NO;
+
+    if ([key isEqualToString:PROKeyForClass(PROManagedObjectController, editing)])
+        return NO;
+
+    return YES;
 }
 
 #pragma mark NSObject overrides
