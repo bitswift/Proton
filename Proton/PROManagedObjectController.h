@@ -146,6 +146,12 @@
 /**
  * Invoked by objects that have finished editing the receiver's <model>.
  *
+ * If this method is invoked with the last editor, and not as the result of
+ * a call to <discardEditing>, the receiver will invoke <commitEditing>. The
+ * main purpose of this behavior is to save the receiver's
+ * <managedObjectContext> if <saveOnCommitEditing> is enabled and all editors
+ * finish normally.
+ *
  * @param editor The object that has finished editing. This object will be
  * removed from <currentEditors>, if present.
  */
