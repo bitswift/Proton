@@ -392,6 +392,34 @@ SpecBegin(PROManagedObjectController)
             controller.editing = YES;
             [controller discardEditing];
         });
+
+        it(@"should use the undo action name of the editor", ^{
+            TestEditor *editor = [editors anyObject];
+
+            editor.editingUndoActionName = @"foobar";
+            expect(editor.editingUndoActionName).toEqual(@"foobar");
+
+            [controller objectDidBeginEditing:editor];
+            expect(undoManager.undoActionName).toEqual(editor.editingUndoActionName);
+
+            controller.editing = NO;
+        });
+
+        it(@"should use the undo action name of the last editor registered", ^{
+            NSMutableString *name = [NSMutableString string];
+
+            [editors enumerateObjectsUsingBlock:^(TestEditor *editor, BOOL *stop){
+                [name appendString:@"foo"];
+
+                editor.editingUndoActionName = name;
+                expect(editor.editingUndoActionName).toEqual(name);
+
+                [controller objectDidBeginEditing:editor];
+            }];
+
+            expect(undoManager.undoActionName).toEqual(name);
+            controller.editing = NO;
+        });
     });
 
     describe(@"context changes", ^{

@@ -9,6 +9,7 @@
 #import "PROManagedObjectController.h"
 #import "EXTScope.h"
 #import "NSManagedObjectContext+ConvenienceAdditions.h"
+#import "NSObject+EditorAdditions.h"
 #import "NSUndoManager+UndoStackAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
@@ -184,6 +185,8 @@
 - (void)objectDidBeginEditing:(id)editor; {
     NSMutableSet *editors = [self mutableSetValueForKey:PROKeyForObject(self, currentEditors)];
     [editors addObject:editor];
+
+    [self.undoManager setActionName:[editor editingUndoActionName]];
 }
 
 - (void)objectDidEndEditing:(id)editor; {

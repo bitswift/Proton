@@ -135,6 +135,9 @@
 /**
  * Invoked by objects that want to begin editing the receiver's <model>.
  *
+ * This will invoke `setActionName:` on the receiver's <undoManager> with any
+ * <[NSObject editingUndoActionName]> that is set on the given editor object.
+ *
  * @param editor The object that has begun editing. This object will be added to
  * <currentEditors>.
  */
