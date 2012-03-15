@@ -52,10 +52,10 @@
 }
 
 - (NSDictionary *)propertyListRepresentation {
-    NSArray *properties = self.entity.properties;
-    properties = [properties filterUsingBlock:^ BOOL (id property) {
-        return !([property isKindOfClass:[NSRelationshipDescription class]] && ![property isToMany]);
+    NSArray *properties = [self.entity.properties filterUsingBlock:^ BOOL (id property) {
+        return ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
     }];
+
     return [self propertyListRepresentationIncludingProperties:properties];
 }
 
