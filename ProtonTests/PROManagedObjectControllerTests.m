@@ -447,6 +447,45 @@ SpecBegin(PROManagedObjectController)
             expect(undoManager.undoActionName).toEqual(name);
             controller.editing = NO;
         });
+
+        describe(@"undo action names with a parent", ^{
+            __block PROManagedObjectController *parentController;
+
+            before(^{
+                parentController = [[PROManagedObjectController alloc] initWithModel:model];
+                expect(parentController).not.toBeNil();
+
+                controller.parentController = parentController;
+                controller.groupsByEdit = NO;
+            });
+
+            after(^{
+                parentController = nil;
+            });
+            
+            it(@"parents should use the undo action name of a child", ^{
+                controller.editingUndoActionName = @"foobar";
+
+                [parentController objectDidBeginEditing:controller];
+                expect(undoManager.undoActionName).toEqual(controller.editingUndoActionName);
+
+                parentController.editing = NO;
+            });
+
+            it(@"parents should prefer the undo action name of an editor over a child", ^{
+                controller.editingUndoActionName = @"foobar";
+
+                TestEditor *editor = [editors anyObject];
+                editor.editingUndoActionName = @"fuzzbuzz";
+
+                [controller objectDidBeginEditing:editor];
+
+                expect(parentController.editing).toBeTruthy();
+                expect(undoManager.undoActionName).toEqual(editor.editingUndoActionName);
+
+                controller.editing = NO;
+            });
+        });
     });
 
     describe(@"context changes", ^{
