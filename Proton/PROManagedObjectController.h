@@ -9,6 +9,18 @@
 #import <CoreData/CoreData.h>
 
 /**
+ * A block that can be passed to <[PROManagedObjectController
+ * commitEditingAndPerform:]>.
+ *
+ * @param commitSuccessful Whether the commit succeeded.
+ * @param error If the commit failed, an error object that contains more
+ * information about the failure. This may be `nil`.
+ * @param failedEditor If the commit failed, the editor that failed to commit,
+ * or `nil` if an error occurred during saving the managed object context.
+ */
+typedef void (^PROManagedObjectControllerDidCommitBlock)(BOOL commitSuccessful, NSError *error, id failedEditor);
+
+/**
  * Coordinates the editing of an `NSManagedObject`, and allows views and view
  * controllers to bind to its properties.
  *
@@ -221,11 +233,10 @@
  * behavior of committing an edit.
  *
  * @param block A block to invoke when the receiver has finished committing its
- * changes. Upon failure, this block will be passed the error, and the editor
- * that failed to commit, or `nil` if an error occurred during saving the
- * receiver's <managedObjectContext>.
+ * changes. See the documentation for `PROManagedObjectControllerDidCommitBlock`
+ * for more information.
  */
-- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error, id failedEditor))block;
+- (void)commitEditingAndPerform:(PROManagedObjectControllerDidCommitBlock)block;
 
 /**
  * Attempts to commit editing on all controllers in the hierarchy, returning

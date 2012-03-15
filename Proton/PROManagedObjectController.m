@@ -319,7 +319,7 @@
     }];
 }
 
-- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error, id failedEditor))block; {
+- (void)commitEditingAndPerform:(PROManagedObjectControllerDidCommitBlock)block; {
     NSParameterAssert(block != nil);
 
     if (!PROAssert(!self.finishingEdit, @"%s should not be invoked while finishing up another edit", __func__))
