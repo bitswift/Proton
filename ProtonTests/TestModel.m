@@ -16,6 +16,7 @@
 @dynamic name;
 @dynamic value;
 @dynamic subModels;
+@dynamic customEncodedModel;
 
 @synthesize initWasCalledOnTestModel = m_initWasCalledOnTestModel;
 
