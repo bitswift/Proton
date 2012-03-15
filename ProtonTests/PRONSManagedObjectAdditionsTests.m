@@ -321,6 +321,36 @@ SpecBegin(PRONSManagedObjectAdditions)
                 expect(anotherCustomEncodedModel.unserialized).toEqual(0);
                 expect(anotherCustomEncodedModel.model.customEncodedModel).toEqual(anotherCustomEncodedModel);
             });
+
+            describe(@"primitive methods", ^{
+                id (^encodeAndDecode)(id, id) = ^(id objectToEncodeProperty, id propertyName) {
+                    id propertyToEncode = [[[objectToEncodeProperty entity] propertiesByName] objectForKey:propertyName];
+                    id encoded = [objectToEncodeProperty propertyListRepresentationForProperty:propertyToEncode];
+                    id decoded = [[objectToEncodeProperty class] decodePropertyListValue:encoded forProperty:propertyToEncode insertIntoManagedObjectContext:manager.mainThreadContext];
+                    return decoded;
+                };
+
+                it(@"code attributes", ^{
+                    id value = encodeAndDecode(customEncodedModel, @"unserialized");
+                    expect(value).toEqual([customEncodedModel valueForKey:@"unserialized"]);
+                });
+
+                it(@"code to-one relationships", ^{
+                    id value = encodeAndDecode(subModel, @"model");
+                    expect(value).toBeKindOf([TestModel class]);
+                    expect([value name]).toEqual(model.name);
+                });
+
+                it(@"code to-many relationships", ^{
+                    id value = encodeAndDecode(model, @"subModels");
+                    expect(value).toBeKindOf([NSSet class]);
+                    expect([value count]).toEqual(1);
+
+                    TestSubModel *decodedSubModel = [value anyObject];
+                    expect(decodedSubModel).toBeKindOf([TestSubModel class]);
+                    expect(decodedSubModel.age).toEqual(subModel.age);
+                });
+            });
         });
 
         describe(@"managed object copying", ^{
