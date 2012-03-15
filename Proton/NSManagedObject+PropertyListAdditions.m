@@ -41,7 +41,7 @@
         if (!PROAssert(property, @"Property %@ does not exist on %@", key, self))
             return;
 
-        id decoded = [self decodePropertyListValue:value forProperty:property insertIntoContext:context];
+        id decoded = [[self class] decodePropertyListValue:value forProperty:property insertIntoManagedObjectContext:context];
         if (decoded)
             [self setValue:decoded forKey:key];
     }];
@@ -65,7 +65,7 @@
     [propertyList setObject:self.entity.name forKey:@"entityName"];
 
     [properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
-        id value = [self encodePropertyListValueForProperty:property];
+        id value = [self propertyListRepresentationForProperty:property];
         if (value)
             [propertyList setObject:value forKey:[property name]];
     }];
@@ -73,7 +73,7 @@
     return propertyList;
 }
 
-- (id)encodePropertyListValueForProperty:(id)property {
+- (id)propertyListRepresentationForProperty:(id)property {
     // Attribute
     if ([property isKindOfClass:[NSAttributeDescription class]]) {
         id value = [self valueForKey:[property name]];
@@ -113,7 +113,7 @@
     return nil;
 }
 
-- (id)decodePropertyListValue:(id)value forProperty:(id)property insertIntoContext:(NSManagedObjectContext *)context {
++ (id)decodePropertyListValue:(id)value forProperty:(id)property insertIntoManagedObjectContext:(NSManagedObjectContext *)context {
     if ([value isEqual:[NSNull null]])
         value = nil;
 
