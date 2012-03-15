@@ -10,12 +10,14 @@
 #import <CoreData/CoreData.h>
 
 @class TestSubModel;
+@class TestCustomEncodedModel;
 
 @interface TestModel : NSManagedObject
 
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) id value;
 @property (nonatomic, retain) NSSet *subModels;
+@property (nonatomic, retain) TestCustomEncodedModel *customEncodedModel;
 
 @property (nonatomic, readonly) BOOL initWasCalledOnTestModel;
 
