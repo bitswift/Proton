@@ -266,8 +266,9 @@
         [self.managedObjectContext rollback];
     }
     
-    if (!self.editing && shouldDiscardUndoGroup) {
+    if (!self.editing && shouldDiscardUndoGroup && self.hasOpenUndoGroup) {
         [self.undoManager undoNestedGroupingWithoutRegisteringRedo];
+        self.hasOpenUndoGroup = NO;
     }
 }
 
