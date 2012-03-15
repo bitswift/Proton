@@ -7,6 +7,7 @@
 //
 
 #import "NSManagedObject+PropertyListAdditions.h"
+#import "NSArray+HigherOrderAdditions.h"
 #import "EXTSafeCategory.h"
 #import "PROAssert.h"
 
@@ -40,21 +41,98 @@
         if (!PROAssert(property, @"Property %@ does not exist on %@", key, self))
             return;
 
-        if ([value isEqual:[NSNull null]])
-            value = nil;
+        id decoded = [self decodePropertyListValue:value forProperty:property insertIntoContext:context];
+        if (decoded)
+            [self setValue:decoded forKey:key];
+    }];
 
-        if ([property isKindOfClass:[NSAttributeDescription class]]) {
-            if ([property attributeType] == NSTransformableAttributeType) {
-                if (PROAssert([value isKindOfClass:[NSData class]], @"Expected an NSData for non-property list value, got: %@", value)) {
-                    value = [NSKeyedUnarchiver unarchiveObjectWithData:value];
-                }
+    [self awakeFromSerializedRepresentation];
+
+    return self;
+}
+
+- (NSDictionary *)propertyListRepresentation {
+    NSArray *properties = self.entity.properties;
+    properties = [properties filterUsingBlock:^ BOOL (id property) {
+        return !([property isKindOfClass:[NSRelationshipDescription class]] && ![property isToMany]);
+    }];
+    return [self propertyListRepresentationIncludingProperties:properties];
+}
+
+- (NSDictionary *)propertyListRepresentationIncludingProperties:(NSArray *)properties {
+    // include an extra slot for our entity name
+    NSMutableDictionary *propertyList = [NSMutableDictionary dictionaryWithCapacity:properties.count + 1];
+    [propertyList setObject:self.entity.name forKey:@"entityName"];
+
+    [properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
+        id value = [self encodePropertyListValueForProperty:property];
+        if (value)
+            [propertyList setObject:value forKey:[property name]];
+    }];
+
+    return propertyList;
+}
+
+- (id)encodePropertyListValueForProperty:(id)property {
+    // Attribute
+    if ([property isKindOfClass:[NSAttributeDescription class]]) {
+        id value = [self valueForKey:[property name]];
+        if (!value)
+            return nil;
+
+        if ([property attributeType] == NSTransformableAttributeType) {
+            // gotta archive the value first
+            value = [NSKeyedArchiver archivedDataWithRootObject:value];
+        }
+
+        return value;
+
+    } else if ([property isKindOfClass:[NSRelationshipDescription class]]) {
+        // To-many relationship
+        if ([property isToMany]) {
+            id collection = [self valueForKey:[property name]];
+            if (![collection count])
+                return nil;
+
+            NSMutableArray *array = [NSMutableArray arrayWithCapacity:[collection count]];
+            for (id object in collection) {
+                id value = [object propertyListRepresentation];
+                if (value)
+                    [array addObject:value];
             }
 
-            [self setValue:value forKey:[property name]];
-        } else if ([property isKindOfClass:[NSRelationshipDescription class]] && [property isToMany]) {
-            NSArray *array = [propertyList objectForKey:[property name]];
+            return array.count ? array : nil;
+
+        // To-one relationship
+        } else {
+            return [[self valueForKey:[property name]] propertyListRepresentation];
+        }
+    }
+
+    // Return nil for unsupported property types
+    return nil;
+}
+
+- (id)decodePropertyListValue:(id)value forProperty:(id)property insertIntoContext:(NSManagedObjectContext *)context {
+    if ([value isEqual:[NSNull null]])
+        value = nil;
+
+    // Attribute
+    if ([property isKindOfClass:[NSAttributeDescription class]]) {
+        if ([property attributeType] == NSTransformableAttributeType) {
+            if (PROAssert([value isKindOfClass:[NSData class]], @"Expected an NSData for non-property list value, got: %@", value)) {
+                value = [NSKeyedUnarchiver unarchiveObjectWithData:value];
+            }
+        }
+
+        return value;
+
+    } else if ([property isKindOfClass:[NSRelationshipDescription class]]) {
+        // To-many relationship
+        if ([property isToMany]) {
+            NSArray *array = value;
             if (!array.count)
-                return;
+                return nil;
 
             id newCollection;
             if ([property isOrdered])
@@ -64,59 +142,20 @@
 
             for (id value in array) {
                 id object = [[NSManagedObject alloc] initWithPropertyListRepresentation:value insertIntoManagedObjectContext:context];
-                if (!object)
-                    continue;
-
-                [newCollection addObject:object];
+                if (object)
+                    [newCollection addObject:object];
             }
 
-            if ([newCollection count])
-                [self setValue:newCollection forKey:[property name]];
+            return [newCollection count] ? newCollection : nil;
+
+        // To-one relationship
+        } else {
+            return [[NSManagedObject alloc] initWithPropertyListRepresentation:value insertIntoManagedObjectContext:context];
         }
-    }];
+    }
 
-    [self awakeFromSerializedRepresentation];
-
-    return self;
-}
-
-- (NSDictionary *)propertyListRepresentation; {
-    NSArray *properties = self.entity.properties;
-
-    // include an extra slot for our entity name
-    NSMutableDictionary *propertyList = [NSMutableDictionary dictionaryWithCapacity:properties.count + 1];
-    [propertyList setObject:self.entity.name forKey:@"entityName"];
-
-    [properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
-        if ([property isKindOfClass:[NSAttributeDescription class]]) {
-            id value = [self valueForKey:[property name]];
-            if (!value)
-                return;
-            
-            if ([property attributeType] == NSTransformableAttributeType) {
-                // gotta archive the value first
-                value = [NSKeyedArchiver archivedDataWithRootObject:value];
-            }
-
-            [propertyList setObject:value forKey:[property name]];
-        } else if ([property isKindOfClass:[NSRelationshipDescription class]] && [property isToMany]) {
-            id collection = [self valueForKey:[property name]];
-            if (![collection count])
-                return;
-
-            NSMutableArray *array = [NSMutableArray arrayWithCapacity:[collection count]];
-            for (id object in collection) {
-                id value = [object propertyListRepresentation];
-                if (value)
-                    [array addObject:value];
-            }
-
-            if (array.count)
-                [propertyList setObject:array forKey:[property name]];
-        }
-    }];
-
-    return propertyList;
+    // Return nil for unsupported property types
+    return nil;
 }
 
 - (void)awakeFromSerializedRepresentation {

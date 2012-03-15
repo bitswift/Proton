@@ -27,6 +27,9 @@
  * <initWithPropertyListRepresentation:insertIntoManagedObjectContext:>, will
  * be returned.
  *
+ * This uses <decodePropertyListValue:forProperty:insertIntoContext:> to decode
+ * elements of the property list.
+ *
  * @param propertyList A dictionary previously returned from the
  * <propertyListRepresentation> method.
  * @param context The managed object context into which the receiver should be
@@ -39,18 +42,23 @@
  */
 
 /**
+ * Calls <propertyListRepresentationIncludingProperties:> with all of the
+ * properties from the receiver's entity, excluding to-one relationships.
+ */
+- (NSDictionary *)propertyListRepresentation;
+
+/**
  * Returns a property list representation of the receiver.
- *
- * The default implementation of this method will encode all of the attributes
- * on the receiver, and recursively encode any to-many relationships on the
- * receiver. To-one relationships will _not_ be encoded.
  *
  * The representation returned from this method can be archived or copied as
  * desired (even across processes or machines), and later passed to
  * <initWithPropertyList:insertIntoManagedObjectContext:>, as long as the
  * managed object model remains compatible.
+ *
+ * This uses <encodePropertyListValueForProperty:> to encode elements of the
+ * property list.
  */
-- (NSDictionary *)propertyListRepresentation;
+- (NSDictionary *)propertyListRepresentationIncludingProperties:(NSArray *)properties;
 
 /**
  * @name Managing Life Cycle and Change Events
@@ -66,5 +74,28 @@
  * after any to-many relationships have been decoded.
  */
 - (void)awakeFromSerializedRepresentation;
+
+/**
+ * Takes the value of a property of `self` and encodes it in a manner suitable
+ * for storage in a property list. Calls <propertyListRepresentation> to encode
+ * managed objects reached through relationships.
+ *
+ * Returns `nil` if encoding fails or the property is not supported for encoding.
+ * Specifically, fetched properties are not supported.
+ *
+ * @param property The description of the property to encode.
+ */
+- (id)encodePropertyListValueForProperty:(NSPropertyDescription *)property;
+
+/**
+ * Decodes a value encoded with <encodePropertyListValueForProperty:>. If
+ * managed objects are returned, they exist within `context`.
+ *
+ * @param value The encoded value.
+ * @param property The description of a property for which `value` is suitable.
+ * @param context The managed object context into which decoded objects should
+ * be inserted.
+ */
+- (id)decodePropertyListValue:(id)value forProperty:(NSPropertyDescription *)property insertIntoContext:(NSManagedObjectContext *)context;
 
 @end
