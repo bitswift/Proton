@@ -490,6 +490,17 @@ SpecBegin(PROManagedObjectController)
 
             expect(model.name).toEqual(name);
         });
+
+        it(@"should rollback when discarding editing even if editing was not in progress", ^{
+            controller.editing = NO;
+
+            model.name = @"fuzzbuzz";
+            expect(context.hasChanges).toBeTruthy();
+
+            [controller discardEditing];
+            expect(model.name).toEqual(name);
+            expect(context.hasChanges).toBeFalsy();
+        });
     });
 
     describe(@"with a parent controller", ^{

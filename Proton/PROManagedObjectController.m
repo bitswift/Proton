@@ -234,9 +234,6 @@
 #pragma mark NSEditor
 
 - (void)discardEditing; {
-    if (!self.editing)
-        return;
-
     if (!PROAssert(!self.finishingEdit, @"%s should not be invoked while finishing up another edit", __func__))
         return;
 
@@ -245,10 +242,12 @@
         self.finishingEdit = NO;
     };
 
-    [self.currentEditors enumerateObjectsUsingBlock:^(id editor, BOOL *stop){
-        if (PROAssert([editor respondsToSelector:@selector(discardEditing)], @"%@ does not implement <NSEditor>", editor))
-            [editor discardEditing];
-    }];
+    if (self.editing) {
+        [self.currentEditors enumerateObjectsUsingBlock:^(id editor, BOOL *stop){
+            if (PROAssert([editor respondsToSelector:@selector(discardEditing)], @"%@ does not implement <NSEditor>", editor))
+                [editor discardEditing];
+        }];
+    }
 
     BOOL shouldDiscardUndoGroup = self.hasOpenUndoGroup;
 
