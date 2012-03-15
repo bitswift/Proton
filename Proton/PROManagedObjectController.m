@@ -326,15 +326,20 @@
         return;
 
     self.finishingEdit = YES;
-    @onExit {
+
+    // clears the finishingEdit status in addition to invoking the given logic
+    //
+    // this block MUST be invoked before exiting this method
+    PROManagedObjectControllerDidCommitBlock finishedBlock = ^(BOOL commitSuccessful, NSError *error, id failedEditor){
         self.finishingEdit = NO;
+        block(commitSuccessful, error, failedEditor);
     };
 
     if (self.editing) {
         for (id editor in self.currentEditors) {
             NSError *error = nil;
             if (![self commitEditor:editor error:&error]) {
-                block(NO, error, editor);
+                finishedBlock(NO, error, editor);
                 return;
             }
         }
@@ -343,13 +348,13 @@
     if (self.saveOnCommitEditing && self.managedObjectContext.hasChanges) {
         NSError *error = nil;
         if (![self.managedObjectContext save:&error]) {
-            block(NO, error, nil);
+            finishedBlock(NO, error, nil);
             return;
         }
     }
 
     self.editing = NO;
-    block(YES, nil, nil);
+    finishedBlock(YES, nil, nil);
 }
 
 - (BOOL)commitEditor:(id)editor error:(NSError **)error; {

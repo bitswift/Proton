@@ -296,12 +296,13 @@ SpecBegin(PROManagedObjectController)
                 
                 before(^{
                     blockInvoked = NO;
-                    block = [^(BOOL successful, NSError *error){
+                    block = [^(BOOL successful, NSError *error, id failedEditor){
                         expect(successful).not.toEqual(editor.shouldFailToCommit);
-                        
+
                         if (successful) {
                             expect(error).toBeNil();
                         } else {
+                            expect(failedEditor).toEqual(editor);
                             expect(error.domain).toEqual(editor.testError.domain);
                             expect(error.code).toEqual(editor.testError.code);
                         }
@@ -323,6 +324,22 @@ SpecBegin(PROManagedObjectController)
                 it(@"should invoke block upon failed commit", ^{
                     editor.shouldFailToCommit = YES;
                     [controller commitEditingAndPerform:block];
+                });
+
+                it(@"should be able to discard editing from a failed commit", ^{
+                    editor.shouldFailToCommit = YES;
+
+                    [controller commitEditingAndPerform:^(BOOL successful, NSError *error, id failedEditor){
+                        expect(successful).toBeFalsy();
+
+                        // discard changes instead
+                        expect([^{
+                            [controller discardEditing];
+                        } copy]).toInvoke(editor, @selector(discardEditing));
+
+                        blockInvoked = YES;
+                        editor.shouldFailToCommit = NO;
+                    }];
                 });
             });
         });
