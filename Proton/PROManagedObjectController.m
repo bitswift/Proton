@@ -123,6 +123,8 @@
     BOOL wasEditing = self.editing;
     m_flags.editing = value;
 
+    [self.managedObjectContext processPendingChanges];
+
     // check the getter in case subclasses add additional criteria for being in
     // an editing state
     if (!wasEditing && self.editing) {
