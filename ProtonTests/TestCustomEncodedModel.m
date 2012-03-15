@@ -17,9 +17,7 @@
 
 - (id)propertyListRepresentation {
     NSArray *properties = [self.entity.properties filterUsingBlock:^ BOOL (id property) {
-        if ([[property name] isEqualToString:@"unserialized"])
-            return NO;
-        return YES;
+        return ![[property name] isEqualToString:@"unserialized"];
     }];
     return [self propertyListRepresentationIncludingProperties:properties];
 }
