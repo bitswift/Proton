@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1170" systemVersion="11D50" minimumToolsVersion="Xcode 4.1" macOSVersion="Automatic" iOSVersion="Automatic">
+<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1171" systemVersion="11D50b" minimumToolsVersion="Xcode 4.1" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="TestCustomEncodedModel" representedClassName="TestCustomEncodedModel" syncable="YES">
+        <attribute name="unserialized" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <relationship name="model" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="TestModel" inverseName="customEncodedModel" inverseEntity="TestModel" syncable="YES"/>
+    </entity>
     <entity name="TestModel" representedClassName="TestModel" syncable="YES">
         <attribute name="name" optional="YES" attributeType="String" indexed="YES" syncable="YES"/>
         <attribute name="value" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <relationship name="customEncodedModel" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="TestCustomEncodedModel" inverseName="model" inverseEntity="TestCustomEncodedModel" syncable="YES"/>
         <relationship name="subModels" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TestSubModel" inverseName="model" inverseEntity="TestSubModel" syncable="YES"/>
     </entity>
     <entity name="TestSubModel" representedClassName="TestSubModel" syncable="YES">
@@ -10,7 +15,8 @@
         <relationship name="model" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="TestModel" inverseName="subModels" inverseEntity="TestModel" syncable="YES"/>
     </entity>
     <elements>
-        <element name="TestModel" positionX="-63" positionY="-18" width="128" height="90"/>
-        <element name="TestSubModel" positionX="-65" positionY="126" width="128" height="75"/>
+        <element name="TestModel" positionX="-63" positionY="-18" width="128" height="105"/>
+        <element name="TestSubModel" positionX="-65" positionY="159" width="128" height="75"/>
+        <element name="TestCustomEncodedModel" positionX="-333" positionY="-18" width="171" height="75"/>
     </elements>
 </model>
