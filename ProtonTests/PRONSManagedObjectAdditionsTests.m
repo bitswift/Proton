@@ -311,12 +311,20 @@ SpecBegin(PRONSManagedObjectAdditions)
             });
 
             it(@"should encode properties as defined by a subclass", ^{
-                NSDictionary *propertyList = customEncodedModel.propertyListRepresentation;
+                __block NSDictionary *propertyList = customEncodedModel.propertyListRepresentation;
+                expect([^{
+                    propertyList = customEncodedModel.propertyListRepresentation;
+                } copy]).toInvoke(customEncodedModel, @selector(propertyListRepresentationForProperty:));
+
                 expect(propertyList).not.toBeNil();
                 expect([propertyList objectForKey:@"unserialized"]).toBeNil();
                 expect([propertyList objectForKey:@"model"]).not.toBeNil();
 
-                TestCustomEncodedModel *anotherCustomEncodedModel = [[TestCustomEncodedModel alloc] initWithPropertyListRepresentation:propertyList insertIntoManagedObjectContext:manager.mainThreadContext];
+                __block TestCustomEncodedModel *anotherCustomEncodedModel = nil;
+                expect([^{
+                    anotherCustomEncodedModel = [[TestCustomEncodedModel alloc] initWithPropertyListRepresentation:propertyList insertIntoManagedObjectContext:manager.mainThreadContext];
+                } copy]).toInvoke([TestCustomEncodedModel class], @selector(decodePropertyListValue:forProperty:insertIntoManagedObjectContext:));
+
                 expect(anotherCustomEncodedModel).not.toBeNil();
                 expect(anotherCustomEncodedModel.unserialized).toEqual(0);
                 expect(anotherCustomEncodedModel.model.customEncodedModel).toEqual(anotherCustomEncodedModel);
