@@ -13,6 +13,7 @@
 #import "NSUndoManager+UndoStackAdditions.h"
 #import "PROAssert.h"
 #import "PROKeyValueCodingMacros.h"
+#import "PROLogging.h"
 
 @interface PROManagedObjectController () {
     NSMutableSet *m_currentEditors;
@@ -23,6 +24,7 @@
         unsigned rollbackOnDiscardEditing:1;
         unsigned hasOpenUndoGroup:1;
         unsigned editing:1;
+        unsigned finishingEdit:1;
     } m_flags;
 }
 
@@ -30,6 +32,14 @@
  * Whether the receiver currently has an undo group open with its <undoManager>.
  */
 @property (nonatomic, assign) BOOL hasOpenUndoGroup;
+
+/**
+ * Whether the receiver is currently in the process of finishing an edit.
+ *
+ * This is used to protect against committing and discarding being performed
+ * simultaneously.
+ */
+@property (nonatomic, getter = isFinishingEdit) BOOL finishingEdit;
 
 /**
  * Implements `-observationInfo` and `-setObservationInfo:` for improved
@@ -92,11 +102,24 @@
     m_flags.hasOpenUndoGroup = value;
 }
 
+- (BOOL)isFinishingEdit {
+    return m_flags.finishingEdit;
+}
+
+- (void)setFinishingEdit:(BOOL)value {
+    m_flags.finishingEdit = value;
+}
+
 - (BOOL)isEditing {
     return m_flags.editing;
 }
 
 - (void)setEditing:(BOOL)value {
+    [self willChangeValueForKey:PROKeyForObject(self, editing)];
+    @onExit {
+        [self didChangeValueForKey:PROKeyForObject(self, editing)];
+    };
+
     BOOL wasEditing = self.editing;
     m_flags.editing = value;
 
@@ -110,6 +133,12 @@
 
         [self.parentController objectDidBeginEditing:self];
     } else if (wasEditing && !self.editing) {
+        if (!self.finishingEdit) {
+            // invoke commitEditing, to save our context (if applicable) and
+            // walk through any subclass logic
+            [self commitEditing];
+        }
+
         if (self.hasOpenUndoGroup) {
             if (PROAssert(self.undoManager.groupingLevel > 0, @"%@ has an open undo group, but undo manager %@ does not", self, self.undoManager)) {
                 [self.undoManager endUndoGrouping];
@@ -135,17 +164,22 @@
 }
 
 - (void)addCurrentEditors:(NSSet *)editors {
-    [m_currentEditors unionSet:editors];
+    [self willChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueUnionSetMutation usingObjects:editors];
 
-    if (m_currentEditors.count)
-        self.editing = YES;
+    [m_currentEditors unionSet:editors];
+    self.editing = YES;
+
+    [self didChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueUnionSetMutation usingObjects:editors];
 }
 
 - (void)removeCurrentEditors:(NSSet *)editors {
-    [m_currentEditors minusSet:editors];
+    [self willChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueMinusSetMutation usingObjects:editors];
 
+    [m_currentEditors minusSet:editors];
     if (!m_currentEditors.count)
         self.editing = NO;
+
+    [self didChangeValueForKey:PROKeyForObject(self, currentEditors) withSetMutation:NSKeyValueMinusSetMutation usingObjects:editors];
 }
 
 #pragma mark Lifecycle
@@ -180,30 +214,43 @@
     [self.undoManager removeAllActionsWithTarget:self];
 }
 
+#pragma mark Error Handling
+
+- (void)handleError:(NSError *)error fromEditor:(id)editor; {
+    if (editor)
+        DDLogError(@"Error occurred saving changes from editor %@: %@", editor, error);
+    else
+        DDLogError(@"Error occurred saving changes: %@", error);
+}
+
 #pragma mark NSEditorRegistration
 
 - (void)objectDidBeginEditing:(id)editor; {
-    NSMutableSet *editors = [self mutableSetValueForKey:PROKeyForObject(self, currentEditors)];
-    [editors addObject:editor];
-
+    [self addCurrentEditors:[NSSet setWithObject:editor]];
     [self.undoManager setActionName:[editor editingUndoActionName]];
 }
 
 - (void)objectDidEndEditing:(id)editor; {
-    NSMutableSet *editors = [self mutableSetValueForKey:PROKeyForObject(self, currentEditors)];
-    [editors removeObject:editor];
+    [self removeCurrentEditors:[NSSet setWithObject:editor]];
 }
 
 #pragma mark NSEditor
 
 - (void)discardEditing; {
-    if (!self.editing)
+    if (!PROAssert(!self.finishingEdit, @"%s should not be invoked while finishing up another edit", __func__))
         return;
 
-    [self.currentEditors enumerateObjectsUsingBlock:^(id editor, BOOL *stop){
-        if (PROAssert([editor respondsToSelector:@selector(discardEditing)], @"%@ does not implement <NSEditor>", editor))
-            [editor discardEditing];
-    }];
+    self.finishingEdit = YES;
+    @onExit {
+        self.finishingEdit = NO;
+    };
+
+    if (self.editing) {
+        [self.currentEditors enumerateObjectsUsingBlock:^(id editor, BOOL *stop){
+            if (PROAssert([editor respondsToSelector:@selector(discardEditing)], @"%@ does not implement <NSEditor>", editor))
+                [editor discardEditing];
+        }];
+    }
 
     BOOL shouldDiscardUndoGroup = self.hasOpenUndoGroup;
 
@@ -221,17 +268,26 @@
     
     if (!self.editing && shouldDiscardUndoGroup) {
         [self.undoManager undoNestedGroupingWithoutRegisteringRedo];
+        self.hasOpenUndoGroup = NO;
     }
 }
 
 - (BOOL)commitEditing; {
-    return [self commitEditingAndReturnError:NULL];
+    __block BOOL success = NO;
+
+    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error, id failedEditor){
+        success = commitSuccessful;
+        if (!commitSuccessful)
+            [self handleError:error fromEditor:failedEditor];
+    }];
+
+    return success;
 }
 
 - (BOOL)commitEditingAndReturnError:(NSError **)errorPtr; {
     __block BOOL success = NO;
 
-    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error){
+    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error, id failedEditor){
         success = commitSuccessful;
         if (!commitSuccessful && errorPtr) {
             *errorPtr = error;
@@ -242,7 +298,11 @@
 }
 
 - (void)commitEditingWithDelegate:(id)delegate didCommitSelector:(SEL)selector contextInfo:(void *)contextInfo; {
-    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error){
+    [self commitEditingAndPerform:^(BOOL commitSuccessful, NSError *error, id failedEditor){
+        if (!commitSuccessful) {
+            [self handleError:error fromEditor:failedEditor];
+        }
+
         if (!delegate)
             return;
 
@@ -263,33 +323,42 @@
     }];
 }
 
-- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error))block; {
+- (void)commitEditingAndPerform:(PROManagedObjectControllerDidCommitBlock)block; {
     NSParameterAssert(block != nil);
 
-    if (!self.editing) {
-        block(YES, nil);
+    if (!PROAssert(!self.finishingEdit, @"%s should not be invoked while finishing up another edit", __func__))
         return;
-    }
 
-    for (id editor in self.currentEditors) {
-        NSError *error = nil;
-        if (![self commitEditor:editor error:&error]) {
-            block(NO, error);
-            return;
+    self.finishingEdit = YES;
+
+    // clears the finishingEdit status in addition to invoking the given logic
+    //
+    // this block MUST be invoked before exiting this method
+    PROManagedObjectControllerDidCommitBlock finishedBlock = ^(BOOL commitSuccessful, NSError *error, id failedEditor){
+        self.finishingEdit = NO;
+        block(commitSuccessful, error, failedEditor);
+    };
+
+    if (self.editing) {
+        for (id editor in self.currentEditors) {
+            NSError *error = nil;
+            if (![self commitEditor:editor error:&error]) {
+                finishedBlock(NO, error, editor);
+                return;
+            }
         }
     }
 
-    if (self.saveOnCommitEditing && self.managedObjectContext) {
+    if (self.saveOnCommitEditing && self.managedObjectContext.hasChanges) {
         NSError *error = nil;
-        NSLog(@"saving");
         if (![self.managedObjectContext save:&error]) {
-            block(NO, error);
+            finishedBlock(NO, error, nil);
             return;
         }
     }
 
     self.editing = NO;
-    block(YES, nil);
+    finishedBlock(YES, nil, nil);
 }
 
 - (BOOL)commitEditor:(id)editor error:(NSError **)error; {
@@ -336,6 +405,18 @@
 
 + (BOOL)accessInstanceVariablesDirectly {
     return NO;
+}
+
+#pragma mark NSKeyValueObserving
+
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key {
+    if ([key isEqualToString:PROKeyForClass(PROManagedObjectController, currentEditors)])
+        return NO;
+
+    if ([key isEqualToString:PROKeyForClass(PROManagedObjectController, editing)])
+        return NO;
+
+    return YES;
 }
 
 #pragma mark NSObject overrides
