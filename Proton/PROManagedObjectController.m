@@ -34,7 +34,10 @@
 @property (nonatomic, assign) BOOL hasOpenUndoGroup;
 
 /**
- * Whether the receiver is currently in the process of discarding edits.
+ * Whether the receiver is currently in the process of finishing an edit.
+ *
+ * This is used to protect against committing and discarding being performed
+ * simultaneously.
  */
 @property (nonatomic, getter = isFinishingEdit) BOOL finishingEdit;
 
