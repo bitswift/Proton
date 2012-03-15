@@ -152,7 +152,9 @@ SpecBegin(PROManagedObjectController)
         editingObserverInvoked = NO;
         currentEditorsObserverInvoked = NO;
 
-        [controller objectDidEndEditing:editor];
+        expect([^{
+            [controller objectDidEndEditing:editor];
+        } copy]).toInvoke(controller, @selector(commitEditing));
 
         expect(controller.currentEditors.count).toEqual(0);
         expect(controller.editing).toBeFalsy();
@@ -170,7 +172,10 @@ SpecBegin(PROManagedObjectController)
         currentEditorsObserverInvoked = NO;
 
         TestEditor *editor = [editors anyObject];
-        [controller objectDidEndEditing:editor];
+
+        expect([^{
+            [controller objectDidEndEditing:editor];
+        } copy]).not.toInvoke(controller, @selector(commitEditing));
 
         NSMutableSet *remainingEditors = [editors mutableCopy];
         [remainingEditors removeObject:editor];
@@ -219,7 +224,10 @@ SpecBegin(PROManagedObjectController)
 
             it(@"should fail to commitEditing if any editor fails", ^{
                 editor.shouldFailToCommit = YES;
-                expect([controller commitEditing]).toBeFalsy();
+
+                expect([^{
+                    expect([controller commitEditing]).toBeFalsy();
+                } copy]).toInvoke(controller, @selector(handleError:fromEditor:));
             });
 
             it(@"should commitEditingAndReturnError: if all editors commit", ^{
@@ -275,7 +283,9 @@ SpecBegin(PROManagedObjectController)
                     editor.shouldFailToCommit = YES;
 
                     expect([^{
-                        [controller commitEditingWithDelegate:editor didCommitSelector:didCommitSelector contextInfo:contextInfo];
+                        expect([^{
+                            [controller commitEditingWithDelegate:editor didCommitSelector:didCommitSelector contextInfo:contextInfo];
+                        } copy]).toInvoke(controller, @selector(handleError:fromEditor:));
                     } copy]).toInvoke(editor, didCommitSelector);
                 });
             });
@@ -286,12 +296,13 @@ SpecBegin(PROManagedObjectController)
                 
                 before(^{
                     blockInvoked = NO;
-                    block = [^(BOOL successful, NSError *error){
+                    block = [^(BOOL successful, NSError *error, id failedEditor){
                         expect(successful).not.toEqual(editor.shouldFailToCommit);
-                        
+
                         if (successful) {
                             expect(error).toBeNil();
                         } else {
+                            expect(failedEditor).toEqual(editor);
                             expect(error.domain).toEqual(editor.testError.domain);
                             expect(error.code).toEqual(editor.testError.code);
                         }
@@ -313,6 +324,22 @@ SpecBegin(PROManagedObjectController)
                 it(@"should invoke block upon failed commit", ^{
                     editor.shouldFailToCommit = YES;
                     [controller commitEditingAndPerform:block];
+                });
+
+                it(@"should be able to discard editing from a failed commit", ^{
+                    editor.shouldFailToCommit = YES;
+
+                    [controller commitEditingAndPerform:^(BOOL successful, NSError *error, id failedEditor){
+                        expect(successful).toBeFalsy();
+
+                        // discard changes instead
+                        expect([^{
+                            [controller discardEditing];
+                        } copy]).toInvoke(editor, @selector(discardEditing));
+
+                        blockInvoked = YES;
+                        editor.shouldFailToCommit = NO;
+                    }];
                 });
             });
         });
@@ -420,6 +447,45 @@ SpecBegin(PROManagedObjectController)
             expect(undoManager.undoActionName).toEqual(name);
             controller.editing = NO;
         });
+
+        describe(@"undo action names with a parent", ^{
+            __block PROManagedObjectController *parentController;
+
+            before(^{
+                parentController = [[PROManagedObjectController alloc] initWithModel:model];
+                expect(parentController).not.toBeNil();
+
+                controller.parentController = parentController;
+                controller.groupsByEdit = NO;
+            });
+
+            after(^{
+                parentController = nil;
+            });
+            
+            it(@"parents should use the undo action name of a child", ^{
+                controller.editingUndoActionName = @"foobar";
+
+                [parentController objectDidBeginEditing:controller];
+                expect(undoManager.undoActionName).toEqual(controller.editingUndoActionName);
+
+                parentController.editing = NO;
+            });
+
+            it(@"parents should prefer the undo action name of an editor over a child", ^{
+                controller.editingUndoActionName = @"foobar";
+
+                TestEditor *editor = [editors anyObject];
+                editor.editingUndoActionName = @"fuzzbuzz";
+
+                [controller objectDidBeginEditing:editor];
+
+                expect(parentController.editing).toBeTruthy();
+                expect(undoManager.undoActionName).toEqual(editor.editingUndoActionName);
+
+                controller.editing = NO;
+            });
+        });
     });
 
     describe(@"context changes", ^{
@@ -443,7 +509,7 @@ SpecBegin(PROManagedObjectController)
             expect(context.hasChanges).toBeFalsy();
         });
 
-        it(@"should not save when saveOnCommitEditing is YES", ^{
+        it(@"should not save when saveOnCommitEditing is NO", ^{
             controller.saveOnCommitEditing = NO;
 
             expect([controller commitEditing]).toBeTruthy();
@@ -451,6 +517,17 @@ SpecBegin(PROManagedObjectController)
 
             expect(model.name).toEqual(name);
             expect(context.hasChanges).toBeTruthy();
+        });
+
+        it(@"should save when saveOnCommitEditing is YES and last editor finishes", ^{
+            TestEditor *editor = [editors anyObject];
+
+            [controller objectDidBeginEditing:editor];
+            [controller objectDidEndEditing:editor];
+            expect(controller.editing).toBeFalsy();
+
+            expect(model.name).toEqual(name);
+            expect(context.hasChanges).toBeFalsy();
         });
 
         it(@"should rollback when rollbackOnDiscardEditing is YES", ^{
@@ -468,6 +545,17 @@ SpecBegin(PROManagedObjectController)
             expect(controller.editing).toBeFalsy();
 
             expect(model.name).toEqual(name);
+        });
+
+        it(@"should rollback when discarding editing even if editing was not in progress", ^{
+            controller.editing = NO;
+
+            model.name = @"fuzzbuzz";
+            expect(context.hasChanges).toBeTruthy();
+
+            [controller discardEditing];
+            expect(model.name).toEqual(name);
+            expect(context.hasChanges).toBeFalsy();
         });
     });
 

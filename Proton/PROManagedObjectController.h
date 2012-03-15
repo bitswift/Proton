@@ -9,6 +9,18 @@
 #import <CoreData/CoreData.h>
 
 /**
+ * A block that can be passed to <[PROManagedObjectController
+ * commitEditingAndPerform:]>.
+ *
+ * @param commitSuccessful Whether the commit succeeded.
+ * @param error If the commit failed, an error object that contains more
+ * information about the failure. This may be `nil`.
+ * @param failedEditor If the commit failed, the editor that failed to commit,
+ * or `nil` if an error occurred during saving the managed object context.
+ */
+typedef void (^PROManagedObjectControllerDidCommitBlock)(BOOL commitSuccessful, NSError *error, id failedEditor);
+
+/**
  * Coordinates the editing of an `NSManagedObject`, and allows views and view
  * controllers to bind to its properties.
  *
@@ -146,6 +158,12 @@
 /**
  * Invoked by objects that have finished editing the receiver's <model>.
  *
+ * If this method is invoked with the last editor, and not as the result of
+ * a call to <discardEditing>, the receiver will invoke <commitEditing>. The
+ * main purpose of this behavior is to save the receiver's
+ * <managedObjectContext> if <saveOnCommitEditing> is enabled and all editors
+ * finish normally.
+ *
  * @param editor The object that has finished editing. This object will be
  * removed from <currentEditors>, if present.
  */
@@ -215,9 +233,10 @@
  * behavior of committing an edit.
  *
  * @param block A block to invoke when the receiver has finished committing its
- * changes.
+ * changes. See the documentation for `PROManagedObjectControllerDidCommitBlock`
+ * for more information.
  */
-- (void)commitEditingAndPerform:(void (^)(BOOL commitSuccessful, NSError *error))block;
+- (void)commitEditingAndPerform:(PROManagedObjectControllerDidCommitBlock)block;
 
 /**
  * Attempts to commit editing on all controllers in the hierarchy, returning
@@ -260,5 +279,28 @@
  * <discardEditing>.
  */
 - (void)discardAllEditing;
+
+/**
+ * @name Error Handling
+ */
+
+/**
+ * Invoked to respond to an error that occurred from the given editor.
+ *
+ * This method is only invoked in cases where errors occurred, but no facility
+ * exists to return them, such as from the following methods:
+ *
+ *  - <commitEditing>
+ *  - <commitEditingWithDelegate:didCommitSelector:contextInfo:>
+ *  - <objectDidEndEditing:> (when a save is attempted)
+ *
+ * The default implementation of this method simply logs the error. Subclasses
+ * may override it to perform additional actions.
+ *
+ * @param error The error that occurred. This may be `nil`.
+ * @param editor The editor which failed, or `nil` if the error occurred during
+ * saving to the receiver's <managedObjectContext>.
+ */
+- (void)handleError:(NSError *)error fromEditor:(id)editor;
 
 @end
