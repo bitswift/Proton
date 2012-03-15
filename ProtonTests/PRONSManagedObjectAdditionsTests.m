@@ -9,6 +9,7 @@
 #import <Proton/Proton.h>
 #import "TestModel.h"
 #import "TestSubModel.h"
+#import "TestCustomEncodedModel.h"
 
 SpecBegin(PRONSManagedObjectAdditions)
     
@@ -187,6 +188,7 @@ SpecBegin(PRONSManagedObjectAdditions)
     });
 
     describe(@"with an object graph", ^{
+        __block TestCustomEncodedModel *customEncodedModel;
         __block TestModel *model;
         __block TestSubModel *subModel;
 
@@ -198,6 +200,10 @@ SpecBegin(PRONSManagedObjectAdditions)
             subModel.age = 0xBEEF;
 
             model.subModels = [NSSet setWithObject:subModel];
+
+            customEncodedModel = [TestCustomEncodedModel managedObjectWithContext:manager.mainThreadContext];
+            customEncodedModel.unserialized = 42;
+            customEncodedModel.model = model;
 
             expect([manager.mainThreadContext save:NULL]).toBeTruthy();
         });
@@ -296,6 +302,24 @@ SpecBegin(PRONSManagedObjectAdditions)
                 NSSet *insertedObjects = [NSSet setWithObjects:anotherModel, anotherSubModel, nil];
                 expect(anotherManager.mainThreadContext.insertedObjects).toEqual(insertedObjects);
                 expect(manager.mainThreadContext.insertedObjects.count).toEqual(0);
+            });
+
+            it(@"should not encode to-one relationships by default", ^{
+                NSDictionary *propertyList = model.propertyListRepresentation;
+                expect(propertyList).not.toBeNil();
+                expect([propertyList objectForKey:@"customEncodedModel"]).toBeNil();
+            });
+
+            it(@"should encode properties as defined by a subclass", ^{
+                NSDictionary *propertyList = customEncodedModel.propertyListRepresentation;
+                expect(propertyList).not.toBeNil();
+                expect([propertyList objectForKey:@"unserialized"]).toBeNil();
+                expect([propertyList objectForKey:@"model"]).not.toBeNil();
+
+                TestCustomEncodedModel *anotherCustomEncodedModel = [[TestCustomEncodedModel alloc] initWithPropertyListRepresentation:propertyList insertIntoManagedObjectContext:manager.mainThreadContext];
+                expect(anotherCustomEncodedModel).not.toBeNil();
+                expect(anotherCustomEncodedModel.unserialized).toEqual(0);
+                expect(anotherCustomEncodedModel.model.customEncodedModel).toEqual(anotherCustomEncodedModel);
             });
         });
 
