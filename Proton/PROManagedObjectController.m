@@ -212,7 +212,10 @@
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
-    [self discardEditing];
+    // finish editing without committing or discarding changes
+    self.finishingEdit = YES;
+    self.editing = NO;
+
     [self.undoManager removeAllActionsWithTarget:self];
 }
 
