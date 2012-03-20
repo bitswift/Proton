@@ -140,6 +140,10 @@
 		D09C8774151846E30066D60E /* NSIndexPath+TransformationAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D09C8770151846E30066D60E /* NSIndexPath+TransformationAdditions.m */; };
 		D09C87761518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D09C87751518486E0066D60E /* PRONSIndexPathAdditionsTests.m */; };
 		D09C87771518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D09C87751518486E0066D60E /* PRONSIndexPathAdditionsTests.m */; };
+		D09C878A15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D09C878815184A3B0066D60E /* NSArray+IndexPathAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D09C878B15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D09C878815184A3B0066D60E /* NSArray+IndexPathAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D09C878C15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D09C878915184A3B0066D60E /* NSArray+IndexPathAdditions.m */; };
+		D09C878D15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D09C878915184A3B0066D60E /* NSArray+IndexPathAdditions.m */; };
 		D0A3DD7314CAB86100754143 /* PROLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A3DD7214CAB86100754143 /* PROLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0A3DD7414CAB86100754143 /* PROLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = D0A3DD7214CAB86100754143 /* PROLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0A3DD7614CAB8D300754143 /* PROLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A3DD7514CAB8D300754143 /* PROLogging.m */; };
@@ -412,6 +416,8 @@
 		D09C876F151846E30066D60E /* NSIndexPath+TransformationAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSIndexPath+TransformationAdditions.h"; sourceTree = "<group>"; };
 		D09C8770151846E30066D60E /* NSIndexPath+TransformationAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSIndexPath+TransformationAdditions.m"; sourceTree = "<group>"; };
 		D09C87751518486E0066D60E /* PRONSIndexPathAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSIndexPathAdditionsTests.m; sourceTree = "<group>"; };
+		D09C878815184A3B0066D60E /* NSArray+IndexPathAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+IndexPathAdditions.h"; sourceTree = "<group>"; };
+		D09C878915184A3B0066D60E /* NSArray+IndexPathAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+IndexPathAdditions.m"; sourceTree = "<group>"; };
 		D0A3DD7214CAB86100754143 /* PROLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROLogging.h; sourceTree = "<group>"; };
 		D0A3DD7514CAB8D300754143 /* PROLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROLogging.m; sourceTree = "<group>"; };
 		D0AA94B214D0AD060040B59D /* NSUndoManager+UndoStackAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSUndoManager+UndoStackAdditions.h"; sourceTree = "<group>"; };
@@ -617,6 +623,8 @@
 				D04703271494A6F8004CB93A /* Foundation+LocalizationAdditions.m */,
 				D06AA4501494A1FF00F0F94B /* NSArray+HigherOrderAdditions.h */,
 				D06AA4511494A1FF00F0F94B /* NSArray+HigherOrderAdditions.m */,
+				D09C878815184A3B0066D60E /* NSArray+IndexPathAdditions.h */,
+				D09C878915184A3B0066D60E /* NSArray+IndexPathAdditions.m */,
 				D001801214F1E3AD00A131D8 /* NSArray+SearchAdditions.h */,
 				D001801314F1E3AD00A131D8 /* NSArray+SearchAdditions.m */,
 				D07D6E931499DFE900192DED /* NSDictionary+HigherOrderAdditions.h */,
@@ -1029,6 +1037,7 @@
 				D00DA76A150FD9980090875F /* PROManagedObjectController.h in Headers */,
 				D085320A1510731400CC9B4B /* NSObject+EditorAdditions.h in Headers */,
 				D09C8772151846E30066D60E /* NSIndexPath+TransformationAdditions.h in Headers */,
+				D09C878B15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1077,6 +1086,7 @@
 				D00DA769150FD9980090875F /* PROManagedObjectController.h in Headers */,
 				D08532091510731400CC9B4B /* NSObject+EditorAdditions.h in Headers */,
 				D09C8771151846E30066D60E /* NSIndexPath+TransformationAdditions.h in Headers */,
+				D09C878A15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1355,6 +1365,7 @@
 				D00DA76C150FD9980090875F /* PROManagedObjectController.m in Sources */,
 				D085320C1510731400CC9B4B /* NSObject+EditorAdditions.m in Sources */,
 				D09C8774151846E30066D60E /* NSIndexPath+TransformationAdditions.m in Sources */,
+				D09C878D15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1432,6 +1443,7 @@
 				D00DA76B150FD9980090875F /* PROManagedObjectController.m in Sources */,
 				D085320B1510731400CC9B4B /* NSObject+EditorAdditions.m in Sources */,
 				D09C8773151846E30066D60E /* NSIndexPath+TransformationAdditions.m in Sources */,
+				D09C878C15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

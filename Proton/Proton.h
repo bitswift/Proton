@@ -8,6 +8,7 @@
 
 #import <Proton/Foundation+LocalizationAdditions.h>
 #import <Proton/NSArray+HigherOrderAdditions.h>
+#import <Proton/NSArray+IndexPathAdditions.h>
 #import <Proton/NSArray+SearchAdditions.h>
 #import <Proton/NSDictionary+HigherOrderAdditions.h>
 #import <Proton/NSError+ValidationAdditions.h>
