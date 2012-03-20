@@ -160,4 +160,68 @@ SpecBegin(PRONSArrayAdditions)
         });
     });
 
+    describe(@"object at index path", ^{
+        __block NSArray *array;
+
+        before(^{
+            array = [NSArray arrayWithObjects:
+                // [0]
+                @"foo",
+
+                // [0].[0, 1]
+                [NSArray arrayWithObjects:@"foo", @"bar", nil],
+
+                // [0].bar.[0]
+                [NSDictionary dictionaryWithObject:[NSArray arrayWithObject:@"foo"] forKey:@"bar"],
+
+                nil
+            ];
+
+            expect(array).not.toBeNil();
+        });
+
+        it(@"should return the array for an empty index path", ^{
+            NSIndexPath *emptyPath = [NSIndexPath indexPathWithIndexes:NULL length:0];
+            expect(emptyPath).not.toBeNil();
+
+            expect([array objectAtIndexPath:emptyPath]).toEqual(array);
+            expect([array objectAtIndexPath:emptyPath nodeKeyPath:nil]).toEqual(array);
+            expect([array objectAtIndexPath:emptyPath nodeKeyPath:@"bar"]).toEqual(array);
+        });
+
+        it(@"should return nil for an index path where an index is not an array", ^{
+            NSUInteger indexes[] = { 0, 1 };
+            NSIndexPath *indexPath = [NSIndexPath indexPathWithIndexes:indexes length:2];
+
+            expect([array objectAtIndexPath:indexPath]).toBeNil();
+            expect([array objectAtIndexPath:indexPath nodeKeyPath:nil]).toBeNil();
+        });
+
+        it(@"should return a top-level object", ^{
+            NSIndexPath *indexPath = [NSIndexPath indexPathWithIndex:0];
+            id object = [array objectAtIndex:0];
+
+            expect([array objectAtIndexPath:indexPath]).toEqual(object);
+            expect([array objectAtIndexPath:indexPath nodeKeyPath:nil]).toEqual(object);
+            expect([array objectAtIndexPath:indexPath nodeKeyPath:@"bar"]).toEqual(object);
+        });
+
+        it(@"should return a nested object without a key path", ^{
+            NSUInteger indexes[] = { 1, 0 };
+            NSIndexPath *indexPath = [NSIndexPath indexPathWithIndexes:indexes length:2];
+            id object = [[array objectAtIndex:1] objectAtIndex:0];
+
+            expect([array objectAtIndexPath:indexPath]).toEqual(object);
+            expect([array objectAtIndexPath:indexPath nodeKeyPath:nil]).toEqual(object);
+        });
+
+        it(@"should return a nested object with a key path", ^{
+            NSUInteger indexes[] = { 2, 0 };
+            NSIndexPath *indexPath = [NSIndexPath indexPathWithIndexes:indexes length:2];
+            id object = [[[array objectAtIndex:2] valueForKey:@"bar"] objectAtIndex:0];
+
+            expect([array objectAtIndexPath:indexPath nodeKeyPath:@"bar"]).toEqual(object);
+        });
+    });
+
 SpecEnd
