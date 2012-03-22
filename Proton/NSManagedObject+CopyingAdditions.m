@@ -59,12 +59,6 @@
                 NSMutableSet *relationships = nil;
                 if (object.entity.relationshipsByName.count) {
                     relationships = [NSMutableSet setWithArray:object.entity.relationshipsByName.allValues];
-
-                    if ([property inverseRelationship]) {
-                        // ignore the inverse relationship, since that's what
-                        // we're processing right now
-                        [relationships removeObject:[property inverseRelationship]];
-                    }
                 }
 
                 NSManagedObject *newObject = [object copyToManagedObjectContext:context includingRelationships:relationships copiedObjects:copiedObjects];
