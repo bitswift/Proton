@@ -24,6 +24,7 @@
 #import <Proton/NSObject+PROKeyValueObserverAdditions.h>
 #import <Proton/NSOrderedSet+HigherOrderAdditions.h>
 #import <Proton/NSSet+HigherOrderAdditions.h>
+#import <Proton/NSString+NumericSuffixAdditions.h>
 #import <Proton/NSUndoManager+RegistrationAdditions.h>
 #import <Proton/NSUndoManager+UndoStackAdditions.h>
 #import <Proton/PROAssert.h>
