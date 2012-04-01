@@ -58,17 +58,16 @@ SpecBegin(PROBinding)
             __weak id weakBinding = nil;
 
             @autoreleasepool {
-                NSDictionary *copiedOwner = [owner copy];
+                __attribute__((objc_precise_lifetime)) PROBinding *binding = [PROBinding bindKeyPath:ownerKeyPath ofObject:owner toKeyPath:boundKeyPath ofObject:boundObject];
 
-                @autoreleasepool {
-                    __attribute__((objc_precise_lifetime)) PROBinding *binding = [PROBinding bindKeyPath:ownerKeyPath ofObject:copiedOwner toKeyPath:boundKeyPath ofObject:boundObject];
-
-                    weakBinding = binding;
-                    expect(weakBinding).not.toBeNil();
-                }
-
+                weakBinding = binding;
                 expect(weakBinding).not.toBeNil();
-                copiedOwner = nil;
+            }
+
+            @autoreleasepool {
+                expect(weakBinding).not.toBeNil();
+
+                [weakBinding unbind];
             }
 
             expect(weakBinding).toBeNil();

@@ -19,10 +19,12 @@
  *  - Bindings work fully and automatically for any KVO-compliant property.
  *  - With some minor work (such as attaching control actions), bindings can
  *  work for any KVC-compliant property as well.
- *  - Views need no direct knowledge of bindings.
  *
  * Bindings should always be created on the main thread, and will always trigger
  * on the main thread (even if the change occurred on another).
+ *
+ * @warning Bindings must always be explicitly removed (either through <unbind>
+ * or <removeAllBindingsFromOwner:>) before their <owner> is deallocated.
  */
 @interface PROBinding : NSObject
 
@@ -39,7 +41,7 @@
  *
  * Because the binding is automatically retained, the object returned from this
  * method does not have to be saved, unless it will need to be explicitly
- * unbound later.
+ * unbound later. In most cases, <removeAllBindingsFromOwner:> is sufficient.
  *
  * @param ownerKeyPath The key path to bind to on the `owner`. This key path
  * must be KVC-compliant.
@@ -108,6 +110,8 @@
 /**
  * Invokes <unbind> for any bindings owned by the given object.
  *
+ * This should be invoked before the <owner> deallocates.
+ *
  * @param owner The <owner> of the bindings that should be removed.
  */
 + (void)removeAllBindingsFromOwner:(id)owner;
@@ -120,8 +124,8 @@
  * The object using the value of the <boundObject>.
  *
  * If the binding was created with <bindKeyPath:ofObject:toKeyPath:ofObject:>,
- * this object will retain the binding until deallocated, or until <unbind> is
- * explicitly invoked.
+ * this object will retain the binding until <unbind> or
+ * <removeAllBindingsFromOwner:> is explicitly invoked.
  */
 @property (nonatomic, weak, readonly) id owner;
 

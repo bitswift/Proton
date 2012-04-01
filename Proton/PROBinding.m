@@ -144,31 +144,35 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     self.owner = nil;
     self.boundObject = nil;
 
-    NSMutableArray *bindings = objc_getAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey);
-    if (!bindings) {
-        // must've been torn down already
-        return;
-    }
+    @autoreleasepool {
+        NSMutableArray *bindings = objc_getAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey);
+        if (!bindings) {
+            // must've been torn down already
+            return;
+        }
 
-    NSUInteger indexOfSelf = [bindings indexOfObjectIdenticalTo:self];
-    if (indexOfSelf == NSNotFound)
-        return;
+        NSUInteger indexOfSelf = [bindings indexOfObjectIdenticalTo:self];
+        if (indexOfSelf == NSNotFound)
+            return;
 
-    if (bindings.count == 1) {
-        // this is the last binding, so destroy the whole array
-        objc_setAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    } else {
-        [bindings removeObjectAtIndex:indexOfSelf];
+        if (bindings.count == 1) {
+            // this is the last binding, so destroy the whole array
+            objc_setAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else {
+            [bindings removeObjectAtIndex:indexOfSelf];
+        }
     }
 }
 
 + (void)removeAllBindingsFromOwner:(id)owner; {
     NSParameterAssert(owner);
 
-    NSArray *bindings = objc_getAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey);
-    objc_setAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    @autoreleasepool {
+        NSArray *bindings = objc_getAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey);
+        objc_setAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
-    [bindings makeObjectsPerformSelector:@selector(unbind)];
+        [bindings makeObjectsPerformSelector:@selector(unbind)];
+    }
 }
 
 #pragma mark Actions
