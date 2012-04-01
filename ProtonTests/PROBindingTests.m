@@ -1,5 +1,5 @@
 //
-//  PROBinding.m
+//  PROBindingTests.m
 //  Proton
 //
 //  Created by Justin Spahr-Summers on 31.03.12.

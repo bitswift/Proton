@@ -143,8 +143,8 @@
 		D08965DA1527F14700616FFA /* PROBinding.h in Headers */ = {isa = PBXBuildFile; fileRef = D08965D71527F14700616FFA /* PROBinding.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D08965DB1527F14700616FFA /* PROBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = D08965D81527F14700616FFA /* PROBinding.m */; };
 		D08965DC1527F14700616FFA /* PROBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = D08965D81527F14700616FFA /* PROBinding.m */; };
-		D08965DE1527F8CF00616FFA /* PROBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = D08965DD1527F8CF00616FFA /* PROBinding.m */; };
-		D08965DF1527F8CF00616FFA /* PROBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = D08965DD1527F8CF00616FFA /* PROBinding.m */; };
+		D08965DE1527F8CF00616FFA /* PROBindingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D08965DD1527F8CF00616FFA /* PROBindingTests.m */; };
+		D08965DF1527F8CF00616FFA /* PROBindingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D08965DD1527F8CF00616FFA /* PROBindingTests.m */; };
 		D09186741492EC3E001DEBC8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07AF71492E76200A1E816 /* Foundation.framework */; };
 		D09C8771151846E30066D60E /* NSIndexPath+TransformationAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D09C876F151846E30066D60E /* NSIndexPath+TransformationAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D09C8772151846E30066D60E /* NSIndexPath+TransformationAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D09C876F151846E30066D60E /* NSIndexPath+TransformationAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -430,7 +430,7 @@
 		D0870F0214F3E96B0099AF8E /* TestSubModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestSubModel.m; sourceTree = "<group>"; };
 		D08965D71527F14700616FFA /* PROBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROBinding.h; sourceTree = "<group>"; };
 		D08965D81527F14700616FFA /* PROBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROBinding.m; sourceTree = "<group>"; };
-		D08965DD1527F8CF00616FFA /* PROBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROBinding.m; sourceTree = "<group>"; };
+		D08965DD1527F8CF00616FFA /* PROBindingTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROBindingTests.m; sourceTree = "<group>"; };
 		D09C876F151846E30066D60E /* NSIndexPath+TransformationAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSIndexPath+TransformationAdditions.h"; sourceTree = "<group>"; };
 		D09C8770151846E30066D60E /* NSIndexPath+TransformationAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSIndexPath+TransformationAdditions.m"; sourceTree = "<group>"; };
 		D09C87751518486E0066D60E /* PRONSIndexPathAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSIndexPathAdditionsTests.m; sourceTree = "<group>"; };
@@ -689,7 +689,7 @@
 			isa = PBXGroup;
 			children = (
 				D0D2E71D14CAB26C009E641B /* PROAssertTests.m */,
-				D08965DD1527F8CF00616FFA /* PROBinding.m */,
+				D08965DD1527F8CF00616FFA /* PROBindingTests.m */,
 				D0205B7614F333F000404ACA /* PROCoreDataManagerTests.m */,
 				D080D58A14A5E4B200FABAA2 /* PROFutureTests.m */,
 				D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */,
@@ -1430,7 +1430,7 @@
 				1A4E7111151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */,
 				D09C87771518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E70152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
-				D08965DF1527F8CF00616FFA /* PROBinding.m in Sources */,
+				D08965DF1527F8CF00616FFA /* PROBindingTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1512,7 +1512,7 @@
 				1A4E7110151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */,
 				D09C87761518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E6F152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
-				D08965DE1527F8CF00616FFA /* PROBinding.m in Sources */,
+				D08965DE1527F8CF00616FFA /* PROBindingTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
