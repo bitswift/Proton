@@ -154,6 +154,10 @@
  * automatically invoked whenever a KVO notification is received. This method
  * may also be invoked manually or as a control action.
  *
+ * This method may be overridden by subclasses to customize the update logic.
+ * Any override of this method should invoke `super` at some point in its
+ * implementation.
+ *
  * @param sender The object triggering this action. This will be the receiver if
  * invoked in response to a KVO notification.
  */
@@ -166,6 +170,10 @@
  * If the <boundObject> is KVO-compliant for <boundObjectKeyPath>, this method is
  * automatically invoked whenever a KVO notification is received. This method
  * may also be invoked manually or as a control action.
+ *
+ * This method may be overridden by subclasses to customize the update logic.
+ * Any override of this method should invoke `super` at some point in its
+ * implementation.
  *
  * @param sender The object triggering this action. This will be the receiver if
  * invoked in response to a KVO notification.
