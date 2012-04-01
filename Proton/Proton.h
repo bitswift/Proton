@@ -29,6 +29,7 @@
 #import <Proton/NSUndoManager+UndoStackAdditions.h>
 #import <Proton/PROAssert.h>
 #import <Proton/PROBacktraceFunctions.h>
+#import <Proton/PROBinding.h>
 #import <Proton/PROCoreDataManager.h>
 #import <Proton/PROFuture.h>
 #import <Proton/PROKeyValueCodingMacros.h>
