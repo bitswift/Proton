@@ -10,6 +10,8 @@
 #import "EXTRuntimeExtensions.h"
 #import "EXTScope.h"
 #import "NSObject+ComparisonAdditions.h"
+#import "NSObject+PROKeyValueObserverAdditions.h"
+#import "PROBinding.h"
 #import "PROKeyValueCodingMacros.h"
 #import <objc/runtime.h>
 
@@ -34,6 +36,16 @@
 @synthesize model = m_model;
 @synthesize observationInfo = m_observationInfo;
 
+- (void)setModel:(id)model {
+    if (model == m_model)
+        return;
+
+    [self removeAllOwnedObservers];
+    [PROBinding removeAllBindingsFromOwner:self];
+
+    m_model = model;
+}
+
 #pragma mark Lifecycle
 
 - (id)init; {
@@ -56,6 +68,13 @@
 
     [self setValuesForKeysWithDictionary:dictionary];
     return self;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
+    [self removeAllOwnedObservers];
+    [PROBinding removeAllBindingsFromOwner:self];
 }
 
 #pragma mark Reflection

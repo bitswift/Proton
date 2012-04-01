@@ -21,6 +21,11 @@
  * Subclasses do not need to implement `<NSCoding>`, `<NSCopying>`, `-hash`, or
  * `isEqual:`. The implementations of all of these methods are based on the
  * <initWithDictionary:> and <dictionaryValue> behaviors of the class.
+ *
+ * Upon deallocation, instances of this class will automatically invoke
+ * <[NSObject removeAllOwnedObservers]> and <[PROBinding
+ * removeAllBindingsFromOwner:]>, and automatically unregister from any
+ * notifications from the default `NSNotificationCenter`.
  */
 @interface PROViewModel : NSObject <NSCoding, NSCopying>
 
@@ -63,6 +68,11 @@
 
 /**
  * The model object presented by the receiver.
+ *
+ * Setting this property to a new object will automatically invoke <[NSObject
+ * removeAllOwnedObservers]> and <[PROBinding removeAllBindingsFromOwner:]>,
+ * thereby removing all of the receiver's observers and bindings before changing
+ * model objects.
  *
  * @note This object is not archived with the receiver.
  */
