@@ -59,8 +59,7 @@
 /**
  * Initializes a binding between two objects.
  *
- * As part of initialization, this will invoke <boundObjectChanged:>, to
- * immediately set the value at <ownerKeyPath> to the value at <boundKeyPath>.
+ * <boundObjectChanged:> will not be invoked as part of this initializer.
  *
  * Unlike <bindKeyPath:ofObject:toKeyPath:ofObject:>, this method does not
  * automatically retain the binding. Once the returned object has been released,

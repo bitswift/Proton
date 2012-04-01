@@ -34,11 +34,11 @@ SpecBegin(PROBinding)
             }
         });
 
-        it(@"should update the owner when bound", ^{
+        it(@"should not update the owner when bound with the initializer", ^{
             PROBinding *binding = [[PROBinding alloc] initWithOwner:owner ownerKeyPath:ownerKeyPath boundObject:boundObject boundKeyPath:boundKeyPath];
             expect(binding).not.toBeNil();
 
-            expect([owner valueForKeyPath:ownerKeyPath]).toEqual([boundObject valueForKeyPath:boundKeyPath]);
+            expect([owner valueForKeyPath:ownerKeyPath]).not.toEqual([boundObject valueForKeyPath:boundKeyPath]);
         });
 
         it(@"should not be retained by the owner when using the initializer", ^{
@@ -99,6 +99,10 @@ SpecBegin(PROBinding)
                 expect(retainedBinding.bound).toBeFalsy();
                 expect(retainedBinding.owner).toBeNil();
                 expect(retainedBinding.boundObject).toBeNil();
+            });
+
+            it(@"should update the owner when bound using the class constructor", ^{
+                expect([owner valueForKeyPath:ownerKeyPath]).toEqual([boundObject valueForKeyPath:boundKeyPath]);
             });
 
             it(@"should update the owner when the bound object changes", ^{

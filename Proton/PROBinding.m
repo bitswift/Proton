@@ -73,6 +73,8 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     }
 
     [bindings addObject:binding];
+    [binding boundObjectChanged:binding];
+
     return binding;
 }
 
@@ -108,11 +110,6 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
             if (weakSelf.updating)
                 return;
 
-            weakSelf.updating = YES;
-            @onExit {
-                weakSelf.updating = NO;
-            };
-
             [weakSelf ownerChanged:weakSelf];
         }
     ];
@@ -120,16 +117,10 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     self.boundObjectObserver = [[PROKeyValueObserver alloc]
         initWithTarget:boundObject
         keyPath:boundKeyPath
-        options:NSKeyValueObservingOptionInitial
         block:^(NSDictionary *changes){
             // ignore changes triggered by ourself
             if (weakSelf.updating)
                 return;
-
-            weakSelf.updating = YES;
-            @onExit {
-                weakSelf.updating = NO;
-            };
 
             [weakSelf boundObjectChanged:weakSelf];
         }
@@ -186,6 +177,11 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     if (!self.bound)
         return;
 
+    self.updating = YES;
+    @onExit {
+        self.updating = NO;
+    };
+
     id owner = self.owner;
     
     // this is technically checked by the 'bound' property, but weak references
@@ -200,6 +196,11 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
 - (IBAction)boundObjectChanged:(id)sender; {
     if (!self.bound)
         return;
+
+    self.updating = YES;
+    @onExit {
+        self.updating = NO;
+    };
 
     id value = [self.boundObject valueForKeyPath:self.boundKeyPath];
     [self.owner setValue:value forKeyPath:self.ownerKeyPath];
