@@ -138,6 +138,11 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     return self;
 }
 
+- (void)dealloc {
+    self.ownerObserver = nil;
+    self.boundObjectObserver = nil;
+}
+
 #pragma mark Unbinding
 
 - (void)unbind {
