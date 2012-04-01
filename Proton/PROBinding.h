@@ -21,8 +21,8 @@
  *  work for any KVC-compliant property as well.
  *  - Views need no direct knowledge of bindings.
  *
- * Bindings always take effect on the main thread, no matter which thread
- * they're created upon.
+ * Bindings should always be created on the main thread, and will always trigger
+ * on the main thread (even if the change occurred on another).
  */
 @interface PROBinding : NSObject
 
