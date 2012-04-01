@@ -11,6 +11,11 @@
 #import "EXTScope.h"
 #import <objc/runtime.h>
 
+/**
+ * A key used to associate an `NSMutableArray` of bindings on their owner.
+ */
+static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssociatedBindings";
+
 @interface PROBinding ()
 @property (nonatomic, weak, readwrite) id owner;
 @property (nonatomic, strong, readwrite) id boundObject;
@@ -59,7 +64,15 @@
     if (!binding)
         return nil;
 
-    objc_setAssociatedObject(owner, (__bridge void *)binding, binding, OBJC_ASSOCIATION_RETAIN);
+    // add to any existing bindings on the owner
+    NSMutableArray *bindings = objc_getAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey);
+    if (!bindings) {
+        bindings = [NSMutableArray array];
+        
+        objc_setAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey, bindings, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+
+    [bindings addObject:binding];
     return binding;
 }
 
@@ -131,10 +144,35 @@
     self.ownerObserver = nil;
     self.boundObjectObserver = nil;
 
-    objc_setAssociatedObject(self.owner, (__bridge void *)self, nil, OBJC_ASSOCIATION_RETAIN);
-
+    id owner = self.owner;
     self.owner = nil;
     self.boundObject = nil;
+
+    NSMutableArray *bindings = objc_getAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey);
+    if (!bindings) {
+        // must've been torn down already
+        return;
+    }
+
+    NSUInteger indexOfSelf = [bindings indexOfObjectIdenticalTo:self];
+    if (indexOfSelf == NSNotFound)
+        return;
+
+    if (bindings.count == 1) {
+        // this is the last binding, so destroy the whole array
+        objc_setAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } else {
+        [bindings removeObjectAtIndex:indexOfSelf];
+    }
+}
+
++ (void)removeAllBindingsFromOwner:(id)owner; {
+    NSParameterAssert(owner);
+
+    NSArray *bindings = objc_getAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey);
+    objc_setAssociatedObject(owner, PROBindingOwnerAssociatedBindingsKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+    [bindings makeObjectsPerformSelector:@selector(unbind)];
 }
 
 #pragma mark Actions

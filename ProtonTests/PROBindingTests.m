@@ -120,6 +120,24 @@ SpecBegin(PROBinding)
                 [retainedBinding unbind];
                 [retainedBinding unbind];
             });
+
+            it(@"should remove a single binding from an owner", ^{
+                [PROBinding removeAllBindingsFromOwner:owner];
+                
+                expect(binding.bound).toBeFalsy();
+                expect(binding.owner).toBeNil();
+                expect(binding.boundObject).toBeNil();
+            });
+
+            it(@"should remove all bindings from an owner", ^{
+                PROBinding *anotherBinding = [PROBinding bindKeyPath:ownerKeyPath ofObject:owner toKeyPath:boundKeyPath ofObject:boundObject];
+                expect(anotherBinding.bound).toBeTruthy();
+
+                [PROBinding removeAllBindingsFromOwner:owner];
+                
+                expect(binding.bound).toBeFalsy();
+                expect(anotherBinding.bound).toBeFalsy();
+            });
         });
     });
 

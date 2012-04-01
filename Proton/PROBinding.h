@@ -95,12 +95,23 @@
 @property (nonatomic, getter = isBound, readonly) BOOL bound;
 
 /**
+ * @name Unbinding
+ */
+
+/**
  * Unbinds the receiver, halting all automatic value changes.
  *
  * This will clear out the <owner> and the <boundObject>. If the <owner> is
  * retaining the receiver, this also releases the receiver.
  */
 - (void)unbind;
+
+/**
+ * Invokes <unbind> for any bindings owned by the given object.
+ *
+ * @param owner The <owner> of the bindings that should be removed.
+ */
++ (void)removeAllBindingsFromOwner:(id)owner;
 
 /**
  * @name Bound Objects
