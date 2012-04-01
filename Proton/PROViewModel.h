@@ -105,6 +105,8 @@
  * deallocates, when a new <model> is set, or when <removeModelBindings> is
  * invoked.
  *
+ * If the receiver's <model> is `nil`, this method does nothing.
+ *
  * @param ownerKeyPath The key path on the receiver to bind.
  * @param modelKeyPath The key path on the <model> that should be bound.
  * @param setupBlock An optional block that can be used to set up the binding

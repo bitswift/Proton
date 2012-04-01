@@ -92,7 +92,8 @@
     NSParameterAssert(ownerKeyPath);
     NSParameterAssert(modelKeyPath);
 
-    NSAssert(self.model, @"%@ does not have a model to bind to", self);
+    if (!self.model)
+        return;
 
     PROBinding *binding = [[PROBinding alloc] initWithOwner:self ownerKeyPath:ownerKeyPath boundObject:self.model boundKeyPath:modelKeyPath];
     if (!PROAssert(binding, @"Could not create binding between key path \"%@\" and model %@ key path \"%@\"", ownerKeyPath, self.model, modelKeyPath))
