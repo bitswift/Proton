@@ -193,4 +193,41 @@
  * invoked in response to a KVO notification.
  */
 - (IBAction)boundObjectChanged:(id)sender;
+
+/**
+ * @name Transforming the Bound Values
+ */
+
+/**
+ * A block for transforming the value at the <boundKeyPath> into a value
+ * suitable for the <ownerKeyPath>.
+ *
+ * If not `nil`, this block will be invoked as part of <boundObjectChanged:>.
+ *
+ * The default value for this property is `nil`.
+ *
+ * @note Because this can only be set after initialization,
+ * <bindKeyPath:ofObject:toKeyPath:ofObject:> will not use this block for its
+ * initial setting of the <ownerKeyPath>. Use
+ * <initWithOwner:ownerKeyPath:boundObject:boundKeyPath:> instead.
+ */
+@property (nonatomic, copy) id (^boundValueTransformationBlock)(id boundValue);
+
+/**
+ * A block for transforming the value at the <ownerKeyPath> into a value
+ * suitable for the <boundKeyPath>.
+ *
+ * If not `nil`, this block will be invoked as part of <ownerChanged:>.
+ *
+ * The default value for this property simply invokes the
+ * <boundValueTransformationBlock>, if present; otherwise, the input value is
+ * returned unmodified.
+ *
+ * @note Because this can only be set after initialization,
+ * <bindKeyPath:ofObject:toKeyPath:ofObject:> will not use this block for its
+ * initial setting of the <ownerKeyPath>. Use
+ * <initWithOwner:ownerKeyPath:boundObject:boundKeyPath:> instead.
+ */
+@property (nonatomic, copy) id (^ownerValueTransformationBlock)(id ownerValue);
+
 @end

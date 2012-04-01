@@ -52,6 +52,8 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
 @synthesize ownerObserver = m_ownerObserver;
 @synthesize boundObjectObserver = m_boundObjectObserver;
 @synthesize updating = m_updating;
+@synthesize boundValueTransformationBlock = m_boundValueTransformationBlock;
+@synthesize ownerValueTransformationBlock = m_ownerValueTransformationBlock;
 
 - (BOOL)isBound {
     return self.owner != nil;
@@ -126,6 +128,13 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
         }
     ];
 
+    self.ownerValueTransformationBlock = ^(id ownerValue){
+        if (weakSelf.boundValueTransformationBlock)
+            return weakSelf.boundValueTransformationBlock(ownerValue);
+        else
+            return ownerValue;
+    };
+
     return self;
 }
 
@@ -194,6 +203,9 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
         return;
 
     id value = [owner valueForKeyPath:self.ownerKeyPath];
+    if (self.ownerValueTransformationBlock)
+        value = self.ownerValueTransformationBlock(value);
+
     [self.boundObject setValue:value forKeyPath:self.boundKeyPath];
 }
 
@@ -207,6 +219,9 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     };
 
     id value = [self.boundObject valueForKeyPath:self.boundKeyPath];
+    if (self.boundValueTransformationBlock)
+        value = self.boundValueTransformationBlock(value);
+
     [self.owner setValue:value forKeyPath:self.ownerKeyPath];
 }
 

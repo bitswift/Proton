@@ -106,14 +106,20 @@ SpecBegin(PROBinding)
 
             it(@"should update the owner when the bound object changes", ^{
                 id value = @"this is a value!";
-                [boundObject setValue:value forKeyPath:boundKeyPath];
+
+                expect([^{
+                    [boundObject setValue:value forKeyPath:boundKeyPath];
+                } copy]).toInvoke(binding, @selector(boundObjectChanged:));
 
                 expect([owner valueForKeyPath:ownerKeyPath]).toEqual(value);
             });
 
             it(@"should update the bound object when the owner changes", ^{
                 id value = @"this is a value!";
-                [owner setValue:value forKeyPath:ownerKeyPath];
+
+                expect([^{
+                    [owner setValue:value forKeyPath:ownerKeyPath];
+                } copy]).toInvoke(binding, @selector(ownerChanged:));
 
                 expect([boundObject valueForKeyPath:boundKeyPath]).toEqual(value);
             });
@@ -202,6 +208,48 @@ SpecBegin(PROBinding)
 
             expect(owner.value).toEqual(@"buzz");
             expect(boundObject.value).toEqual(@"buzz");
+        });
+
+        it(@"should transform bound values using the given block", ^{
+            binding.boundValueTransformationBlock = ^ id (id value){
+                return nil;
+            };
+
+            boundObject.value = @"foobar";
+            [binding boundObjectChanged:nil];
+
+            expect(owner.value).toBeNil();
+            expect(boundObject.value).toEqual(@"foobar");
+        });
+
+        it(@"should transform owner values using the boundValueTransformationBlock by default", ^{
+            binding.boundValueTransformationBlock = ^ id (id value){
+                return nil;
+            };
+
+            expect(binding.ownerValueTransformationBlock).not.toBeNil();
+
+            owner.value = @"foobar";
+            [binding ownerChanged:nil];
+
+            expect(owner.value).toEqual(@"foobar");
+            expect(boundObject.value).toBeNil();
+        });
+
+        it(@"should transform owner values using the given block", ^{
+            binding.boundValueTransformationBlock = ^(id value){
+                return @"fuzz";
+            };
+
+            binding.ownerValueTransformationBlock = ^ id (id value){
+                return nil;
+            };
+
+            owner.value = @"foobar";
+            [binding ownerChanged:nil];
+
+            expect(owner.value).toEqual(@"foobar");
+            expect(boundObject.value).toBeNil();
         });
     });
 
