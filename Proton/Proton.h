@@ -37,6 +37,7 @@
 #import <Proton/PROLogging.h>
 #import <Proton/PROManagedObjectController.h>
 #import <Proton/PROUniqueIdentifier.h>
+#import <Proton/PROViewModel.h>
 
 // other imported frameworks
 #import "EXTBlockMethod.h"
