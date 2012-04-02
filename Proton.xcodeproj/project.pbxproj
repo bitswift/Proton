@@ -172,6 +172,10 @@
 		D0ADFE7E150022A40043787E /* NSError+ValidationAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0ADFE7A150022A40043787E /* NSError+ValidationAdditions.m */; };
 		D0ADFE80150025390043787E /* PRONSErrorAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0ADFE7F150025390043787E /* PRONSErrorAdditionsTests.m */; };
 		D0ADFE81150025390043787E /* PRONSErrorAdditionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0ADFE7F150025390043787E /* PRONSErrorAdditionsTests.m */; };
+		D0AE21601528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0AE215E1528045C00D340A5 /* NSString+KeyPathAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0AE21611528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D0AE215E1528045C00D340A5 /* NSString+KeyPathAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0AE21621528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0AE215F1528045C00D340A5 /* NSString+KeyPathAdditions.m */; };
+		D0AE21631528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D0AE215F1528045C00D340A5 /* NSString+KeyPathAdditions.m */; };
 		D0B07AD01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
 		D0B07ADD1492E72800A1E816 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DB5CDD1492DDD5005955FB /* SenTestingKit.framework */; };
 		D0B07AE01492E72800A1E816 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B07ACF1492E72800A1E816 /* Foundation.framework */; };
@@ -444,6 +448,8 @@
 		D0ADFE79150022A40043787E /* NSError+ValidationAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+ValidationAdditions.h"; sourceTree = "<group>"; };
 		D0ADFE7A150022A40043787E /* NSError+ValidationAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+ValidationAdditions.m"; sourceTree = "<group>"; };
 		D0ADFE7F150025390043787E /* PRONSErrorAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSErrorAdditionsTests.m; sourceTree = "<group>"; };
+		D0AE215E1528045C00D340A5 /* NSString+KeyPathAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+KeyPathAdditions.h"; sourceTree = "<group>"; };
+		D0AE215F1528045C00D340A5 /* NSString+KeyPathAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+KeyPathAdditions.m"; sourceTree = "<group>"; };
 		D0B07ACE1492E72800A1E816 /* libProton.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libProton.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B07ACF1492E72800A1E816 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0B07ADC1492E72800A1E816 /* Proton iOS Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Proton iOS Tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -675,6 +681,8 @@
 				D07D6E9A1499E02A00192DED /* NSOrderedSet+HigherOrderAdditions.m */,
 				D07D6E8C1499DF7300192DED /* NSSet+HigherOrderAdditions.h */,
 				D07D6E8D1499DF7300192DED /* NSSet+HigherOrderAdditions.m */,
+				D0AE215E1528045C00D340A5 /* NSString+KeyPathAdditions.h */,
+				D0AE215F1528045C00D340A5 /* NSString+KeyPathAdditions.m */,
 				D03A5E63152622D400DF330F /* NSString+NumericSuffixAdditions.h */,
 				D03A5E64152622D400DF330F /* NSString+NumericSuffixAdditions.m */,
 				D0C808AF14D0EF310068E06C /* NSUndoManager+RegistrationAdditions.h */,
@@ -1064,6 +1072,7 @@
 				D09C878B15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
 				D03A5E66152622D400DF330F /* NSString+NumericSuffixAdditions.h in Headers */,
 				D08965DA1527F14700616FFA /* PROBinding.h in Headers */,
+				D0AE21611528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1115,6 +1124,7 @@
 				D09C878A15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
 				D03A5E65152622D400DF330F /* NSString+NumericSuffixAdditions.h in Headers */,
 				D08965D91527F14700616FFA /* PROBinding.h in Headers */,
+				D0AE21601528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1396,6 +1406,7 @@
 				D09C878D15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
 				D03A5E68152622D400DF330F /* NSString+NumericSuffixAdditions.m in Sources */,
 				D08965DC1527F14700616FFA /* PROBinding.m in Sources */,
+				D0AE21631528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1478,6 +1489,7 @@
 				D09C878C15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
 				D03A5E67152622D400DF330F /* NSString+NumericSuffixAdditions.m in Sources */,
 				D08965DB1527F14700616FFA /* PROBinding.m in Sources */,
+				D0AE21621528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
