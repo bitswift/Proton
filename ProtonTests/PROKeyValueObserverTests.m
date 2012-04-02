@@ -147,6 +147,7 @@ SpecBegin(PROKeyValueObserver)
                 [observedObject waitUntilFinished];
 
                 expect(observerInvoked).isGoing.toBeTruthy();
+                [queue runSynchronously:^{}];
             });
         });
 
