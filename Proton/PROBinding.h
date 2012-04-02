@@ -20,8 +20,9 @@
  *  - With some minor work (such as attaching control actions), bindings can
  *  work for any KVC-compliant property as well.
  *
- * Bindings should always be created on the main thread, and will always trigger
- * on the main thread (even if the change occurred on another).
+ * Bindings should not be created, modified, or destroyed from any thread other
+ * than the main thread, and will always trigger on the main thread (even if the
+ * change occurred on another).
  *
  * @warning Bindings must always be explicitly removed (either through <unbind>
  * or <removeAllBindingsFromOwner:>) before their <owner> is deallocated.
