@@ -134,4 +134,21 @@
  */
 + (NSArray *)propertyKeys;
 
+/**
+ * @name Validating Actions
+ */
+
+/**
+ * Returns whether the given action selector can be validly invoked, given the
+ * current state of the receiver.
+ * 
+ * The default implementation of this method looks for a method named
+ * `-validate<Action>` on the receiver, invoking it and using its result if
+ * present. Subclasses that override this method to perform custom logic should
+ * invoke `super` at some point in their implementation.
+ *
+ * @param action The selector to validate.
+ */
+- (BOOL)validateAction:(SEL)action;
+
 @end

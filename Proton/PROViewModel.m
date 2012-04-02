@@ -148,6 +148,42 @@
     return [self dictionaryWithValuesForKeys:[[self class] propertyKeys]];
 }
 
+#pragma mark Validation
+
+- (BOOL)validateAction:(SEL)action; {
+    NSParameterAssert(action);
+    NSAssert([self respondsToSelector:action], @"%@ does not implement -%@", self, NSStringFromSelector(action));
+
+    NSString *name = NSStringFromSelector(action);
+    if ([name hasSuffix:@":"]) {
+        name = [name substringToIndex:name.length - 1];
+
+        if (!PROAssert([name rangeOfString:@":"].location != NSNotFound, @"Cannot validate -%@, as it takes more than one argument", NSStringFromSelector(action))) {
+            return NO;
+        }
+    }
+
+    NSAssert(name.length, @"Selector %@ is invalid", NSStringFromSelector(action));
+
+    NSMutableString *validationMethodName = [@"validate" mutableCopy];
+    [validationMethodName appendString:[[name substringToIndex:1] uppercaseString]];
+    [validationMethodName appendString:[name substringFromIndex:1]];
+
+    SEL validationSelector = NSSelectorFromString(validationMethodName);
+    NSMethodSignature *methodSignature = [self methodSignatureForSelector:validationSelector];
+    if (!methodSignature)
+        return NO;
+
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+    invocation.selector = validationSelector;
+    [invocation invokeWithTarget:self];
+
+    BOOL result = NO;
+    [invocation getReturnValue:&result];
+
+    return result;
+}
+
 #pragma mark NSKeyValueCoding
 
 + (BOOL)accessInstanceVariablesDirectly {
