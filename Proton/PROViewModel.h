@@ -71,17 +71,37 @@
 /**
  * The model object presented by the receiver.
  *
- * Setting this property to a new object will automatically invoke
- * <removeModelBindings>, thereby removing all of the receiver's bindings before
- * changing model objects.
+ * Setting this property to a new object will automatically invoke <[PROBinding
+ * removeAllBindingsFromOwner:>, thereby removing all of the receiver's bindings
+ * before changing model objects.
  *
  * @note This object is not archived with the receiver.
  */
 @property (nonatomic, strong) id model;
 
 /**
- * @name Property Values
+ * @name Declared Properties
  */
+
+/**
+ * Returns an array containing the names of all of the properties on the
+ * receiver. The array will be empty if no properties have been declared.
+ *
+ * This will only include `@property` declarations (i.e., Objective-C 2.0
+ * properties), not any methods that look like accessors.
+ */
++ (NSArray *)propertyKeys;
+
+/**
+ * Returns default values for the receiver's properties. Any keys not present in
+ * the dictionary will not be set to a default value.
+ *
+ * Default values should be set using this method, not <initWithDictionary:>, as
+ * the latter is also called when copying or decoding objects.
+ *
+ * The default implementation of this method returns an empty dictionary.
+ */
++ (NSDictionary *)defaultValuesForKeys;
 
 /**
  * Returns a dictionary containing the properties of the receiver.
@@ -93,46 +113,6 @@
  * never return `nil`.
  */
 - (NSDictionary *)dictionaryValue;
-
-/**
- * @name Bindings
- */
-
-/**
- * Creates a new binding between the receiver and the current <model>.
- *
- * Bindings created in this manner are automatically removed when the receiver
- * deallocates, when a new <model> is set, or when <removeModelBindings> is
- * invoked.
- *
- * If the receiver's <model> is `nil`, this method does nothing.
- *
- * @param ownerKeyPath The key path on the receiver to bind.
- * @param modelKeyPath The key path on the <model> that should be bound.
- * @param setupBlock An optional block that can be used to set up the binding
- * before activating it; for example, this can be used to set <[PROBinding
- * boundValueTransformationBlock]> before the bound value is initially set.
- */
-- (void)bindKeyPath:(NSString *)ownerKeyPath toModelKeyPath:(NSString *)modelKeyPath withSetup:(void (^)(PROBinding *))setupBlock;
-
-/**
- * Removes all bindings that were previously set up with
- * <bindKeyPath:toModelKeyPath:withSetup:>.
- */
-- (void)removeModelBindings;
-
-/**
- * @name Reflection
- */
-
-/**
- * Returns an array containing the names of all of the properties on the
- * receiver. The array will be empty if no properties have been declared.
- *
- * This will only include `@property` declarations (i.e., Objective-C 2.0
- * properties), not any methods that look like accessors.
- */
-+ (NSArray *)propertyKeys;
 
 /**
  * @name Validating Actions

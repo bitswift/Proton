@@ -23,12 +23,6 @@
  */
 @property (assign) void *observationInfo;
 
-/**
- * An array of <PROBinding> objects that bind the receiver's <model> to the
- * receiver.
- */
-@property (nonatomic, strong, readonly) NSMutableArray *modelBindings;
-
 /*
  * Enumerates all the properties of the receiver and any superclasses, up until
  * (and excluding) <PROViewModel>.
@@ -42,13 +36,14 @@
 
 @synthesize model = m_model;
 @synthesize observationInfo = m_observationInfo;
-@synthesize modelBindings = m_modelBindings;
 
 - (void)setModel:(id)model {
     if (model == m_model)
         return;
 
-    [self removeModelBindings];
+    [self removeAllOwnedObservers];
+    [PROBinding removeAllBindingsFromOwner:self];
+
     m_model = model;
 }
 
@@ -72,7 +67,9 @@
     if (!self)
         return nil;
 
-    m_modelBindings = [NSMutableArray array];
+    NSDictionary *defaultValues = [[self class] defaultValuesForKeys];
+    if (defaultValues)
+        [self setValuesForKeysWithDictionary:defaultValues];
 
     [self setValuesForKeysWithDictionary:dictionary];
     return self;
@@ -82,33 +79,7 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     [self removeAllOwnedObservers];
-    [self removeModelBindings];
     [PROBinding removeAllBindingsFromOwner:self];
-}
-
-#pragma mark Bindings
-
-- (void)bindKeyPath:(NSString *)ownerKeyPath toModelKeyPath:(NSString *)modelKeyPath withSetup:(void (^)(PROBinding *))setupBlock; {
-    NSParameterAssert(ownerKeyPath);
-    NSParameterAssert(modelKeyPath);
-
-    if (!self.model)
-        return;
-
-    PROBinding *binding = [[PROBinding alloc] initWithOwner:self ownerKeyPath:ownerKeyPath boundObject:self.model boundKeyPath:modelKeyPath];
-    if (!PROAssert(binding, @"Could not create binding between key path \"%@\" and model %@ key path \"%@\"", ownerKeyPath, self.model, modelKeyPath))
-        return;
-
-    if (setupBlock)
-        setupBlock(binding);
-
-    [self.modelBindings addObject:binding];
-    [binding boundObjectChanged:self];
-}
-
-- (void)removeModelBindings; {
-    [self.modelBindings makeObjectsPerformSelector:@selector(unbind)];
-    [self.modelBindings removeAllObjects];
 }
 
 #pragma mark Reflection
@@ -143,6 +114,10 @@
 }
 
 #pragma mark Dictionary Value
+
++ (NSDictionary *)defaultValuesForKeys; {
+    return [NSDictionary dictionary];
+}
 
 - (NSDictionary *)dictionaryValue {
     return [self dictionaryWithValuesForKeys:[[self class] propertyKeys]];
