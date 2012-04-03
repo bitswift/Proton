@@ -25,6 +25,8 @@
 		D002AEBB14CDFF340062AEFC /* libSpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9C14CDFF1F0062AEFC /* libSpecta.a */; };
 		D002AEC014CDFF570062AEFC /* libExpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AEB114CDFF240062AEFC /* libExpecta-iOS.a */; };
 		D002AEC114CDFF570062AEFC /* libSpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9E14CDFF1F0062AEFC /* libSpecta-iOS.a */; };
+		D0054C8F152B7618002BD035 /* PROViewModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0054C8E152B7618002BD035 /* PROViewModelTests.m */; };
+		D0054C90152B7618002BD035 /* PROViewModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0054C8E152B7618002BD035 /* PROViewModelTests.m */; };
 		D00AB29E14CFF549000BC4B0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29D14CFF549000BC4B0 /* UIKit.framework */; };
 		D00AB2A014CFF55E000BC4B0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */; };
 		D00B9242152902DC00A49BE8 /* PROViewModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D00B9240152902DC00A49BE8 /* PROViewModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -375,6 +377,7 @@
 		D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Specta.xcodeproj; path = Libraries/Specta/Specta.xcodeproj; sourceTree = "<group>"; };
 		D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Expecta.xcodeproj; path = Libraries/Expecta/Expecta.xcodeproj; sourceTree = "<group>"; };
 		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
+		D0054C8E152B7618002BD035 /* PROViewModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROViewModelTests.m; sourceTree = "<group>"; };
 		D00AB29D14CFF549000BC4B0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
 		D00B9240152902DC00A49BE8 /* PROViewModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROViewModel.h; sourceTree = "<group>"; };
@@ -728,6 +731,7 @@
 				D03A5E6E152623B500DF330F /* PRONSStringAdditionsTests.m */,
 				D0AA94F514D0AF070040B59D /* PRONSUndoManagerAdditionsTests.m */,
 				1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */,
+				D0054C8E152B7618002BD035 /* PROViewModelTests.m */,
 				1A4E7105151280BC00AC56ED /* TestCustomEncodedModel.h */,
 				1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */,
 				D0870EFD14F3E95F0099AF8E /* TestModel.h */,
@@ -1461,6 +1465,7 @@
 				D09C87771518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E70152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
 				D08965DF1527F8CF00616FFA /* PROBindingTests.m in Sources */,
+				D0054C90152B7618002BD035 /* PROViewModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1545,6 +1550,7 @@
 				D09C87761518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E6F152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
 				D08965DE1527F8CF00616FFA /* PROBindingTests.m in Sources */,
+				D0054C8F152B7618002BD035 /* PROViewModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
