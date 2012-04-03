@@ -34,6 +34,12 @@
  */
 
 /**
+ * Invokes <bindKeyPath:ofObject:toKeyPath:ofObject:withSetup:> with a `nil`
+ * setup block.
+ */
++ (id)bindKeyPath:(NSString *)ownerKeyPath ofObject:(id)owner toKeyPath:(NSString *)boundKeyPath ofObject:(id)boundObject;
+
+/**
  * Creates a binding between two objects, automatically retaining it for the
  * lifetime of the `owner`.
  *
@@ -52,21 +58,25 @@
  * path must be KVC-compliant.
  * @param boundObject The object providing the value for use by the `owner`.
  * This object will be retained for the lifetime of the binding.
+ * @param setupBlock If not `nil`, this block is invoked after initialization,
+ * but before <boundObjectChanged:> is invoked for the first time, and is passed
+ * the newly-created binding. This block can be used to perform additional
+ * configuration before the binding is activated.
  *
  * @note The memory management semantics for `PROBinding` differ significantly
  * from Cocoa Bindings. In particular, when using this method, the `boundObject`
  * is retained by the binding, and the `owner` retains the binding.
  */
-+ (id)bindKeyPath:(NSString *)ownerKeyPath ofObject:(id)owner toKeyPath:(NSString *)boundKeyPath ofObject:(id)boundObject;
++ (id)bindKeyPath:(NSString *)ownerKeyPath ofObject:(id)owner toKeyPath:(NSString *)boundKeyPath ofObject:(id)boundObject withSetup:(void (^)(id binding))setupBlock;
 
 /**
  * Initializes a binding between two objects.
  *
  * <boundObjectChanged:> will not be invoked as part of this initializer.
  *
- * Unlike <bindKeyPath:ofObject:toKeyPath:ofObject:>, this method does not
- * automatically retain the binding. Once the returned object has been released,
- * the specified key paths are automatically unbound.
+ * Unlike <bindKeyPath:ofObject:toKeyPath:ofObject:withSetup:>, this method does
+ * not automatically retain the binding. Once the returned object has been
+ * released, the specified key paths are automatically unbound.
  *
  * This is the designated initializer for this class.
  *
@@ -124,9 +134,10 @@
 /**
  * The object using the value of the <boundObject>.
  *
- * If the binding was created with <bindKeyPath:ofObject:toKeyPath:ofObject:>,
- * this object will retain the binding until <unbind> or
- * <removeAllBindingsFromOwner:> is explicitly invoked.
+ * If the binding was created with
+ * <bindKeyPath:ofObject:toKeyPath:ofObject:withSetup:>, this object will retain
+ * the binding until <unbind> or <removeAllBindingsFromOwner:> is explicitly
+ * invoked.
  */
 @property (nonatomic, weak, readonly) id owner;
 
@@ -207,10 +218,16 @@
  *
  * The default value for this property is `nil`.
  *
- * @note Because this can only be set after initialization,
- * <bindKeyPath:ofObject:toKeyPath:ofObject:> will not use this block for its
- * initial setting of the <ownerKeyPath>. Use
- * <initWithOwner:ownerKeyPath:boundObject:boundKeyPath:> instead.
+ * @note To make sure this block is invoked before the binding is activated for
+ * the first time, do one of the following:
+ *
+ *  - Create the binding with
+ *  <bindKeyPath:ofObject:toKeyPath:ofObject:withSetup:>, and pass in a setup
+ *  block that assigns a `boundValueTransformationBlock`.
+ *  - Create the binding with
+ *  <initWithOwner:ownerKeyPath:boundObject:boundKeyPath:>, set the
+ *  `boundValueTransformationBlock`, and then manually trigger
+ *  <boundObjectChanged:> to activate the binding.
  */
 @property (nonatomic, copy) id (^boundValueTransformationBlock)(id boundValue);
 
@@ -223,11 +240,6 @@
  * The default value for this property simply invokes the
  * <boundValueTransformationBlock>, if present; otherwise, the input value is
  * returned unmodified.
- *
- * @note Because this can only be set after initialization,
- * <bindKeyPath:ofObject:toKeyPath:ofObject:> will not use this block for its
- * initial setting of the <ownerKeyPath>. Use
- * <initWithOwner:ownerKeyPath:boundObject:boundKeyPath:> instead.
  */
 @property (nonatomic, copy) id (^ownerValueTransformationBlock)(id ownerValue);
 

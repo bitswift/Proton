@@ -83,6 +83,21 @@ SpecBegin(PROBinding)
             [binding unbind];
         });
 
+        it(@"should transform bound values with a block added in a setup block", ^{
+            id boundValue = [boundObject valueForKeyPath:boundKeyPath];
+
+            PROBinding *binding = [PROBinding bindKeyPath:ownerKeyPath ofObject:owner toKeyPath:boundKeyPath ofObject:boundObject withSetup:^(PROBinding *binding){
+                binding.boundValueTransformationBlock = ^ id (id value){
+                    return nil;
+                };
+            }];
+
+            expect([owner valueForKeyPath:ownerKeyPath]).toBeNil();
+            expect([boundObject valueForKeyPath:boundKeyPath]).toEqual(boundValue);
+
+            [binding unbind];
+        });
+
         describe(@"with an instance", ^{
             __block __weak PROBinding *binding;
 
