@@ -25,8 +25,14 @@
 		D002AEBB14CDFF340062AEFC /* libSpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9C14CDFF1F0062AEFC /* libSpecta.a */; };
 		D002AEC014CDFF570062AEFC /* libExpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AEB114CDFF240062AEFC /* libExpecta-iOS.a */; };
 		D002AEC114CDFF570062AEFC /* libSpecta-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D002AE9E14CDFF1F0062AEFC /* libSpecta-iOS.a */; };
+		D0054C8F152B7618002BD035 /* PROViewModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0054C8E152B7618002BD035 /* PROViewModelTests.m */; };
+		D0054C90152B7618002BD035 /* PROViewModelTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0054C8E152B7618002BD035 /* PROViewModelTests.m */; };
 		D00AB29E14CFF549000BC4B0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29D14CFF549000BC4B0 /* UIKit.framework */; };
 		D00AB2A014CFF55E000BC4B0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */; };
+		D00B9242152902DC00A49BE8 /* PROViewModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D00B9240152902DC00A49BE8 /* PROViewModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D00B9243152902DC00A49BE8 /* PROViewModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D00B9240152902DC00A49BE8 /* PROViewModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D00B9244152902DC00A49BE8 /* PROViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D00B9241152902DC00A49BE8 /* PROViewModel.m */; };
+		D00B9245152902DC00A49BE8 /* PROViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D00B9241152902DC00A49BE8 /* PROViewModel.m */; };
 		D00DA769150FD9980090875F /* PROManagedObjectController.h in Headers */ = {isa = PBXBuildFile; fileRef = D00DA767150FD9980090875F /* PROManagedObjectController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D00DA76A150FD9980090875F /* PROManagedObjectController.h in Headers */ = {isa = PBXBuildFile; fileRef = D00DA767150FD9980090875F /* PROManagedObjectController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D00DA76B150FD9980090875F /* PROManagedObjectController.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA768150FD9980090875F /* PROManagedObjectController.m */; };
@@ -371,8 +377,11 @@
 		D002AE9114CDFF1F0062AEFC /* Specta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Specta.xcodeproj; path = Libraries/Specta/Specta.xcodeproj; sourceTree = "<group>"; };
 		D002AEA414CDFF230062AEFC /* Expecta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Expecta.xcodeproj; path = Libraries/Expecta/Expecta.xcodeproj; sourceTree = "<group>"; };
 		D002AEC214CDFFB70062AEFC /* ProtonTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ProtonTests-Prefix.pch"; sourceTree = "<group>"; };
+		D0054C8E152B7618002BD035 /* PROViewModelTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROViewModelTests.m; sourceTree = "<group>"; };
 		D00AB29D14CFF549000BC4B0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
+		D00B9240152902DC00A49BE8 /* PROViewModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROViewModel.h; sourceTree = "<group>"; };
+		D00B9241152902DC00A49BE8 /* PROViewModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROViewModel.m; sourceTree = "<group>"; };
 		D00DA767150FD9980090875F /* PROManagedObjectController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROManagedObjectController.h; sourceTree = "<group>"; };
 		D00DA768150FD9980090875F /* PROManagedObjectController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROManagedObjectController.m; sourceTree = "<group>"; };
 		D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROManagedObjectControllerTests.m; sourceTree = "<group>"; };
@@ -605,6 +614,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		D00B923F152902CF00A49BE8 /* View Models */ = {
+			isa = PBXGroup;
+			children = (
+				D00B9240152902DC00A49BE8 /* PROViewModel.h */,
+				D00B9241152902DC00A49BE8 /* PROViewModel.m */,
+			);
+			name = "View Models";
+			sourceTree = "<group>";
+		};
 		D00DA766150FD98B0090875F /* Model Controllers */ = {
 			isa = PBXGroup;
 			children = (
@@ -713,6 +731,7 @@
 				D03A5E6E152623B500DF330F /* PRONSStringAdditionsTests.m */,
 				D0AA94F514D0AF070040B59D /* PRONSUndoManagerAdditionsTests.m */,
 				1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */,
+				D0054C8E152B7618002BD035 /* PROViewModelTests.m */,
 				1A4E7105151280BC00AC56ED /* TestCustomEncodedModel.h */,
 				1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */,
 				D0870EFD14F3E95F0099AF8E /* TestModel.h */,
@@ -761,6 +780,7 @@
 				D0A3DD7014CAB85000754143 /* Logging */,
 				D00DA766150FD98B0090875F /* Model Controllers */,
 				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
+				D00B923F152902CF00A49BE8 /* View Models */,
 			);
 			name = Modules;
 			sourceTree = "<group>";
@@ -1072,6 +1092,7 @@
 				D09C878B15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
 				D03A5E66152622D400DF330F /* NSString+NumericSuffixAdditions.h in Headers */,
 				D08965DA1527F14700616FFA /* PROBinding.h in Headers */,
+				D00B9243152902DC00A49BE8 /* PROViewModel.h in Headers */,
 				D0AE21611528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1124,6 +1145,7 @@
 				D09C878A15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
 				D03A5E65152622D400DF330F /* NSString+NumericSuffixAdditions.h in Headers */,
 				D08965D91527F14700616FFA /* PROBinding.h in Headers */,
+				D00B9242152902DC00A49BE8 /* PROViewModel.h in Headers */,
 				D0AE21601528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1406,6 +1428,7 @@
 				D09C878D15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
 				D03A5E68152622D400DF330F /* NSString+NumericSuffixAdditions.m in Sources */,
 				D08965DC1527F14700616FFA /* PROBinding.m in Sources */,
+				D00B9245152902DC00A49BE8 /* PROViewModel.m in Sources */,
 				D0AE21631528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1442,6 +1465,7 @@
 				D09C87771518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E70152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
 				D08965DF1527F8CF00616FFA /* PROBindingTests.m in Sources */,
+				D0054C90152B7618002BD035 /* PROViewModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1489,6 +1513,7 @@
 				D09C878C15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
 				D03A5E67152622D400DF330F /* NSString+NumericSuffixAdditions.m in Sources */,
 				D08965DB1527F14700616FFA /* PROBinding.m in Sources */,
+				D00B9244152902DC00A49BE8 /* PROViewModel.m in Sources */,
 				D0AE21621528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1525,6 +1550,7 @@
 				D09C87761518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E6F152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
 				D08965DE1527F8CF00616FFA /* PROBindingTests.m in Sources */,
+				D0054C8F152B7618002BD035 /* PROViewModelTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
