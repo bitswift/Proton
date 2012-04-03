@@ -62,7 +62,11 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
 #pragma mark Lifecycle
 
 + (id)bindKeyPath:(NSString *)ownerKeyPath ofObject:(id)owner toKeyPath:(NSString *)boundKeyPath ofObject:(id)boundObject; {
-    PROBinding *binding = [[PROBinding alloc] initWithOwner:owner ownerKeyPath:ownerKeyPath boundObject:boundObject boundKeyPath:boundKeyPath];
+    return [self bindKeyPath:ownerKeyPath ofObject:owner toKeyPath:boundKeyPath ofObject:boundObject withSetup:nil];
+}
+
++ (id)bindKeyPath:(NSString *)ownerKeyPath ofObject:(id)owner toKeyPath:(NSString *)boundKeyPath ofObject:(id)boundObject withSetup:(void (^)(id binding))setupBlock; {
+    PROBinding *binding = [[self alloc] initWithOwner:owner ownerKeyPath:ownerKeyPath boundObject:boundObject boundKeyPath:boundKeyPath];
     if (!binding)
         return nil;
 
@@ -75,8 +79,11 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     }
 
     [bindings addObject:binding];
-    [binding boundObjectChanged:binding];
 
+    if (setupBlock)
+        setupBlock(binding);
+
+    [binding boundObjectChanged:binding];
     return binding;
 }
 
