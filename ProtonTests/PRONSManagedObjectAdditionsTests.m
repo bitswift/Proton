@@ -332,7 +332,7 @@ SpecBegin(PRONSManagedObjectAdditions)
                 expect(anotherCustomEncodedModel.model.customEncodedModel).toEqual(anotherCustomEncodedModel);
             });
 
-            describe(@"shouldEncodePropertyInPropertyListRepresentation", ^[{
+            describe(@"shouldEncodePropertyInPropertyListRepresentation", ^{
                 it(@"should encode properties in property list representation", ^{
                     NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:@"name"];
                     expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
