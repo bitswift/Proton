@@ -12,6 +12,9 @@
 @property (nonatomic, strong) id value;
 @end
 
+@interface CustomBindingClass : PROBinding
+@end
+
 SpecBegin(PROBinding)
 
     describe(@"KVO changes", ^{
@@ -71,6 +74,28 @@ SpecBegin(PROBinding)
             }
 
             expect(weakBinding).toBeNil();
+        });
+
+        it(@"should instantiate a custom subclass when bound with the class constructor", ^{
+            CustomBindingClass *binding = [CustomBindingClass bindKeyPath:ownerKeyPath ofObject:owner toKeyPath:boundKeyPath ofObject:boundObject];
+            expect(binding).toBeKindOf([CustomBindingClass class]);
+
+            [binding unbind];
+        });
+
+        it(@"should transform bound values with a block added in a setup block", ^{
+            id boundValue = [boundObject valueForKeyPath:boundKeyPath];
+
+            PROBinding *binding = [PROBinding bindKeyPath:ownerKeyPath ofObject:owner toKeyPath:boundKeyPath ofObject:boundObject withSetup:^(PROBinding *binding){
+                binding.boundValueTransformationBlock = ^ id (id value){
+                    return nil;
+                };
+            }];
+
+            expect([owner valueForKeyPath:ownerKeyPath]).toBeNil();
+            expect([boundObject valueForKeyPath:boundKeyPath]).toEqual(boundValue);
+
+            [binding unbind];
         });
 
         describe(@"with an instance", ^{
@@ -270,4 +295,7 @@ SpecEnd
     return NO;
 }
 
+@end
+
+@implementation CustomBindingClass
 @end
