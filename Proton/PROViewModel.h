@@ -89,6 +89,8 @@
  *
  * This will only include `@property` declarations (i.e., Objective-C 2.0
  * properties), not any methods that look like accessors.
+ *
+ * @note The <model> property is always excluded from the returned array.
  */
 + (NSArray *)propertyKeys;
 

@@ -107,6 +107,11 @@
 		const char *cName = property_getName(property);
 		NSString *str = [[NSString alloc] initWithUTF8String:cName];
 
+        if ([str isEqualToString:PROKeyForClass(PROViewModel, model)]) {
+            // skip
+            return;
+        }
+
 		[names addObject:str];
 	}];
 
