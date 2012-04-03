@@ -28,6 +28,8 @@
  * <[NSObject removeAllOwnedObservers]> and <[PROBinding
  * removeAllBindingsFromOwner:>, and automatically unregister from any
  * notifications from the default `NSNotificationCenter`.
+ *
+ * This class is not thread-safe.
  */
 @interface PROViewModel : NSObject <NSCoding, NSCopying>
 
@@ -63,6 +65,14 @@
  * @param model An object to use as the receiver's <model>.
  */
 - (id)initWithModel:(id)model;
+
+/**
+ * Whether the receiver is currently being initialized from an archive.
+ *
+ * This can be used to conditionalize the behavior of properties based on
+ * whether they're being set as part of decoding, or explicitly afterward.
+ */
+@property (nonatomic, getter = isInitializingFromArchive, readonly) BOOL initializingFromArchive;
 
 /**
  * @name Model

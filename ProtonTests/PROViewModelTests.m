@@ -8,7 +8,10 @@
 
 #import <Proton/Proton.h>
 
-@interface TestViewModel : PROViewModel
+@interface TestViewModel : PROViewModel {
+    BOOL m_initWithCoderInvoked;
+}
+
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, copy) NSDate *date;
 @property (nonatomic, getter = isEnabled) BOOL enabled;
@@ -57,6 +60,7 @@ SpecBegin(PROViewModel)
             expect(viewModel.name).toBeNil();
             expect(viewModel.date).toBeNil();
             expect(viewModel.enabled).toBeFalsy();
+            expect(viewModel.initializingFromArchive).toBeFalsy();
 
             expect([viewModel.dictionaryValue objectForKey:@"name"]).toEqual([NSNull null]);
             expect([viewModel.dictionaryValue objectForKey:@"date"]).toEqual([NSNull null]);
@@ -73,6 +77,7 @@ SpecBegin(PROViewModel)
             expect(viewModel.name).toBeNil();
             expect(viewModel.date).toBeNil();
             expect(viewModel.enabled).toBeFalsy();
+            expect(viewModel.initializingFromArchive).toBeFalsy();
         });
 
         describe(@"initialized with dictionary", ^{
@@ -181,6 +186,38 @@ SpecEnd
 @synthesize name = m_name;
 @synthesize date = m_date;
 @synthesize enabled = m_enabled;
+
+- (id)init {
+    self = [super init];
+    if (!self)
+        return nil;
+
+    expect(self.initializingFromArchive).toBeFalsy();
+    return self;
+}
+
+- (id)initWithDictionary:(NSDictionary *)dictionary {
+    self = [super initWithDictionary:dictionary];
+    if (!self)
+        return nil;
+
+    expect(self.initializingFromArchive).toEqual(m_initWithCoderInvoked);
+    return self;
+}
+
+- (id)initWithModel:(id)model {
+    self = [super initWithModel:model];
+    if (!self)
+        return nil;
+
+    expect(self.initializingFromArchive).toBeFalsy();
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)coder {
+    m_initWithCoderInvoked = YES;
+    return [super initWithCoder:coder];
+}
 
 - (void)someAction:(id)sender; {
 }

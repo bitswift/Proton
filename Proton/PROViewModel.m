@@ -36,6 +36,7 @@
 
 @synthesize model = m_model;
 @synthesize observationInfo = m_observationInfo;
+@synthesize initializingFromArchive = m_initializingFromArchive;
 
 - (void)setModel:(id)model {
     if (model == m_model)
@@ -175,6 +176,11 @@
 #pragma mark NSCoding
 
 - (id)initWithCoder:(NSCoder *)coder {
+    m_initializingFromArchive = YES;
+    @onExit {
+        m_initializingFromArchive = NO;
+    };
+
     NSDictionary *dictionaryValue = [coder decodeObjectForKey:PROKeyForObject(self, dictionaryValue)];
     return [self initWithDictionary:dictionaryValue];
 }
