@@ -15,6 +15,8 @@
 		1A22592A149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */; };
 		1A4E7110151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */; };
 		1A4E7111151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */; };
+		1EF9863F152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF9863E152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m */; };
+		1EF98640152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF9863E152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m */; };
 		D001801414F1E3AD00A131D8 /* NSArray+SearchAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D001801214F1E3AD00A131D8 /* NSArray+SearchAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D001801514F1E3AD00A131D8 /* NSArray+SearchAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D001801214F1E3AD00A131D8 /* NSArray+SearchAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D001801614F1E3AD00A131D8 /* NSArray+SearchAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = D001801314F1E3AD00A131D8 /* NSArray+SearchAdditions.m */; };
@@ -371,6 +373,8 @@
 		1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueIdentifierTests.m; sourceTree = "<group>"; };
 		1A4E7105151280BC00AC56ED /* TestCustomEncodedModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomEncodedModel.h; sourceTree = "<group>"; };
 		1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomEncodedModel.m; sourceTree = "<group>"; };
+		1EF9863D152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomModelWithoutEncodedName.h; sourceTree = "<group>"; };
+		1EF9863E152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomModelWithoutEncodedName.m; sourceTree = "<group>"; };
 		D001801214F1E3AD00A131D8 /* NSArray+SearchAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+SearchAdditions.h"; sourceTree = "<group>"; };
 		D001801314F1E3AD00A131D8 /* NSArray+SearchAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+SearchAdditions.m"; sourceTree = "<group>"; };
 		D001801814F1E5AE00A131D8 /* PRONSArrayAdditionsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PRONSArrayAdditionsTests.m; sourceTree = "<group>"; };
@@ -738,6 +742,8 @@
 				D0870EFE14F3E95F0099AF8E /* TestModel.m */,
 				D0870F0114F3E96B0099AF8E /* TestSubModel.h */,
 				D0870F0214F3E96B0099AF8E /* TestSubModel.m */,
+				1EF9863D152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.h */,
+				1EF9863E152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -1466,6 +1472,7 @@
 				D03A5E70152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
 				D08965DF1527F8CF00616FFA /* PROBindingTests.m in Sources */,
 				D0054C90152B7618002BD035 /* PROViewModelTests.m in Sources */,
+				1EF98640152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1551,6 +1558,7 @@
 				D03A5E6F152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
 				D08965DE1527F8CF00616FFA /* PROBindingTests.m in Sources */,
 				D0054C8F152B7618002BD035 /* PROViewModelTests.m in Sources */,
+				1EF9863F152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

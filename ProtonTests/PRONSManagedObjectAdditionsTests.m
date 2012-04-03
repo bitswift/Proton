@@ -10,6 +10,8 @@
 #import "TestModel.h"
 #import "TestSubModel.h"
 #import "TestCustomEncodedModel.h"
+#import "TestCustomModelWithoutEncodedName.h"
+
 
 SpecBegin(PRONSManagedObjectAdditions)
     
@@ -211,6 +213,28 @@ SpecBegin(PRONSManagedObjectAdditions)
         describe(@"property list conversion", ^{
             after(^{
                 expect([manager.mainThreadContext save:NULL]).toBeTruthy();
+            });
+
+            it(@"should encode properties in property list representation", ^{
+                for (id property in model.entity.properties) {
+                    if (![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany])
+                        expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
+                }
+            });
+
+            it(@"should not encode to-one properties in property list representation", ^{
+                for (id property in model.entity.properties) {
+                    if ([property isKindOfClass:[NSRelationshipDescription class]] && ![property isToMany])
+                        expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeFalsy();
+                }
+            });
+
+            it(@"should respect shouldEncodePropertyInPropertyListRepresentation when returning a property list", ^{
+                TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
+                NSDictionary *propertyList = model.propertyListRepresentation;
+                expect(propertyList).not.toBeNil();
+                
+                expect([propertyList objectForKey:PROKeyForObject(model, name)]).toBeNil();
             });
 
             it(@"should return a property list", ^{

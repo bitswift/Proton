@@ -32,7 +32,7 @@
     self = [self initWithEntity:entity insertIntoManagedObjectContext:context];
     if (!self)
         return nil;
-    
+
     [propertyList enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
         if ([key isEqualToString:@"entityName"])
             return;
@@ -57,6 +57,11 @@
     }];
 
     return [self propertyListRepresentationIncludingProperties:properties];
+}
+
+- (BOOL)shouldEncodePropertyInPropertyListRepresentation:(id)property {
+    BOOL isNotToManyProperty = ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
+    return [self.entity.properties containsObject:property] && isNotToManyProperty;
 }
 
 - (NSDictionary *)propertyListRepresentationIncludingProperties:(NSArray *)properties {

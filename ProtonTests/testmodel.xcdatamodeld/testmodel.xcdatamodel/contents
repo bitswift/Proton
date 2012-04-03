@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1171" systemVersion="11D50b" minimumToolsVersion="Xcode 4.1" macOSVersion="Automatic" iOSVersion="Automatic">
-    <entity name="TestCustomEncodedModel" representedClassName="TestCustomEncodedModel" syncable="YES">
+<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1171" systemVersion="11D50" minimumToolsVersion="Xcode 4.1" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="TestCustomEncodedModel" representedClassName="TestCustomEncodedModel" parentEntity="TestModel" syncable="YES">
         <attribute name="unserialized" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <relationship name="model" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="TestModel" inverseName="customEncodedModel" inverseEntity="TestModel" syncable="YES"/>
     </entity>
+    <entity name="TestCustomModelWithoutEncodedName" representedClassName="TestCustomModelWithoutEncodedName" parentEntity="TestModel" syncable="YES"/>
     <entity name="TestModel" representedClassName="TestModel" syncable="YES">
         <attribute name="name" optional="YES" attributeType="String" indexed="YES" syncable="YES"/>
         <attribute name="value" optional="YES" attributeType="Transformable" syncable="YES"/>
@@ -15,8 +16,9 @@
         <relationship name="model" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="TestModel" inverseName="subModels" inverseEntity="TestModel" syncable="YES"/>
     </entity>
     <elements>
+        <element name="TestCustomEncodedModel" positionX="-333" positionY="-18" width="171" height="75"/>
         <element name="TestModel" positionX="-63" positionY="-18" width="128" height="105"/>
         <element name="TestSubModel" positionX="-65" positionY="159" width="128" height="75"/>
-        <element name="TestCustomEncodedModel" positionX="-333" positionY="-18" width="171" height="75"/>
+        <element name="TestCustomModelWithoutEncodedName" positionX="160" positionY="192" width="128" height="45"/>
     </elements>
 </model>
