@@ -160,7 +160,7 @@
     if ([name hasSuffix:@":"]) {
         name = [name substringToIndex:name.length - 1];
 
-        if (!PROAssert([name rangeOfString:@":"].location != NSNotFound, @"Cannot validate -%@, as it takes more than one argument", NSStringFromSelector(action))) {
+        if (!PROAssert([name rangeOfString:@":"].location == NSNotFound, @"Cannot validate -%@, as it takes more than one argument", NSStringFromSelector(action))) {
             return NO;
         }
     }
