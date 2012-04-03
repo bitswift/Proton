@@ -152,7 +152,9 @@
 
 - (BOOL)validateAction:(SEL)action; {
     NSParameterAssert(action);
-    NSAssert([self respondsToSelector:action], @"%@ does not implement -%@", self, NSStringFromSelector(action));
+
+    if (![self respondsToSelector:action])
+        return NO;
 
     NSString *name = NSStringFromSelector(action);
     if ([name hasSuffix:@":"]) {

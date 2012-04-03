@@ -147,6 +147,8 @@
  * present. Subclasses that override this method to perform custom logic should
  * invoke `super` at some point in their implementation.
  *
+ * If the receiver does not respond to `action`, `NO` is returned.
+ *
  * @param action The selector to validate.
  */
 - (BOOL)validateAction:(SEL)action;
