@@ -63,7 +63,7 @@ static NSString * const PRONSManagedObjectEntityNameKey = @"entityName";
 
 - (BOOL)shouldEncodePropertyInPropertyListRepresentation:(id)property {
     BOOL isNotToOneRelationshipProperty = ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
-    return [self.entity.properties containsObject:property] && isNotToOneRelationshipProperty;
+    return isNotToOneRelationshipProperty && [self.entity.properties containsObject:property];
 }
 
 - (NSDictionary *)propertyListRepresentationIncludingProperties:(NSArray *)properties {
