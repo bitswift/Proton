@@ -63,6 +63,18 @@ SpecBegin(PROViewModel)
             expect([[viewModel.dictionaryValue objectForKey:@"enabled"] boolValue]).toBeFalsy();
         });
 
+        it(@"initializes with a model", ^{
+            NSMutableArray *array = [NSMutableArray array];
+
+            TestViewModel *viewModel = [[TestViewModel alloc] initWithModel:array];
+            expect(viewModel).not.toBeNil();
+
+            expect(viewModel.model).toEqual(array);
+            expect(viewModel.name).toBeNil();
+            expect(viewModel.date).toBeNil();
+            expect(viewModel.enabled).toBeFalsy();
+        });
+
         describe(@"initialized with dictionary", ^{
             NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
 
