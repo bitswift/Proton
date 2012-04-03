@@ -11,10 +11,12 @@
 #import "EXTSafeCategory.h"
 #import "PROAssert.h"
 
+static NSString * const PRONSManagedObjectEntityNameKey = @"entityName";
+
 @safecategory (NSManagedObject, PropertyListAdditions)
 
 - (id)initWithPropertyListRepresentation:(NSDictionary *)propertyList insertIntoManagedObjectContext:(NSManagedObjectContext *)context; {
-    NSString *entityName = [propertyList objectForKey:@"entityName"];
+    NSString *entityName = [propertyList objectForKey:PRONSManagedObjectEntityNameKey];
     if (!PROAssert(entityName, @"No entity name encoded for %@", [self class]))
         return nil;
 
@@ -34,7 +36,7 @@
         return nil;
 
     [propertyList enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
-        if ([key isEqualToString:@"entityName"])
+        if ([key isEqualToString:PRONSManagedObjectEntityNameKey])
             return;
 
         id property = [self.entity.propertiesByName objectForKey:key];
@@ -60,14 +62,14 @@
 }
 
 - (BOOL)shouldEncodePropertyInPropertyListRepresentation:(id)property {
-    BOOL isToManyProperty = ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
-    return [self.entity.properties containsObject:property] && isToManyProperty;
+    BOOL isNotToOneRelationshipProperty = ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
+    return [self.entity.properties containsObject:property] && isNotToOneRelationshipProperty;
 }
 
 - (NSDictionary *)propertyListRepresentationIncludingProperties:(NSArray *)properties {
     // include an extra slot for our entity name
     NSMutableDictionary *propertyList = [NSMutableDictionary dictionaryWithCapacity:properties.count + 1];
-    [propertyList setObject:self.entity.name forKey:@"entityName"];
+    [propertyList setObject:self.entity.name forKey:PRONSManagedObjectEntityNameKey];
 
     [properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
         id value = [self propertyListRepresentationForProperty:property];
