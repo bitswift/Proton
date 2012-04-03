@@ -231,6 +231,7 @@ SpecBegin(PRONSManagedObjectAdditions)
 
             it(@"should respect shouldEncodePropertyInPropertyListRepresentation when returning a property list", ^{
                 TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
+                model.name = @"foobar";
                 NSDictionary *propertyList = model.propertyListRepresentation;
                 expect(propertyList).not.toBeNil();
                 

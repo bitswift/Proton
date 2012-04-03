@@ -53,15 +53,15 @@
 
 - (NSDictionary *)propertyListRepresentation {
     NSArray *properties = [self.entity.properties filterUsingBlock:^ BOOL (id property) {
-        return ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
+        return [self shouldEncodePropertyInPropertyListRepresentation:property];
     }];
 
     return [self propertyListRepresentationIncludingProperties:properties];
 }
 
 - (BOOL)shouldEncodePropertyInPropertyListRepresentation:(id)property {
-    BOOL isNotToManyProperty = ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
-    return [self.entity.properties containsObject:property] && isNotToManyProperty;
+    BOOL isToManyProperty = ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
+    return [self.entity.properties containsObject:property] && isToManyProperty;
 }
 
 - (NSDictionary *)propertyListRepresentationIncludingProperties:(NSArray *)properties {
