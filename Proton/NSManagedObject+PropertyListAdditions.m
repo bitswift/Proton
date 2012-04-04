@@ -11,6 +11,10 @@
 #import "EXTSafeCategory.h"
 #import "PROAssert.h"
 
+/**
+ * The key within a property list dictionary at which the name of its
+ * corresponding entity is located.
+ */
 static NSString * const PRONSManagedObjectEntityNameKey = @"entityName";
 
 @safecategory (NSManagedObject, PropertyListAdditions)
