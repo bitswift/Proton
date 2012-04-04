@@ -333,17 +333,20 @@ SpecBegin(PRONSManagedObjectAdditions)
             });
 
             describe(@"shouldEncodePropertyInPropertyListRepresentation", ^{
-                it(@"should encode properties in property list representation", ^{
-                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:@"name"];
+                it(@"should encode attributes in property list representation", ^{
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:PROKeyForObject(model, name)];
                     expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
+
+                    NSDictionary *propertyList = model.propertyListRepresentation;
+                    expect([propertyList objectForKey:PROKeyForObject(model, name)]).toEqual(model.name);
                 });
 
-                it(@"should encode to-many properties in property list representation", ^{
+                it(@"should encode to-many relationships in property list representation", ^{
                     NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:@"subModels"];
                     expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
                 });
 
-                it(@"should not encode to-one properties in property list representation", ^{
+                it(@"should not encode to-one relationships in property list representation", ^{
                     NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:@"customEncodedModel"];
                     expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeFalsy();
                 });
@@ -351,9 +354,11 @@ SpecBegin(PRONSManagedObjectAdditions)
                 it(@"should respect shouldEncodePropertyInPropertyListRepresentation when returning a property list", ^{
                     TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
                     model.name = @"foobar";
-                    NSDictionary *propertyList = model.propertyListRepresentation;
-                    expect(propertyList).not.toBeNil();
 
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:PROKeyForObject(model, name)];
+                    expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeFalsy();
+
+                    NSDictionary *propertyList = model.propertyListRepresentation;
                     expect([propertyList objectForKey:PROKeyForObject(model, name)]).toBeNil();
                 });
             });

@@ -8,12 +8,15 @@
 
 #import "TestCustomModelWithoutEncodedName.h"
 #import "NSManagedObject+PropertyListAdditions.h"
+#import "PROKeyValueCodingMacros.h"
 
 @implementation TestCustomModelWithoutEncodedName
 
 - (BOOL)shouldEncodePropertyInPropertyListRepresentation:(NSPropertyDescription *)property {
-    BOOL success = [super shouldEncodePropertyInPropertyListRepresentation:property];
-    return success && ![property.name isEqualToString:@"name"];
+    if ([property.name isEqualToString:PROKeyForObject(self, name)])
+        return NO;
+
+    return [super shouldEncodePropertyInPropertyListRepresentation:property];
 }
 
 @end
