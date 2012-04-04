@@ -371,7 +371,9 @@ SpecBegin(PRONSManagedObjectAdditions)
                     expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
 
                     NSDictionary *propertyList = model.propertyListRepresentation;
-                    expect([propertyList objectForKey:PROKeyForObject(model, value)]).not.toBeNil();
+                    NSData *valueData = [propertyList objectForKey:PROKeyForObject(model, value)];
+                    id actualValue = [NSManagedObject decodePropertyListValue:valueData forProperty:property insertIntoManagedObjectContext:manager.mainThreadContext];
+                    expect(actualValue).toEqual(expectedValue);
                 });
             });
 
