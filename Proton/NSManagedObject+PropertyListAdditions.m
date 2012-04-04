@@ -11,10 +11,16 @@
 #import "EXTSafeCategory.h"
 #import "PROAssert.h"
 
+/**
+ * The key within a property list dictionary at which the name of its
+ * corresponding entity is located.
+ */
+static NSString * const PRONSManagedObjectEntityNameKey = @"entityName";
+
 @safecategory (NSManagedObject, PropertyListAdditions)
 
 - (id)initWithPropertyListRepresentation:(NSDictionary *)propertyList insertIntoManagedObjectContext:(NSManagedObjectContext *)context; {
-    NSString *entityName = [propertyList objectForKey:@"entityName"];
+    NSString *entityName = [propertyList objectForKey:PRONSManagedObjectEntityNameKey];
     if (!PROAssert(entityName, @"No entity name encoded for %@", [self class]))
         return nil;
 
@@ -32,9 +38,9 @@
     self = [self initWithEntity:entity insertIntoManagedObjectContext:context];
     if (!self)
         return nil;
-    
+
     [propertyList enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop){
-        if ([key isEqualToString:@"entityName"])
+        if ([key isEqualToString:PRONSManagedObjectEntityNameKey])
             return;
 
         id property = [self.entity.propertiesByName objectForKey:key];
@@ -53,16 +59,21 @@
 
 - (NSDictionary *)propertyListRepresentation {
     NSArray *properties = [self.entity.properties filterUsingBlock:^ BOOL (id property) {
-        return ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
+        return [self shouldEncodePropertyInPropertyListRepresentation:property];
     }];
 
     return [self propertyListRepresentationIncludingProperties:properties];
 }
 
+- (BOOL)shouldEncodePropertyInPropertyListRepresentation:(id)property {
+    BOOL isNotToOneRelationshipProperty = ![property isKindOfClass:[NSRelationshipDescription class]] || [property isToMany];
+    return isNotToOneRelationshipProperty && [self.entity.properties containsObject:property];
+}
+
 - (NSDictionary *)propertyListRepresentationIncludingProperties:(NSArray *)properties {
     // include an extra slot for our entity name
     NSMutableDictionary *propertyList = [NSMutableDictionary dictionaryWithCapacity:properties.count + 1];
-    [propertyList setObject:self.entity.name forKey:@"entityName"];
+    [propertyList setObject:self.entity.name forKey:PRONSManagedObjectEntityNameKey];
 
     [properties enumerateObjectsUsingBlock:^(id property, NSUInteger index, BOOL *stop){
         id value = [self propertyListRepresentationForProperty:property];
