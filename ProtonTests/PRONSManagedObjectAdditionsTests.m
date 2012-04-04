@@ -351,7 +351,7 @@ SpecBegin(PRONSManagedObjectAdditions)
                     expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeFalsy();
                 });
 
-                it(@"should respect shouldEncodePropertyInPropertyListRepresentation when returning a property list", ^{
+                it(@"should not encode attributes if shouldEncodePropertyInPropertyListRepresentation returns false for the attribute", ^{
                     TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
                     model.name = @"foobar";
 
@@ -360,6 +360,18 @@ SpecBegin(PRONSManagedObjectAdditions)
 
                     NSDictionary *propertyList = model.propertyListRepresentation;
                     expect([propertyList objectForKey:PROKeyForObject(model, name)]).toBeNil();
+                });
+
+                it(@"should encode attributes if shouldEncodePropertyInPropertyListRepresentation returns true for the attribute", ^{
+                    TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
+                    NSNumber *expectedValue = [NSNumber numberWithBool:YES];
+                    model.value = expectedValue;
+
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:PROKeyForObject(model, value)];
+                    expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
+
+                    NSDictionary *propertyList = model.propertyListRepresentation;
+                    expect([propertyList objectForKey:PROKeyForObject(model, value)]).not.toBeNil();
                 });
             });
 
