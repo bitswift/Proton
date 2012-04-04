@@ -11,6 +11,7 @@
 #import "PROKeyValueCodingMacros.h"
 
 @implementation TestCustomModelWithoutEncodedName
+@dynamic number;
 
 - (BOOL)shouldEncodePropertyInPropertyListRepresentation:(NSPropertyDescription *)property {
     if ([property.name isEqualToString:PROKeyForObject(self, name)])

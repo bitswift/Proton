@@ -4,7 +4,9 @@
         <attribute name="unserialized" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <relationship name="model" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="TestModel" inverseName="customEncodedModel" inverseEntity="TestModel" syncable="YES"/>
     </entity>
-    <entity name="TestCustomModelWithoutEncodedName" representedClassName="TestCustomModelWithoutEncodedName" parentEntity="TestModel" syncable="YES"/>
+    <entity name="TestCustomModelWithoutEncodedName" representedClassName="TestCustomModelWithoutEncodedName" parentEntity="TestModel" syncable="YES">
+        <attribute name="number" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+    </entity>
     <entity name="TestModel" representedClassName="TestModel" syncable="YES">
         <attribute name="name" optional="YES" attributeType="String" indexed="YES" syncable="YES"/>
         <attribute name="value" optional="YES" attributeType="Transformable" syncable="YES"/>
@@ -17,8 +19,8 @@
     </entity>
     <elements>
         <element name="TestCustomEncodedModel" positionX="-333" positionY="-18" width="171" height="75"/>
+        <element name="TestCustomModelWithoutEncodedName" positionX="160" positionY="192" width="128" height="60"/>
         <element name="TestModel" positionX="-63" positionY="-18" width="128" height="105"/>
         <element name="TestSubModel" positionX="-65" positionY="159" width="128" height="75"/>
-        <element name="TestCustomModelWithoutEncodedName" positionX="160" positionY="192" width="128" height="45"/>
     </elements>
 </model>

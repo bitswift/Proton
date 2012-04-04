@@ -365,14 +365,13 @@ SpecBegin(PRONSManagedObjectAdditions)
                 it(@"should encode attributes if shouldEncodePropertyInPropertyListRepresentation returns true for the attribute", ^{
                     TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
                     NSNumber *expectedValue = [NSNumber numberWithBool:YES];
-                    model.value = expectedValue;
+                    model.number = expectedValue;
 
                     NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:PROKeyForObject(model, value)];
                     expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
 
                     NSDictionary *propertyList = model.propertyListRepresentation;
-                    NSData *valueData = [propertyList objectForKey:PROKeyForObject(model, value)];
-                    id actualValue = [NSManagedObject decodePropertyListValue:valueData forProperty:property insertIntoManagedObjectContext:manager.mainThreadContext];
+                    NSNumber *actualValue = [propertyList objectForKey:PROKeyForObject(model, number)];
                     expect(actualValue).toEqual(expectedValue);
                 });
             });

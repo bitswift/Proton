@@ -10,4 +10,5 @@
 
 @interface TestCustomModelWithoutEncodedName : TestModel
 
+@property (nonatomic, retain) NSNumber *number;
 @end
