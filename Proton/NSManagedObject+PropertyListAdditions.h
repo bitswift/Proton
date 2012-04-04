@@ -73,6 +73,17 @@
 - (id)propertyListRepresentationForProperty:(NSPropertyDescription *)property;
 
 /**
+ * Returns whether `property` will be encoded in <propertyListRepresentation>.
+ *
+ * By default, returns `YES` for all properties from the receiver's entity, excluding
+ * to-one relationships.
+ *
+ * Subclasses can override this method to specify which properties should not be
+ * encoded in <propertyListRepresentation>.
+ */
+- (BOOL)shouldEncodePropertyInPropertyListRepresentation:(NSPropertyDescription *)property;
+
+/**
  * Decodes a value encoded with <propertyListRepresentationForProperty:>. If
  * managed objects are returned, they exist within `context`.
  *

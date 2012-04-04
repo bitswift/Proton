@@ -10,9 +10,11 @@
 #import "TestModel.h"
 #import "TestSubModel.h"
 #import "TestCustomEncodedModel.h"
+#import "TestCustomModelWithoutEncodedName.h"
+
 
 SpecBegin(PRONSManagedObjectAdditions)
-    
+
     __block PROCoreDataManager *manager;
 
     before(^{
@@ -229,7 +231,7 @@ SpecBegin(PRONSManagedObjectAdditions)
 
                 NSArray *subModels = [propertyList objectForKey:PROKeyForObject(model, subModels)];
                 expect(subModels).toBeKindOf([NSArray class]);
-                
+
                 expect(subModels.count).toEqual(1);
                 expect([subModels objectAtIndex:0]).toEqual(subModel.propertyListRepresentation);
             });
@@ -330,6 +332,50 @@ SpecBegin(PRONSManagedObjectAdditions)
                 expect(anotherCustomEncodedModel.model.customEncodedModel).toEqual(anotherCustomEncodedModel);
             });
 
+            describe(@"shouldEncodePropertyInPropertyListRepresentation", ^{
+                it(@"should encode attributes in property list representation", ^{
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:PROKeyForObject(model, name)];
+                    expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
+
+                    NSDictionary *propertyList = model.propertyListRepresentation;
+                    expect([propertyList objectForKey:PROKeyForObject(model, name)]).toEqual(model.name);
+                });
+
+                it(@"should encode to-many relationships in property list representation", ^{
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:@"subModels"];
+                    expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
+                });
+
+                it(@"should not encode to-one relationships in property list representation", ^{
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:@"customEncodedModel"];
+                    expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeFalsy();
+                });
+
+                it(@"should not encode attributes if shouldEncodePropertyInPropertyListRepresentation returns false for the attribute", ^{
+                    TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
+                    model.name = @"foobar";
+
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:PROKeyForObject(model, name)];
+                    expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeFalsy();
+
+                    NSDictionary *propertyList = model.propertyListRepresentation;
+                    expect([propertyList objectForKey:PROKeyForObject(model, name)]).toBeNil();
+                });
+
+                it(@"should encode attributes if shouldEncodePropertyInPropertyListRepresentation returns true for the attribute", ^{
+                    TestCustomModelWithoutEncodedName *model = [TestCustomModelWithoutEncodedName managedObjectWithContext:manager.mainThreadContext];
+                    NSNumber *expectedValue = [NSNumber numberWithBool:YES];
+                    model.number = expectedValue;
+
+                    NSPropertyDescription *property = [model.entity.propertiesByName objectForKey:PROKeyForObject(model, value)];
+                    expect([model shouldEncodePropertyInPropertyListRepresentation:property]).toBeTruthy();
+
+                    NSDictionary *propertyList = model.propertyListRepresentation;
+                    NSNumber *actualValue = [propertyList objectForKey:PROKeyForObject(model, number)];
+                    expect(actualValue).toEqual(expectedValue);
+                });
+            });
+
             describe(@"primitive methods", ^{
                 id (^encodeAndDecode)(id, id) = ^(id objectToEncodeProperty, id propertyName) {
                     id propertyToEncode = [[[objectToEncodeProperty entity] propertiesByName] objectForKey:propertyName];
@@ -363,7 +409,7 @@ SpecBegin(PRONSManagedObjectAdditions)
 
         describe(@"managed object copying", ^{
             __block PROCoreDataManager *anotherManager;
-            
+
             before(^{
                 anotherManager = [[PROCoreDataManager alloc] init];
                 expect(anotherManager).not.toBeNil();
