@@ -42,6 +42,7 @@ SpecBegin(PROBinding)
             expect(binding).not.toBeNil();
 
             expect([owner valueForKeyPath:ownerKeyPath]).not.toEqual([boundObject valueForKeyPath:boundKeyPath]);
+            [binding unbind];
         });
 
         it(@"should not be retained by the owner when using the initializer", ^{
@@ -52,6 +53,7 @@ SpecBegin(PROBinding)
 
                 weakBinding = binding;
                 expect(weakBinding).not.toBeNil();
+                [weakBinding unbind];
             }
 
             expect(weakBinding).toBeNil();
