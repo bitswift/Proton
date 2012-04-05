@@ -12,44 +12,47 @@
     BOOL m_initWithCoderInvoked;
 }
 
-@property (nonatomic, copy) NSString *name;
 @property (nonatomic, copy) NSDate *date;
+@property (nonatomic, strong) NSMutableArray *model;
+
+// defaults to 'foobar'
+@property (nonatomic, copy) NSString *name;
+
+// these should be archived only conditionally
+@property (nonatomic, weak) id weakObject;
+@property (nonatomic, unsafe_unretained) id unretainedObject;
+
 @property (nonatomic, getter = isEnabled) BOOL enabled;
 
 - (void)someAction:(id)sender;
 - (BOOL)validateSomeAction;
 @end
 
-@interface CollectionTestViewModel : PROViewModel
-@property (nonatomic, copy) NSArray *array;
-@property (nonatomic, copy) NSDictionary *dictionary;
-@property (nonatomic, copy) NSOrderedSet *orderedSet;
-@property (nonatomic, copy) NSSet *set;
-@end
-
 SpecBegin(PROViewModel)
 
     describe(@"base class", ^{
-        it(@"has no propertyKeys", ^{
-            expect([PROViewModel propertyKeys]).toEqual([NSArray array]);
-        });
-
         it(@"has no defaultValuesForKeys", ^{
             expect([PROViewModel defaultValuesForKeys]).toEqual([NSDictionary dictionary]);
+        });
+
+        it(@"should not encode its model by default", ^{
+            expect([PROViewModel encodingBehaviorForKey:@"model"]).toEqual(PROViewModelEncodingBehaviorNone);
         });
     });
 
     describe(@"TestViewModel subclass", ^{
-        it(@"has propertyKeys", ^{
-            expect([TestViewModel propertyKeys]).toContain(@"name");
-            expect([TestViewModel propertyKeys]).toContain(@"date");
-            expect([TestViewModel propertyKeys]).toContain(@"enabled");
-
-            expect([TestViewModel propertyKeys]).not.toContain(@"array");
+        it(@"should not encode its model by default", ^{
+            expect([TestViewModel encodingBehaviorForKey:@"model"]).toEqual(PROViewModelEncodingBehaviorNone);
         });
 
-        it(@"has no defaultValuesForKeys", ^{
-            expect([TestViewModel defaultValuesForKeys]).toEqual([NSDictionary dictionary]);
+        it(@"should encode retained objects and primitive values by default", ^{
+            expect([TestViewModel encodingBehaviorForKey:@"date"]).toEqual(PROViewModelEncodingBehaviorUnconditional);
+            expect([TestViewModel encodingBehaviorForKey:@"enabled"]).toEqual(PROViewModelEncodingBehaviorUnconditional);
+        });
+
+        it(@"should conditionally encode unretained objects by default", ^{
+            expect([TestViewModel encodingBehaviorForKey:@"weakObject"]).toEqual(PROViewModelEncodingBehaviorConditional);
+            expect([TestViewModel encodingBehaviorForKey:@"unretainedObject"]).toEqual(PROViewModelEncodingBehaviorConditional);
         });
 
         it(@"initializes", ^{
@@ -57,14 +60,10 @@ SpecBegin(PROViewModel)
             expect(viewModel).not.toBeNil();
 
             expect(viewModel.model).toBeNil();
-            expect(viewModel.name).toBeNil();
+            expect(viewModel.name).toEqual(@"foobar");
             expect(viewModel.date).toBeNil();
             expect(viewModel.enabled).toBeFalsy();
             expect(viewModel.initializingFromArchive).toBeFalsy();
-
-            expect([viewModel.dictionaryValue objectForKey:@"name"]).toEqual([NSNull null]);
-            expect([viewModel.dictionaryValue objectForKey:@"date"]).toEqual([NSNull null]);
-            expect([[viewModel.dictionaryValue objectForKey:@"enabled"] boolValue]).toBeFalsy();
         });
 
         it(@"initializes with a model", ^{
@@ -74,68 +73,93 @@ SpecBegin(PROViewModel)
             expect(viewModel).not.toBeNil();
 
             expect(viewModel.model).toEqual(array);
-            expect(viewModel.name).toBeNil();
+            expect(viewModel.name).toEqual(@"foobar");
             expect(viewModel.date).toBeNil();
             expect(viewModel.enabled).toBeFalsy();
             expect(viewModel.initializingFromArchive).toBeFalsy();
         });
 
-        describe(@"initialized with dictionary", ^{
-            NSDictionary *initializationDictionary = [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
-
+        describe(@"with an instance", ^{
             __block TestViewModel *viewModel = nil;
 
             before(^{
-                viewModel = [[TestViewModel alloc] initWithDictionary:initializationDictionary];
+                viewModel = [[TestViewModel alloc] init];
                 expect(viewModel).not.toBeNil();
+                expect([viewModel valueForKey:@"name"]).toEqual(@"foobar");
 
                 viewModel.model = [NSMutableArray array];
                 expect(viewModel.model).not.toBeNil();
-
-                expect([viewModel valueForKey:@"name"]).toEqual(@"foobar");
-            });
-
-            it(@"has correct dictionary value", ^{
-                NSDictionary *expectedDictionaryValue = [NSDictionary dictionaryWithObjectsAndKeys:
-                    @"foobar", @"name",
-                    [NSNull null], @"date",
-                    [NSNumber numberWithBool:NO], @"enabled",
-                    nil
-                ];
-
-                expect(viewModel.dictionaryValue).toEqual(expectedDictionaryValue);
             });
 
             it(@"is equal to same view model data", ^{
-                TestViewModel *otherViewModel = [[TestViewModel alloc] initWithDictionary:initializationDictionary];
-                expect(viewModel).not.toEqual(otherViewModel);
-
-                otherViewModel.model = viewModel.model;
+                TestViewModel *otherViewModel = [[TestViewModel alloc] initWithModel:viewModel.model];
                 expect(viewModel).toEqual(otherViewModel);
             });
 
             it(@"is not equal to a different view model", ^{
-                TestViewModel *otherViewModel = [[TestViewModel alloc] initWithModel:viewModel.model];
+                TestViewModel *otherViewModel = [[TestViewModel alloc] init];
+                expect(viewModel).not.toEqual(otherViewModel);
+
+                otherViewModel.model = viewModel.model;
+                otherViewModel.name = @"fizzbuzz";
                 expect(viewModel).not.toEqual(otherViewModel);
             });
 
-            it(@"implements <NSCoding>", ^{
-                expect(viewModel).toConformTo(@protocol(NSCoding));
+            describe(@"archiving behavior", ^{
+                __block id unretainedObject = nil;
 
-                NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:viewModel];
-                expect(encoded).not.toBeNil();
+                before(^{
+                    unretainedObject = [@"foobar" mutableCopy];
 
-                PROViewModel *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+                    viewModel.weakObject = unretainedObject;
+                    viewModel.unretainedObject = unretainedObject;
+                    viewModel.enabled = YES;
+                    viewModel.date = [NSDate date];
+                });
 
-                // should not encode the model
-                expect(decoded.model).toBeNil();
+                it(@"archives retained objects and primitive values by default", ^{
+                    expect(viewModel).toConformTo(@protocol(NSCoding));
 
-                decoded.model = viewModel.model;
-                expect(decoded).toEqual(viewModel);
-            });
+                    NSData *encoded = [NSKeyedArchiver archivedDataWithRootObject:viewModel];
+                    expect(encoded).not.toBeNil();
 
-            it(@"implements <NSCopying>", ^{
-                expect(viewModel).toSupportCopying();
+                    TestViewModel *decoded = [NSKeyedUnarchiver unarchiveObjectWithData:encoded];
+
+                    expect(decoded.model).toBeNil();
+                    expect(decoded.weakObject).toBeNil();
+                    expect(decoded.unretainedObject).toBeNil();
+                    expect(decoded.enabled).toBeTruthy();
+                    expect(decoded.date).toEqual(viewModel.date);
+
+                    decoded.model = viewModel.model;
+                    expect(decoded).not.toEqual(viewModel);
+                });
+
+                it(@"archives unretained objects conditionally", ^{
+                    expect(viewModel).toConformTo(@protocol(NSCoding));
+
+                    NSMutableData *encoded = [NSMutableData data];
+                    NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:encoded];
+                    
+                    [archiver encodeObject:unretainedObject forKey:@"unretainedObject"];
+                    [archiver encodeObject:viewModel forKey:@"viewModel"];
+
+                    [archiver finishEncoding];
+                    expect(encoded.length).toBeGreaterThan(0);
+
+                    NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:encoded];
+                    TestViewModel *decoded = [unarchiver decodeObjectForKey:@"viewModel"];
+                    [unarchiver finishDecoding];
+
+                    expect(decoded.model).toBeNil();
+                    expect(decoded.weakObject).toEqual(unretainedObject);
+                    expect(decoded.unretainedObject).toEqual(unretainedObject);
+                    expect(decoded.enabled).toBeTruthy();
+                    expect(decoded.date).toEqual(viewModel.date);
+
+                    decoded.model = viewModel.model;
+                    expect(decoded).toEqual(viewModel);
+                });
             });
 
             it(@"invokes custom validation methods for -validateAction:", ^{
@@ -157,47 +181,19 @@ SpecBegin(PROViewModel)
         });
     });
 
-    describe(@"CollectionTestViewModel subclass", ^{
-        it(@"has propertyKeys", ^{
-            expect([CollectionTestViewModel propertyKeys]).toContain(@"array");
-            expect([CollectionTestViewModel propertyKeys]).toContain(@"dictionary");
-            expect([CollectionTestViewModel propertyKeys]).toContain(@"orderedSet");
-            expect([CollectionTestViewModel propertyKeys]).toContain(@"set");
-
-            expect([CollectionTestViewModel propertyKeys]).not.toContain(@"name");
-        });
-
-        it(@"has defaultValuesForKeys", ^{
-            expect([[CollectionTestViewModel defaultValuesForKeys] count]).toEqual(1);
-        });
-
-        it(@"initializes with default values", ^{
-            CollectionTestViewModel *viewModel = [[CollectionTestViewModel alloc] init];
-            expect(viewModel).not.toBeNil();
-
-            NSArray *keys = [[CollectionTestViewModel defaultValuesForKeys] allKeys];
-            expect([viewModel dictionaryWithValuesForKeys:keys]).toEqual([CollectionTestViewModel defaultValuesForKeys]);
-        });
-    });
-
 SpecEnd
 
 @implementation TestViewModel
 @synthesize name = m_name;
 @synthesize date = m_date;
 @synthesize enabled = m_enabled;
+@synthesize weakObject = m_weakObject;
+@synthesize unretainedObject = m_unretainedObject;
+
+@dynamic model;
 
 - (id)init {
     self = [super init];
-    if (!self)
-        return nil;
-
-    expect(self.initializingFromArchive).toBeFalsy();
-    return self;
-}
-
-- (id)initWithDictionary:(NSDictionary *)dictionary {
-    self = [super initWithDictionary:dictionary];
     if (!self)
         return nil;
 
@@ -226,15 +222,8 @@ SpecEnd
     return self.enabled;
 }
 
-@end
-
-@implementation CollectionTestViewModel
-@synthesize array = m_array;
-@synthesize dictionary = m_dictionary;
-@synthesize orderedSet = m_orderedSet;
-@synthesize set = m_set;
-
 + (NSDictionary *)defaultValuesForKeys {
-    return [NSDictionary dictionaryWithObject:[NSArray array] forKey:@"array"];
+    return [NSDictionary dictionaryWithObject:@"foobar" forKey:@"name"];
 }
+
 @end
