@@ -239,7 +239,7 @@
     }];
 
     [propertyKeys sortWithOptions:NSSortConcurrent usingComparator:^(NSString *left, NSString *right){
-        return [left localizedCaseInsensitiveCompare:right];
+        return [left caseInsensitiveCompare:right];
     }];
 
     [propertyKeys enumerateObjectsUsingBlock:^(NSString *key, NSUInteger index, BOOL *stop){
