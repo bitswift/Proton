@@ -218,13 +218,15 @@
             return;
 
         id value = [self valueForKey:key];
-        if (!value)
-            value = [NSNull null];
+        if (behavior == PROViewModelEncodingBehaviorUnconditional) {
+            if (!value)
+                value = [NSNull null];
 
-        if (behavior == PROViewModelEncodingBehaviorUnconditional)
             [coder encodeObject:value forKey:key];
-        else
+        } else if (value) {
+            // don't "conditionally" encode nil values
             [coder encodeConditionalObject:value forKey:key];
+        }
     }];
 }
 
