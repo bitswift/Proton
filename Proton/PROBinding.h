@@ -173,8 +173,12 @@
  */
 
 /**
- * Updates the <boundKeyPath> of the <boundObject> with the current value of the
- * <ownerKeyPath>.
+ * Updates the <boundKeyPath> of the <boundObject> with the validated current
+ * value of the <ownerKeyPath>.
+ *
+ * If the value at <ownerKeyPath> fails validation with the <boundObject>, the
+ * <boundKeyPath> will not be set, and any <validationFailedBlock> will be
+ * invoked.
  *
  * If the <owner> is KVO-compliant for <ownerKeyPath>, this method is
  * automatically invoked whenever a KVO notification is received. This method
@@ -192,6 +196,10 @@
 /**
  * Updates the <ownerKeyPath> of the <owner> with the current value of the
  * <boundObjectKeyPath>.
+ *
+ * If the value at <boundKeyPath> fails validation with the <owner>, the
+ * <ownerKeyPath> will not be set, and any <validationFailedBlock> will be
+ * invoked.
  *
  * If the <boundObject> is KVO-compliant for <boundObjectKeyPath>, this method is
  * automatically invoked whenever a KVO notification is received. This method
@@ -243,4 +251,20 @@
  */
 @property (nonatomic, copy) id (^ownerValueTransformationBlock)(id ownerValue);
 
+/**
+ * @name Validation
+ */
+
+/**
+ * A block to invoke when a validation error occurs.
+ *
+ * The default value for this property is a block that simply logs the error.
+ * 
+ * @param object The object which `keyPath` is defined relative to. This will be
+ * the <owner> or <boundObject> of the receiver.
+ * @param keyPath The key path which failed validation.
+ * @param value The value which failed validation.
+ * @param error The validation error that occurred.
+ */
+@property (nonatomic, copy) void (^validationFailedBlock)(id object, NSString *keyPath, id value, NSError *error);
 @end

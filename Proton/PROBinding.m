@@ -7,8 +7,9 @@
 //
 
 #import "PROBinding.h"
-#import "PROKeyValueObserver.h"
 #import "EXTScope.h"
+#import "PROKeyValueObserver.h"
+#import "PROLogging.h"
 #import <objc/runtime.h>
 
 /**
@@ -54,6 +55,7 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
 @synthesize updating = m_updating;
 @synthesize boundValueTransformationBlock = m_boundValueTransformationBlock;
 @synthesize ownerValueTransformationBlock = m_ownerValueTransformationBlock;
+@synthesize validationFailedBlock = m_validationFailedBlock;
 
 - (BOOL)isBound {
     return self.owner != nil;
@@ -141,6 +143,10 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
         else
             return ownerValue;
     };
+    
+    self.validationFailedBlock = ^(id object, NSString *keyPath, id value, NSError *error){
+        DDLogError(@"Key path \"%@\" of object %@ failed validation for value %@: %@", keyPath, object, value, error);
+    };
 
     return self;
 }
@@ -213,6 +219,14 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     if (self.ownerValueTransformationBlock)
         value = self.ownerValueTransformationBlock(value);
 
+    NSError *error = nil;
+    if (![self.boundObject validateValue:&value forKeyPath:self.boundKeyPath error:&error]) {
+        if (self.validationFailedBlock)
+            self.validationFailedBlock(self.boundObject, self.boundKeyPath, value, error);
+
+        return;
+    }
+
     [self.boundObject setValue:value forKeyPath:self.boundKeyPath];
 }
 
@@ -228,6 +242,14 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     id value = [self.boundObject valueForKeyPath:self.boundKeyPath];
     if (self.boundValueTransformationBlock)
         value = self.boundValueTransformationBlock(value);
+
+    NSError *error = nil;
+    if (![self.owner validateValue:&value forKeyPath:self.ownerKeyPath error:&error]) {
+        if (self.validationFailedBlock)
+            self.validationFailedBlock(self.owner, self.ownerKeyPath, value, error);
+
+        return;
+    }
 
     [self.owner setValue:value forKeyPath:self.ownerKeyPath];
 }
