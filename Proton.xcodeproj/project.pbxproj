@@ -648,8 +648,6 @@
 		D031BA8C14A53B4000A38526 /* Key-Value Observing */ = {
 			isa = PBXGroup;
 			children = (
-				D08965D71527F14700616FFA /* PROBinding.h */,
-				D08965D81527F14700616FFA /* PROBinding.m */,
 				D031BA8D14A53B5000A38526 /* PROKeyValueObserver.h */,
 				D031BA8E14A53B5000A38526 /* PROKeyValueObserver.m */,
 			);
@@ -775,9 +773,19 @@
 			name = Logging;
 			sourceTree = "<group>";
 		};
+		D0ACAC40152F96AE00AFD4E7 /* Bindings */ = {
+			isa = PBXGroup;
+			children = (
+				D08965D71527F14700616FFA /* PROBinding.h */,
+				D08965D81527F14700616FFA /* PROBinding.m */,
+			);
+			name = Bindings;
+			sourceTree = "<group>";
+		};
 		D0D2E70A14CAABCD009E641B /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				D0ACAC40152F96AE00AFD4E7 /* Bindings */,
 				D0205B2B14F32CE200404ACA /* Core Data */,
 				D0D2E70B14CAABE2009E641B /* Error Handling */,
 				D080D58114A5DF2C00FABAA2 /* Futures */,

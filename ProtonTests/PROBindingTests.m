@@ -8,8 +8,17 @@
 
 #import <Proton/PROBinding.h>
 
+static NSString * const NonKVOCompliantObjectErrorDomain = @"NonKVOCompliantObjectErrorDomain";
+static const NSInteger NonKVOCompliantObjectValidationError = 1;
+
+static NSString * const NonKVOCompliantObjectReplaceableValue = @"replace me!";
+static NSString * const NonKVOCompliantObjectReplacedValue = @"replaced value";
+
 @interface NonKVOCompliantObject : NSObject
-@property (nonatomic, strong) id value;
+@property (nonatomic, copy) NSString *value;
+
+// validates that the length of the given string is less than 20 characters
+- (BOOL)validateValue:(NSString **)valuePtr error:(NSError **)error;
 @end
 
 @interface CustomBindingClass : PROBinding
@@ -278,6 +287,82 @@ SpecBegin(PROBinding)
             expect(owner.value).toEqual(@"foobar");
             expect(boundObject.value).toBeNil();
         });
+
+        describe(@"validation", ^{
+            NSString *invalidValue = @"this is a string that's too long to pass validation.";
+
+            it(@"should fail to set invalid values on the owner", ^{
+                boundObject.value = invalidValue;
+                [binding boundObjectChanged:nil];
+
+                expect(boundObject.value).toEqual(invalidValue);
+                expect(owner.value).not.toEqual(invalidValue);
+            });
+
+            it(@"should fail to set invalid values on the bound object", ^{
+                owner.value = invalidValue;
+                [binding ownerChanged:nil];
+
+                expect(boundObject.value).not.toEqual(invalidValue);
+                expect(owner.value).toEqual(invalidValue);
+            });
+
+            it(@"should use a new value returned from a validation method on the owner", ^{
+                boundObject.value = NonKVOCompliantObjectReplaceableValue;
+                [binding boundObjectChanged:nil];
+
+                expect(boundObject.value).toEqual(NonKVOCompliantObjectReplaceableValue);
+                expect(owner.value).toEqual(NonKVOCompliantObjectReplacedValue);
+            });
+
+            it(@"should use a new value returned from a validation method on the bound object", ^{
+                owner.value = NonKVOCompliantObjectReplaceableValue;
+                [binding ownerChanged:nil];
+
+                expect(boundObject.value).toEqual(NonKVOCompliantObjectReplacedValue);
+                expect(owner.value).toEqual(NonKVOCompliantObjectReplaceableValue);
+            });
+
+            it(@"should invoke a custom validation block when the owner fails validation", ^{
+                __block BOOL validationBlockInvoked = NO;
+
+                binding.validationFailedBlock = ^(id object, NSString *keyPath, id value, NSError *error){
+                    validationBlockInvoked = YES;
+
+                    expect(object).toEqual(owner);
+                    expect(keyPath).toEqual(@"value");
+                    expect(value).toEqual(invalidValue);
+
+                    expect(error.domain).toEqual(NonKVOCompliantObjectErrorDomain);
+                    expect(error.code).toEqual(NonKVOCompliantObjectValidationError);
+                };
+
+                boundObject.value = invalidValue;
+                [binding boundObjectChanged:nil];
+
+                expect(validationBlockInvoked).toBeTruthy();
+            });
+
+            it(@"should invoke a custom validation block when the bound object fails validation", ^{
+                __block BOOL validationBlockInvoked = NO;
+
+                binding.validationFailedBlock = ^(id object, NSString *keyPath, id value, NSError *error){
+                    validationBlockInvoked = YES;
+
+                    expect(object).toEqual(boundObject);
+                    expect(keyPath).toEqual(@"value");
+                    expect(value).toEqual(invalidValue);
+
+                    expect(error.domain).toEqual(NonKVOCompliantObjectErrorDomain);
+                    expect(error.code).toEqual(NonKVOCompliantObjectValidationError);
+                };
+
+                owner.value = invalidValue;
+                [binding ownerChanged:nil];
+
+                expect(validationBlockInvoked).toBeTruthy();
+            });
+        });
     });
 
 SpecEnd
@@ -285,15 +370,32 @@ SpecEnd
 @implementation NonKVOCompliantObject : NSObject
 @synthesize value = m_value;
 
-- (id)value {
+- (NSString *)value {
     return m_value;
 }
 
-- (void)setValue:(id)value {
-    m_value = value;
+- (void)setValue:(NSString *)value {
+    m_value = [value copy];
 }
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key {
+    return NO;
+}
+
+- (BOOL)validateValue:(NSString **)valuePtr error:(NSError **)error; {
+    NSString *value = *valuePtr;
+    if ([value isEqualToString:NonKVOCompliantObjectReplaceableValue]) {
+        *valuePtr = NonKVOCompliantObjectReplacedValue;
+        return YES;
+    }
+
+    if (!value || [value length] < 20)
+        return YES;
+
+    if (error) {
+        *error = [NSError errorWithDomain:NonKVOCompliantObjectErrorDomain code:NonKVOCompliantObjectValidationError userInfo:nil];
+    }
+
     return NO;
 }
 
