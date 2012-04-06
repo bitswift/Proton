@@ -46,7 +46,9 @@ static BOOL PRONSUndoManagerIsEditing = NO;
 }
 
 - (void)endEditGrouping {
-    [self endUndoGrouping];
+    if (PRONSUndoManagerIsEditing)
+        [self endUndoGrouping];
+
     PRONSUndoManagerIsEditing = NO;
 }
 
