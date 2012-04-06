@@ -34,16 +34,18 @@
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName;
 
 /**
- * Attempts to open an edit grouping, executing the given block
- * inside it. Returns whether the operation was successful.
+ * Attempts to open an edit grouping named `actionName`, executes the
+ * given block inside it, and closes the group. Returns whether the
+ * operation was successful.
  *
  * @param block The block to execute within the edit grouping.
  */
 - (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block;
 
 /**
- * Attempts to open an edit grouping named `actionName`, executing the
- * given block inside it. Returns whether the operation was successful.
+ * Attempts to open an edit grouping named `actionName`, executes the
+ * given block inside it, and closes the group. Returns whether the
+ * operation was successful.
  *
  * @param actionName The name of the edit grouping to open.
  * @param block The block to execute within the edit grouping.
