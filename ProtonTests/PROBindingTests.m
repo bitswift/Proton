@@ -11,6 +11,9 @@
 static NSString * const NonKVOCompliantObjectErrorDomain = @"NonKVOCompliantObjectErrorDomain";
 static const NSInteger NonKVOCompliantObjectValidationError = 1;
 
+static NSString * const NonKVOCompliantObjectReplaceableValue = @"replace me!";
+static NSString * const NonKVOCompliantObjectReplacedValue = @"replaced value";
+
 @interface NonKVOCompliantObject : NSObject
 @property (nonatomic, copy) NSString *value;
 
@@ -304,6 +307,22 @@ SpecBegin(PROBinding)
                 expect(owner.value).toEqual(invalidValue);
             });
 
+            it(@"should use a new value returned from a validation method on the owner", ^{
+                boundObject.value = NonKVOCompliantObjectReplaceableValue;
+                [binding boundObjectChanged:nil];
+
+                expect(boundObject.value).toEqual(NonKVOCompliantObjectReplaceableValue);
+                expect(owner.value).toEqual(NonKVOCompliantObjectReplacedValue);
+            });
+
+            it(@"should use a new value returned from a validation method on the bound object", ^{
+                owner.value = NonKVOCompliantObjectReplaceableValue;
+                [binding ownerChanged:nil];
+
+                expect(boundObject.value).toEqual(NonKVOCompliantObjectReplacedValue);
+                expect(owner.value).toEqual(NonKVOCompliantObjectReplaceableValue);
+            });
+
             it(@"should invoke a custom validation block when the owner fails validation", ^{
                 __block BOOL validationBlockInvoked = NO;
 
@@ -365,6 +384,11 @@ SpecEnd
 
 - (BOOL)validateValue:(NSString **)valuePtr error:(NSError **)error; {
     NSString *value = *valuePtr;
+    if ([value isEqualToString:NonKVOCompliantObjectReplaceableValue]) {
+        *valuePtr = NonKVOCompliantObjectReplacedValue;
+        return YES;
+    }
+
     if (!value || [value length] < 20)
         return YES;
 
