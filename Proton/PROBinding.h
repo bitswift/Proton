@@ -265,6 +265,9 @@
  * @param keyPath The key path which failed validation.
  * @param value The value which failed validation.
  * @param error The validation error that occurred.
+ *
+ * @note Any changes made to the <owner> or <boundObject> within this block
+ * will not trigger the binding.
  */
 @property (nonatomic, copy) void (^validationFailedBlock)(id object, NSString *keyPath, id value, NSError *error);
 @end
