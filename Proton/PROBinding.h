@@ -194,8 +194,8 @@
 - (IBAction)ownerChanged:(id)sender;
 
 /**
- * Updates the <ownerKeyPath> of the <owner> with the current value of the
- * <boundObjectKeyPath>.
+ * Updates the <ownerKeyPath> of the <owner> with the validated current value of
+ * the <boundObjectKeyPath>.
  *
  * If the value at <boundKeyPath> fails validation with the <owner>, the
  * <ownerKeyPath> will not be set, and any <validationFailedBlock> will be
