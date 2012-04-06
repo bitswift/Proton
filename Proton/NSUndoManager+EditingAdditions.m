@@ -1,0 +1,40 @@
+//
+//  NSUndoManager+EditingAdditions.m
+//  Wireframes
+//
+//  Created by Josh Vera on 4/5/12.
+//  Copyright (c) 2012 Bitswift. All rights reserved.
+//
+
+#import "NSUndoManager+EditingAdditions.h"
+
+static BOOL PRONSUndoManagerIsEditing = NO;
+
+@implementation NSUndoManager (EditingAdditions)
+
+- (BOOL)tryEditGrouping {
+    if (PRONSUndoManagerIsEditing)
+        return NO;
+
+    PRONSUndoManagerIsEditing = YES;
+    [self beginUndoGrouping];
+    return PRONSUndoManagerIsEditing;
+}
+
+- (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block {
+    if (!self.tryEditGrouping)
+        return NO;
+
+    block();
+
+    [self endEditGrouping];
+
+    return YES;
+}
+
+- (void)endEditGrouping {
+    [self endUndoGrouping];
+    PRONSUndoManagerIsEditing = NO;
+}
+
+@end
