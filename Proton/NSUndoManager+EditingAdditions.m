@@ -21,6 +21,15 @@ static BOOL PRONSUndoManagerIsEditing = NO;
     return PRONSUndoManagerIsEditing;
 }
 
+- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName {
+    if ([self tryEditGrouping || [self.undoActionName isEqualToString:actionName]) {
+        self.actionName = actionName;
+        return YES;
+    }
+
+    return NO;
+}
+
 - (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block {
     if (!self.tryEditGrouping)
         return NO;

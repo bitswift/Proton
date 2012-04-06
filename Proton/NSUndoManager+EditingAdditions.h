@@ -26,6 +26,14 @@
 - (BOOL)tryEditGrouping;
 
 /**
+ * Attempts to open an edit grouping named `actionName` and immediately
+ * returns whether the attempt was successful.
+ *
+ * @param actionName The name of the edit grouping to open
+ */
+- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName;
+
+/**
  * Attempts to open an edit grouping, executing the given block
  * inside it. Returns whether the operation was successful.
  *
