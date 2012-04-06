@@ -29,7 +29,7 @@
  * Attempts to open an edit grouping named `actionName` and immediately
  * returns whether the attempt was successful.
  *
- * @param actionName The name of the edit grouping to open
+ * @param actionName The name of the edit grouping to open.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName;
 
@@ -40,6 +40,15 @@
  * @param block The block to execute within the edit grouping.
  */
 - (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block;
+
+/**
+ * Attempts to open an edit grouping named `actionName`, executing the
+ * given block inside it. Returns whether the operation was successful.
+ *
+ * @param actionName The name of the edit grouping to open.
+ * @param block The block to execute within the edit grouping.
+ */
+- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block;
 
 /**
  * Closes a previously opened edit grouping.

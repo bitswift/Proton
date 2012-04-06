@@ -22,7 +22,7 @@ static BOOL PRONSUndoManagerIsEditing = NO;
 }
 
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName {
-    if ([self tryEditGrouping || [self.undoActionName isEqualToString:actionName]) {
+    if ([self tryEditGrouping] || [self.undoActionName isEqualToString:actionName]) {
         self.actionName = actionName;
         return YES;
     }
@@ -31,7 +31,11 @@ static BOOL PRONSUndoManagerIsEditing = NO;
 }
 
 - (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block {
-    if (!self.tryEditGrouping)
+    return [self tryEditGroupingWithActionName:nil usingBlock:block];
+}
+
+- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block {
+    if (![self tryEditGroupingWithActionName:actionName])
         return NO;
 
     block();
