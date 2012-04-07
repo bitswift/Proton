@@ -7,18 +7,31 @@
 //
 
 #import "NSUndoManager+EditingAdditions.h"
+#import <objc/runtime.h>
 
 static BOOL PRONSUndoManagerIsEditing = NO;
 
 @implementation NSUndoManager (EditingAdditions)
 
+- (void)setUndoManagerEditing:(BOOL)editing {
+    id isEditing = objc_getAssociatedObject(self, @selector(setUndoManagerEditing:));
+    if ([isEditing boolValue] == editing)
+        return;
+
+    objc_setAssociatedObject(self, @selector(setUndoManagerEditing:), [NSNumber numberWithBool:editing], OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+- (BOOL)isUndoManagerEditing {
+    return [objc_getAssociatedObject(self, @selector(setUndoManagerEditing:)) boolValue];
+}
+
 - (BOOL)tryEditGrouping {
-    if (PRONSUndoManagerIsEditing)
+    if ([self isUndoManagerEditing])
         return NO;
 
-    PRONSUndoManagerIsEditing = YES;
+    self.undoManagerEditing = YES;
     [self beginUndoGrouping];
-    return PRONSUndoManagerIsEditing;
+    return [self isUndoManagerEditing];
 }
 
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName {
@@ -46,10 +59,10 @@ static BOOL PRONSUndoManagerIsEditing = NO;
 }
 
 - (void)endEditGrouping {
-    if (PRONSUndoManagerIsEditing)
+    if ([self isUndoManagerEditing])
         [self endUndoGrouping];
 
-    PRONSUndoManagerIsEditing = NO;
+    self.undoManagerEditing = NO;
 }
 
 @end
