@@ -428,6 +428,114 @@ SpecBegin(NSUndoManagerAdditions)
         });
     });
 
+    describe(@"editing additions", ^{
+        __block void (^block)(void);
+        __block BOOL calledBlock;
+        __block BOOL calledUndoWithBlock;
+
+        before(^{
+            calledBlock = NO;
+            calledUndoWithBlock = NO;
+
+            block = [^{
+                calledBlock = YES;
+
+                [weakManager registerUndoWithBlock:^{
+                    calledUndoWithBlock = YES;
+                }];
+            } copy];
+        });
+
+        after(^{
+            expect(calledBlock).toBeTruthy();
+            expect(calledUndoWithBlock).toBeFalsy();
+
+            [undoManager undo];
+
+            expect(calledUndoWithBlock).toBeTruthy();
+        });
+
+        it(@"opens an edit grouping with a name", ^{
+            NSString *expectedName = @"foobar";
+            [undoManager tryEditGroupingWithActionName:expectedName];
+
+            expect(undoManager.undoActionName).toEqual(expectedName);
+
+            block();
+
+            [undoManager endEditGrouping];
+        });
+
+        it(@"opens an edit grouping without a name", ^{
+            BOOL success = [undoManager tryEditGrouping];
+            expect(success).toBeTruthy();
+
+            block();
+
+            [undoManager endEditGrouping];
+        });
+
+        describe(@"with an open edit grouping", ^{
+            before(^{
+                BOOL success = [undoManager tryEditGrouping];
+                expect(success).toBeTruthy();
+            });
+
+            it(@"does not open an edit grouping after one has been opened", ^{
+                BOOL nextSuccess = [undoManager tryEditGrouping];
+                expect(nextSuccess).toBeFalsy();
+
+                block();
+
+                [undoManager endEditGrouping];
+
+                expect(undoManager.canUndo).toBeTruthy();
+            });
+
+            it(@"can open an edit grouping after one has been closed", ^{
+                block();
+                [undoManager endEditGrouping];
+
+                BOOL succeededTwice = [undoManager tryEditGrouping];
+                expect(succeededTwice).toBeTruthy();
+
+                [undoManager endEditGrouping];
+
+                [undoManager undo];
+            });
+        });
+
+        describe(@"with a block", ^{
+            before(^{
+                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:^{
+                    expect(undoManager.undoActionName).toEqual(@"foobar");
+                    block();
+                }];
+
+                expect(success).toBeTruthy();
+                expect(calledBlock).toBeTruthy();
+            });
+
+            it(@"can call an edit grouping block twice in a row", ^{
+                __block BOOL secondBlockCalled = NO;
+                __block BOOL calledUndoWithSecondBlock = NO;
+
+                BOOL success = [undoManager tryEditGroupingUsingBlock:^{
+                    secondBlockCalled = YES;
+                    [weakManager registerUndoWithBlock:^{
+                        calledUndoWithSecondBlock = YES;
+                    }];
+                }];
+
+                expect(success).toBeTruthy();
+                expect(secondBlockCalled).toBeTruthy();
+
+                [undoManager undo];
+                expect(calledUndoWithSecondBlock).toBeTruthy();
+            });
+        });
+    });
+
 SpecEnd
 
 @implementation UndoTestClass
