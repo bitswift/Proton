@@ -56,9 +56,9 @@
 }
 
 - (void)endEditGrouping {
-    if ([self isUndoManagerEditing])
-        [self endUndoGrouping];
+    NSAssert([self isUndoManagerEditing], @"%s called without an open edit undo grouping.");
 
+    [self endUndoGrouping];
     self.undoManagerEditing = NO;
 }
 

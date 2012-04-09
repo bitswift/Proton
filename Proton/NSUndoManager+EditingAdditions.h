@@ -11,7 +11,8 @@
 /**
  * Extensions to `NSUndoManager` to coordinate edits within a window.
  *
- * An edit grouping can be opened to guarantee only one user interface element is edited at one time.
+ * An edit grouping can be opened to guarantee only one user interface element
+ * is edited at one time.
  *
  * Since edit groupings are mutually exclusive, multiple edit groupings
  * cannot be nested.
