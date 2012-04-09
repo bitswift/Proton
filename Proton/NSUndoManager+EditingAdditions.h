@@ -57,6 +57,8 @@
 
 /**
  * Closes a previously opened edit grouping if one was open.
+ *
+ * @warning **Important:** It is invalid to call this method without an open edit grouping.
  */
 - (void)endEditGrouping;
 
