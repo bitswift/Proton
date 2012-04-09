@@ -248,7 +248,13 @@
         if (index != 0)
             [str appendString:@","];
 
-        [str appendFormat:@"\n\t\"%@\" = %@", key, [self valueForKey:key]];
+        id value = [self valueForKey:key];
+        if ([value isKindOfClass:[PROViewModel class]]) {
+            // don't recurse into other PROViewModels
+            value = [NSString stringWithFormat:@"<%@: %p>", [value class], value];
+        }
+
+        [str appendFormat:@"\n\t\"%@\" = %@", key, value];
     }];
 
     [str appendString:@"\n}"];
