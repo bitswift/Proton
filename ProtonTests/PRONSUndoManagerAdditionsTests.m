@@ -490,7 +490,7 @@ SpecBegin(NSUndoManagerAdditions)
                 expect(undoManager.canUndo).toBeTruthy();
             });
 
-            it(@"can execute an edit grouping after one has been closed", ^{
+            it(@"can open an edit grouping after one has been closed", ^{
                 block();
                 [undoManager endEditGrouping];
 
@@ -519,7 +519,7 @@ SpecBegin(NSUndoManagerAdditions)
                 expect(undoManager.undoActionName).toEqual(@"foobar");
             });
 
-            it(@"can execute an edit grouping block twice in a row", ^{
+            it(@"can call an edit grouping block twice in a row", ^{
                 __block BOOL secondBlockCalled = NO;
                 __block BOOL calledUndoWithSecondBlock = NO;
                 BOOL success = [undoManager tryEditGroupingUsingBlock:^{
