@@ -464,7 +464,7 @@ SpecBegin(NSUndoManagerAdditions)
             [undoManager endEditGrouping];
         });
 
-        it(@"ends an edit grouping when one is not open", ^{
+        it(@"opens an edit grouping without a name", ^{
             BOOL success = [undoManager tryEditGrouping];
             expect(success).toBeTruthy();
 
