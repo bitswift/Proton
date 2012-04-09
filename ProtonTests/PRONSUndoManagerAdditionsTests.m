@@ -429,23 +429,45 @@ SpecBegin(NSUndoManagerAdditions)
     });
 
     describe(@"editing additions", ^{
+        __block void (^block)(void);
+        __block BOOL calledBlock;
+        
+        before(^{
+            calledBlock = NO;
+
+            block = [^{
+                calledBlock = YES;
+
+                [weakManager registerUndoWithBlock:^{
+                    calledBlock = NO;
+                }];
+            } copy];
+        });
+
+        after(^{
+            expect(calledBlock).toBeTruthy();
+            [undoManager undo];
+            expect(calledBlock).toBeFalsy();
+        });
+
         it(@"opens an edit grouping with a name", ^{
             NSString *expectedName = @"foobar";
             [undoManager tryEditGroupingWithActionName:expectedName];
-            expect(undoManager.undoActionName).toEqual(expectedName);
-            [undoManager endEditGrouping];
 
-            expect(undoManager.canUndo).toBeTruthy();
-            expect(undoManager.canRedo).toBeFalsy();
+            expect(undoManager.undoActionName).toEqual(expectedName);
+
+            block();
+
+            [undoManager endEditGrouping];
         });
 
         it(@"ends an edit grouping when one is not open", ^{
             BOOL success = [undoManager tryEditGrouping];
             expect(success).toBeTruthy();
-            [undoManager endEditGrouping];
 
-            expect(undoManager.canUndo).toBeTruthy();
-            expect(undoManager.canRedo).toBeFalsy();
+            block();
+
+            [undoManager endEditGrouping];
         });
 
         describe(@"with an open edit grouping", ^{
@@ -454,17 +476,11 @@ SpecBegin(NSUndoManagerAdditions)
                 expect(success).toBeTruthy();
             });
 
-            after(^{
-                [undoManager undo];
-
-                expect(undoManager.canRedo).toBeTruthy();
-                expect(undoManager.canUndo).toBeFalsy();
-            });
-
-
             it(@"does not open an edit grouping after one has been opened", ^{
                 BOOL nextSuccess = [undoManager tryEditGrouping];
                 expect(nextSuccess).toBeFalsy();
+
+                block();
 
                 [undoManager endEditGrouping];
 
@@ -472,42 +488,28 @@ SpecBegin(NSUndoManagerAdditions)
             });
 
             it(@"can execute an edit grouping after one has been closed", ^{
+                block();
                 [undoManager endEditGrouping];
 
                 BOOL succeededTwice = [undoManager tryEditGrouping];
                 expect(succeededTwice).toBeTruthy();
 
                 [undoManager endEditGrouping];
-                expect(undoManager.canUndo).toBeTruthy();
 
                 [undoManager undo];
             });
         });
 
         describe(@"with a block", ^{
-            __block void (^block)(void);
-            __block BOOL calledBlock;
-
             before(^{
-                calledBlock = NO;
-
-                block = [^{
-                    calledBlock = YES;
-                } copy];
-
                 BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
+
                 expect(success).toBeTruthy();
                 expect(calledBlock).toBeTruthy();
             });
 
-            after(^{
-                [undoManager undo];
-                expect(undoManager.canUndo).toBeFalsy();
-                expect(undoManager.canRedo).toBeTruthy();
-            });
-
-            it(@"executes the block within it", ^{
-                expect(undoManager.canUndo).toBeTruthy();
+            it(@"calls the block within it when undone", ^{
+                // Called in the before block.
             });
 
             it(@"sets its action name", ^{
@@ -515,13 +517,20 @@ SpecBegin(NSUndoManagerAdditions)
             });
 
             it(@"can execute an edit grouping block twice in a row", ^{
-                BOOL success = [undoManager tryEditGroupingUsingBlock:^{}];
-                expect(success).toBeTruthy();
+                __block BOOL secondBlockCalled = NO;
+                BOOL success = [undoManager tryEditGroupingUsingBlock:^{
+                    secondBlockCalled = YES;
+                    [weakManager registerUndoWithBlock:^{
+                        secondBlockCalled = NO;
+                    }];
+                }];
 
-                expect(undoManager.canUndo).toBeTruthy();
-                expect(undoManager.canRedo).toBeFalsy();
+                expect(success).toBeTruthy();
+                expect(secondBlockCalled).toBeTruthy();
 
                 [undoManager undo];
+
+                expect(secondBlockCalled).toBeFalsy();
             });
         });
     });

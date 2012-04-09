@@ -7,6 +7,8 @@
 //
 
 #import "NSUndoManager+EditingAdditions.h"
+#import "NSUndoManager+RegistrationAdditions.h"
+#import "PROAssert.h"
 #import <objc/runtime.h>
 
 @implementation NSUndoManager (EditingAdditions)
@@ -56,7 +58,7 @@
 }
 
 - (void)endEditGrouping {
-    NSAssert([self isUndoManagerEditing], @"%s called without an open edit undo grouping.");
+    PROAssert([self isUndoManagerEditing], @"%s called without an open edit undo grouping.", __func__);
 
     [self endUndoGrouping];
     self.undoManagerEditing = NO;
