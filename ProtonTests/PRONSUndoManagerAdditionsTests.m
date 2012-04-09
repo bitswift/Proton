@@ -435,6 +435,7 @@ SpecBegin(NSUndoManagerAdditions)
         
         before(^{
             calledBlock = NO;
+            calledUndoWithBlock = NO;
 
             block = [^{
                 calledBlock = YES;
@@ -447,6 +448,7 @@ SpecBegin(NSUndoManagerAdditions)
 
         after(^{
             expect(calledBlock).toBeTruthy();
+            expect(calledUndoWithBlock).toBeFalsy();
 
             [undoManager undo];
 
