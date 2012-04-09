@@ -16,7 +16,6 @@
  *
  * Since edit groupings are mutually exclusive, multiple edit groupings
  * cannot be nested.
- *
  */
 @interface NSUndoManager (EditingAdditions)
 
@@ -33,8 +32,8 @@
  * Attempts to open an edit grouping named `actionName` and immediately
  * returns whether the attempt was successful.
  *
- * @param actionName The name of the edit grouping to open. If `nil`, no
- * action name is set on the receiver.
+ * @param actionName The name of the edit grouping to open. There is no
+ * effect if the action name is `nil`.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName;
 
@@ -49,16 +48,16 @@
  * given block inside it, and closes the group. Returns whether the
  * operation was successful.
  *
- * @param actionName The name of the edit grouping to open. If `nil`, no action
- * name is set on the receiver.
+ * @param actionName The name of the edit grouping to open. There is no
+ * effect if the action name is `nil`.
  * @param block The block to execute within the edit grouping.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block;
 
 /**
- * Closes a previously opened edit grouping if one was open.
+ * Closes a previously opened edit grouping.
  *
- * @warning **Important:** It is invalid to call this method without an open edit grouping.
+ * @warning It is invalid to call this method without an open edit grouping.
  */
 - (void)endEditGrouping;
 
