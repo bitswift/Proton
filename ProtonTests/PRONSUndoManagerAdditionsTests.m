@@ -429,29 +429,6 @@ SpecBegin(NSUndoManagerAdditions)
     });
 
     describe(@"editing additions", ^{
-        it(@"opens an edit grouping", ^{
-            [undoManager tryEditGrouping];
-            expect(undoManager.canUndo).toBeTruthy();
-        });
-
-        it(@"does not open an edit grouping after one has been opened", ^{
-            BOOL success = [undoManager tryEditGrouping];
-            expect(success).toBeTruthy();
-
-            BOOL nextSuccess = [undoManager tryEditGrouping];
-            expect(nextSuccess).toBeFalsy();
-        });
-
-        it(@"can execute an edit grouping after one has been closed", ^{
-            BOOL success = [undoManager tryEditGrouping];
-            expect(success).toBeTruthy();
-
-            [undoManager endEditGrouping];
-
-            BOOL succeededTwice = [undoManager tryEditGrouping];
-            expect(succeededTwice).toBeTruthy();
-        });
-
         it(@"opens an edit grouping with a name", ^{
             NSString *expectedName = @"foobar";
             [undoManager tryEditGroupingWithActionName:expectedName];
@@ -465,6 +442,29 @@ SpecBegin(NSUndoManagerAdditions)
             expect(success).toBeTruthy();
         });
 
+        describe(@"with an open edit grouping", ^{
+            before(^{
+                BOOL success = [undoManager tryEditGrouping];
+                expect(success).toBeTruthy();
+            });
+
+            it(@"opens an edit grouping", ^{
+                expect(undoManager.canUndo).toBeTruthy();
+            });
+
+            it(@"does not open an edit grouping after one has been opened", ^{
+                BOOL nextSuccess = [undoManager tryEditGrouping];
+                expect(nextSuccess).toBeFalsy();
+            });
+
+            it(@"can execute an edit grouping after one has been closed", ^{
+                [undoManager endEditGrouping];
+
+                BOOL succeededTwice = [undoManager tryEditGrouping];
+                expect(succeededTwice).toBeTruthy();
+            });
+        });
+
         describe(@"with a block", ^{
             __block void (^block)(void);
             __block BOOL calledBlock;
@@ -475,6 +475,9 @@ SpecBegin(NSUndoManagerAdditions)
                 block = [^{
                     calledBlock = YES;
                 } copy];
+
+                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
+                expect(success).toBeTruthy();
             });
 
             after(^{
@@ -483,23 +486,17 @@ SpecBegin(NSUndoManagerAdditions)
             });
 
             it(@"executes the block within it", ^{
-                BOOL success = [undoManager tryEditGroupingUsingBlock:block];
-                expect(success).toBeTruthy();
+                expect(undoManager.canUndo).toBeTruthy();
             });
 
             it(@"sets its action name", ^{
-                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
-                expect(success).toBeTruthy();
                 expect(undoManager.undoActionName).toEqual(@"foobar");
             });
 
             it(@"can execute an edit grouping block twice in a row", ^{
-                [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
-
-                BOOL success = [undoManager tryEditGroupingUsingBlock:^{ }];
+                BOOL success = [undoManager tryEditGroupingUsingBlock:^{}];
                 expect(success).toBeTruthy();
             });
-
         });
     });
 
