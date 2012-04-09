@@ -428,6 +428,81 @@ SpecBegin(NSUndoManagerAdditions)
         });
     });
 
+    describe(@"editing additions", ^{
+        it(@"opens an edit grouping", ^{
+            [undoManager tryEditGrouping];
+            expect(undoManager.canUndo).toBeTruthy();
+        });
+
+        it(@"does not open an edit grouping after one has been opened", ^{
+            BOOL success = [undoManager tryEditGrouping];
+            expect(success).toBeTruthy();
+
+            BOOL nextSuccess = [undoManager tryEditGrouping];
+            expect(nextSuccess).toBeFalsy();
+        });
+
+        it(@"can execute an edit grouping after one has been closed", ^{
+            BOOL success = [undoManager tryEditGrouping];
+            expect(success).toBeTruthy();
+
+            [undoManager endEditGrouping];
+
+            BOOL succeededTwice = [undoManager tryEditGrouping];
+            expect(succeededTwice).toBeTruthy();
+        });
+
+        it(@"opens an edit grouping with a name", ^{
+            NSString *expectedName = @"foobar";
+            [undoManager tryEditGroupingWithActionName:expectedName];
+            expect(undoManager.undoActionName).toEqual(expectedName);
+        });
+
+        it(@"ends an edit grouping when one is not open", ^{
+            [undoManager endEditGrouping];
+
+            BOOL success = [undoManager tryEditGrouping];
+            expect(success).toBeTruthy();
+        });
+
+        describe(@"with a block", ^{
+            __block void (^block)(void);
+            __block BOOL calledBlock;
+
+            before(^{
+                calledBlock = NO;
+
+                block = [^{
+                    calledBlock = YES;
+                } copy];
+            });
+
+            after(^{
+                [undoManager undo];
+                expect(calledBlock).toBeTruthy();
+            });
+
+            it(@"executes the block within it", ^{
+                BOOL success = [undoManager tryEditGroupingUsingBlock:block];
+                expect(success).toBeTruthy();
+            });
+
+            it(@"sets its action name", ^{
+                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
+                expect(success).toBeTruthy();
+                expect(undoManager.undoActionName).toEqual(@"foobar");
+            });
+
+            it(@"can execute an edit grouping block twice in a row", ^{
+                [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
+
+                BOOL success = [undoManager tryEditGroupingUsingBlock:^{ }];
+                expect(success).toBeTruthy();
+            });
+
+        });
+    });
+
 SpecEnd
 
 @implementation UndoTestClass
