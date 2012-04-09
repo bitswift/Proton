@@ -28,6 +28,7 @@
 #import <Proton/NSString+NumericSuffixAdditions.h>
 #import <Proton/NSUndoManager+RegistrationAdditions.h>
 #import <Proton/NSUndoManager+UndoStackAdditions.h>
+#import <Proton/NSUndoManager+EditingAdditions.h>
 #import <Proton/PROAssert.h>
 #import <Proton/PROBacktraceFunctions.h>
 #import <Proton/PROBinding.h>

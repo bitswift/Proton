@@ -15,6 +15,10 @@
 		1A22592A149C9D28004B7BF2 /* PROUniqueIdentifierTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */; };
 		1A4E7110151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */; };
 		1A4E7111151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */; };
+		1E691B5B152E687100BD4339 /* NSUndoManager+EditingAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1E691B59152E687000BD4339 /* NSUndoManager+EditingAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1E691B5C152E687100BD4339 /* NSUndoManager+EditingAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1E691B59152E687000BD4339 /* NSUndoManager+EditingAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1E691B5D152E687100BD4339 /* NSUndoManager+EditingAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E691B5A152E687000BD4339 /* NSUndoManager+EditingAdditions.m */; };
+		1E691B5E152E687100BD4339 /* NSUndoManager+EditingAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E691B5A152E687000BD4339 /* NSUndoManager+EditingAdditions.m */; };
 		1EF9863F152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF9863E152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m */; };
 		1EF98640152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF9863E152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m */; };
 		D001801414F1E3AD00A131D8 /* NSArray+SearchAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = D001801214F1E3AD00A131D8 /* NSArray+SearchAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -373,6 +377,8 @@
 		1A225928149C9D28004B7BF2 /* PROUniqueIdentifierTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROUniqueIdentifierTests.m; sourceTree = "<group>"; };
 		1A4E7105151280BC00AC56ED /* TestCustomEncodedModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomEncodedModel.h; sourceTree = "<group>"; };
 		1A4E7106151280BC00AC56ED /* TestCustomEncodedModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomEncodedModel.m; sourceTree = "<group>"; };
+		1E691B59152E687000BD4339 /* NSUndoManager+EditingAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSUndoManager+EditingAdditions.h"; sourceTree = "<group>"; };
+		1E691B5A152E687000BD4339 /* NSUndoManager+EditingAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSUndoManager+EditingAdditions.m"; sourceTree = "<group>"; };
 		1EF9863D152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomModelWithoutEncodedName.h; sourceTree = "<group>"; };
 		1EF9863E152BBCFC000AB5D7 /* TestCustomModelWithoutEncodedName.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomModelWithoutEncodedName.m; sourceTree = "<group>"; };
 		D001801214F1E3AD00A131D8 /* NSArray+SearchAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+SearchAdditions.h"; sourceTree = "<group>"; };
@@ -705,6 +711,8 @@
 				D0AE215F1528045C00D340A5 /* NSString+KeyPathAdditions.m */,
 				D03A5E63152622D400DF330F /* NSString+NumericSuffixAdditions.h */,
 				D03A5E64152622D400DF330F /* NSString+NumericSuffixAdditions.m */,
+				1E691B59152E687000BD4339 /* NSUndoManager+EditingAdditions.h */,
+				1E691B5A152E687000BD4339 /* NSUndoManager+EditingAdditions.m */,
 				D0C808AF14D0EF310068E06C /* NSUndoManager+RegistrationAdditions.h */,
 				D0C808B014D0EF310068E06C /* NSUndoManager+RegistrationAdditions.m */,
 				D0AA94B214D0AD060040B59D /* NSUndoManager+UndoStackAdditions.h */,
@@ -1108,6 +1116,7 @@
 				D08965DA1527F14700616FFA /* PROBinding.h in Headers */,
 				D00B9243152902DC00A49BE8 /* PROViewModel.h in Headers */,
 				D0AE21611528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */,
+				1E691B5C152E687100BD4339 /* NSUndoManager+EditingAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1161,6 +1170,7 @@
 				D08965D91527F14700616FFA /* PROBinding.h in Headers */,
 				D00B9242152902DC00A49BE8 /* PROViewModel.h in Headers */,
 				D0AE21601528045C00D340A5 /* NSString+KeyPathAdditions.h in Headers */,
+				1E691B5B152E687100BD4339 /* NSUndoManager+EditingAdditions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1444,6 +1454,7 @@
 				D08965DC1527F14700616FFA /* PROBinding.m in Sources */,
 				D00B9245152902DC00A49BE8 /* PROViewModel.m in Sources */,
 				D0AE21631528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */,
+				1E691B5E152E687100BD4339 /* NSUndoManager+EditingAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1530,6 +1541,7 @@
 				D08965DB1527F14700616FFA /* PROBinding.m in Sources */,
 				D00B9244152902DC00A49BE8 /* PROViewModel.m in Sources */,
 				D0AE21621528045C00D340A5 /* NSString+KeyPathAdditions.m in Sources */,
+				1E691B5D152E687100BD4339 /* NSUndoManager+EditingAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
