@@ -33,7 +33,8 @@
  * Attempts to open an edit grouping named `actionName` and immediately
  * returns whether the attempt was successful.
  *
- * @param actionName If not `nil`, the name of the edit grouping to open.
+ * @param actionName The name of the edit grouping to open. If `nil`, no
+ * action name is set on the receiver.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName;
 
@@ -48,7 +49,8 @@
  * given block inside it, and closes the group. Returns whether the
  * operation was successful.
  *
- * @param actionName If not `nil`, the name of the edit grouping to open.
+ * @param actionName The name of the edit grouping to open. If `nil`, no action
+ * name is set on the receiver.
  * @param block The block to execute within the edit grouping.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block;
