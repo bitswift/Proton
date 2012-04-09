@@ -32,8 +32,9 @@
  * Attempts to open an edit grouping named `actionName` and immediately
  * returns whether the attempt was successful.
  *
- * @param actionName The name of the edit grouping to open. There is no
- * effect if the action name is `nil`.
+ * @param actionName The name of the action associated with undoing the edit grouping.
+ * If `actionName` is an empty string, the action name currently associated with the menu
+ * command is removed. The receiver's action name remains unchanged if this is `nil`.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName;
 
@@ -48,8 +49,10 @@
  * given block inside it, and closes the group. Returns whether the
  * operation was successful.
  *
- * @param actionName The name of the edit grouping to open. There is no
- * effect if the action name is `nil`.
+ * @param actionName The name of the action associated with undoing the edit grouping.
+ * If `actionName` is an empty string, the action name currently associated with the menu
+ * command is removed. The receiver's action name remains unchanged if this is `nil`.
+ * 
  * @param block The block to execute within the edit grouping.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block;
