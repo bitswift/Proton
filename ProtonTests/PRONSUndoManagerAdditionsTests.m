@@ -432,7 +432,7 @@ SpecBegin(NSUndoManagerAdditions)
         __block void (^block)(void);
         __block BOOL calledBlock;
         __block BOOL calledUndoWithBlock;
-        
+
         before(^{
             calledBlock = NO;
             calledUndoWithBlock = NO;
@@ -516,17 +516,10 @@ SpecBegin(NSUndoManagerAdditions)
                 expect(calledBlock).toBeTruthy();
             });
 
-            it(@"calls the block within it when undone", ^{
-                // Called in the before block.
-            });
-
-            it(@"sets its action name", ^{
-                // Called in the before block.
-            });
-
             it(@"can call an edit grouping block twice in a row", ^{
                 __block BOOL secondBlockCalled = NO;
                 __block BOOL calledUndoWithSecondBlock = NO;
+
                 BOOL success = [undoManager tryEditGroupingUsingBlock:^{
                     secondBlockCalled = YES;
                     [weakManager registerUndoWithBlock:^{
@@ -535,11 +528,9 @@ SpecBegin(NSUndoManagerAdditions)
                 }];
 
                 expect(success).toBeTruthy();
-
                 expect(secondBlockCalled).toBeTruthy();
 
                 [undoManager undo];
-
                 expect(calledUndoWithSecondBlock).toBeTruthy();
             });
         });
