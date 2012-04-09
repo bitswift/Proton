@@ -431,6 +431,7 @@ SpecBegin(NSUndoManagerAdditions)
     describe(@"editing additions", ^{
         __block void (^block)(void);
         __block BOOL calledBlock;
+        __block BOOL calledUndoWithBlock;
         
         before(^{
             calledBlock = NO;
@@ -439,15 +440,17 @@ SpecBegin(NSUndoManagerAdditions)
                 calledBlock = YES;
 
                 [weakManager registerUndoWithBlock:^{
-                    calledBlock = NO;
+                    calledUndoWithBlock = YES;
                 }];
             } copy];
         });
 
         after(^{
             expect(calledBlock).toBeTruthy();
+
             [undoManager undo];
-            expect(calledBlock).toBeFalsy();
+
+            expect(calledUndoWithBlock).toBeTruthy();
         });
 
         it(@"opens an edit grouping with a name", ^{
@@ -518,19 +521,21 @@ SpecBegin(NSUndoManagerAdditions)
 
             it(@"can execute an edit grouping block twice in a row", ^{
                 __block BOOL secondBlockCalled = NO;
+                __block BOOL calledUndoWithSecondBlock = NO;
                 BOOL success = [undoManager tryEditGroupingUsingBlock:^{
                     secondBlockCalled = YES;
                     [weakManager registerUndoWithBlock:^{
-                        secondBlockCalled = NO;
+                        calledUndoWithSecondBlock = YES;
                     }];
                 }];
 
                 expect(success).toBeTruthy();
+
                 expect(secondBlockCalled).toBeTruthy();
 
                 [undoManager undo];
 
-                expect(secondBlockCalled).toBeFalsy();
+                expect(calledUndoWithSecondBlock).toBeTruthy();
             });
         });
     });
