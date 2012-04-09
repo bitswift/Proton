@@ -433,13 +433,19 @@ SpecBegin(NSUndoManagerAdditions)
             NSString *expectedName = @"foobar";
             [undoManager tryEditGroupingWithActionName:expectedName];
             expect(undoManager.undoActionName).toEqual(expectedName);
+            [undoManager endEditGrouping];
+
+            expect(undoManager.canUndo).toBeTruthy();
+            expect(undoManager.canRedo).toBeFalsy();
         });
 
         it(@"ends an edit grouping when one is not open", ^{
-            [undoManager endEditGrouping];
-
             BOOL success = [undoManager tryEditGrouping];
             expect(success).toBeTruthy();
+            [undoManager endEditGrouping];
+
+            expect(undoManager.canUndo).toBeTruthy();
+            expect(undoManager.canRedo).toBeFalsy();
         });
 
         describe(@"with an open edit grouping", ^{
@@ -448,13 +454,21 @@ SpecBegin(NSUndoManagerAdditions)
                 expect(success).toBeTruthy();
             });
 
-            it(@"opens an edit grouping", ^{
-                expect(undoManager.canUndo).toBeTruthy();
+            after(^{
+                [undoManager undo];
+
+                expect(undoManager.canRedo).toBeTruthy();
+                expect(undoManager.canUndo).toBeFalsy();
             });
+
 
             it(@"does not open an edit grouping after one has been opened", ^{
                 BOOL nextSuccess = [undoManager tryEditGrouping];
                 expect(nextSuccess).toBeFalsy();
+
+                [undoManager endEditGrouping];
+
+                expect(undoManager.canUndo).toBeTruthy();
             });
 
             it(@"can execute an edit grouping after one has been closed", ^{
@@ -462,6 +476,11 @@ SpecBegin(NSUndoManagerAdditions)
 
                 BOOL succeededTwice = [undoManager tryEditGrouping];
                 expect(succeededTwice).toBeTruthy();
+
+                [undoManager endEditGrouping];
+                expect(undoManager.canUndo).toBeTruthy();
+
+                [undoManager undo];
             });
         });
 
@@ -478,11 +497,13 @@ SpecBegin(NSUndoManagerAdditions)
 
                 BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
                 expect(success).toBeTruthy();
+                expect(calledBlock).toBeTruthy();
             });
 
             after(^{
                 [undoManager undo];
-                expect(calledBlock).toBeTruthy();
+                expect(undoManager.canUndo).toBeFalsy();
+                expect(undoManager.canRedo).toBeTruthy();
             });
 
             it(@"executes the block within it", ^{
@@ -496,6 +517,11 @@ SpecBegin(NSUndoManagerAdditions)
             it(@"can execute an edit grouping block twice in a row", ^{
                 BOOL success = [undoManager tryEditGroupingUsingBlock:^{}];
                 expect(success).toBeTruthy();
+
+                expect(undoManager.canUndo).toBeTruthy();
+                expect(undoManager.canRedo).toBeFalsy();
+
+                [undoManager undo];
             });
         });
     });
