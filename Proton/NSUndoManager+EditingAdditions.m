@@ -58,7 +58,8 @@
 }
 
 - (void)endEditGrouping {
-    PROAssert([self isUndoManagerEditing], @"%s called without an open edit undo grouping.", __func__);
+    if (!PROAssert([self isUndoManagerEditing], @"%s called without an open edit undo grouping.", __func__))
+        return;
 
     [self endUndoGrouping];
     self.undoManagerEditing = NO;
