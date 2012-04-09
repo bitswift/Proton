@@ -9,8 +9,6 @@
 #import "NSUndoManager+EditingAdditions.h"
 #import <objc/runtime.h>
 
-static BOOL PRONSUndoManagerIsEditing = NO;
-
 @implementation NSUndoManager (EditingAdditions)
 
 - (void)setUndoManagerEditing:(BOOL)editing {

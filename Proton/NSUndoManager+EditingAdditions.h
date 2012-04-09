@@ -9,9 +9,13 @@
 #import <Foundation/Foundation.h>
 
 /**
- * Extensions to `NSUndoManager` to coordinate edit groupings.
+ * Extensions to `NSUndoManager` to coordinate edits within a window.
  *
- * Edit groupings are mutually exclusive and fail to open on that basis.
+ * An edit grouping can be opened to guarantee only one user interface element is edited at one time.
+ *
+ * Since edit groupings are mutually exclusive, multiple edit groupings
+ * cannot be nested.
+ *
  */
 @interface NSUndoManager (EditingAdditions)
 
@@ -49,7 +53,7 @@
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block;
 
 /**
- * Closes a previously opened edit grouping.
+ * Closes a previously opened edit grouping if one was open.
  */
 - (void)endEditGrouping;
 
