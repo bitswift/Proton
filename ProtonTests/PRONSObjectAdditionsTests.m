@@ -65,6 +65,7 @@ SpecBegin(PRONSObjectAdditions)
 
         after(^{
             observer = nil;
+            operation = nil;
         });
 
         describe(@"adding an observer owned by an object", ^{
@@ -94,6 +95,8 @@ SpecBegin(PRONSObjectAdditions)
                 expect(observer.keyPath).toEqual(keyPath);
                 expect(observer.options).toEqual(options);
                 expect(observer.block).toEqual(block);
+
+                [self removeAllOwnedObservers];
             });
         });
 

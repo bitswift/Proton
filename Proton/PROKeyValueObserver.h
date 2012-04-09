@@ -34,16 +34,15 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
  * Observation will begin immediately, and will not stop until the receiver is
  * destroyed.
  *
- * @param target The object to observe. This object must support weak
- * references being formed to it.
+ * @param target The object to observe.
  * @param keyPath The key path, relative to the `target`, to observe for
  * changes.
  * @param block The block to invoke when a change notification is sent.
  *
- * @warning **Important:** Although `target` is saved only as a weak reference,
- * it is still undefined behavior for the receiver to remain alive longer than
- * the target object. The `<NSKeyValueObserving>` protocol specifies that
- * observations must cease before the observed object is deallocated.
+ * @warning **Important:** It is undefined behavior for the receiver to remain
+ * alive longer than the target object. The `<NSKeyValueObserving>` protocol
+ * specifies that observations must cease before the observed object is
+ * deallocated.
  */
 - (id)initWithTarget:(id)target keyPath:(NSString *)keyPath block:(PROKeyValueObserverBlock)block;
 
@@ -56,18 +55,17 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
  *
  * This is the designated initializer.
  *
- * @param target The object to observe. This object must support weak
- * references being formed to it.
+ * @param target The object to observe.
  * @param keyPath The key path, relative to the `target`, to observe for
  * changes.
  * @param options A bitmask of options controlling the information that will be
  * provided in the KVO change dictionary.
  * @param block The block to invoke when a change notification is sent.
  *
- * @warning **Important:** Although `target` is saved only as a weak reference,
- * it is still undefined behavior for the receiver to remain alive longer than
- * the target object. The `<NSKeyValueObserving>` protocol specifies that
- * observations must cease before the observed object is deallocated.
+ * @warning **Important:** It is undefined behavior for the receiver to remain
+ * alive longer than the target object. The `<NSKeyValueObserving>` protocol
+ * specifies that observations must cease before the observed object is
+ * deallocated.
  */
 - (id)initWithTarget:(id)target keyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options block:(PROKeyValueObserverBlock)block;
 
@@ -78,12 +76,12 @@ typedef void (^PROKeyValueObserverBlock)(NSDictionary *);
 /**
  * The object being observed.
  *
- * @warning **Important:** Although this object is saved only as a weak
- * reference, it is still undefined behavior for the receiver to remain alive
- * longer than the target object. The `<NSKeyValueObserving>` protocol specifies
- * that observations must cease before the observed object is deallocated.
+ * @warning **Important:** It is undefined behavior for the receiver to remain
+ * alive longer than the target object. The `<NSKeyValueObserving>` protocol
+ * specifies that observations must cease before the observed object is
+ * deallocated.
  */
-@property (nonatomic, weak, readonly) id target;
+@property (nonatomic, unsafe_unretained, readonly) id target;
 
 /**
  * The key path, relative to the <target>, being observed.
