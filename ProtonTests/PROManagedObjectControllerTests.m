@@ -88,10 +88,6 @@ SpecBegin(PROManagedObjectController)
         ];
     });
 
-    after(^{
-        controller = nil;
-    });
-
     __block PROKeyValueObserver *editingObserver;
     __block BOOL editingObserverInvoked;
 
@@ -121,6 +117,8 @@ SpecBegin(PROManagedObjectController)
     after(^{
         editingObserver = nil;
         currentEditorsObserver = nil;
+
+        controller = nil;
     });
 
     it(@"should begin editing when an object begins editing", ^{
