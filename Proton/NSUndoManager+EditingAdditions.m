@@ -26,21 +26,20 @@ static BOOL PRONSUndoManagerIsEditing = NO;
 }
 
 - (BOOL)tryEditGrouping {
+    return [self tryEditGroupingWithActionName:nil];
+}
+
+- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName {
     if ([self isUndoManagerEditing])
         return NO;
 
     self.undoManagerEditing = YES;
     [self beginUndoGrouping];
-    return [self isUndoManagerEditing];
-}
 
-- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName {
-    if ([self tryEditGrouping] || [self.undoActionName isEqualToString:actionName]) {
+    if (actionName)
         self.actionName = actionName;
-        return YES;
-    }
 
-    return NO;
+    return [self isUndoManagerEditing];
 }
 
 - (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block {

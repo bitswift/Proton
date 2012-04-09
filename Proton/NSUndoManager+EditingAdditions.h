@@ -20,8 +20,7 @@
  */
 
 /**
- * Attempts to open an edit grouping and immediately returns
- * whether the attempt was successful.
+ * Invokes <tryEditGroupingWithActionName:> with a `nil` `actionName`.
  */
 - (BOOL)tryEditGrouping;
 
@@ -29,16 +28,13 @@
  * Attempts to open an edit grouping named `actionName` and immediately
  * returns whether the attempt was successful.
  *
- * @param actionName The name of the edit grouping to open.
+ * @param actionName If not `nil`, the name of the edit grouping to open.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName;
 
 /**
- * Attempts to open an edit grouping named `actionName`, executes the
- * given block inside it, and closes the group. Returns whether the
- * operation was successful.
- *
- * @param block The block to execute within the edit grouping.
+ * Invokes <tryEditGroupingWithActionName:usingBlock:> with a `nil`
+ * `actionName`.
  */
 - (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block;
 
@@ -47,7 +43,7 @@
  * given block inside it, and closes the group. Returns whether the
  * operation was successful.
  *
- * @param actionName The name of the edit grouping to open.
+ * @param actionName If not `nil`, the name of the edit grouping to open.
  * @param block The block to execute within the edit grouping.
  */
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block;
