@@ -507,7 +507,10 @@ SpecBegin(NSUndoManagerAdditions)
 
         describe(@"with a block", ^{
             before(^{
-                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
+                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:^{
+                    expect(undoManager.undoActionName).toEqual(@"foobar");
+                    block();
+                }];
 
                 expect(success).toBeTruthy();
                 expect(calledBlock).toBeTruthy();
@@ -518,7 +521,7 @@ SpecBegin(NSUndoManagerAdditions)
             });
 
             it(@"sets its action name", ^{
-                expect(undoManager.undoActionName).toEqual(@"foobar");
+                // Called in the before block.
             });
 
             it(@"can call an edit grouping block twice in a row", ^{
