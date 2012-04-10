@@ -77,6 +77,8 @@ SpecBegin(PROViewModel)
             expect(viewModel.date).toBeNil();
             expect(viewModel.enabled).toBeFalsy();
             expect(viewModel.initializingFromArchive).toBeFalsy();
+            expect(viewModel.parentViewModel).toBeNil();
+            expect(viewModel.rootViewModel).toEqual(viewModel);
         });
 
         describe(@"with an instance", ^{
@@ -103,6 +105,29 @@ SpecBegin(PROViewModel)
                 otherViewModel.model = viewModel.model;
                 otherViewModel.name = @"fizzbuzz";
                 expect(viewModel).not.toEqual(otherViewModel);
+            });
+
+            describe(@"with parent view models", ^{
+                __block PROViewModel *parentViewModel;
+
+                before(^{
+                    parentViewModel = [[PROViewModel alloc] init];
+                    expect(parentViewModel).not.toBeNil();
+
+                    viewModel.parentViewModel = parentViewModel;
+                    expect(viewModel.parentViewModel).toEqual(parentViewModel);
+                });
+
+                it(@"returns its parentViewModel as its rootViewModel when its parentViewModel has no ancestors", ^{
+                    expect(viewModel.rootViewModel).toEqual(parentViewModel);
+                });
+
+                it(@"returns its ancestor parentViewModel as its rootViewModel", ^{
+                    PROViewModel *grandParentViewModel = [[PROViewModel alloc] init];
+                    parentViewModel.parentViewModel = grandParentViewModel;
+
+                    expect(viewModel.rootViewModel).toEqual(grandParentViewModel);
+                });
             });
 
             describe(@"archiving behavior", ^{
@@ -140,7 +165,7 @@ SpecBegin(PROViewModel)
 
                     NSMutableData *encoded = [NSMutableData data];
                     NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:encoded];
-                    
+
                     [archiver encodeObject:unretainedObject forKey:@"unretainedObject"];
                     [archiver encodeObject:viewModel forKey:@"viewModel"];
 

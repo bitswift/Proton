@@ -97,6 +97,26 @@ typedef enum {
 @property (nonatomic, strong) id model;
 
 /**
+ * Parent View Models
+ */
+
+/**
+ * The immediate parent view model of the receiver. Returns `nil` if the
+ * receiver is the <rootViewModel> for its hierarchy.
+ *
+ * This property is `nil` by default.
+ */
+@property (nonatomic, weak) PROViewModel *parentViewModel;
+
+/**
+ * The root view model of the receiver.
+ *
+ * Returns the <[PROViewModel rootViewModel]> of the receiver's <parentViewModel>
+ * or the receiver if it has no parent.
+ */
+@property (nonatomic, weak, readonly) PROViewModel *rootViewModel;
+
+/**
  * @name Declared Properties
  */
 
@@ -135,7 +155,7 @@ typedef enum {
 /**
  * Returns whether the given action selector can be validly invoked, given the
  * current state of the receiver.
- * 
+ *
  * The default implementation of this method looks for a method named
  * `-validate<Action>` on the receiver, invoking it and using its result if
  * present. Subclasses that override this method to perform custom logic should

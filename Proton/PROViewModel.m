@@ -41,6 +41,7 @@
 @synthesize model = m_model;
 @synthesize observationInfo = m_observationInfo;
 @synthesize initializingFromArchive = m_initializingFromArchive;
+@synthesize parentViewModel = m_parentViewModel;
 
 - (void)setModel:(id)model {
     if (model == m_model)
@@ -50,6 +51,13 @@
     [PROBinding removeAllBindingsFromOwner:self];
 
     m_model = model;
+}
+
+- (PROViewModel *)rootViewModel {
+    if (!self.parentViewModel)
+        return self;
+
+    return self.parentViewModel.rootViewModel;
 }
 
 #pragma mark - Lifecycle
@@ -196,7 +204,7 @@
 
     [self.class enumeratePropertiesUsingBlock:^(objc_property_t property, NSString *key){
         id value = [coder decodeObjectForKey:key];
-        
+
         if (!value) {
             PROAssert([self.class encodingBehaviorForKey:key] != PROViewModelEncodingBehaviorUnconditional, @"Key \"%@\" of %@ should have been unconditionally encoded, but is not present in the archive", key, self.class);
             return;
@@ -204,7 +212,7 @@
 
         if ([value isEqual:[NSNull null]])
             value = nil;
-        
+
         [self setValue:value forKey:key];
     }];
 
