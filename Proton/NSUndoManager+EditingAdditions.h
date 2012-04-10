@@ -42,7 +42,7 @@
  * Invokes <tryEditGroupingWithActionName:usingBlock:> with a `nil`
  * `actionName`.
  */
-- (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block __attribute__((warn_unused_result));
+- (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block;
 
 /**
  * Attempts to open an edit grouping named `actionName`, executes the
@@ -52,10 +52,10 @@
  * @param actionName The name of the action associated with undoing the edit grouping.
  * If `actionName` is an empty string, the action name currently associated with the menu
  * command is removed. The receiver's action name remains unchanged if this is `nil`.
- * 
+ *
  * @param block The block to execute within the edit grouping.
  */
-- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block __attribute__((warn_unused_result));
+- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block;
 
 /**
  * Closes a previously opened edit grouping.
