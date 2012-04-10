@@ -122,7 +122,7 @@ SpecBegin(PROViewModel)
                     expect(viewModel.rootViewModel).toEqual(parentViewModel);
                 });
 
-                it(@"returns its ancestor parentViewModel as its rootViewModel when its parentViewModel has ancestors", ^{
+                it(@"returns its ancestor parentViewModel as its rootViewModel", ^{
                     PROViewModel *grandParentViewModel = [[PROViewModel alloc] init];
                     parentViewModel.parentViewModel = grandParentViewModel;
 
