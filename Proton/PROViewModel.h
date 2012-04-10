@@ -103,14 +103,16 @@ typedef enum {
 /**
  * The immediate parent view model of the receiver. Returns `nil` if the
  * receiver is the <rootViewModel> for its hierarchy.
+ *
+ * This property is `nil` by default.
  */
 @property (nonatomic, weak) PROViewModel *parentViewModel;
 
 /**
  * The root view model of the receiver.
  *
- * This returns the <[PROViewModel rootViewModel]> of the receiver's
- * <parentViewModel>.
+ * Returns the <[PROViewModel rootViewModel]> of the receiver's <parentViewModel>
+ * or the receiver if no <parentViewModel> is `nil`.
  */
 @property (nonatomic, weak, readonly) PROViewModel *rootViewModel;
 
