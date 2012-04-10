@@ -112,7 +112,7 @@ typedef enum {
  * The root view model of the receiver.
  *
  * Returns the <[PROViewModel rootViewModel]> of the receiver's <parentViewModel>
- * or the receiver if no <parentViewModel> is `nil`.
+ * or the receiver if it has no parent.
  */
 @property (nonatomic, weak, readonly) PROViewModel *rootViewModel;
 

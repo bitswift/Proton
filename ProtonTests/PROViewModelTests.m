@@ -78,7 +78,7 @@ SpecBegin(PROViewModel)
             expect(viewModel.enabled).toBeFalsy();
             expect(viewModel.initializingFromArchive).toBeFalsy();
             expect(viewModel.parentViewModel).toBeNil();
-            expect(viewModel.rootViewModel).toBeNil();
+            expect(viewModel.rootViewModel).toEqual(viewModel);
         });
 
         describe(@"with an instance", ^{

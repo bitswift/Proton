@@ -54,13 +54,10 @@
 }
 
 - (PROViewModel *)rootViewModel {
-    PROViewModel *parent = self;
+    if (!self.parentViewModel)
+        return self;
 
-    do {
-        parent = parent.parentViewModel;
-    } while(parent.parentViewModel);
-
-    return parent;
+    return self.parentViewModel.rootViewModel;
 }
 
 #pragma mark - Lifecycle
