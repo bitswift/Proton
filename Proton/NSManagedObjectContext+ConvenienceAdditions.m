@@ -11,6 +11,15 @@
 #import "EXTScope.h"
 
 @safecategory (NSManagedObjectContext, ConvenienceAdditions)
+- (NSManagedObjectContext *)newChildContext; {
+    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSConfinementConcurrencyType];
+
+    context.parentContext = self;
+    context.undoManager = nil;
+
+    return context;
+}
+
 - (void)refreshAllObjectsMergingChanges:(BOOL)mergeChanges; {
     NSSet *objects = [self.registeredObjects copy];
 
