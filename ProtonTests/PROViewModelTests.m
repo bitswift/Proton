@@ -181,9 +181,6 @@ SpecBegin(PROViewModel)
                     expect(decoded.unretainedObject).toEqual(unretainedObject);
                     expect(decoded.enabled).toBeTruthy();
                     expect(decoded.date).toEqual(viewModel.date);
-
-                    decoded.model = viewModel.model;
-                    expect(decoded).toEqual(viewModel);
                 });
             });
 
