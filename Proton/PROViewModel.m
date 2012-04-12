@@ -93,6 +93,8 @@
 #pragma mark - Reflection
 
 + (void)enumeratePropertiesUsingBlock:(void (^)(objc_property_t property, NSString *key))block; {
+    NSMutableSet *propertyNames = [NSMutableSet set];
+
     for (Class cls = self; cls != [PROViewModel class]; cls = [cls superclass]) {
         unsigned count = 0;
         objc_property_t *properties = class_copyPropertyList(cls, &count);
@@ -104,7 +106,11 @@
             objc_property_t property = properties[i];
 
             NSString *key = [NSString stringWithUTF8String:property_getName(property)];
-            block(property, key);
+            if (![propertyNames containsObject:key]) {
+                [propertyNames addObject:key];
+
+                block(property, key);
+            }
         }
 
         free(properties);
