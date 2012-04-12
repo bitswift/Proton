@@ -161,4 +161,16 @@ SpecBegin(PRONSManagedObjectContextAdditions)
         expect(undoManager.canUndo).toBeFalsy();
     });
 
+    it(@"should return a child context", ^{
+        NSManagedObjectContext *childContext = [context newChildContext];
+        expect(childContext).not.toBeNil();
+        expect(childContext.parentContext).toEqual(context);
+        expect(childContext.concurrencyType).toEqual(NSConfinementConcurrencyType);
+        expect(childContext.undoManager).toBeNil();
+    });
+
+    it(@"should return unique child contexts", ^{
+        expect([context newChildContext]).not.toEqual([context newChildContext]);
+    });
+
 SpecEnd

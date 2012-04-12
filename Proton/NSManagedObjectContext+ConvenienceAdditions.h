@@ -14,6 +14,19 @@
 @interface NSManagedObjectContext (ConvenienceAdditions)
 
 /**
+ * @name Creating Child Contexts
+ */
+
+/**
+ * Creates and returns a managed object context with its `parentContext` set to
+ * the receiver.
+ *
+ * The returned context will be initialized with `NSConfinementConcurrencyType`,
+ * and will not have an undo manager by default (even on Mac OS X).
+ */
+- (NSManagedObjectContext *)newChildContext;
+
+/**
  * @name Refreshing Objects
  */
 
