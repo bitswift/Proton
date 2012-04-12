@@ -59,11 +59,9 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
 @synthesize boundKeyPath = m_boundKeyPath;
 @synthesize ownerObserver = m_ownerObserver;
 @synthesize boundObjectObserver = m_boundObjectObserver;
-@synthesize updating = m_updating;
 @synthesize boundValueTransformationBlock = m_boundValueTransformationBlock;
 @synthesize ownerValueTransformationBlock = m_ownerValueTransformationBlock;
 @synthesize validationFailedBlock = m_validationFailedBlock;
-@synthesize settingInitialValue = m_settingInitialValue;
 
 - (BOOL)isSettingInitialValue {
     return m_flags.settingInitialValue;
