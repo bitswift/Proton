@@ -17,9 +17,16 @@
  */
 static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssociatedBindings";
 
-@interface PROBinding ()
+@interface PROBinding () {
+    struct {
+        unsigned settingInitialValue:1;
+        unsigned updating:1;
+    } m_flags;
+}
+
 @property (nonatomic, weak, readwrite) id owner;
 @property (nonatomic, strong, readwrite) id boundObject;
+@property (nonatomic, getter = isSettingInitialValue, readwrite) BOOL settingInitialValue;
 
 /**
  * Observes the <ownerKeyPath> of the <owner> for changes, if the key path is
@@ -52,10 +59,25 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
 @synthesize boundKeyPath = m_boundKeyPath;
 @synthesize ownerObserver = m_ownerObserver;
 @synthesize boundObjectObserver = m_boundObjectObserver;
-@synthesize updating = m_updating;
 @synthesize boundValueTransformationBlock = m_boundValueTransformationBlock;
 @synthesize ownerValueTransformationBlock = m_ownerValueTransformationBlock;
 @synthesize validationFailedBlock = m_validationFailedBlock;
+
+- (BOOL)isSettingInitialValue {
+    return m_flags.settingInitialValue;
+}
+
+- (void)setSettingInitialValue:(BOOL)value {
+    m_flags.settingInitialValue = value;
+}
+
+- (BOOL)isUpdating {
+    return m_flags.updating;
+}
+
+- (void)setUpdating:(BOOL)value {
+    m_flags.updating = value;
+}
 
 - (BOOL)isBound {
     return self.owner != nil;
@@ -85,7 +107,10 @@ static char * const PROBindingOwnerAssociatedBindingsKey = "PROBindingOwnerAssoc
     if (setupBlock)
         setupBlock(binding);
 
+    binding.settingInitialValue = YES;
     [binding boundObjectChanged:binding];
+    binding.settingInitialValue = NO;
+
     return binding;
 }
 

@@ -122,6 +122,7 @@ SpecBegin(PROBinding)
                     expect(binding.ownerKeyPath).toEqual(ownerKeyPath);
                     expect(binding.boundObject).toEqual(boundObject);
                     expect(binding.boundKeyPath).toEqual(boundKeyPath);
+                    expect(binding.settingInitialValue).toBeFalsy();
                 }
 
                 expect(binding).not.toBeNil();
@@ -402,4 +403,13 @@ SpecEnd
 @end
 
 @implementation CustomBindingClass
+
+- (IBAction)boundObjectChanged:(id)sender {
+    // this class is only used to test the class constructor, so this should
+    // always be true
+    expect(self.settingInitialValue).toBeTruthy();
+
+    [super boundObjectChanged:sender];
+}
+
 @end
