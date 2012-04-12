@@ -114,7 +114,7 @@
  * <bindKeyPath:ofObject:toKeyPath:ofObject:withSetup:> is triggering the
  * binding for the first time, and never thereafter.
  *
- * This property can be used by subclasses, to conditionalize an override of
+ * This property can be used by subclasses to conditionalize an override of
  * <boundObjectChanged:> based on whether the change is initial or not.
  */
 @property (nonatomic, getter = isSettingInitialValue, readonly) BOOL settingInitialValue;
