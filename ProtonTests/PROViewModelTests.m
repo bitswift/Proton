@@ -93,9 +93,9 @@ SpecBegin(PROViewModel)
                 expect(viewModel.model).not.toBeNil();
             });
 
-            it(@"is equal to same view model data", ^{
+            it(@"is not equal to same view model data", ^{
                 TestViewModel *otherViewModel = [[TestViewModel alloc] initWithModel:viewModel.model];
-                expect(viewModel).toEqual(otherViewModel);
+                expect(viewModel).not.toEqual(otherViewModel);
             });
 
             it(@"is not equal to a different view model", ^{

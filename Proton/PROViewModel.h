@@ -42,9 +42,6 @@ typedef enum {
  * subclasses, using the behavior of <encodingBehaviorForKey:> to determine
  * which properties to archive.
  *
- * The implementations of `-hash` and `-isEqual:` are based on the `readwrite`
- * properties of the class, including the <model> property.
- *
  * Upon deallocation, instances of this class will automatically invoke
  * <[NSObject removeAllOwnedObservers]> and <[PROBinding
  * removeAllBindingsFromOwner:>, and automatically unregister from any
