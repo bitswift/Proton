@@ -192,9 +192,7 @@ static BOOL saveOnContextQueue (NSManagedObjectContext *context, NSError **error
 #pragma mark Managed Object Contexts
 
 - (NSManagedObjectContext *)newContext; {
-    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSConfinementConcurrencyType];
-    context.parentContext = self.globalContext;
-    context.undoManager = nil;
+    NSManagedObjectContext *context = [self.globalContext newChildContext];
 
     __weak PROCoreDataManager *weakSelf = self;
 
