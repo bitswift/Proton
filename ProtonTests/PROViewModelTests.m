@@ -93,9 +93,9 @@ SpecBegin(PROViewModel)
                 expect(viewModel.model).not.toBeNil();
             });
 
-            it(@"is equal to same view model data", ^{
+            it(@"is not equal to same view model data", ^{
                 TestViewModel *otherViewModel = [[TestViewModel alloc] initWithModel:viewModel.model];
-                expect(viewModel).toEqual(otherViewModel);
+                expect(viewModel).not.toEqual(otherViewModel);
             });
 
             it(@"is not equal to a different view model", ^{
@@ -181,9 +181,6 @@ SpecBegin(PROViewModel)
                     expect(decoded.unretainedObject).toEqual(unretainedObject);
                     expect(decoded.enabled).toBeTruthy();
                     expect(decoded.date).toEqual(viewModel.date);
-
-                    decoded.model = viewModel.model;
-                    expect(decoded).toEqual(viewModel);
                 });
             });
 

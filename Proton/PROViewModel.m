@@ -269,39 +269,4 @@
     return str;
 }
 
-- (NSUInteger)hash {
-    return [self.model hash];
-}
-
-- (BOOL)isEqual:(PROViewModel *)viewModel {
-    if (self == viewModel)
-        return YES;
-
-    if (![viewModel isMemberOfClass:self.class])
-        return NO;
-
-    if (!NSEqualObjects(self.model, viewModel.model))
-        return NO;
-
-    NSMutableArray *readwriteKeys = [NSMutableArray array];
-    [self.class enumeratePropertiesUsingBlock:^(objc_property_t property, NSString *key){
-        ext_propertyAttributes *attributes = ext_copyPropertyAttributes(property);
-        if (!PROAssert(attributes, @"Could not retrieve attributes for property \"%@\" on %@", key, self.class))
-            return;
-
-        @onExit {
-            free(attributes);
-        };
-
-        if (attributes->readonly)
-            return;
-
-        [readwriteKeys addObject:key];
-    }];
-
-    NSDictionary *selfValues = [self dictionaryWithValuesForKeys:readwriteKeys];
-    NSDictionary *otherValues = [viewModel dictionaryWithValuesForKeys:readwriteKeys];
-    return NSEqualObjects(selfValues, otherValues);
-}
-
 @end
