@@ -8,10 +8,11 @@
 
 #import "NSUndoManager+EditingAdditions.h"
 #import "NSUndoManager+RegistrationAdditions.h"
+#import "EXTSafeCategory.h"
 #import "PROAssert.h"
 #import <objc/runtime.h>
 
-@implementation NSUndoManager (EditingAdditions)
+@safecategory(NSUndoManager, EditingAdditions)
 
 - (void)setUndoManagerEditing:(BOOL)editing {
     id isEditing = objc_getAssociatedObject(self, @selector(setUndoManagerEditing:));
