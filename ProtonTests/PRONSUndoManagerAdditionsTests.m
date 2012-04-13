@@ -47,9 +47,19 @@ SpecBegin(NSUndoManagerAdditions)
     describe(@"adding grouping using block", ^{
         it(@"should set action name", ^{
             [undoManager addGroupingWithActionName:@"foobar" usingBlock:^{
-                expect(weakManager.undoActionName).toEqual(@"foobar");
                 return YES;
             }];
+
+            expect(undoManager.undoActionName).toEqual(@"foobar");
+        });
+
+        it(@"should override any action name set within the block", ^{
+            [undoManager addGroupingWithActionName:@"foobar" usingBlock:^{
+                undoManager.actionName = @"fuzzbuzz";
+                return YES;
+            }];
+
+            expect(undoManager.undoActionName).toEqual(@"foobar");
         });
 
         it(@"should create nested group", ^{
@@ -455,13 +465,24 @@ SpecBegin(NSUndoManagerAdditions)
             expect(calledUndoWithBlock).toBeTruthy();
         });
 
-        it(@"opens an edit grouping without a name", ^{
+        it(@"opens an edit grouping", ^{
             BOOL success = [undoManager tryEditGrouping];
             expect(success).toBeTruthy();
 
             block();
 
             [undoManager endEditGrouping];
+        });
+
+        it(@"overrides names set within an edit grouping block", ^{
+            NSString *expectedName = @"foobar";
+            BOOL success = [undoManager tryEditGroupingWithActionName:expectedName usingBlock:^{
+                block();
+                undoManager.actionName = @"fuzzbuzz";
+            }];
+
+            expect(success).toBeTruthy();
+            expect(undoManager.undoActionName).toEqual(expectedName);
         });
 
         describe(@"with an open edit grouping", ^{
@@ -496,12 +517,10 @@ SpecBegin(NSUndoManagerAdditions)
 
         describe(@"with a block", ^{
             before(^{
-                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:^{
-                    expect(undoManager.undoActionName).toEqual(@"foobar");
-                    block();
-                }];
-
+                BOOL success = [undoManager tryEditGroupingWithActionName:@"foobar" usingBlock:block];
                 expect(success).toBeTruthy();
+
+                expect(undoManager.undoActionName).toEqual(@"foobar");
                 expect(calledBlock).toBeTruthy();
             });
 
