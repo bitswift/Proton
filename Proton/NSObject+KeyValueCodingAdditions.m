@@ -57,7 +57,7 @@ static id mutableCollectionForKeyPath(id obj, NSString *keyPath) {
             }];
         }
 
-        if (convertToSet) {
+        if (convertToSet && ![newCollection isKindOfClass:[NSSet class]]) {
             return [NSSet setWithArray:newCollection];
         } else {
             return newCollection;
