@@ -455,18 +455,6 @@ SpecBegin(NSUndoManagerAdditions)
             expect(calledUndoWithBlock).toBeTruthy();
         });
 
-        it(@"opens an edit grouping with a name", ^{
-            NSString *expectedName = @"foobar";
-            BOOL success = [undoManager tryEditGroupingWithActionName:expectedName];
-
-            expect(success).toBeTruthy();
-            expect(undoManager.undoActionName).toEqual(expectedName);
-
-            block();
-
-            [undoManager endEditGrouping];
-        });
-
         it(@"opens an edit grouping without a name", ^{
             BOOL success = [undoManager tryEditGrouping];
             expect(success).toBeTruthy();

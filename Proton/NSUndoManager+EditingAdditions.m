@@ -27,20 +27,13 @@
 }
 
 - (BOOL)tryEditGrouping {
-    return [self tryEditGroupingWithActionName:nil];
-}
-
-- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName {
     if ([self isUndoManagerEditing])
         return NO;
 
     self.undoManagerEditing = YES;
     [self beginUndoGrouping];
 
-    if (actionName)
-        self.actionName = actionName;
-
-    return [self isUndoManagerEditing];
+    return YES;
 }
 
 - (BOOL)tryEditGroupingUsingBlock:(void (^)(void))block {
@@ -48,13 +41,13 @@
 }
 
 - (BOOL)tryEditGroupingWithActionName:(NSString *)actionName usingBlock:(void (^)(void))block {
-    if (![self tryEditGroupingWithActionName:actionName])
+    if (![self tryEditGrouping])
         return NO;
 
     block();
 
+    self.actionName = actionName;
     [self endEditGrouping];
-
     return YES;
 }
 
