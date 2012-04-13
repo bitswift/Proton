@@ -568,6 +568,21 @@ SpecBegin(PRONSObjectAdditions)
                 [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
             });
 
+            it(@"should apply 'insertion' change with mapping using a set", ^{
+                NSSet *insertedObjects = [NSSet setWithObjects:@"quux", [NSNull null], nil];
+
+                NSDictionary *changes = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [NSNumber numberWithUnsignedInteger:NSKeyValueChangeInsertion], NSKeyValueChangeKindKey,
+                    insertedObjects, NSKeyValueChangeNewKey,
+                    nil
+                ];
+
+                expectedSet = [set mutableCopy];
+                [expectedSet unionSet:[insertedObjects mapUsingBlock:mappingBlock]];
+
+                [object applyKeyValueChangeDictionary:changes toKeyPath:keyPath mappingNewObjectsUsingBlock:mappingBlock];
+            });
+
             it(@"should apply 'removal' change with mapping", ^{
                 NSSet *removedObjects = [NSSet setWithObjects:@"foo", @"fizz", [NSNull null], nil];
 
