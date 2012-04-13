@@ -24,19 +24,10 @@
  */
 
 /**
- * Invokes <tryEditGroupingWithActionName:> with a `nil` `actionName`.
+ * Attempts to open an edit grouping, and immediately returns whether the
+ * attempt was successful.
  */
 - (BOOL)tryEditGrouping __attribute__((warn_unused_result));
-
-/**
- * Attempts to open an edit grouping named `actionName` and immediately
- * returns whether the attempt was successful.
- *
- * @param actionName The name of the action associated with undoing the edit grouping.
- * If `actionName` is an empty string, the action name currently associated with the menu
- * command is removed. The receiver's action name remains unchanged if this is `nil`.
- */
-- (BOOL)tryEditGroupingWithActionName:(NSString *)actionName __attribute__((warn_unused_result));
 
 /**
  * Invokes <tryEditGroupingWithActionName:usingBlock:> with a `nil`
