@@ -69,8 +69,8 @@ static char * const PROUndoManagerBlockActionsKey = "PROUndoManagerBlockActions"
 
 - (BOOL)addGroupingWithActionName:(NSString *)actionName usingBlock:(BOOL (^)(void))block; {
     [self beginUndoGrouping];
-    [self setActionName:actionName];
     BOOL result = block();
+    [self setActionName:actionName];
     [self endUndoGrouping];
 
     if (result) {
