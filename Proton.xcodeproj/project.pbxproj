@@ -39,12 +39,6 @@
 		D00B9243152902DC00A49BE8 /* PROViewModel.h in Headers */ = {isa = PBXBuildFile; fileRef = D00B9240152902DC00A49BE8 /* PROViewModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D00B9244152902DC00A49BE8 /* PROViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D00B9241152902DC00A49BE8 /* PROViewModel.m */; };
 		D00B9245152902DC00A49BE8 /* PROViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D00B9241152902DC00A49BE8 /* PROViewModel.m */; };
-		D00DA769150FD9980090875F /* PROManagedObjectController.h in Headers */ = {isa = PBXBuildFile; fileRef = D00DA767150FD9980090875F /* PROManagedObjectController.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D00DA76A150FD9980090875F /* PROManagedObjectController.h in Headers */ = {isa = PBXBuildFile; fileRef = D00DA767150FD9980090875F /* PROManagedObjectController.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D00DA76B150FD9980090875F /* PROManagedObjectController.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA768150FD9980090875F /* PROManagedObjectController.m */; };
-		D00DA76C150FD9980090875F /* PROManagedObjectController.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA768150FD9980090875F /* PROManagedObjectController.m */; };
-		D00DA76E151001100090875F /* PROManagedObjectControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */; };
-		D00DA76F151001100090875F /* PROManagedObjectControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */; };
 		D0205B2614F32C9500404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
 		D0205B2814F32C9C00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2714F32C9C00404ACA /* CoreData.framework */; };
 		D0205B2914F32CBE00404ACA /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0205B2514F32C9500404ACA /* CoreData.framework */; };
@@ -392,9 +386,6 @@
 		D00AB29F14CFF55E000BC4B0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
 		D00B9240152902DC00A49BE8 /* PROViewModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROViewModel.h; sourceTree = "<group>"; };
 		D00B9241152902DC00A49BE8 /* PROViewModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROViewModel.m; sourceTree = "<group>"; };
-		D00DA767150FD9980090875F /* PROManagedObjectController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROManagedObjectController.h; sourceTree = "<group>"; };
-		D00DA768150FD9980090875F /* PROManagedObjectController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROManagedObjectController.m; sourceTree = "<group>"; };
-		D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PROManagedObjectControllerTests.m; sourceTree = "<group>"; };
 		D0205B2514F32C9500404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		D0205B2714F32C9C00404ACA /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		D0205B2C14F32D0000404ACA /* PROCoreDataManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PROCoreDataManager.h; sourceTree = "<group>"; };
@@ -633,15 +624,6 @@
 			name = "View Models";
 			sourceTree = "<group>";
 		};
-		D00DA766150FD98B0090875F /* Model Controllers */ = {
-			isa = PBXGroup;
-			children = (
-				D00DA767150FD9980090875F /* PROManagedObjectController.h */,
-				D00DA768150FD9980090875F /* PROManagedObjectController.m */,
-			);
-			name = "Model Controllers";
-			sourceTree = "<group>";
-		};
 		D0205B2B14F32CE200404ACA /* Core Data */ = {
 			isa = PBXGroup;
 			children = (
@@ -731,7 +713,6 @@
 				D0B6D0E414CE433D00769330 /* PROHigherOrderAdditionsTests.m */,
 				D04D284B14A5633C00197AB9 /* PROKeyValueCodingMacrosTests.m */,
 				D031BA9414A53F4600A38526 /* PROKeyValueObserverTests.m */,
-				D00DA76D151001100090875F /* PROManagedObjectControllerTests.m */,
 				D001801814F1E5AE00A131D8 /* PRONSArrayAdditionsTests.m */,
 				D0ADFE7F150025390043787E /* PRONSErrorAdditionsTests.m */,
 				D09C87751518486E0066D60E /* PRONSIndexPathAdditionsTests.m */,
@@ -800,7 +781,6 @@
 				D04D284514A5626F00197AB9 /* Key-Value Coding */,
 				D031BA8C14A53B4000A38526 /* Key-Value Observing */,
 				D0A3DD7014CAB85000754143 /* Logging */,
-				D00DA766150FD98B0090875F /* Model Controllers */,
 				1EA5FAFF14A2C0DA00E3B764 /* Unique Identifier */,
 				D00B923F152902CF00A49BE8 /* View Models */,
 			);
@@ -1108,7 +1088,6 @@
 				D0830A4914FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.h in Headers */,
 				D0ADFE7C150022A40043787E /* NSError+ValidationAdditions.h in Headers */,
 				D0CB0E2A150180FB0099611A /* NSObject+KeyValueCodingAdditions.h in Headers */,
-				D00DA76A150FD9980090875F /* PROManagedObjectController.h in Headers */,
 				D085320A1510731400CC9B4B /* NSObject+EditorAdditions.h in Headers */,
 				D09C8772151846E30066D60E /* NSIndexPath+TransformationAdditions.h in Headers */,
 				D09C878B15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
@@ -1162,7 +1141,6 @@
 				D0830A4814FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.h in Headers */,
 				D0ADFE7B150022A40043787E /* NSError+ValidationAdditions.h in Headers */,
 				D0CB0E29150180FB0099611A /* NSObject+KeyValueCodingAdditions.h in Headers */,
-				D00DA769150FD9980090875F /* PROManagedObjectController.h in Headers */,
 				D08532091510731400CC9B4B /* NSObject+EditorAdditions.h in Headers */,
 				D09C8771151846E30066D60E /* NSIndexPath+TransformationAdditions.h in Headers */,
 				D09C878A15184A3B0066D60E /* NSArray+IndexPathAdditions.h in Headers */,
@@ -1446,7 +1424,6 @@
 				D0830A4B14FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.m in Sources */,
 				D0ADFE7E150022A40043787E /* NSError+ValidationAdditions.m in Sources */,
 				D0CB0E2C150180FB0099611A /* NSObject+KeyValueCodingAdditions.m in Sources */,
-				D00DA76C150FD9980090875F /* PROManagedObjectController.m in Sources */,
 				D085320C1510731400CC9B4B /* NSObject+EditorAdditions.m in Sources */,
 				D09C8774151846E30066D60E /* NSIndexPath+TransformationAdditions.m in Sources */,
 				D09C878D15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
@@ -1485,7 +1462,6 @@
 				D0870F0014F3E95F0099AF8E /* TestModel.m in Sources */,
 				D0870F0414F3E96B0099AF8E /* TestSubModel.m in Sources */,
 				D0ADFE81150025390043787E /* PRONSErrorAdditionsTests.m in Sources */,
-				D00DA76F151001100090875F /* PROManagedObjectControllerTests.m in Sources */,
 				1A4E7111151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */,
 				D09C87771518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E70152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
@@ -1533,7 +1509,6 @@
 				D0830A4A14FB4BEB00AA0FF2 /* NSManagedObject+CopyingAdditions.m in Sources */,
 				D0ADFE7D150022A40043787E /* NSError+ValidationAdditions.m in Sources */,
 				D0CB0E2B150180FB0099611A /* NSObject+KeyValueCodingAdditions.m in Sources */,
-				D00DA76B150FD9980090875F /* PROManagedObjectController.m in Sources */,
 				D085320B1510731400CC9B4B /* NSObject+EditorAdditions.m in Sources */,
 				D09C8773151846E30066D60E /* NSIndexPath+TransformationAdditions.m in Sources */,
 				D09C878C15184A3B0066D60E /* NSArray+IndexPathAdditions.m in Sources */,
@@ -1572,7 +1547,6 @@
 				D0870EFF14F3E95F0099AF8E /* TestModel.m in Sources */,
 				D0870F0314F3E96B0099AF8E /* TestSubModel.m in Sources */,
 				D0ADFE80150025390043787E /* PRONSErrorAdditionsTests.m in Sources */,
-				D00DA76E151001100090875F /* PROManagedObjectControllerTests.m in Sources */,
 				1A4E7110151280CC00AC56ED /* TestCustomEncodedModel.m in Sources */,
 				D09C87761518486E0066D60E /* PRONSIndexPathAdditionsTests.m in Sources */,
 				D03A5E6F152623B500DF330F /* PRONSStringAdditionsTests.m in Sources */,
