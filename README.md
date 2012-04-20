@@ -27,4 +27,4 @@ All dependencies can be retrieved by running `git submodule update --init --recu
 
 # License
 
-Proton is released under the 3-clause BSD license. See the LICENSE file for more information.
+Proton is released under a modified version of the 3-clause BSD license. See the LICENSE file for more information.
