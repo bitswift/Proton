@@ -8,9 +8,11 @@ Proton is a utility framework for Cocoa and Cocoa Touch that provides tools usef
     - Support for copying managed objects between contexts
     - Support for encoding and decoding managed objects to and from property lists
     - Convenience methods on `NSManagedObject` and `NSManagedObjectContext` so callers have to write less code
- - `PROFuture`, an extremely fast and simple implementation of block-based futures
  - A class for key-value observing that makes it easier to manage the observation of many different objects or key paths
  - A couple macros to check key paths at compile time (i.e., fail to build when an invalid key path is used)
+ - Higher-order functions (map, filter, fold) for _all_ built-in collection classes
+ - Extensions to `NSUndoManager` to support blocks and make it simpler to manage undo groupings
+ - `PROFuture`, an extremely fast and simple implementation of block-based futures
 
 All of the above features are unit tested, to validate the typical use cases and detect any future breakage.
 
