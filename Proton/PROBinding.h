@@ -24,6 +24,9 @@
  * than the main thread, and will always trigger on the main thread (even if the
  * change occurred on another).
  *
+ * `PROBinding` can be subclassed to add additional behaviors, such as
+ * [animated changes](http://gist.github.com/2432590).
+ *
  * @warning Bindings must always be explicitly removed (either through <unbind>
  * or <removeAllBindingsFromOwner:>) before their <owner> is deallocated.
  */
